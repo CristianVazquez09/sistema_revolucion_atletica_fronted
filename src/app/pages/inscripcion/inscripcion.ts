@@ -17,7 +17,7 @@ import { MembresiaData } from '../../model/membresia-data';
 import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
 import { calcularFechaFin, calcularTotal, hoyISO } from '../../util/fechas-precios';
-import { TipoPago } from '../../util/enums/tipo-pago ';
+import { TipoPago } from '../../util/enums/tipo-pago';
 
 
 type SocioRequest = Omit<SocioData, 'idSocio'> & { idSocio?: number };

@@ -1,4 +1,4 @@
 export interface CategoriaData {
   idCategoria?: number;
-  nombre: String;
+  nombre: string;
 }

@@ -9,4 +9,5 @@ export interface SocioData {
   fechaNacimiento: string; // ISO 'YYYY-MM-DD' o Date
   genero: 'MASCULINO' | 'FEMENINO' | 'OTRO';
   comentarios?: string;
+  activo?: boolean;
 }

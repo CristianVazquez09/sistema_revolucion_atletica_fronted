@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { TipoPago } from '../../util/enums/tipo-pago ';
+import { TipoPago } from '../../util/enums/tipo-pago';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { CategoriaData } from '../model/categoria-data';
 import { GenericService } from './generic-service';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment.development';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'

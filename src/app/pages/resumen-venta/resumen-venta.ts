@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TipoPago } from '../../util/enums/tipo-pago ';
+import { TipoPago } from '../../util/enums/tipo-pago';
 
 type ItemResumen = {
   nombre: string;

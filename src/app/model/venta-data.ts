@@ -1,4 +1,4 @@
-import { TipoPago } from '../util/enums/tipo-pago ';
+import { TipoPago } from '../util/enums/tipo-pago';
 import { DetalleVentaData } from './detalle-venta-data';
 
 export interface VentaData {

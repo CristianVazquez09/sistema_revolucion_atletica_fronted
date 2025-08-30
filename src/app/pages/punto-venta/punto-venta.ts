@@ -11,7 +11,7 @@ import { CategoriaData } from '../../model/categoria-data';
 import { ProductoData } from '../../model/producto-data';
 // Modal de resumen
 import { ResumenVenta } from '../resumen-venta/resumen-venta';
-import { TipoPago } from '../../util/enums/tipo-pago ';
+import { TipoPago } from '../../util/enums/tipo-pago';
 import { NotificacionService } from '../../services/notificacion-service';
 
 type CarritoItem = {

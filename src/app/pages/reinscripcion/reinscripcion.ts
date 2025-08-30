@@ -15,7 +15,7 @@ import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
 import { TiempoPlan } from '../../util/enums/tiempo-plan';
 
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
-import { TipoPago } from '../../util/enums/tipo-pago ';
+import { TipoPago } from '../../util/enums/tipo-pago';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
 import { calcularFechaFin, calcularTotal } from '../../util/fechas-precios';
 

@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
   Subject,
@@ -79,7 +80,8 @@ export class Socio implements OnInit, OnDestroy {
           return this.socioService
             .buscarSociosPorNombre(texto, this.paginaActual, this.tamanioPagina)
             .pipe(finalize(() => (this.cargando = false)));
-        })
+        }),
+        takeUntilDestroyed()
       )
       .subscribe({
         next: (resp: PagedResponse<SocioData>) => this.aplicarRespuesta(resp),
@@ -152,7 +154,7 @@ export class Socio implements OnInit, OnDestroy {
   }
 
   // ─────────── Paginación ───────────
-  cambiarTamanioPagina(nuevo: any): void {
+  cambiarTamanioPagina(nuevo: number | string): void {
     this.tamanioPagina = Number(nuevo);
     this.paginaActual = 0; // siempre resetear a la primera
     this.cargarSocios();
