@@ -3,46 +3,19 @@
   <aside class="w-80 bg-ra-rojo-fuerte text-white flex flex-col">
     <!-- Logo -->
     <div class="h-60 flex items-center justify-center border-b border-red-600">
-    <img src="imagenes/logo-revolucion-atletica.png" alt="Logo Revolución Atlética" class="h-80 object-contain" />
+      <img src="imagenes/logo-revolucion-atletica.png" alt="Logo Revolución Atlética" class="h-80 object-contain" />
     </div>
 
     <!-- Menu -->
     <nav class="flex-1  ">
-      <a routerLink="/pages/asistencia" routerLinkActive="bg-ra-rojo-oscuro"
-         class="group flex items-center gap-6 rounded px-6 py-4 hover:bg-ra-rojo-oscuro transition border-y border-white text-xl">
-         <img src="iconos/asistencia.svg" alt="Icono calendario" class="w-8 h-8 text-white" />
-        <span>Registro de Asistencia</span>
-      </a>
 
-      <a routerLink="/pages/inscripcion" routerLinkActive="bg-ra-rojo-oscuro"
-         class="group flex items-center gap-6 rounded px-6 py-4 hover:bg-ra-rojo-oscuro transition border-y border-white text-xl">
-         <img src="iconos/inscripcion.svg" alt="Icono calendario" class="w-8 h-8 text-white" />
-        <span>Inscripciones</span>
+      @for (m of menus; track $index) {
+      <a routerLink="{{m.url}}" routerLinkActive="bg-ra-rojo-oscuro"
+        class="group flex items-center gap-6 rounded px-6 py-4 hover:bg-ra-rojo-oscuro transition border-y border-white text-xl">
+        <img src="{{m.icono}}" alt="Icono calendario" class="w-8 h-8 text-white" />
+        <span>{{m.nombre}}</span>
       </a>
-
-       <a routerLink="/pages/socio" routerLinkActive="bg-ra-rojo-oscuro"
-         class="group flex items-center gap-6 rounded px-6 py-4 hover:bg-ra-rojo-oscuro transition border-y border-white text-xl">
-         <img src="iconos/socios.svg" alt="Icono calendario" class="w-8 h-8 text-white" />
-        <span>Socios</span>
-      </a>
-      
-      <a routerLink="/pages/paquete" routerLinkActive="bg-ra-rojo-oscuro"
-         class="group flex items-center gap-6 rounded px-6 py-4 hover:bg-ra-rojo-oscuro transition border-b border-white text-xl">
-         <img src="iconos/paquete.svg" alt="Icono calendario" class="w-8 h-8 text-white" />
-        <span>Paquetes</span>
-      </a>
-
-      <a routerLink="/pages/inventario" routerLinkActive="bg-ra-rojo-oscuro"
-         class="group flex items-center gap-6 rounded px-6 py-4 hover:bg-ra-rojo-oscuro transition border-b border-white text-xl">
-         <img src="iconos/inventario.svg" alt="Icono calendario" class="w-8 h-8 text-white" />
-        <span>Inventario</span>
-      </a>
-      <a routerLink="/pages/punto-venta" routerLinkActive="bg-ra-rojo-oscuro"
-         class="group flex items-center gap-6 rounded px-6 py-4 hover:bg-ra-rojo-oscuro transition border-b border-white text-xl">
-         <img src="iconos/carrito-compras.svg" alt="Icono calendario" class="w-8 h-8 text-white" />
-        <span>Punto de Venta</span>
-      </a>
-
+      }
     </nav>
 
     <div class="px-4 py-3 text-xs text-white/80 border-t border-red-600">
@@ -54,14 +27,30 @@
     <!-- Top bar -->
     <header class="h-16 bg-white border-b border-neutral-200 flex items-center justify-between px-6">
       <div class="text-xl">
-        <span class="font-semibold">FECHA:   </span>
-        <span>Jueves 18 de Julio del 2025</span>
+        <span class="font-semibold">FECHA: </span>
+        <span>{{fechaHoy}}</span>
       </div>
-      <div class="flex items-center gap-2 text-neutral-600 text-xl">
-        <img src="iconos/usuario.svg" alt="Icono calendario" class="w-6 h-6 text-white" />
-        <span>Roberto</span>
+
+      <div class="flex items-center gap-3 text-neutral-700">
+        <div class="flex items-center gap-2 text-xl">
+          <img src="iconos/usuario.svg" alt="usuario" class="w-6 h-6" />
+          <span>{{username}}</span>
+        </div>
+
+        <!-- Botón Cerrar sesión -->
+        <button type="button" (click)="cerrarSesion()"
+          class="inline-flex items-center gap-2 rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:bg-ra-rojo-fuerte bg-ra-rojo"
+          aria-label="Cerrar sesión" title="Cerrar sesión">
+          <!-- ícono power -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff"
+            stroke-width="1.8" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m5.657-3.657a8 8 0 11-11.314 0" />
+          </svg>
+          <span class="hidden sm:inline text-ra-bg">Salir</span>
+        </button>
       </div>
     </header>
+
 
     <!-- Content -->
     <section class="py-6 px-2 overflow-auto">

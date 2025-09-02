@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
@@ -50,6 +50,7 @@ export class Socio implements OnInit, OnDestroy {
   private readonly minCaracteresBusqueda = 3;
   private busqueda$ = new Subject<string>();
   private subsBusqueda?: Subscription;
+  private destroyRef = inject(DestroyRef);
 
   constructor(private socioService: SocioService, private router:Router, private notificacion:NotificacionService) {}
 
@@ -81,7 +82,7 @@ export class Socio implements OnInit, OnDestroy {
             .buscarSociosPorNombre(texto, this.paginaActual, this.tamanioPagina)
             .pipe(finalize(() => (this.cargando = false)));
         }),
-        takeUntilDestroyed()
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: (resp: PagedResponse<SocioData>) => this.aplicarRespuesta(resp),

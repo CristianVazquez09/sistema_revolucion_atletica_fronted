@@ -23,7 +23,7 @@ export class SocioModal implements OnInit, OnDestroy {
     idSocio:         new FormControl(0),
     nombre:          new FormControl('', [Validators.required, Validators.maxLength(100)]),
     apellido:        new FormControl('', [Validators.required, Validators.maxLength(120)]),
-    telefono:        new FormControl('', [Validators.required, Validators.pattern(/^\d{10}$/)]),
+    telefono:        new FormControl('', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]),
     email:           new FormControl('', [Validators.email, Validators.maxLength(120)]),
     direccion:       new FormControl('', [Validators.maxLength(200)]),
     genero:          new FormControl(null as 'MASCULINO' | 'FEMENINO' | 'OTRO' | null, [Validators.required]),
@@ -38,39 +38,25 @@ export class SocioModal implements OnInit, OnDestroy {
 
   constructor(private socioService: SocioService) {}
 
+  private normalizarTelefono(v: unknown): string {
+    return String(v ?? '').replace(/\D/g, '').slice(0, 10);
+  }
+
   ngOnInit(): void {
     if (this.socio) {
-      // Cargamos del backend, pero sin reemplazar el FormGroup para no romper bindings
-      this.socioService.buscarPorId(this.socio.idSocio).subscribe({
-        next: (s) => {
-          const data = s ?? this.socio!;
-          this.formulario.patchValue({
-            idSocio: data.idSocio,
-            nombre: data.nombre ?? '',
-            apellido: data.apellido ?? '',
-            telefono: data.telefono ?? '',
-            email: data.email ?? '',
-            direccion: data.direccion ?? '',
-            genero: (data.genero as any) ?? null,
-            fechaNacimiento: data.fechaNacimiento ?? null,
-            comentarios: data.comentarios ?? ''
-          });
-        },
-        error: () => {
-          // Como fallback, usamos el input directo
-          const s = this.socio!;
-          this.formulario.patchValue({
-            idSocio: s.idSocio,
-            nombre: s.nombre ?? '',
-            apellido: s.apellido ?? '',
-            telefono: s.telefono ?? '',
-            email: s.email ?? '',
-            direccion: s.direccion ?? '',
-            genero: (s.genero as any) ?? null,
-            fechaNacimiento: s.fechaNacimiento ?? null,
-            comentarios: s.comentarios ?? ''
-          });
-        }
+      // Igual que en PaqueteModal: rehacer el form con datos del backend
+      this.socioService.buscarPorId(this.socio.idSocio).subscribe(s => {
+        this.formulario = new FormGroup({
+          idSocio:         new FormControl(s.idSocio),
+          nombre:          new FormControl(s.nombre, [Validators.required, Validators.maxLength(100)]),
+          apellido:        new FormControl(s.apellido, [Validators.required, Validators.maxLength(120)]),
+          telefono:        new FormControl(this.normalizarTelefono(s.telefono as string), [Validators.required, Validators.pattern(/^[0-9]{10}$/)]),
+          email:           new FormControl(s.email ?? '', [Validators.email, Validators.maxLength(120)]),
+          direccion:       new FormControl(s.direccion ?? '', [Validators.maxLength(200)]),
+          genero:          new FormControl(s.genero as any, [Validators.required]),
+          fechaNacimiento: new FormControl(s.fechaNacimiento, [Validators.required]),
+          comentarios:     new FormControl(s.comentarios ?? ''),
+        });
       });
     }
     window.addEventListener('keydown', this.handleEsc);
@@ -102,13 +88,12 @@ export class SocioModal implements OnInit, OnDestroy {
         idSocio: this.socio.idSocio,
         nombre: f.nombre!,
         apellido: f.apellido!,
-        telefono: f.telefono!,
+        telefono: this.normalizarTelefono(f.telefono),
         email: f.email ?? '',
         direccion: f.direccion ?? '',
         genero: f.genero!,
         fechaNacimiento: f.fechaNacimiento!,
-        comentarios: f.comentarios ?? '',
-        activo: this.socio.activo ?? true
+        comentarios: f.comentarios ?? ''
       };
       obs = this.socioService.actualizar(this.socio.idSocio, payloadUpdate);
     } else {
@@ -116,13 +101,12 @@ export class SocioModal implements OnInit, OnDestroy {
       const bodyCrearSinId = {
         nombre: f.nombre!,
         apellido: f.apellido!,
-        telefono: f.telefono!,
+        telefono: this.normalizarTelefono(f.telefono),
         email: f.email ?? '',
         direccion: f.direccion ?? '',
         genero: f.genero!,
         fechaNacimiento: f.fechaNacimiento!,
-        comentarios: f.comentarios ?? '',
-        activo: true
+        comentarios: f.comentarios ?? ''
       } as unknown as SocioData;
 
       obs = this.socioService.guardar(bodyCrearSinId);

@@ -50,7 +50,7 @@ export class Inscripcion implements OnInit {
   formularioInscripcion = this.fb.group({
     nombre:           this.fb.nonNullable.control('', [Validators.required]),
     apellido:         this.fb.nonNullable.control('', [Validators.required]),
-    telefono:         this.fb.nonNullable.control('', [Validators.required, Validators.pattern(/^\d{10}$/)]),
+    telefono:         this.fb.nonNullable.control('', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]),
     email:            this.fb.control<string | null>(null, [Validators.email]),
     fechaNacimiento:  this.fb.control<string | null>(null),
     direccion:        this.fb.nonNullable.control('', [Validators.required]),
