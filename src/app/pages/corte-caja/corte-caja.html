@@ -1,0 +1,155 @@
+<!-- Encabezado / acciones -->
+<div class="ml-2 md:ml-4 mr-4 md:mr-8 mb-3 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <h1 class="text-2xl font-bold text-ra-slate">Corte de Caja</h1>
+
+    @if (corte?.idCorte != null) {
+      <!-- Chip con ID del corte -->
+      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-ra-slate ring-1 ring-black/10">
+        ID: {{ corte?.idCorte }}
+      </span>
+    }
+  </div>
+
+  <div class="flex items-center gap-2">
+    <button
+      type="button"
+      (click)="abrirCorte()"
+      [disabled]="estaAbierto || cargando"
+      class="btn-green">
+      Abrir corte
+    </button>
+
+    <button
+      type="button"
+      (click)="cerrarCorte()"
+      [disabled]="!estaAbierto || cargando"
+      class="btn-red">
+      Cerrar corte
+    </button>
+  </div>
+</div>
+
+<!-- Estado de carga / error -->
+@if (cargando) {
+  <div class="mx-4 md:mx-8 my-3 summary-box">Cargando…</div>
+}
+@if (error) {
+  <div class="mx-4 md:mx-8 my-3 summary-box text-red-700 border-red-300 bg-red-50">
+    {{ error }}
+  </div>
+}
+
+<!-- Tarjeta de resumen -->
+<div class="card">
+  <div class="card-header flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="text-lg font-semibold text-ra-slate">Resumen</div>
+
+      @if (corte?.estado) {
+        <span
+          class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+          [ngClass]="{
+            'bg-emerald-100 text-emerald-700': estaAbierto,
+            'bg-gray-200 text-gray-700': !estaAbierto
+          }">
+          {{ corte?.estado }}
+        </span>
+      }
+    </div>
+
+    @if (corte?.idCorte != null) {
+      <div class="text-sm text-ra-slate/80">
+        ID: <span class="font-semibold">{{ corte?.idCorte }}</span>
+      </div>
+    }
+  </div>
+
+  <div class="px-6 py-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Fechas -->
+    <div class="summary-box">
+      <div class="font-semibold text-ra-slate mb-2">Apertura</div>
+      <div class="text-sm">{{ corte?.apertura | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+
+      <div class="mt-4 font-semibold text-ra-slate mb-2">Cierre</div>
+      <div class="text-sm">
+        @if (corte?.cierre) {
+          {{ corte?.cierre | date:'dd/MM/yyyy HH:mm:ss' }}
+        } @else { — }
+      </div>
+    </div>
+
+    <!-- Totales -->
+    <div class="summary-box">
+      <div class="font-semibold text-ra-slate mb-2">Totales</div>
+      <div class="flex items-center justify-between text-sm py-1">
+        <span>Ventas</span>
+        <span class="font-medium">{{ corte?.totalVentas | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+      </div>
+      <div class="flex items-center justify-between text-sm py-1">
+        <span>Membresías</span>
+        <span class="font-medium">{{ corte?.totalMembresias | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+      </div>
+      <div class="mt-2 border-t pt-2 flex items-center justify-between">
+        <span class="font-semibold">Total general</span>
+        <span class="font-bold text-ra-slate">
+          {{ corte?.totalGeneral | currency:'MXN':'symbol-narrow':'1.2-2' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Estado rápido -->
+    <div class="summary-box">
+      <div class="font-semibold text-ra-slate mb-2">Estado</div>
+      <div class="text-sm">
+        @if (corte) {
+          <div>El corte está <strong>{{ corte.estado }}</strong>.</div>
+          @if (estaAbierto) {
+            <div class="mt-2 text-ra-slate/80">Puedes registrar operaciones y luego cerrarlo.</div>
+          } @else {
+            <div class="mt-2 text-ra-slate/80">Corte cerrado. Solo consulta.</div>
+          }
+        } @else {
+          <div class="text-ra-slate/80">Sin información. Abre un corte para comenzar.</div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Desglose por pagos -->
+<div class="card">
+  <div class="card-header">
+    <div class="text-lg font-semibold text-ra-slate">Desglose por Origen y Tipo de pago</div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-[13px]">
+      <thead>
+        <tr class="bg-ra-grayLight/40">
+          <th class="py-3 px-4 text-left  text-ra-slate font-semibold uppercase">Origen</th>
+          <th class="py-3 px-4 text-left  text-ra-slate font-semibold uppercase">Tipo de pago</th>
+          <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Operaciones</th>
+          <th class="py-3 px-4 text-right text-ra-slate font-semibold uppercase">Total</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @if (!corte?.desgloses?.length) {
+          <tr>
+            <td colspan="4" class="py-6 px-4 text-center text-ra-slate">Sin datos para mostrar.</td>
+          </tr>
+        } @else {
+          @for (d of corte?.desgloses; track $index) {
+            <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
+              <td class="py-3 px-4">{{ d.origen }}</td>
+              <td class="py-3 px-4">{{ d.tipoPago }}</td>
+              <td class="py-3 px-4 text-center">{{ d.operaciones }}</td>
+              <td class="py-3 px-4 text-right">{{ d.total | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

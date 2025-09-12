@@ -13,6 +13,7 @@ import { ProductoData } from '../../model/producto-data';
 import { ResumenVenta } from '../resumen-venta/resumen-venta';
 import { TipoPago } from '../../util/enums/tipo-pago';
 import { NotificacionService } from '../../services/notificacion-service';
+import { VentaCreateRequest } from '../../model/venta-create';
 
 type CarritoItem = {
   idProducto: number;
@@ -299,37 +300,35 @@ export class PuntoVenta implements OnInit {
   }
 
   confirmarVentaDesdeModal(tipoPago: TipoPago): void {
-    if (this.realizandoPago) return;
+  if (this.realizandoPago) return;
+  if (this.carrito.length === 0) { this.notificacion.aviso('Tu carrito está vacío.'); return; }
 
-    const detalles = this.carrito.map(it => ({
-      producto: { idProducto: it.idProducto },
-      cantidad: it.cantidad,
-      subTotal: this.round2(it.cantidad * it.precioUnit)
-    }));
+  // Payload que espera el backend
+  const payload: VentaCreateRequest = {
+    tipoPago,
+    detalles: this.carrito.map(it => ({
+      idProducto: it.idProducto,
+      cantidad: it.cantidad
+    }))
+  };
 
-    const body = {
-      total: this.round2(this.total),
-      tipoPago,
-      detalles,
-      usuario: { idUsuario: this.usuarioId }
-    };
+  this.realizandoPago = true;
 
-    this.realizandoPago = true;
-    this.ventaSrv.guardar(body as any).subscribe({
-      next: () => {
-        this.realizandoPago = false;
-        this.cerrarModalResumen();
-        this.cancelar();
-        this.volverACategorias();
-        this.notificacion.exito('¡Venta registrada correctamente!');
-      },
-      error: (err: unknown) => {
-        console.error(err);
-        this.realizandoPago = false;
-        this.notificacion.error('No se pudo registrar la venta.');
-      }
-    });
-  }
+  this.ventaSrv.crearVenta(payload).subscribe({
+    next: () => {
+      this.realizandoPago = false;
+      this.cerrarModalResumen();
+      this.cancelar();
+      this.volverACategorias();
+      this.notificacion.exito('¡Venta registrada correctamente!');
+    },
+    error: (err: unknown) => {
+      console.error(err);
+      this.realizandoPago = false;
+      this.notificacion.error('No se pudo registrar la venta.');
+    }
+  });
+}
 
   // Helpers numéricos
   toNumber(v: unknown): number {

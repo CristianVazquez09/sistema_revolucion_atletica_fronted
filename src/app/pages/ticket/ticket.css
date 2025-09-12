@@ -1,0 +1,18 @@
+/* Vista en pantalla (opcional) */
+.no-print { display: block; }
+.ticket   { width: 80mm; margin: 0 auto; background: white; }
+
+/* Estilos base del ticket */
+.ticket { padding: 8px 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+.title  { text-align: center; font-weight: 700; margin-bottom: 6px; }
+.muted  { opacity: .8 }
+.hr     { border-top: 1px dashed #000; margin: 6px 0; }
+.row    { display:flex; justify-content:space-between; }
+.right  { text-align:right }
+
+/* Impresión */
+@media print {
+  .no-print { display: none !important; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { size: 80mm auto; margin: 0; }
+}

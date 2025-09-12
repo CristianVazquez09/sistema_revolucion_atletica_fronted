@@ -10,6 +10,7 @@ import { SocioInformacion } from "./socio/socio-informacion/socio-informacion";
 import { Reinscripcion } from "./reinscripcion/reinscripcion";
 import { Asistencia } from "./asistencia/asistencia";
 import { Historial } from "./inscripcion/historial/historial";
+import { CorteCaja } from "./corte-caja/corte-caja";
 
 export const pagesRoutes: Routes = [
   { path: 'paquete', component: Paquete},
@@ -22,6 +23,7 @@ export const pagesRoutes: Routes = [
    { path: 'socio/:idSocio/historial', component: SocioInformacion },
    { path: 'reinscripcion/:id', component: Reinscripcion },
   { path: 'historial', component: Historial },
+  { path: 'corte-caja', component: CorteCaja },
 
 
 ];

@@ -5,6 +5,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { MenuService } from '../../services/menu-service';
 import { MenuData } from '../..//model/menu-data';
 import { environment } from '../../../environments/environment';
+import { CorteCajaService } from '../../services/corte-caja-service';
 
 @Component({
   selector: 'app-menu-principal',
@@ -22,7 +23,9 @@ export class MenuPrincipal {
   constructor(
     private menuService: MenuService,
     private jwt: JwtHelperService,
-    private router: Router
+    private router: Router,
+    private corteState: CorteCajaService
+  
   ) {}
 
   ngOnInit(): void {
@@ -72,6 +75,7 @@ export class MenuPrincipal {
       sessionStorage.removeItem(environment.TOKEN_NAME);
       sessionStorage.removeItem('username');
       sessionStorage.removeItem('authorities');
+
 
       // Limpia el estado de menús en memoria
       this.menuService.setMenuChange([]);

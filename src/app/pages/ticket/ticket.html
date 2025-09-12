@@ -1,0 +1,31 @@
+<div class="no-print p-2 flex justify-end">
+  <button (click)="imprimir()" class="px-4 py-2 rounded bg-black text-white">Imprimir</button>
+</div>
+
+<!-- Contenedor del ticket (lo que se imprime) -->
+<div #ticket class="ticket bg-white">
+  <div class="title">{{negocio.nombre}}</div>
+  <div class="muted">RFC: {{negocio.rfc}}</div>
+  <div class="muted">Folio: {{folio}}</div>
+  <div class="muted">Fecha: {{fecha | date:'dd/MM/yyyy HH:mm'}}</div>
+
+  <div class="hr"></div>
+
+  <div *ngFor="let it of items" class="mb-1">
+    <div>{{it.nombre}}</div>
+    <div class="row">
+      <div>x{{it.cantidad}}</div>
+      <div class="right">{{ (it.cantidad * it.precio) | currency:'MXN':'symbol-narrow':'1.2-2' }}</div>
+    </div>
+  </div>
+
+  <div class="hr"></div>
+
+  <div class="row">
+    <div><strong>Total</strong></div>
+    <div class="right"><strong>{{ total | currency:'MXN':'symbol-narrow':'1.2-2' }}</strong></div>
+  </div>
+
+  <div class="hr"></div>
+  <div class="title">¡Gracias por su compra!</div>
+</div>
