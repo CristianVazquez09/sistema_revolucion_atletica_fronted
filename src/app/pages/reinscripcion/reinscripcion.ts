@@ -1,25 +1,29 @@
+// src/app/pages/reinscripcion/reinscripcion.ts
 import { Component, OnInit, DestroyRef, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { SocioService } from '../../services/socio-service';
 import { PaqueteService } from '../../services/paquete-service';
 import { MembresiaService } from '../../services/membresia-service';
 import { NotificacionService } from '../../services/notificacion-service';
+import { GimnasioService } from '../../services/gimnasio-service';
+import { TicketService } from '../../services/ticket-service';
 
 import { SocioData } from '../../model/socio-data';
 import { PaqueteData } from '../../model/paquete-data';
 import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
 import { TiempoPlan } from '../../util/enums/tiempo-plan';
+import { TipoPago } from '../../util/enums/tipo-pago';
+import { GimnasioData } from '../../model/gimnasio-data';
 
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
-import { TipoPago } from '../../util/enums/tipo-pago';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
 import { calcularFechaFin, calcularTotal } from '../../util/fechas-precios';
-
-
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-reinscripcion',
@@ -40,6 +44,11 @@ export class Reinscripcion implements OnInit {
   private membresiaSrv = inject(MembresiaService);
   private notify       = inject(NotificacionService);
 
+  // 👇 para ticket
+  private gymSrv       = inject(GimnasioService);
+  private ticket       = inject(TicketService);
+  private jwt          = inject(JwtHelperService);
+
   // estado
   idSocio!: number;
   socio = signal<SocioData | null>(null);
@@ -50,6 +59,10 @@ export class Reinscripcion implements OnInit {
   guardando = false;
 
   mostrarResumen = signal(false);
+
+  // contexto (para el ticket)
+  gym: GimnasioData | null = null;
+  cajero = 'Cajero';
 
   // formulario
   form = this.fb.group({
@@ -66,21 +79,24 @@ export class Reinscripcion implements OnInit {
 
   // derivados de UI
   paqueteSeleccionado = computed(() => {
-    const id = this.paqueteIdSig();                           // no-null
+    const id = this.paqueteIdSig();
     return this.paquetes.find(p => p.idPaquete === id) ?? null;
   });
 
   precioPaquete = computed(() => this.paqueteSeleccionado()?.precio ?? 0);
-  descuento     = computed(() => this.descuentoSig());        // no-null
+  descuento     = computed(() => this.descuentoSig());
   total         = computed(() => calcularTotal(this.precioPaquete(), this.descuento()));
 
-  fechaInicio   = computed(() => this.fechaInicioSig());      // no-null
+  fechaInicio   = computed(() => this.fechaInicioSig());
   fechaPago     = computed(() => {
     const tiempo = this.paqueteSeleccionado()?.tiempo ?? null;
     return calcularFechaFin(this.fechaInicio(), tiempo as TiempoPlan | null);
   });
 
   ngOnInit(): void {
+    // contexto ticket (gimnasio + cajero desde el token)
+    this.cargarContextoDesdeToken();
+
     // id de la ruta
     this.idSocio = Number(this.route.snapshot.paramMap.get('id'));
     if (!this.idSocio) {
@@ -112,7 +128,7 @@ export class Reinscripcion implements OnInit {
   }
 
   abrirResumen(): void {
-    const id = this.paqueteIdSig();              // no-null
+    const id = this.paqueteIdSig();
     if (id <= 0) {
       this.notify.aviso('Selecciona un paquete para continuar.');
       this.form.markAllAsTouched();
@@ -123,7 +139,7 @@ export class Reinscripcion implements OnInit {
   cerrarResumen(): void { this.mostrarResumen.set(false); }
 
   confirmar(tipoPago: TipoPago): void {
-    const idPaquete = this.paqueteIdSig();       // no-null
+    const idPaquete = this.paqueteIdSig();
     if (idPaquete <= 0) {
       this.notify.aviso('Selecciona un paquete.');
       return;
@@ -131,7 +147,7 @@ export class Reinscripcion implements OnInit {
 
     const payload = {
       socio:      { idSocio: this.idSocio },
-      paquete:    { idPaquete },                 // se envía solo el id
+      paquete:    { idPaquete },
       movimiento: this.form.controls.movimiento.value!, // 'REINSCRIPCION'
       tipoPago,
       descuento:  this.descuento()
@@ -140,10 +156,42 @@ export class Reinscripcion implements OnInit {
 
     this.guardando = true;
     this.membresiaSrv.guardar(payload as any).subscribe({
-      next: () => {
+      next: (resp: any) => {
         this.guardando = false;
         this.mostrarResumen.set(false);
         this.notify.exito('Reinscripción realizada correctamente.');
+
+        // ====== IMPRIMIR TICKET DE MEMBRESÍA ======
+        const p = this.paqueteSeleccionado();
+        const negocio = {
+          nombre:    this.gym?.nombre    ?? 'Tu gimnasio',
+          direccion: this.gym?.direccion ?? '',
+          telefono:  this.gym?.telefono  ?? ''
+        };
+
+        // Folio: intenta tomar del backend si lo envía; si no, vacío
+        const folio = resp?.idMembresia ?? resp?.id ?? '';
+
+        // Concepto: usa el nombre del paquete si existe; si no, el tiempo
+        const concepto = p?.nombre
+          ? `Membresía ${p.nombre}`
+          : `Membresía ${String(p?.tiempo ?? '')}`;
+
+        // Importe: el total calculado en UI (precio - descuento)
+        const importe = this.total();
+
+        this.ticket.verMembresiaComoHtml({
+          negocio,
+          folio,
+          fecha: new Date(),           // o resp?.fechaInicio si te lo devuelve
+          cajero: this.cajero,         // del token
+          socio: this.nombreCompleto(),
+          concepto,
+          importe,
+          tipoPago
+        });
+        // ===========================================
+
         this.router.navigate(['/pages/socio', this.idSocio, 'historial']);
       },
       error: () => {
@@ -161,5 +209,29 @@ export class Reinscripcion implements OnInit {
   nombreCompleto(): string {
     const s = this.socio();
     return s ? `${s.nombre ?? ''} ${s.apellido ?? ''}`.trim() : '';
+  }
+
+  // ===== contexto ticket (gimnasio + cajero) =====
+  private cargarContextoDesdeToken(): void {
+    const token = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
+    if (!token) return;
+
+    try {
+      const decoded: any = this.jwt.decodeToken(token);
+
+      // Cajero (username del token)
+      this.cajero = decoded?.preferred_username ?? decoded?.sub ?? this.cajero;
+
+      // id_gimnasio en el token (o tenantId / gimnasioId)
+      const idGym = decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
+      if (idGym) {
+        this.gymSrv.buscarPorId(Number(idGym)).subscribe({
+          next: (g) => this.gym = g,
+          error: () => this.gym = null // no rompe el flujo
+        });
+      }
+    } catch {
+      // token inválido → usar fallbacks
+    }
   }
 }

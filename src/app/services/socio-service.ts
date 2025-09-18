@@ -16,14 +16,18 @@ export class SocioService extends GenericService<SocioData> {
   }
 
 
-  buscarSocios(pagina: number, tamanio: number){
+   buscarSocios(pagina: number, tamanio: number): Observable<PagedResponse<SocioData>> {
     return this.http
-      .get<any>(`${this.url}/buscar?page=${pagina}&size=${tamanio}`);
+      .get(`${this.url}/buscar?page=${pagina}&size=${tamanio}`)
+      .pipe(map((raw: any) => toPagedResponse<SocioData>(raw)));
   }
 
-  buscarSociosPorNombre(nombre: string, pagina: number, tamanio: number){
+  /** Listado paginado filtrando por nombre */
+  buscarSociosPorNombre(nombre: string, pagina: number, tamanio: number): Observable<PagedResponse<SocioData>> {
+    const n = encodeURIComponent((nombre ?? '').trim());
     return this.http
-      .get<any>(`${this.url}/buscar/${encodeURIComponent(nombre)}?page=${pagina}&size=${tamanio}`);
+      .get(`${this.url}/buscar/${n}?page=${pagina}&size=${tamanio}`)
+      .pipe(map((raw: any) => toPagedResponse<SocioData>(raw)));
   }
   
   

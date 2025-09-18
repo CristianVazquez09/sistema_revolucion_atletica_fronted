@@ -33,51 +33,63 @@
   <table class="w-full table-fixed">
     <!-- Cols: más espacio a las fechas; menos a movimiento/importe/desc/total -->
     <colgroup>
-      <col class="w-[8%]">   <!-- ID -->
-      <col class="w-[14%]">  <!-- Movimiento (reducido) -->
-      <col class="w-[16%]">  <!-- Fecha (más ancho) -->
-      <col class="w-[16%]">  <!-- Fecha pago (más ancho) -->
-      <col class="w-[9%]">   <!-- Importe (reducido) -->
-      <col class="w-[9%]">   <!-- Descuento (reducido) -->
-      <col class="w-[12%]">  <!-- Tipo de pago -->
-      <col class="w-[10%]">  <!-- Total (reducido) -->
-    </colgroup>
+  <col class="w-[8%]">    <!-- ID -->
+  <col class="w-[12%]">   <!-- Movimiento -->
+  <col class="w-[18%]">   <!-- Paquete --> <!-- NUEVA -->
+  <col class="w-[14%]">   <!-- Fecha -->
+  <col class="w-[14%]">   <!-- Fecha pago -->
+  <col class="w-[9%]">    <!-- Importe -->
+  <col class="w-[9%]">    <!-- Descuento -->
+  <col class="w-[12%]">   <!-- Tipo de pago -->
+  <col class="w-[10%]">   <!-- Total -->
+</colgroup>
+
 
     <thead>
-      <tr class="bg-[color:var(--color-ra-grayLight)]/40">
-        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">ID</th>
-        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Movimiento</th>
-        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Fecha</th>
-        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Fecha pago</th>
-        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Importe</th>
-        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Descuento</th>
-        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Tipo de pago</th>
-        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Total</th>
-      </tr>
-    </thead>
+  <tr class="bg-[color:var(--color-ra-grayLight)]/40">
+    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">ID</th>
+    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Movimiento</th>
+    <th class="py-2 px-3 text-left   font-semibold uppercase text-[color:var(--color-ra-slate)]">Paquete</th> <!-- NUEVA -->
+    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Fecha</th>
+    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Fecha pago</th>
+    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Importe</th>
+    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Descuento</th>
+    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Tipo de pago</th>
+    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Total</th>
+  </tr>
+</thead>
+
 
     <tbody>
-      @if (cargando) {
-        <tr><td colspan="8" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Cargando…</td></tr>
-      } @else if (error) {
-        <tr><td colspan="8" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
-      } @else if (movimientos.length === 0) {
-        <tr><td colspan="8" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Sin movimientos.</td></tr>
-      } @else {
-        @for (m of movimientos; track m.idMembresia) {
-          <tr class="border-t border-[color:var(--color-ra-grayLight)]/60">
-            <td class="py-2 px-3 text-center">{{ m.idMembresia }}</td>
-            <td class="py-2 px-3 text-center truncate">{{ m.movimiento }}</td>
-            <td class="py-2 px-3 text-center">{{ m.fechaInicio | date:'dd/MM/yyyy' }}</td>
-            <td class="py-2 px-3 text-center">{{ m.fechaFin    | date:'dd/MM/yyyy' }}</td>
-            <td class="py-2 px-3 text-center">{{ m.paquete.precio | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
-            <td class="py-2 px-3 text-center">{{ m.descuento        | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
-            <td class="py-2 px-3 text-center">{{ m.tipoPago }}</td>
-            <td class="py-2 px-3 text-center font-semibold">{{ m.total | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
-          </tr>
-        }
-      }
-    </tbody>
+  @if (cargando) {
+    <tr><td colspan="9" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Cargando…</td></tr>
+  } @else if (error) {
+    <tr><td colspan="9" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
+  } @else if (movimientos.length === 0) {
+    <tr><td colspan="9" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Sin movimientos.</td></tr>
+  } @else {
+    @for (m of movimientos; track m.idMembresia) {
+      <tr class="border-t border-[color:var(--color-ra-grayLight)]/60">
+        <td class="py-2 px-3 text-center">{{ m.idMembresia }}</td>
+        <td class="py-2 px-3 text-center truncate">{{ m.movimiento }}</td>
+
+        <!-- 👇 NUEVA celda: nombre del paquete (con fallback al id) -->
+        <td class="py-2 px-3 text-left truncate"
+            [title]="m.paquete.nombre || ('#' + (m.paquete.idPaquete))">
+          {{ m.paquete.nombre || ('#' + (m.paquete.idPaquete )) }}
+        </td>
+
+        <td class="py-2 px-3 text-center">{{ m.fechaInicio | date:'dd/MM/yyyy' }}</td>
+        <td class="py-2 px-3 text-center">{{ m.fechaFin    | date:'dd/MM/yyyy' }}</td>
+        <td class="py-2 px-3 text-center">{{ m.paquete.precio | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
+        <td class="py-2 px-3 text-center">{{ m.descuento        | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
+        <td class="py-2 px-3 text-center">{{ m.tipoPago }}</td>
+        <td class="py-2 px-3 text-center font-semibold">{{ m.total | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
+      </tr>
+    }
+  }
+</tbody>
+
   </table>
 
   <!-- Paginador con "Mostrar X por página" (también más compacto) -->

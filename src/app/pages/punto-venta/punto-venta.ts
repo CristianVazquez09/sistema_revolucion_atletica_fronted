@@ -1,3 +1,4 @@
+// src/app/pages/punto-venta/punto-venta.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,14 +7,18 @@ import { Subject, debounceTime, distinctUntilChanged, switchMap, of, finalize } 
 import { CategoriaService } from '../../services/categoria-service';
 import { ProductoService } from '../../services/producto-service';
 import { VentaService } from '../../services/venta-service';
+import { GimnasioService } from '../../services/gimnasio-service'; // 👈
+import { TicketService } from '../../services/ticket-service';     // 👈
+import { JwtHelperService } from '@auth0/angular-jwt';             // 👈
 
 import { CategoriaData } from '../../model/categoria-data';
 import { ProductoData } from '../../model/producto-data';
-// Modal de resumen
 import { ResumenVenta } from '../resumen-venta/resumen-venta';
 import { TipoPago } from '../../util/enums/tipo-pago';
 import { NotificacionService } from '../../services/notificacion-service';
 import { VentaCreateRequest } from '../../model/venta-create';
+import { GimnasioData } from '../../model/gimnasio-data';
+import { environment } from '../../../environments/environment';
 
 type CarritoItem = {
   idProducto: number;
@@ -30,19 +35,26 @@ type CarritoItem = {
   styleUrl: './punto-venta.css'
 })
 export class PuntoVenta implements OnInit {
-  // Inyección de servicios
+  // Servicios
   private categoriaSrv = inject(CategoriaService);
   private productoSrv  = inject(ProductoService);
   private ventaSrv     = inject(VentaService);
+  private gimnasioSrv  = inject(GimnasioService);  // 👈
   private notificacion = inject(NotificacionService);
+  private ticket       = inject(TicketService);    // 👈
+  private jwt          = inject(JwtHelperService); // 👈
 
-  // UI principal (categorías o productos)
+  // Estado de autenticación/tenant
+  gym: GimnasioData | null = null;    // 👈 datos para el ticket
+  cajero = 'Cajero';                  // 👈 nombre del usuario autenticado
+
+  // UI principal
   modo: 'categorias' | 'productos' = 'categorias';
 
-  // ───────────── Categorías ─────────────
+  // Categorías
   categorias: CategoriaData[] = [];
   paginaCategorias = 0;
-  tamanoPaginaCategorias = 6; // 3x2
+  tamanoPaginaCategorias = 6;
   categoriaActivaId: number | null = null;
   categoriaHoverId: number | null = null;
 
@@ -54,36 +66,40 @@ export class PuntoVenta implements OnInit {
     return this.categorias.slice(ini, ini + this.tamanoPaginaCategorias);
   }
 
-  // ───────────── Productos ─────────────
+  // Productos
   productos: ProductoData[] = [];
   productosFiltrados: ProductoData[] = [];
   productoSeleccionado: ProductoData | null = null;
 
-  // Búsqueda (backend en ≥ 2 letras)
+  // Búsqueda
   terminoBusqueda = '';
   private search$ = new Subject<string>();
 
-  // ───────────── Carrito ─────────────
+  // Carrito
   carrito: CarritoItem[] = [];
   indiceCarritoSeleccionado: number | null = null;
   cantidadParaAgregar = 1;
 
-  // ───────────── Pago / Modal ─────────────
+  // Pago / Modal
   mostrarModalResumen = false;
   realizandoPago = false;
   readonly fechaHoy = new Date();
   readonly tipoPagoInicial: TipoPago = 'EFECTIVO';
-  usuarioId = 1; // reemplaza cuando tengas auth
+  usuarioId = 1; // si luego usas id real del usuario, cámbialo
 
-  // ───────────── Estado general ─────────────
+  // Estado general
   cargandoCategorias = true;
   cargandoProductos = false;
   error: string | null = null;
 
   ngOnInit(): void {
+    // 1) Decodifica token y carga cajero + gimnasio
+    this.cargarContextoDesdeToken();
+
+    // 2) Carga categorías
     this.cargarCategorias();
 
-    // Buscador con debounce y llamado al backend en ≥ 2 caracteres
+    // 3) Búsqueda por nombre
     this.search$
       .pipe(
         debounceTime(300),
@@ -92,7 +108,7 @@ export class PuntoVenta implements OnInit {
           const t = (q ?? '').trim();
           if (t.length >= 2) {
             this.modo = 'productos';
-            this.categoriaActivaId = null;      // búsqueda libre
+            this.categoriaActivaId = null;
             this.cargandoProductos = true;
             this.productoSeleccionado = null;
             return this.productoSrv.buscarPorNombre(t)
@@ -100,13 +116,11 @@ export class PuntoVenta implements OnInit {
           }
           if (t.length === 0) {
             if (this.categoriaActivaId == null) {
-              // sin término y sin categoría: volver a categorías
               this.modo = 'categorias';
               this.productos = [];
               this.productosFiltrados = [];
               this.productoSeleccionado = null;
             } else {
-              // había categoría activa: recargar su lista
               this.cargarProductosPorCategoria(this.categoriaActivaId);
             }
           }
@@ -119,15 +133,43 @@ export class PuntoVenta implements OnInit {
           this.productos = lista ?? [];
           this.productosFiltrados = [...this.productos];
         },
-        error: (err: unknown) => {
-          console.error(err);
+        error: () => {
           this.error = 'No se pudo ejecutar la búsqueda.';
           this.cargandoProductos = false;
         }
       });
   }
 
-  // ───────────── Categorías ─────────────
+  // === Contexto (gimnasio/cajero) ===================================
+  private cargarContextoDesdeToken(): void {
+    const token = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
+    if (!token) return;
+
+    try {
+      const decoded: any = this.jwt.decodeToken(token);
+
+      // Cajero (username del token)
+      this.cajero = decoded?.preferred_username ?? decoded?.sub ?? this.cajero;
+
+      // id_gimnasio del token (o tenantId si así lo usas)
+      const idGym = decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
+      if (idGym) {
+        this.gimnasioSrv.buscarPorId(Number(idGym)).subscribe({
+          next: (g) => { this.gym = g; 
+          
+          },
+          error: () => {
+            // Si falla, no rompe el flujo: el ticket usará fallback.
+            this.gym = null;
+          }
+        });
+      }
+    } catch {
+      // token inválido → seguimos con fallback
+    }
+  }
+
+  // === Categorías / Productos =======================================
   private cargarCategorias(): void {
     this.cargandoCategorias = true;
     this.error = null;
@@ -138,8 +180,7 @@ export class PuntoVenta implements OnInit {
         this.cargandoCategorias = false;
         this.modo = 'categorias';
       },
-      error: (err: unknown) => {
-        console.error(err);
+      error: () => {
         this.cargandoCategorias = false;
         this.error = 'No se pudieron cargar las categorías.';
       }
@@ -174,7 +215,6 @@ export class PuntoVenta implements OnInit {
     this.terminoBusqueda = '';
   }
 
-  // ───────────── Productos ─────────────
   private cargarProductosPorCategoria(idCategoria: number): void {
     this.cargandoProductos = true;
     this.error = null;
@@ -187,8 +227,7 @@ export class PuntoVenta implements OnInit {
         this.productosFiltrados = [...this.productos];
         this.cargandoProductos = false;
       },
-      error: (err: unknown) => {
-        console.error(err);
+      error: () => {
         this.cargandoProductos = false;
         this.error = 'No se pudieron cargar los productos.';
       }
@@ -201,25 +240,21 @@ export class PuntoVenta implements OnInit {
   }
 
   seleccionarProducto(p: ProductoData): void {
-    if (this.toNumber(p.cantidad) <= 0) return; // protección: sin stock
+    if (this.toNumber(p.cantidad) <= 0) return;
     this.productoSeleccionado = p;
   }
 
-  // ───────────── Stock helpers ─────────────
-  stockOriginal(p: ProductoData): number {
-    return this.toNumber(p.cantidad);
-  }
+  // === Stock helpers =================================================
+  stockOriginal(p: ProductoData): number { return this.toNumber(p.cantidad); }
   stockYaEnCarrito(idProd: number): number {
-    return this.carrito
-      .filter(x => x.idProducto === idProd)
-      .reduce((acc, it) => acc + it.cantidad, 0);
+    return this.carrito.filter(x => x.idProducto === idProd).reduce((acc, it) => acc + it.cantidad, 0);
   }
   stockDisponible(p: ProductoData): number {
     const id = Number((p.idProducto as any) ?? 0);
     return Math.max(0, this.stockOriginal(p) - this.stockYaEnCarrito(id));
   }
 
-  // ───────────── Carrito ─────────────
+  // === Carrito =======================================================
   agregarAlCarrito(): void {
     const p = this.productoSeleccionado;
     if (!p || this.cantidadParaAgregar <= 0) return;
@@ -238,49 +273,32 @@ export class PuntoVenta implements OnInit {
       this.carrito[ya].cantidad += this.cantidadParaAgregar;
       this.indiceCarritoSeleccionado = ya;
     } else {
-      this.carrito.push({
-        idProducto: id,
-        nombre: String(p.nombre ?? ''),
-        cantidad: this.cantidadParaAgregar,
-        precioUnit: precio
-      });
+      this.carrito.push({ idProducto: id, nombre: String(p.nombre ?? ''), cantidad: this.cantidadParaAgregar, precioUnit: precio });
       this.indiceCarritoSeleccionado = this.carrito.length - 1;
     }
     this.cantidadParaAgregar = 1;
   }
 
-  seleccionarLineaCarrito(idx: number): void {
-    this.indiceCarritoSeleccionado = idx;
-  }
-
+  seleccionarLineaCarrito(idx: number): void { this.indiceCarritoSeleccionado = idx; }
   sumar(): void {
     if (this.indiceCarritoSeleccionado == null) return;
     const item = this.carrito[this.indiceCarritoSeleccionado];
-
-    // respetar stock
     const prod = this.productos.find(p => Number(p.idProducto as any ?? 0) === item.idProducto);
     const stockTotal = prod ? this.stockOriginal(prod) : Infinity;
     const enCarrito = this.stockYaEnCarrito(item.idProducto);
-
-    if (enCarrito < stockTotal) item.cantidad++;
-    else this.notificacion.aviso('No hay más stock disponible.');
+    if (enCarrito < stockTotal) item.cantidad++; else this.notificacion.aviso('No hay más stock disponible.');
   }
-
   restar(): void {
     if (this.indiceCarritoSeleccionado == null) return;
     const item = this.carrito[this.indiceCarritoSeleccionado];
     item.cantidad = Math.max(1, item.cantidad - 1);
   }
-
   eliminarSeleccionado(): void {
     if (this.indiceCarritoSeleccionado == null) return;
     this.carrito.splice(this.indiceCarritoSeleccionado, 1);
     this.indiceCarritoSeleccionado = null;
   }
-
-  get total(): number {
-    return this.carrito.reduce((acc, it) => acc + it.cantidad * it.precioUnit, 0);
-  }
+  get total(): number { return this.carrito.reduce((acc, it) => acc + it.cantidad * it.precioUnit, 0); }
 
   cancelar(): void {
     this.carrito = [];
@@ -290,51 +308,103 @@ export class PuntoVenta implements OnInit {
     if (!this.categoriaActivaId && this.terminoBusqueda.length < 2) this.modo = 'categorias';
   }
 
-  // ───────────── Modal Resumen / Pago ─────────────
+  // === Modal Resumen / Pago =========================================
   abrirModalResumen(): void {
     if (this.carrito.length === 0) { this.notificacion.aviso('Tu carrito está vacío.'); return; }
     this.mostrarModalResumen = true;
   }
-  cerrarModalResumen(): void {
-    this.mostrarModalResumen = false;
-  }
+  cerrarModalResumen(): void { this.mostrarModalResumen = false; }
 
   confirmarVentaDesdeModal(tipoPago: TipoPago): void {
   if (this.realizandoPago) return;
   if (this.carrito.length === 0) { this.notificacion.aviso('Tu carrito está vacío.'); return; }
 
-  // Payload que espera el backend
   const payload: VentaCreateRequest = {
     tipoPago,
-    detalles: this.carrito.map(it => ({
-      idProducto: it.idProducto,
-      cantidad: it.cantidad
-    }))
+    detalles: this.carrito.map(it => ({ idProducto: it.idProducto, cantidad: it.cantidad }))
   };
 
   this.realizandoPago = true;
 
   this.ventaSrv.crearVenta(payload).subscribe({
-    next: () => {
+    next: (resp: any) => {
       this.realizandoPago = false;
       this.cerrarModalResumen();
+      this.notificacion.exito('¡Venta registrada correctamente!');
+
+      // Normaliza la respuesta
+      const venta = Array.isArray(resp) ? resp[0] : resp;
+
+      // Negocio desde el gimnasio (o fallback)
+      const negocio = {
+        nombre: this.gym?.nombre ?? 'Tu gimnasio',
+        direccion: this.gym?.direccion ?? '',
+        telefono: this.gym?.telefono ?? ''
+      };
+
+      // ¿Viene con detalles del backend?
+      const vieneDeBackend: boolean = !!(venta?.detalles?.length);
+
+      // Mapeo correcto de ítems:
+      // - Si viene del backend: usa producto.precioVenta; si no existe, saca unitario de subTotal/cantidad.
+      // - Si viene del carrito: usa el precioUnit del carrito (¡aquí estaba el problema!).
+      const items = (vieneDeBackend ? venta.detalles : this.carrito).map((d: any) => {
+        if (vieneDeBackend) {
+          const qty = Number(d?.cantidad ?? 0) || 0;
+          const pVenta = Number(d?.producto?.precioVenta);
+          const subTot = Number(d?.subTotal);
+          const unit = Number.isFinite(pVenta)
+            ? pVenta
+            : (qty > 0 && Number.isFinite(subTot) ? subTot / qty : 0);
+          return {
+            nombre: d?.producto?.nombre ?? '—',
+            cantidad: qty,
+            precioUnit: unit
+          };
+        } else {
+          // d es CarritoItem
+          return {
+            nombre: d.nombre,
+            cantidad: d.cantidad,
+            precioUnit: d.precioUnit
+          };
+        }
+      });
+
+      // Calcula subtotal real a partir de los ítems
+      const subtotal = items.reduce((acc: number, it: any) => acc + (Number(it.cantidad) * Number(it.precioUnit)), 0);
+
+      // Total: prioriza el del backend si llega; si no, usa subtotal
+      const total = Number(venta?.total);
+      const totalFinal = Number.isFinite(total) ? total : subtotal;
+
+      // Muestra/descarga el ticket con tipo de pago
+      this.ticket.verVentaComoHtml({
+        // Encabezado fijo ya lo pone el service como "REVOLUCIÓN ATLÉTICA" (brandTitle default)
+        negocio,
+        folio: venta?.idVenta ?? '',
+        fecha: venta?.fecha ?? new Date(),
+        cajero: this.cajero,
+        socio: '',                     // si tienes cliente, colócalo aquí
+        items,
+        totales: { subtotal, total: totalFinal },
+        leyendaLateral: negocio.nombre,
+        tipoPago: String(tipoPago)     // 👈 ahora sí se imprime la fila PAGO
+      });
+
+      // Limpieza del POS
       this.cancelar();
       this.volverACategorias();
-      this.notificacion.exito('¡Venta registrada correctamente!');
     },
-    error: (err: unknown) => {
-      console.error(err);
+    error: () => {
       this.realizandoPago = false;
       this.notificacion.error('No se pudo registrar la venta.');
     }
   });
 }
 
+
   // Helpers numéricos
-  toNumber(v: unknown): number {
-    return typeof v === 'number' ? v : Number((v as any) ?? 0);
-  }
-  private round2(n: number): number {
-    return Math.round(n * 100) / 100;
-  }
+  toNumber(v: unknown): number { return typeof v === 'number' ? v : Number((v as any) ?? 0); }
+  private round2(n: number): number { return Math.round(n * 100) / 100; }
 }

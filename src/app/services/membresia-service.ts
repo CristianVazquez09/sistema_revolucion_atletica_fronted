@@ -15,6 +15,7 @@ export class MembresiaService extends GenericService<MembresiaData> {
   constructor(protected override http: HttpClient){
     super(http, `${environment.HOST}/membresias`)
   }
+  
 
   buscarMembresiasPorSocio(idSocio: number, pagina: number, tamanio: number): Observable<PagedResponse<MembresiaData>>{
     return this.http

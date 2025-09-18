@@ -1,3 +1,4 @@
+// src/app/pages/inscripcion/inscripcion.ts
 import { Component, OnInit, signal, inject, computed, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -19,6 +20,12 @@ import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
 import { calcularFechaFin, calcularTotal, hoyISO } from '../../util/fechas-precios';
 import { TipoPago } from '../../util/enums/tipo-pago';
 
+// 👇 imports para ticket
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { GimnasioService } from '../../services/gimnasio-service';
+import { TicketService } from '../../services/ticket-service';
+import { GimnasioData } from '../../model/gimnasio-data';
+import { environment } from '../../../environments/environment';
 
 type SocioRequest = Omit<SocioData, 'idSocio'> & { idSocio?: number };
 
@@ -30,10 +37,27 @@ type SocioRequest = Omit<SocioData, 'idSocio'> & { idSocio?: number };
   styleUrl: './inscripcion.css'
 })
 export class Inscripcion implements OnInit {
+  // ── Inyecciones base
   private fb = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
   private notificacion = inject(NotificacionService);
 
+  // ── Servicios de dominio
+  constructor(
+    private paqueteSrv: PaqueteService,
+    private membresiaSrv: MembresiaService
+  ) {}
+
+  // ── Servicios para ticket
+  private gymSrv = inject(GimnasioService);
+  private ticket = inject(TicketService);
+  private jwt    = inject(JwtHelperService);
+
+  // ── Contexto (para ticket)
+  gym: GimnasioData | null = null;
+  cajero = 'Cajero';
+
+  // ── Estado
   listaPaquetes: PaqueteData[] = [];
   cargandoPaquetes = true;
 
@@ -47,6 +71,7 @@ export class Inscripcion implements OnInit {
   fotoArchivo: File | null = null;
   fotoPreviewUrl: string | null = null;
 
+  // ── Formulario
   formularioInscripcion = this.fb.group({
     nombre:           this.fb.nonNullable.control('', [Validators.required]),
     apellido:         this.fb.nonNullable.control('', [Validators.required]),
@@ -63,6 +88,7 @@ export class Inscripcion implements OnInit {
     movimiento:       this.fb.nonNullable.control<TipoMovimiento>('INSCRIPCION'),
   });
 
+  // ── Signals derivados
   private paqueteIdSig = toSignal(this.formularioInscripcion.controls.paqueteId.valueChanges, { initialValue: this.formularioInscripcion.controls.paqueteId.value });
   private descuentoSig = toSignal(this.formularioInscripcion.controls.descuento.valueChanges, { initialValue: this.formularioInscripcion.controls.descuento.value });
   private fechaInicioSig = toSignal(this.formularioInscripcion.controls.fechaInicio.valueChanges, { initialValue: this.formularioInscripcion.controls.fechaInicio.value });
@@ -85,12 +111,9 @@ export class Inscripcion implements OnInit {
     return calcularFechaFin(inicio, tiempo);
   });
 
-  constructor(
-    private paqueteSrv: PaqueteService,
-    private membresiaSrv: MembresiaService
-  ) {}
-
+  // ── Ciclo de vida
   ngOnInit(): void {
+    this.cargarContextoDesdeToken(); // 👈 carga cajero + datos de gimnasio para ticket
     this.cargarPaquetes();
 
     this.formularioInscripcion.controls.paqueteId.valueChanges
@@ -98,7 +121,7 @@ export class Inscripcion implements OnInit {
       .subscribe(id => this.sincronizarPaqueteSeleccionado(id ?? 0));
   }
 
-  // 📦 Paquetes
+  // ── Paquetes
   private cargarPaquetes(): void {
     this.cargandoPaquetes = true;
     this.paqueteSrv.buscarTodos().subscribe({
@@ -120,7 +143,7 @@ export class Inscripcion implements OnInit {
     this.paqueteSeleccionado.set(encontrado);
   }
 
-  // 🧾 Modal
+  // ── Modal
   abrirModalResumen(): void {
     const faltantes = this.camposFaltantes();
     if (faltantes.length) {
@@ -145,7 +168,7 @@ export class Inscripcion implements OnInit {
     return f;
   }
 
-  // 💾 Guardar
+  // ── Guardar + Ticket
   confirmarPagoYGuardar(tipoPago: TipoPago): void {
     let paquete = this.paqueteSeleccionado();
     const paqueteId = this.formularioInscripcion.controls.paqueteId.value ?? 0;
@@ -186,7 +209,37 @@ export class Inscripcion implements OnInit {
 
     this.guardandoMembresia = true;
     this.membresiaSrv.guardar(cuerpo).subscribe({
-      next: () => {
+      next: (resp: any) => {
+        // ===== Ticket de membresía (ANTES de limpiar el form) =====
+        const negocio = {
+          nombre:    this.gym?.nombre    ?? 'Tu gimnasio',
+          direccion: this.gym?.direccion ?? '',
+          telefono:  this.gym?.telefono  ?? ''
+        };
+
+        const socioNombre = `${this.formularioInscripcion.controls.nombre.value!} ${this.formularioInscripcion.controls.apellido.value!}`.trim();
+
+        const concepto = paquete?.nombre
+          ? `Membresía ${paquete.nombre}`
+          : 'Membresía';
+
+        const folio = resp?.idMembresia ?? resp?.id ?? '';
+
+        const importe = this.totalVista(); // precio - descuento + costoInscripcion
+
+        this.ticket.verMembresiaComoHtml({
+          negocio,
+          folio,
+          fecha: new Date(),     // o resp?.fechaInicio si tu backend lo envía
+          cajero: this.cajero,
+          socio: socioNombre,    // 👈 nombre del socio en el ticket
+          concepto,
+          importe,
+          tipoPago
+        });
+        // ==========================================================
+
+        // Limpieza UI
         this.guardandoMembresia = false;
         this.cerrarModalResumen();
 
@@ -222,5 +275,29 @@ export class Inscripcion implements OnInit {
   quitarFoto(): void {
     this.fotoArchivo = null;
     this.fotoPreviewUrl = null;
+  }
+
+  // ── Contexto: cajero + gimnasio para ticket
+  private cargarContextoDesdeToken(): void {
+    const token = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
+    if (!token) return;
+
+    try {
+      const decoded: any = this.jwt.decodeToken(token);
+
+      // Cajero (username del token)
+      this.cajero = decoded?.preferred_username ?? decoded?.sub ?? this.cajero;
+
+      // id del gimnasio (según tu token)
+      const idGym = decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
+      if (idGym) {
+        this.gymSrv.buscarPorId(Number(idGym)).subscribe({
+          next: g => this.gym = g,
+          error: () => this.gym = null
+        });
+      }
+    } catch {
+      // token inválido → usar fallbacks
+    }
   }
 }
