@@ -23,9 +23,10 @@ import { TipoPago } from '../../util/enums/tipo-pago';
 // 👇 imports para ticket
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { GimnasioService } from '../../services/gimnasio-service';
-import { TicketService } from '../../services/ticket-service';
+import { TicketService, VentaContexto } from '../../services/ticket-service';
 import { GimnasioData } from '../../model/gimnasio-data';
 import { environment } from '../../../environments/environment';
+import { crearContextoTicket } from '../../util/ticket-contexto';
 
 type SocioRequest = Omit<SocioData, 'idSocio'> & { idSocio?: number };
 
@@ -168,99 +169,87 @@ export class Inscripcion implements OnInit {
     return f;
   }
 
-  // ── Guardar + Ticket
   confirmarPagoYGuardar(tipoPago: TipoPago): void {
-    let paquete = this.paqueteSeleccionado();
-    const paqueteId = this.formularioInscripcion.controls.paqueteId.value ?? 0;
+  let paquete = this.paqueteSeleccionado();
+  const paqueteId = this.formularioInscripcion.controls.paqueteId.value ?? 0;
 
-    if (!paquete && paqueteId > 0) {
-      paquete = this.listaPaquetes.find(p => p.idPaquete === paqueteId) ?? null;
-      this.paqueteSeleccionado.set(paquete);
-    }
-    if (!paquete) {
-      this.notificacion.aviso('Selecciona un paquete antes de confirmar.');
-      return;
-    }
-
-    const fechaInicio = this.formularioInscripcion.controls.fechaInicio.value!;
-    const fechaFin = calcularFechaFin(fechaInicio, paquete.tiempo);
-
-    const socioNuevo: SocioRequest = {
-      nombre:          this.formularioInscripcion.controls.nombre.value!,
-      apellido:        this.formularioInscripcion.controls.apellido.value!,
-      direccion:       this.formularioInscripcion.controls.direccion.value!,
-      telefono:        this.formularioInscripcion.controls.telefono.value!,
-      email:           this.formularioInscripcion.controls.email.value ?? '',
-      fechaNacimiento: this.formularioInscripcion.controls.fechaNacimiento.value ?? '',
-      genero:          this.formularioInscripcion.controls.genero.value!,
-      comentarios:     this.formularioInscripcion.controls.comentarios.value ?? ''
-    };
-
-    const cuerpo: MembresiaData = {
-      socio:   socioNuevo as unknown as SocioData,
-      paquete: paquete, // si tu backend prefiere solo id => { idPaquete: paquete.idPaquete } as any
-      fechaInicio,
-      fechaFin,
-      movimiento: this.formularioInscripcion.controls.movimiento.value!,
-      tipoPago,
-      descuento: this.formularioInscripcion.controls.descuento.value!,
-      total: this.totalSinDescuento()
-    };
-
-    this.guardandoMembresia = true;
-    this.membresiaSrv.guardar(cuerpo).subscribe({
-      next: (resp: any) => {
-        // ===== Ticket de membresía (ANTES de limpiar el form) =====
-        const negocio = {
-          nombre:    this.gym?.nombre    ?? 'Tu gimnasio',
-          direccion: this.gym?.direccion ?? '',
-          telefono:  this.gym?.telefono  ?? ''
-        };
-
-        const socioNombre = `${this.formularioInscripcion.controls.nombre.value!} ${this.formularioInscripcion.controls.apellido.value!}`.trim();
-
-        const concepto = paquete?.nombre
-          ? `Membresía ${paquete.nombre}`
-          : 'Membresía';
-
-        const folio = resp?.idMembresia ?? resp?.id ?? '';
-
-        const importe = this.totalVista(); // precio - descuento + costoInscripcion
-
-        this.ticket.verMembresiaComoHtml({
-          negocio,
-          folio,
-          fecha: new Date(),     // o resp?.fechaInicio si tu backend lo envía
-          cajero: this.cajero,
-          socio: socioNombre,    // 👈 nombre del socio en el ticket
-          concepto,
-          importe,
-          tipoPago
-        });
-        // ==========================================================
-
-        // Limpieza UI
-        this.guardandoMembresia = false;
-        this.cerrarModalResumen();
-
-        const hoy = hoyISO();
-        this.formularioInscripcion.reset({
-          genero: 'MASCULINO',
-          movimiento: 'INSCRIPCION',
-          fechaInicio: hoy,
-          descuento: 0,
-          paqueteId: 0
-        });
-        this.paqueteSeleccionado.set(null);
-        this.quitarFoto();
-        this.notificacion.exito('Membresía guardada con éxito.');
-      },
-      error: () => {
-        this.guardandoMembresia = false;
-        this.notificacion.error('No se pudo guardar la membresía.');
-      }
-    });
+  if (!paquete && paqueteId > 0) {
+    paquete = this.listaPaquetes.find(p => p.idPaquete === paqueteId) ?? null;
+    this.paqueteSeleccionado.set(paquete);
   }
+  if (!paquete) {
+    this.notificacion.aviso('Selecciona un paquete antes de confirmar.');
+    return;
+  }
+
+  const fechaInicio = this.formularioInscripcion.controls.fechaInicio.value!;
+  const fechaFin = calcularFechaFin(fechaInicio, paquete.tiempo);
+
+  const socioNuevo: SocioRequest = {
+    nombre:          this.formularioInscripcion.controls.nombre.value!,
+    apellido:        this.formularioInscripcion.controls.apellido.value!,
+    direccion:       this.formularioInscripcion.controls.direccion.value!,
+    telefono:        this.formularioInscripcion.controls.telefono.value!,
+    email:           this.formularioInscripcion.controls.email.value ?? '',
+    fechaNacimiento: this.formularioInscripcion.controls.fechaNacimiento.value ?? '',
+    genero:          this.formularioInscripcion.controls.genero.value!,
+    comentarios:     this.formularioInscripcion.controls.comentarios.value ?? ''
+  };
+
+  const cuerpo: MembresiaData = {
+    socio:   socioNuevo as unknown as SocioData,
+    paquete: paquete, // si backend prefiere solo id: { idPaquete: paquete.idPaquete } as any
+    fechaInicio,
+    fechaFin,
+    movimiento: this.formularioInscripcion.controls.movimiento.value!,
+    tipoPago,
+    descuento: this.formularioInscripcion.controls.descuento.value!,
+    total: this.totalSinDescuento() // para backend si lo usas; el ticket no depende de esto
+  };
+
+  this.guardandoMembresia = true;
+  this.membresiaSrv.guardar(cuerpo).subscribe({
+    next: (resp: any) => {
+      // ===== Ticket de membresía (delegado al servicio) =====
+      const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
+      const socioNombre = `${this.formularioInscripcion.controls.nombre.value!} ${this.formularioInscripcion.controls.apellido.value!}`.trim();
+      const paqueteSel = this.paqueteSeleccionado();
+
+      this.ticket.verMembresiaDesdeContexto({
+        ctx,
+        folio: resp?.idMembresia ?? resp?.id ?? '',
+        fecha: new Date(), // o resp?.fechaInicio
+        socioNombre,
+        paqueteNombre: paqueteSel?.nombre ?? null,
+        precioPaquete: Number(paqueteSel?.precio ?? 0),
+        descuento: Number(this.formularioInscripcion.controls.descuento.value!),
+        costoInscripcion: Number(this.costoInscripcion()),
+        tipoPago: String(tipoPago)
+      });
+      // ======================================================
+
+      // Limpieza UI
+      this.guardandoMembresia = false;
+      this.cerrarModalResumen();
+
+      const hoy = hoyISO();
+      this.formularioInscripcion.reset({
+        genero: 'MASCULINO',
+        movimiento: 'INSCRIPCION',
+        fechaInicio: hoy,
+        descuento: 0,
+        paqueteId: 0
+      });
+      this.paqueteSeleccionado.set(null);
+      this.quitarFoto();
+      this.notificacion.exito('Membresía guardada con éxito.');
+    },
+    error: () => {
+      this.guardandoMembresia = false;
+      this.notificacion.error('No se pudo guardar la membresía.');
+    }
+  });
+}
 
   // 🖼️ Foto (solo local)
   onFotoSeleccionada(evt: Event): void {

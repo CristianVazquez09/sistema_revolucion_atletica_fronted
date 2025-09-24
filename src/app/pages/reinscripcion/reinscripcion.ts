@@ -11,7 +11,7 @@ import { PaqueteService } from '../../services/paquete-service';
 import { MembresiaService } from '../../services/membresia-service';
 import { NotificacionService } from '../../services/notificacion-service';
 import { GimnasioService } from '../../services/gimnasio-service';
-import { TicketService } from '../../services/ticket-service';
+import { TicketService, VentaContexto } from '../../services/ticket-service';
 
 import { SocioData } from '../../model/socio-data';
 import { PaqueteData } from '../../model/paquete-data';
@@ -24,6 +24,7 @@ import { ResumenCompra } from '../resumen-compra/resumen-compra';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
 import { calcularFechaFin, calcularTotal } from '../../util/fechas-precios';
 import { environment } from '../../../environments/environment';
+import { crearContextoTicket } from '../../util/ticket-contexto';
 
 @Component({
   selector: 'app-reinscripcion',
@@ -139,67 +140,54 @@ export class Reinscripcion implements OnInit {
   cerrarResumen(): void { this.mostrarResumen.set(false); }
 
   confirmar(tipoPago: TipoPago): void {
-    const idPaquete = this.paqueteIdSig();
-    if (idPaquete <= 0) {
-      this.notify.aviso('Selecciona un paquete.');
-      return;
-    }
-
-    const payload = {
-      socio:      { idSocio: this.idSocio },
-      paquete:    { idPaquete },
-      movimiento: this.form.controls.movimiento.value!, // 'REINSCRIPCION'
-      tipoPago,
-      descuento:  this.descuento()
-      // total y fechaInicio: solo UI (no se envían por ahora)
-    };
-
-    this.guardando = true;
-    this.membresiaSrv.guardar(payload as any).subscribe({
-      next: (resp: any) => {
-        this.guardando = false;
-        this.mostrarResumen.set(false);
-        this.notify.exito('Reinscripción realizada correctamente.');
-
-        // ====== IMPRIMIR TICKET DE MEMBRESÍA ======
-        const p = this.paqueteSeleccionado();
-        const negocio = {
-          nombre:    this.gym?.nombre    ?? 'Tu gimnasio',
-          direccion: this.gym?.direccion ?? '',
-          telefono:  this.gym?.telefono  ?? ''
-        };
-
-        // Folio: intenta tomar del backend si lo envía; si no, vacío
-        const folio = resp?.idMembresia ?? resp?.id ?? '';
-
-        // Concepto: usa el nombre del paquete si existe; si no, el tiempo
-        const concepto = p?.nombre
-          ? `Membresía ${p.nombre}`
-          : `Membresía ${String(p?.tiempo ?? '')}`;
-
-        // Importe: el total calculado en UI (precio - descuento)
-        const importe = this.total();
-
-        this.ticket.verMembresiaComoHtml({
-          negocio,
-          folio,
-          fecha: new Date(),           // o resp?.fechaInicio si te lo devuelve
-          cajero: this.cajero,         // del token
-          socio: this.nombreCompleto(),
-          concepto,
-          importe,
-          tipoPago
-        });
-        // ===========================================
-
-        this.router.navigate(['/pages/socio', this.idSocio, 'historial']);
-      },
-      error: () => {
-        this.guardando = false;
-        this.notify.error('No se pudo completar la reinscripción.');
-      }
-    });
+  const idPaquete = this.paqueteIdSig();
+  if (idPaquete <= 0) {
+    this.notify.aviso('Selecciona un paquete.');
+    return;
   }
+
+  const payload = {
+    socio:      { idSocio: this.idSocio },
+    paquete:    { idPaquete },
+    movimiento: this.form.controls.movimiento.value!, // 'REINSCRIPCION'
+    tipoPago,
+    descuento:  this.descuento()
+    // total y fechaInicio: solo UI (no se envían por ahora)
+  };
+
+  this.guardando = true;
+  this.membresiaSrv.guardar(payload as any).subscribe({
+    next: (resp: any) => {
+      this.guardando = false;
+      this.mostrarResumen.set(false);
+      this.notify.exito('Reinscripción realizada correctamente.');
+
+      // ====== IMPRIMIR TICKET DE MEMBRESÍA ======
+      const p = this.paqueteSeleccionado();
+      const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
+
+      this.ticket.verMembresiaDesdeContexto({
+        ctx,
+        folio: resp?.idMembresia ?? resp?.id ?? '',
+        fecha: new Date(), // o resp?.fechaInicio si lo manda backend
+        socioNombre: this.nombreCompleto(),
+        paqueteNombre: p?.nombre ?? null,
+        precioPaquete: Number(p?.precio ?? 0),
+        descuento: Number(this.descuento()),
+        costoInscripcion: 0,            // reincripción → 0
+        tipoPago: String(tipoPago)
+      });
+      // ===========================================
+
+      this.router.navigate(['/pages/socio', this.idSocio, 'historial']);
+    },
+    error: () => {
+      this.guardando = false;
+      this.notify.error('No se pudo completar la reinscripción.');
+    }
+  });
+}
+
 
   // helpers fecha
   private hoyISO(): string {

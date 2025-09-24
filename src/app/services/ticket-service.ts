@@ -1,5 +1,6 @@
 // src/app/services/ticket-service.ts
 import { Injectable } from '@angular/core';
+import { calcularTotal } from '../util/fechas-precios'; // centraliza importes
 
 // ===== Tipos de ticket =====
 export type TicketTipo = 'VENTA' | 'MEMBRESIA' | 'ENTRENADOR';
@@ -50,9 +51,214 @@ export interface TicketEntrenador extends TicketHeader {
   tipoPago: string;
 }
 
+// ======== Tipos de alto nivel (desacoplados del componente) ========
+
+// Contexto mínimo para crear tickets sin que el componente arme HTML ni items
+export interface VentaContexto {
+  negocio: TicketHeader['negocio'];
+  cajero?: string;
+  socio?: string;
+  leyendaLateral?: string;
+  brandTitle?: string;
+}
+
+// Carrito crudo (desde UI) para imprimir venta cuando backend no regresa detalles
+export interface CarritoItemCrudo {
+  idProducto: number;
+  nombre: string;
+  cantidad: number;
+  precioUnit: number;
+}
+
+// Estructura tolerante a nulos de la venta que devuelve el backend
+export interface VentaBackend {
+  idVenta?: number | string;
+  fecha?: string | Date;
+  total?: number;
+  detalles?: Array<{
+    cantidad?: number;
+    subTotal?: number;
+    producto?: { nombre?: string; precioVenta?: number };
+  }>;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TicketService {
-  // ===== API PÚBLICA =====
+  // ===================================================================
+  // =============  API PÚBLICA — Alto nivel (desacoplado)  ============
+  // ===================================================================
+
+  /**
+   * Imprime/abre ticket de VENTA normalizando ítems desde la respuesta del backend.
+   * El componente NO arma items ni totales.
+   */
+  verVentaDesdeBackend(venta: VentaBackend, ctx: VentaContexto, tipoPago?: string) {
+    const items: TicketItem[] = this.normalizarItemsDesdeBackend(venta);
+    const subtotal = this.calcularSubtotal(items);
+    const totalBackend = Number(venta?.total);
+    const total = Number.isFinite(totalBackend) ? totalBackend : subtotal;
+
+    this.verVentaComoHtml({
+      negocio: ctx.negocio,
+      folio: venta?.idVenta ?? '',
+      fecha: venta?.fecha ?? new Date(),
+      cajero: ctx.cajero,
+      socio: ctx.socio,
+      items,
+      totales: { subtotal, total },
+      leyendaLateral: ctx.leyendaLateral ?? ctx.negocio.nombre,
+      brandTitle: ctx.brandTitle,
+      tipoPago
+    });
+  }
+
+  imprimirVentaDesdeBackend(venta: VentaBackend, ctx: VentaContexto, tipoPago?: string) {
+    const items: TicketItem[] = this.normalizarItemsDesdeBackend(venta);
+    const subtotal = this.calcularSubtotal(items);
+    const totalBackend = Number(venta?.total);
+    const total = Number.isFinite(totalBackend) ? totalBackend : subtotal;
+
+    this.imprimirVenta({
+      negocio: ctx.negocio,
+      folio: venta?.idVenta ?? '',
+      fecha: venta?.fecha ?? new Date(),
+      cajero: ctx.cajero,
+      socio: ctx.socio,
+      items,
+      totales: { subtotal, total },
+      leyendaLateral: ctx.leyendaLateral ?? ctx.negocio.nombre,
+      brandTitle: ctx.brandTitle,
+      tipoPago
+    });
+  }
+
+  /**
+   * Imprime/abre ticket de VENTA desde el carrito local (cuando backend no regresa detalles).
+   */
+  verVentaDesdeCarrito(
+    carrito: CarritoItemCrudo[],
+    ctx: VentaContexto,
+    tipoPago?: string,
+    folio?: string | number,
+    fecha?: Date | string
+  ) {
+    const items: TicketItem[] = carrito.map(it => ({
+      nombre: it.nombre,
+      cantidad: it.cantidad,
+      precioUnit: it.precioUnit
+    }));
+    const subtotal = this.calcularSubtotal(items);
+
+    this.verVentaComoHtml({
+      negocio: ctx.negocio,
+      folio: folio ?? '',
+      fecha: fecha ?? new Date(),
+      cajero: ctx.cajero,
+      socio: ctx.socio,
+      items,
+      totales: { subtotal, total: subtotal },
+      leyendaLateral: ctx.leyendaLateral ?? ctx.negocio.nombre,
+      brandTitle: ctx.brandTitle,
+      tipoPago
+    });
+  }
+
+  imprimirVentaDesdeCarrito(
+    carrito: CarritoItemCrudo[],
+    ctx: VentaContexto,
+    tipoPago?: string,
+    folio?: string | number,
+    fecha?: Date | string
+  ) {
+    const items: TicketItem[] = carrito.map(it => ({
+      nombre: it.nombre,
+      cantidad: it.cantidad,
+      precioUnit: it.precioUnit
+    }));
+    const subtotal = this.calcularSubtotal(items);
+
+    this.imprimirVenta({
+      negocio: ctx.negocio,
+      folio: folio ?? '',
+      fecha: fecha ?? new Date(),
+      cajero: ctx.cajero,
+      socio: ctx.socio,
+      items,
+      totales: { subtotal, total: subtotal },
+      leyendaLateral: ctx.leyendaLateral ?? ctx.negocio.nombre,
+      brandTitle: ctx.brandTitle,
+      tipoPago
+    });
+  }
+
+  /**
+   * Imprime/abre ticket de MEMBRESÍA calculando el importe con utilidades compartidas.
+   * El componente NO calcula importes.
+   */
+  verMembresiaDesdeContexto(params: {
+    ctx: VentaContexto;
+    folio: string | number;
+    fecha?: Date | string;
+    socioNombre: string;
+    paqueteNombre?: string | null;
+    precioPaquete: number;
+    descuento: number;
+    costoInscripcion: number;
+    tipoPago: string;
+  }) {
+    const concepto = params.paqueteNombre ? `Membresía ${params.paqueteNombre}` : 'Membresía';
+    const importe = calcularTotal(
+      Number(params.precioPaquete) || 0,
+      Number(params.descuento) || 0,
+      Number(params.costoInscripcion) || 0
+    );
+
+    this.verMembresiaComoHtml({
+      negocio: params.ctx.negocio,
+      folio: params.folio,
+      fecha: params.fecha ?? new Date(),
+      cajero: params.ctx.cajero,
+      socio: params.socioNombre,
+      concepto,
+      importe,
+      tipoPago: params.tipoPago
+    });
+  }
+
+  imprimirMembresiaDesdeContexto(params: {
+    ctx: VentaContexto;
+    folio: string | number;
+    fecha?: Date | string;
+    socioNombre: string;
+    paqueteNombre?: string | null;
+    precioPaquete: number;
+    descuento: number;
+    costoInscripcion: number;
+    tipoPago: string;
+  }) {
+    const concepto = params.paqueteNombre ? `Membresía ${params.paqueteNombre}` : 'Membresía';
+    const importe = calcularTotal(
+      Number(params.precioPaquete) || 0,
+      Number(params.descuento) || 0,
+      Number(params.costoInscripcion) || 0
+    );
+
+    this.imprimirMembresia({
+      negocio: params.ctx.negocio,
+      folio: params.folio,
+      fecha: params.fecha ?? new Date(),
+      cajero: params.ctx.cajero,
+      socio: params.socioNombre,
+      concepto,
+      importe,
+      tipoPago: params.tipoPago
+    });
+  }
+
+  // ===================================================================
+  // ==================  API PÚBLICA — Actual existente  ================
+  // ===================================================================
+
   imprimirVenta(data: TicketVenta) {
     const html = this.htmlVenta(data);
     this.abrirYImprimir(html, `ticket-venta-${data.folio ?? ''}.html`);
@@ -103,7 +309,7 @@ export class TicketService {
       const pu  = this.toNum(it.precioUnit);
       return `
         <div class="mb-1">
-          <div>${this.escape(it.nombre)}</div>
+          <div>${this.escape(String(it.nombre))}</div>
           <div class="row">
             <div>x${qty}</div>
             <div class="right">${this.money(qty * pu)}</div>
@@ -121,7 +327,7 @@ export class TicketService {
 
     const total     = this.toNum(d.totales?.total);
 
-    const lateral = d.leyendaLateral ? `<div class="lateral">${this.escape(d.leyendaLateral)}</div>` : '';
+    const lateral = d.leyendaLateral ? `<div class="lateral">${this.escape(String(d.leyendaLateral))}</div>` : '';
     const brand   = (d.brandTitle ?? 'REVOLUCIÓN ATLÉTICA').toUpperCase();
 
     // ID grande entre socio y desglose
@@ -139,15 +345,15 @@ ${this.baseStyles()}
   <div class="brand">${this.escape(brand)}</div>
 
   <!-- Negocio -->
-  <div class="title">${this.escape(d.negocio.nombre)}</div>
-  ${d.negocio.direccion ? `<div class="muted">${this.escape(d.negocio.direccion)}</div>` : ''}
-  ${d.negocio.telefono ? `<div class="muted">TEL: ${this.escape(d.negocio.telefono)}</div>` : ''}
+  <div class="title">${this.escape(String(d.negocio.nombre))}</div>
+  ${d.negocio.direccion ? `<div class="muted">${this.escape(String(d.negocio.direccion))}</div>` : ''}
+  ${d.negocio.telefono ? `<div class="muted">TEL: ${this.escape(String(d.negocio.telefono))}</div>` : ''}
 
   <div class="hr"></div>
   ${d.folio ? `<div class="muted">FOLIO: <strong>${this.escape(String(d.folio))}</strong></div>` : ''}
   <div class="muted">FECHA: ${this.fechaLarga(d.fecha)}</div>
-  ${d.cajero ? `<div class="muted">CAJERO: ${this.escape(d.cajero)}</div>` : ''}
-  ${d.socio  ? `<div class="muted">SOCIO: ${this.escape(d.socio)}</div>` : ''}
+  ${d.cajero ? `<div class="muted">CAJERO: ${this.escape(String(d.cajero))}</div>` : ''}
+  ${d.socio  ? `<div class="muted">SOCIO: ${this.escape(String(d.socio))}</div>` : ''}
 
   ${idBlock ? idBlock + '<div class="hr"></div>' : '<div class="hr"></div>'}
 
@@ -158,7 +364,7 @@ ${this.baseStyles()}
   ${descuento ? `<div class="row"><div>DESCUENTO</div><div class="right">-${this.money(descuento)}</div></div>` : ''}
   <div class="row total"><div><strong>TOTAL</strong></div><div class="right"><strong>${this.money(total)}</strong></div></div>
 
-  ${d.tipoPago ? `<div class="row" style="margin-top:4px;"><div>PAGO</div><div class="right">${this.escape(d.tipoPago)}</div></div>` : ''}
+  ${d.tipoPago ? `<div class="row" style="margin-top:4px;"><div>PAGO</div><div class="right">${this.escape(String(d.tipoPago))}</div></div>` : ''}
 
   <div class="hr"></div>
   <div class="center">¡Gracias por su compra!</div>
@@ -176,21 +382,21 @@ ${this.baseStyles()}
 <body onload="window.print();window.close();">
 <div class="ticket">
   <div class="brand">${this.escape('REVOLUCIÓN ATLÉTICA')}</div>
-  <div class="title">${this.escape(d.negocio.nombre)}</div>
-  ${d.negocio.direccion ? `<div class="muted">${this.escape(d.negocio.direccion)}</div>` : ''}
-  ${d.negocio.telefono ? `<div class="muted">TEL: ${this.escape(d.negocio.telefono)}</div>` : ''}
+  <div class="title">${this.escape(String(d.negocio.nombre))}</div>
+  ${d.negocio.direccion ? `<div class="muted">${this.escape(String(d.negocio.direccion))}</div>` : ''}
+  ${d.negocio.telefono ? `<div class="muted">TEL: ${this.escape(String(d.negocio.telefono))}</div>` : ''}
 
   <div class="hr"></div>
   ${d.folio ? `<div class="muted">FOLIO: <strong>${this.escape(String(d.folio))}</strong></div>` : ''}
   <div class="muted">FECHA: ${this.fechaLarga(d.fecha)}</div>
-  ${d.cajero ? `<div class="muted">CAJERO: ${this.escape(d.cajero)}</div>` : ''}
-  ${d.socio  ? `<div class="muted">SOCIO: ${this.escape(d.socio)}</div>` : ''}
+  ${d.cajero ? `<div class="muted">CAJERO: ${this.escape(String(d.cajero))}</div>` : ''}
+  ${d.socio  ? `<div class="muted">SOCIO: ${this.escape(String(d.socio))}</div>` : ''}
 
   ${idBlock ? idBlock + '<div class="hr"></div>' : '<div class="hr"></div>'}
 
-  <div class="mb-1"><strong>${this.escape(d.concepto)}</strong></div>
+  <div class="mb-1"><strong>${this.escape(String(d.concepto))}</strong></div>
   <div class="row"><div>IMPORTE</div><div class="right">${this.money(this.toNum(d.importe))}</div></div>
-  <div class="row"><div>PAGO</div><div class="right">${this.escape(d.tipoPago)}</div></div>
+  <div class="row"><div>PAGO</div><div class="right">${this.escape(String(d.tipoPago))}</div></div>
 
   <div class="hr"></div>
   <div class="center">¡Gracias!</div>
@@ -208,18 +414,18 @@ ${this.baseStyles()}
 <body onload="window.print();window.close();">
 <div class="ticket">
   <div class="brand">${this.escape('REVOLUCIÓN ATLÉTICA')}</div>
-  <div class="title">${this.escape(d.negocio.nombre)}</div>
+  <div class="title">${this.escape(String(d.negocio.nombre))}</div>
 
   <div class="hr"></div>
   <div class="muted">FECHA: ${this.fechaLarga(d.fecha)}</div>
-  ${d.cajero ? `<div class="muted">ATENDIÓ: ${this.escape(d.cajero)}</div>` : ''}
-  ${d.socio  ? `<div class="muted">CLIENTE: ${this.escape(d.socio)}</div>` : ''}
+  ${d.cajero ? `<div class="muted">ATENDIÓ: ${this.escape(String(d.cajero))}</div>` : ''}
+  ${d.socio  ? `<div class="muted">CLIENTE: ${this.escape(String(d.socio))}</div>` : ''}
 
   ${idBlock ? idBlock + '<div class="hr"></div>' : '<div class="hr"></div>'}
 
-  <div class="mb-1"><strong>${this.escape(d.concepto)}</strong></div>
+  <div class="mb-1"><strong>${this.escape(String(d.concepto))}</strong></div>
   <div class="row"><div>IMPORTE</div><div class="right">${this.money(this.toNum(d.importe))}</div></div>
-  <div class="row"><div>PAGO</div><div class="right">${this.escape(d.tipoPago)}</div></div>
+  <div class="row"><div>PAGO</div><div class="right">${this.escape(String(d.tipoPago))}</div></div>
 
   <div class="hr"></div>
   <div class="center">¡Gracias!</div>
@@ -287,5 +493,28 @@ ${this.baseStyles()}
     if (!raw) return '';
     const hash = /^\d+$/.test(raw) ? `#${raw}` : raw;
     return `<div class="doc-id">${this.escape(label)} <span>${this.escape(hash)}</span></div>`;
+  }
+
+  // ===== Helpers privados de alto nivel =====
+  private normalizarItemsDesdeBackend(venta: VentaBackend): TicketItem[] {
+    const lista = Array.isArray(venta?.detalles) ? venta!.detalles! : [];
+    return lista.map((d: any) => {
+      const qty: number = Number(d?.cantidad ?? 0) || 0;
+      const pVenta: number = Number(d?.producto?.precioVenta);
+      const subTot: number = Number(d?.subTotal);
+      const unit: number = Number.isFinite(pVenta)
+        ? pVenta
+        : (qty > 0 && Number.isFinite(subTot) ? subTot / qty : 0);
+      return {
+        nombre: d?.producto?.nombre ?? '—',
+        cantidad: qty,
+        precioUnit: unit
+      };
+    });
+  }
+
+  private calcularSubtotal(items: TicketItem[]): number {
+    return items.reduce((acc: number, it: TicketItem) =>
+      acc + (this.toInt(it.cantidad) * this.toNum(it.precioUnit)), 0);
   }
 }
