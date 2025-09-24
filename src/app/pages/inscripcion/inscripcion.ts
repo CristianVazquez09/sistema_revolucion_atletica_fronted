@@ -1,8 +1,7 @@
-// src/app/pages/inscripcion/inscripcion.ts
-import { Component, OnInit, signal, inject, computed, DestroyRef } from '@angular/core';
+import { Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
@@ -17,16 +16,31 @@ import { MembresiaData } from '../../model/membresia-data';
 
 import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
-import { calcularFechaFin, calcularTotal, hoyISO } from '../../util/fechas-precios';
+import { calcularFechaFin, hoyISO } from '../../util/fechas-precios';
 import { TipoPago } from '../../util/enums/tipo-pago';
 
-// 👇 imports para ticket
+// Ticket
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { GimnasioService } from '../../services/gimnasio-service';
 import { TicketService, VentaContexto } from '../../services/ticket-service';
 import { GimnasioData } from '../../model/gimnasio-data';
 import { environment } from '../../../environments/environment';
 import { crearContextoTicket } from '../../util/ticket-contexto';
+
+// NgRx (feature Inscripción)
+import { Store } from '@ngrx/store';
+import { InscripcionActions } from './state/inscripcion-actions';
+import {
+  selectPaqueteActual,
+  selectTotalVista,
+  selectTotalSinDescuento,
+  selectFechaPagoVista,
+  selectDescuento,
+  selectFechaInicio,
+  selectPaqueteId,
+  selectCostoInscripcion,
+  selectPrecioPaquete
+} from './state/inscripcion-selectors';
 
 type SocioRequest = Omit<SocioData, 'idSocio'> & { idSocio?: number };
 
@@ -38,41 +52,41 @@ type SocioRequest = Omit<SocioData, 'idSocio'> & { idSocio?: number };
   styleUrl: './inscripcion.css'
 })
 export class Inscripcion implements OnInit {
-  // ── Inyecciones base
+  // Inyecciones base
   private fb = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
   private notificacion = inject(NotificacionService);
 
-  // ── Servicios de dominio
+  // Servicios de dominio
   constructor(
     private paqueteSrv: PaqueteService,
     private membresiaSrv: MembresiaService
   ) {}
 
-  // ── Servicios para ticket
+  // Ticket
   private gymSrv = inject(GimnasioService);
   private ticket = inject(TicketService);
   private jwt    = inject(JwtHelperService);
 
-  // ── Contexto (para ticket)
+  // NgRx store
+  private store = inject(Store);
+
+  // Contexto (ticket)
   gym: GimnasioData | null = null;
   cajero = 'Cajero';
 
-  // ── Estado
+  // Estado UI local (no de dominio)
   listaPaquetes: PaqueteData[] = [];
   cargandoPaquetes = true;
-
   mostrarModalResumen = signal(false);
   mensajeError: string | null = null;
   guardandoMembresia = false;
 
-  paqueteSeleccionado = signal<PaqueteData | null>(null);
-
-  // 🖼️ Foto (solo local)
+  // Foto (solo local)
   fotoArchivo: File | null = null;
   fotoPreviewUrl: string | null = null;
 
-  // ── Formulario
+  // Formulario (UI)
   formularioInscripcion = this.fb.group({
     nombre:           this.fb.nonNullable.control('', [Validators.required]),
     apellido:         this.fb.nonNullable.control('', [Validators.required]),
@@ -89,47 +103,58 @@ export class Inscripcion implements OnInit {
     movimiento:       this.fb.nonNullable.control<TipoMovimiento>('INSCRIPCION'),
   });
 
-  // ── Signals derivados
-  private paqueteIdSig = toSignal(this.formularioInscripcion.controls.paqueteId.valueChanges, { initialValue: this.formularioInscripcion.controls.paqueteId.value });
-  private descuentoSig = toSignal(this.formularioInscripcion.controls.descuento.valueChanges, { initialValue: this.formularioInscripcion.controls.descuento.value });
-  private fechaInicioSig = toSignal(this.formularioInscripcion.controls.fechaInicio.valueChanges, { initialValue: this.formularioInscripcion.controls.fechaInicio.value });
+  // Signals derivados DESDE EL STORE (no calculamos en el componente)
+  paqueteActualSig       = this.store.selectSignal(selectPaqueteActual);
+  totalVistaSig          = this.store.selectSignal(selectTotalVista);
+  totalSinDescuentoSig   = this.store.selectSignal(selectTotalSinDescuento);
+  fechaPagoVistaSig      = this.store.selectSignal(selectFechaPagoVista);
+  descuentoSelSig        = this.store.selectSignal(selectDescuento);
+  fechaInicioSelSig      = this.store.selectSignal(selectFechaInicio);
+  paqueteIdSelSig        = this.store.selectSignal(selectPaqueteId);
+  costoInscripcionSig    = this.store.selectSignal(selectCostoInscripcion);
+  precioPaqueteSig = this.store.selectSignal(selectPrecioPaquete); // 👈 NUEVO
+// descuentoSelSig ya lo tienes (selectDescuento)
 
-  paqueteActual = computed(() => {
-    const id = Number(this.paqueteIdSig() ?? 0);
-    return this.listaPaquetes.find(p => p.idPaquete === id) ?? null;
-  });
 
-  precioPaquete    = computed(() => this.paqueteActual()?.precio ?? 0);
-  costoInscripcion = computed(() => this.paqueteActual()?.costoInscripcion ?? 0);
-  descuentoValor   = computed(() => Number(this.descuentoSig() ?? 0));
-
-  totalVista = computed(() => calcularTotal(this.precioPaquete(), this.descuentoValor(), this.costoInscripcion()));
-  totalSinDescuento = computed(() => calcularTotal(this.precioPaquete(), 0, this.costoInscripcion()));
-
-  fechaPagoVista = computed(() => {
-    const inicio = this.fechaInicioSig() ?? hoyISO();
-    const tiempo = this.paqueteActual()?.tiempo ?? null;
-    return calcularFechaFin(inicio, tiempo);
-  });
-
-  // ── Ciclo de vida
+  // Ciclo de vida
   ngOnInit(): void {
-    this.cargarContextoDesdeToken(); // 👈 carga cajero + datos de gimnasio para ticket
+    this.cargarContextoDesdeToken();
     this.cargarPaquetes();
 
+    // Sincroniza cambios del form -> Store (única fuente de verdad de la feature)
     this.formularioInscripcion.controls.paqueteId.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(id => this.sincronizarPaqueteSeleccionado(id ?? 0));
+      .subscribe(id => {
+        this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: Number(id ?? 0) }));
+        // Asegura fechaInicio definida (regla de UI)
+        if (!this.formularioInscripcion.controls.fechaInicio.value) {
+          this.formularioInscripcion.controls.fechaInicio.setValue(hoyISO(), { emitEvent: false });
+        }
+      });
+
+    this.formularioInscripcion.controls.descuento.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(d => this.store.dispatch(InscripcionActions.setDescuento({ descuento: Number(d ?? 0) })));
+
+    this.formularioInscripcion.controls.fechaInicio.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(f => this.store.dispatch(InscripcionActions.setFechaInicio({ fechaInicio: String(f ?? hoyISO()) })));
   }
 
-  // ── Paquetes
+  // Paquetes
   private cargarPaquetes(): void {
     this.cargandoPaquetes = true;
     this.paqueteSrv.buscarTodos().subscribe({
       next: lista => {
         this.listaPaquetes = lista ?? [];
         this.cargandoPaquetes = false;
-        this.sincronizarPaqueteSeleccionado(this.formularioInscripcion.controls.paqueteId.value ?? 0);
+
+        // Pasa al store (para selectores puros)
+        this.store.dispatch(InscripcionActions.setListaPaquetes({ paquetes: this.listaPaquetes }));
+
+        // Sincroniza paqueteId inicial del form -> store
+        const idInit = Number(this.formularioInscripcion.controls.paqueteId.value ?? 0);
+        this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: idInit }));
       },
       error: () => {
         this.cargandoPaquetes = false;
@@ -138,13 +163,7 @@ export class Inscripcion implements OnInit {
     });
   }
 
-  private sincronizarPaqueteSeleccionado(idPaquete: number): void {
-    if (!idPaquete || idPaquete <= 0) { this.paqueteSeleccionado.set(null); return; }
-    const encontrado = this.listaPaquetes.find(p => p.idPaquete === idPaquete) ?? null;
-    this.paqueteSeleccionado.set(encontrado);
-  }
-
-  // ── Modal
+  // Modal
   abrirModalResumen(): void {
     const faltantes = this.camposFaltantes();
     if (faltantes.length) {
@@ -169,89 +188,86 @@ export class Inscripcion implements OnInit {
     return f;
   }
 
+  // Guardar + Ticket (delegado)
   confirmarPagoYGuardar(tipoPago: TipoPago): void {
-  let paquete = this.paqueteSeleccionado();
-  const paqueteId = this.formularioInscripcion.controls.paqueteId.value ?? 0;
-
-  if (!paquete && paqueteId > 0) {
-    paquete = this.listaPaquetes.find(p => p.idPaquete === paqueteId) ?? null;
-    this.paqueteSeleccionado.set(paquete);
-  }
-  if (!paquete) {
-    this.notificacion.aviso('Selecciona un paquete antes de confirmar.');
-    return;
-  }
-
-  const fechaInicio = this.formularioInscripcion.controls.fechaInicio.value!;
-  const fechaFin = calcularFechaFin(fechaInicio, paquete.tiempo);
-
-  const socioNuevo: SocioRequest = {
-    nombre:          this.formularioInscripcion.controls.nombre.value!,
-    apellido:        this.formularioInscripcion.controls.apellido.value!,
-    direccion:       this.formularioInscripcion.controls.direccion.value!,
-    telefono:        this.formularioInscripcion.controls.telefono.value!,
-    email:           this.formularioInscripcion.controls.email.value ?? '',
-    fechaNacimiento: this.formularioInscripcion.controls.fechaNacimiento.value ?? '',
-    genero:          this.formularioInscripcion.controls.genero.value!,
-    comentarios:     this.formularioInscripcion.controls.comentarios.value ?? ''
-  };
-
-  const cuerpo: MembresiaData = {
-    socio:   socioNuevo as unknown as SocioData,
-    paquete: paquete, // si backend prefiere solo id: { idPaquete: paquete.idPaquete } as any
-    fechaInicio,
-    fechaFin,
-    movimiento: this.formularioInscripcion.controls.movimiento.value!,
-    tipoPago,
-    descuento: this.formularioInscripcion.controls.descuento.value!,
-    total: this.totalSinDescuento() // para backend si lo usas; el ticket no depende de esto
-  };
-
-  this.guardandoMembresia = true;
-  this.membresiaSrv.guardar(cuerpo).subscribe({
-    next: (resp: any) => {
-      // ===== Ticket de membresía (delegado al servicio) =====
-      const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
-      const socioNombre = `${this.formularioInscripcion.controls.nombre.value!} ${this.formularioInscripcion.controls.apellido.value!}`.trim();
-      const paqueteSel = this.paqueteSeleccionado();
-
-      this.ticket.verMembresiaDesdeContexto({
-        ctx,
-        folio: resp?.idMembresia ?? resp?.id ?? '',
-        fecha: new Date(), // o resp?.fechaInicio
-        socioNombre,
-        paqueteNombre: paqueteSel?.nombre ?? null,
-        precioPaquete: Number(paqueteSel?.precio ?? 0),
-        descuento: Number(this.formularioInscripcion.controls.descuento.value!),
-        costoInscripcion: Number(this.costoInscripcion()),
-        tipoPago: String(tipoPago)
-      });
-      // ======================================================
-
-      // Limpieza UI
-      this.guardandoMembresia = false;
-      this.cerrarModalResumen();
-
-      const hoy = hoyISO();
-      this.formularioInscripcion.reset({
-        genero: 'MASCULINO',
-        movimiento: 'INSCRIPCION',
-        fechaInicio: hoy,
-        descuento: 0,
-        paqueteId: 0
-      });
-      this.paqueteSeleccionado.set(null);
-      this.quitarFoto();
-      this.notificacion.exito('Membresía guardada con éxito.');
-    },
-    error: () => {
-      this.guardandoMembresia = false;
-      this.notificacion.error('No se pudo guardar la membresía.');
+    // Obtenemos estado desde el store (no recomputamos)
+    const paquete = this.paqueteActualSig();
+    if (!paquete) {
+      this.notificacion.aviso('Selecciona un paquete antes de confirmar.');
+      return;
     }
-  });
-}
 
-  // 🖼️ Foto (solo local)
+    const fechaInicio = this.fechaInicioSelSig() ?? hoyISO();
+    const fechaFin = calcularFechaFin(fechaInicio, paquete.tiempo);
+
+    const socioNuevo: SocioRequest = {
+      nombre:          this.formularioInscripcion.controls.nombre.value!,
+      apellido:        this.formularioInscripcion.controls.apellido.value!,
+      direccion:       this.formularioInscripcion.controls.direccion.value!,
+      telefono:        this.formularioInscripcion.controls.telefono.value!,
+      email:           this.formularioInscripcion.controls.email.value ?? '',
+      fechaNacimiento: this.formularioInscripcion.controls.fechaNacimiento.value ?? '',
+      genero:          this.formularioInscripcion.controls.genero.value!,
+      comentarios:     this.formularioInscripcion.controls.comentarios.value ?? ''
+    };
+
+    const cuerpo: MembresiaData = {
+      socio:   socioNuevo as unknown as SocioData,
+      paquete: paquete, // si backend prefiere id: { idPaquete: paquete.idPaquete } as any
+      fechaInicio,
+      fechaFin,
+      movimiento: this.formularioInscripcion.controls.movimiento.value!,
+      tipoPago,
+      descuento: this.descuentoSelSig(),
+      total: this.totalSinDescuentoSig() // para backend (el ticket NO depende de esto)
+    };
+
+    this.guardandoMembresia = true;
+    this.membresiaSrv.guardar(cuerpo).subscribe({
+      next: (resp: any) => {
+        // Ticket des acoplado: TicketService calcula importe con utilidades
+        const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
+        const socioNombre = `${this.formularioInscripcion.controls.nombre.value!} ${this.formularioInscripcion.controls.apellido.value!}`.trim();
+
+        this.ticket.verMembresiaDesdeContexto({
+          ctx,
+          folio: resp?.idMembresia ?? resp?.id ?? '',
+          fecha: new Date(), // o resp?.fechaInicio
+          socioNombre,
+          paqueteNombre: paquete?.nombre ?? null,
+          precioPaquete: Number(paquete?.precio ?? 0),
+          descuento: Number(this.descuentoSelSig() ?? 0),
+          costoInscripcion: Number(this.costoInscripcionSig() ?? 0),
+          tipoPago: String(tipoPago)
+        });
+
+        // Limpieza UI
+        this.guardandoMembresia = false;
+        this.cerrarModalResumen();
+
+        const hoy = hoyISO();
+        this.formularioInscripcion.reset({
+          genero: 'MASCULINO',
+          movimiento: 'INSCRIPCION',
+          fechaInicio: hoy,
+          descuento: 0,
+          paqueteId: 0
+        });
+
+        // Resetea slice de feature
+        this.store.dispatch(InscripcionActions.reset());
+
+        this.quitarFoto();
+        this.notificacion.exito('Membresía guardada con éxito.');
+      },
+      error: () => {
+        this.guardandoMembresia = false;
+        this.notificacion.error('No se pudo guardar la membresía.');
+      }
+    });
+  }
+
+  // Foto (solo local)
   onFotoSeleccionada(evt: Event): void {
     const file = (evt.target as HTMLInputElement).files?.[0] || null;
     if (!file) return;
@@ -260,13 +276,12 @@ export class Inscripcion implements OnInit {
     reader.onload = () => this.fotoPreviewUrl = reader.result as string;
     reader.readAsDataURL(file);
   }
-
   quitarFoto(): void {
     this.fotoArchivo = null;
     this.fotoPreviewUrl = null;
   }
 
-  // ── Contexto: cajero + gimnasio para ticket
+  // Contexto: cajero + gimnasio (para ticket)
   private cargarContextoDesdeToken(): void {
     const token = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
     if (!token) return;
