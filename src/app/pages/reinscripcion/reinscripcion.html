@@ -1,8 +1,9 @@
+<!-- src/app/pages/reinscripcion/reinscripcion.html -->
+
 <!-- Barra -->
 <div class="mx-4 md:mx-8 my-3 flex items-center justify-between">
   <h1 class="text-xl font-semibold text-[color:var(--color-ra-slate)]">Reinscripción</h1>
 
-  <!-- Volver al socio (id en crudo, como pediste) -->
   <a [routerLink]="['/pages/socio', idSocio, 'historial']"
      class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 bg-white text-sm hover:bg-gray-50">
     ← Volver
@@ -15,10 +16,8 @@
 
     <!-- Socio -->
     <section class="rounded-xl2 border border-gray-200 bg-gray-50 p-4">
-      @if (cargandoSocio) {
+      @if (!socio()) {
         <div class="text-center text-gray-600 py-8">Cargando socio…</div>
-      } @else if (!socio()) {
-        <div class="text-center text-red-600 py-8">No se encontró el socio.</div>
       } @else {
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div class="row-span-3">
@@ -64,22 +63,22 @@
             @if (cargandoPaquetes) {
               <option [ngValue]="0">Cargando…</option>
             } @else {
-              @for (p of paquetes; track p.idPaquete) {
+              @for (p of listaPaquetesSig(); track p.idPaquete) {
                 <option [ngValue]="p.idPaquete">{{ p.nombre }} — {{ p.tiempo | tiempoPlan }}</option>
               }
             }
           </select>
         </div>
 
-        <!-- Info del paquete (label bonito del tiempo) -->
-        @if (paqueteSeleccionado()) {
+        <!-- Info del paquete -->
+        @if (paqueteActualSig()) {
           <div class="summary-box">
             <div class="flex items-center justify-between">
-              <div class="font-semibold">{{ paqueteSeleccionado()!.nombre }}</div>
-              <div>${{ precioPaquete() | number:'1.2-2' }}</div>
+              <div class="font-semibold">{{ paqueteActualSig()!.nombre }}</div>
+              <div>${{ precioPaqueteSig() | number:'1.2-2' }}</div>
             </div>
             <div class="text-sm text-gray-600 mt-1">
-              Tiempo: {{ paqueteSeleccionado()!.tiempo | tiempoPlan }}
+              Tiempo: {{ paqueteActualSig()!.tiempo | tiempoPlan }}
             </div>
           </div>
         }
@@ -99,7 +98,7 @@
           <div>
             <label class="block text-sm font-medium mb-1">Fecha de pago</label>
             <div class="input-filled bg-gray-100 pointer-events-none select-none">
-              {{ fechaPago() | date:'dd/MM/yyyy' }}
+              {{ fechaPagoVistaSig() | date:'dd/MM/yyyy' }}
             </div>
           </div>
         </div>
@@ -108,7 +107,7 @@
         <div class="summary-box">
           <div class="flex items-center justify-between">
             <div class="font-semibold">Total</div>
-            <div class="font-bold">${{ total() | number:'1.2-2' }}</div>
+            <div class="font-bold">${{ totalVistaSig() | number:'1.2-2' }}</div>
           </div>
         </div>
 
@@ -129,12 +128,12 @@
     <div class="relative z-10 w-full max-w-[560px] mx-4" (click)="$event.stopPropagation()">
       <app-resumen-compra
         [socioNombre]="nombreCompleto()"
-        [fechaPago]="fechaPago()"
-        [concepto]="paqueteSeleccionado()?.nombre ?? 'Paquete'"
-        [montoPaquete]="precioPaquete()"
+        [fechaPago]="fechaPagoVistaSig()"
+        [concepto]="paqueteActualSig()?.nombre ?? 'Paquete'"
+        [montoPaquete]="precioPaqueteSig()"
         [montoInscripcion]="0"
-        [descuento]="descuento()"
-        [total]="total()"
+        [descuento]="descuentoSelSig()"
+        [total]="totalVistaSig()"
         [guardando]="guardando"
         (cancelar)="cerrarResumen()"
         (confirmar)="confirmar($event)">

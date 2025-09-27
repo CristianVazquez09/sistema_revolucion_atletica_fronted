@@ -1,30 +1,38 @@
-// src/app/pages/reinscripcion/reinscripcion.ts
-import { Component, OnInit, DestroyRef, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { SocioService } from '../../services/socio-service';
-import { PaqueteService } from '../../services/paquete-service';
 import { MembresiaService } from '../../services/membresia-service';
 import { NotificacionService } from '../../services/notificacion-service';
-import { GimnasioService } from '../../services/gimnasio-service';
-import { TicketService, VentaContexto } from '../../services/ticket-service';
 
 import { SocioData } from '../../model/socio-data';
-import { PaqueteData } from '../../model/paquete-data';
+import { MembresiaData } from '../../model/membresia-data';
 import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
-import { TiempoPlan } from '../../util/enums/tiempo-plan';
 import { TipoPago } from '../../util/enums/tipo-pago';
-import { GimnasioData } from '../../model/gimnasio-data';
-
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
-import { calcularFechaFin, calcularTotal } from '../../util/fechas-precios';
+import { hoyISO, calcularFechaFin } from '../../util/fechas-precios';
+
+// Ticket
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { GimnasioService } from '../../services/gimnasio-service';
+import { TicketService, VentaContexto } from '../../services/ticket-service';
+import { GimnasioData } from '../../model/gimnasio-data';
 import { environment } from '../../../environments/environment';
 import { crearContextoTicket } from '../../util/ticket-contexto';
+
+// NgRx (sin effects)
+import { Store } from '@ngrx/store';
+import { ReinscripcionActions } from './state/reinscripcion-actions';
+import {
+  selectListaPaquetes, selectPaqueteActual, selectPrecioPaquete,
+  selectTotalVista, selectTotalSinDescuento, selectFechaPagoVista,
+  selectDescuento, selectFechaInicio, selectPaqueteId
+} from './state/reinscripcion-selectors';
+import { PaqueteService } from '../../services/paquete-service';
 
 @Component({
   selector: 'app-reinscripcion',
@@ -34,71 +42,61 @@ import { crearContextoTicket } from '../../util/ticket-contexto';
   styleUrl: './reinscripcion.css'
 })
 export class Reinscripcion implements OnInit {
-  // inyección
-  private fb           = inject(FormBuilder);
-  private route        = inject(ActivatedRoute);
-  private router       = inject(Router);
-  private destroyRef   = inject(DestroyRef);
+  // Inyección
+  private fb         = inject(FormBuilder);
+  private route      = inject(ActivatedRoute);
+  private router     = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   private socioSrv     = inject(SocioService);
-  private paqueteSrv   = inject(PaqueteService);
   private membresiaSrv = inject(MembresiaService);
   private notify       = inject(NotificacionService);
+  private paqueteSrv = inject(PaqueteService)
 
-  // 👇 para ticket
-  private gymSrv       = inject(GimnasioService);
-  private ticket       = inject(TicketService);
-  private jwt          = inject(JwtHelperService);
+  // Ticket
+  private gymSrv = inject(GimnasioService);
+  private ticket = inject(TicketService);
+  private jwt    = inject(JwtHelperService);
 
-  // estado
+  // Store
+  private store = inject(Store);
+
+  // Estado UI
   idSocio!: number;
   socio = signal<SocioData | null>(null);
-
-  paquetes: PaqueteData[] = [];
-  cargandoSocio = true;
-  cargandoPaquetes = true;
-  guardando = false;
-
   mostrarResumen = signal(false);
+  guardando = false;
+  mensajeError: string | null = null;
+  cargandoPaquetes = true;
+  errorPaquetes: string | null = null;
 
-  // contexto (para el ticket)
+  // Contexto ticket
   gym: GimnasioData | null = null;
   cajero = 'Cajero';
 
-  // formulario
+  // Form
   form = this.fb.group({
     paqueteId:   this.fb.nonNullable.control<number>(0, [Validators.min(1)]),
     descuento:   this.fb.nonNullable.control<number>(0, [Validators.min(0)]),
-    fechaInicio: this.fb.nonNullable.control<string>(this.hoyISO()),
-    movimiento:  this.fb.nonNullable.control<TipoMovimiento>('REINSCRIPCION')
+    fechaInicio: this.fb.nonNullable.control<string>(hoyISO()),
+    movimiento:  this.fb.nonNullable.control<TipoMovimiento>('REINSCRIPCION'),
   });
 
-  // signals derivados desde el form (no-null)
-  private paqueteIdSig   = toSignal(this.form.controls.paqueteId.valueChanges,   { initialValue: this.form.controls.paqueteId.value });
-  private descuentoSig   = toSignal(this.form.controls.descuento.valueChanges,  { initialValue: this.form.controls.descuento.value });
-  private fechaInicioSig = toSignal(this.form.controls.fechaInicio.valueChanges,{ initialValue: this.form.controls.fechaInicio.value });
-
-  // derivados de UI
-  paqueteSeleccionado = computed(() => {
-    const id = this.paqueteIdSig();
-    return this.paquetes.find(p => p.idPaquete === id) ?? null;
-  });
-
-  precioPaquete = computed(() => this.paqueteSeleccionado()?.precio ?? 0);
-  descuento     = computed(() => this.descuentoSig());
-  total         = computed(() => calcularTotal(this.precioPaquete(), this.descuento()));
-
-  fechaInicio   = computed(() => this.fechaInicioSig());
-  fechaPago     = computed(() => {
-    const tiempo = this.paqueteSeleccionado()?.tiempo ?? null;
-    return calcularFechaFin(this.fechaInicio(), tiempo as TiempoPlan | null);
-  });
+  // Signals del store
+  listaPaquetesSig   = this.store.selectSignal(selectListaPaquetes);
+  paqueteActualSig   = this.store.selectSignal(selectPaqueteActual);
+  precioPaqueteSig   = this.store.selectSignal(selectPrecioPaquete);
+  totalVistaSig      = this.store.selectSignal(selectTotalVista);
+  totalSinDescSig    = this.store.selectSignal(selectTotalSinDescuento);
+  fechaPagoVistaSig  = this.store.selectSignal(selectFechaPagoVista);
+  descuentoSelSig    = this.store.selectSignal(selectDescuento);
+  fechaInicioSelSig  = this.store.selectSignal(selectFechaInicio);
+  paqueteIdSelSig    = this.store.selectSignal(selectPaqueteId);
 
   ngOnInit(): void {
-    // contexto ticket (gimnasio + cajero desde el token)
     this.cargarContextoDesdeToken();
 
-    // id de la ruta
+    // id de ruta
     this.idSocio = Number(this.route.snapshot.paramMap.get('id'));
     if (!this.idSocio) {
       this.notify.error('Falta el id del socio.');
@@ -108,90 +106,97 @@ export class Reinscripcion implements OnInit {
 
     // cargar socio
     this.socioSrv.buscarPorId(this.idSocio).subscribe({
-      next: s => { this.socio.set(s ?? null); this.cargandoSocio = false; },
-      error: () => { this.cargandoSocio = false; this.notify.error('No se pudo cargar el socio.'); }
+      next: s => this.socio.set(s ?? null),
+      error: () => this.notify.error('No se pudo cargar el socio.')
     });
 
-    // cargar paquetes
-    this.paqueteSrv.buscarTodos().subscribe({
-      next: lista => { this.paquetes = lista ?? []; this.cargandoPaquetes = false; },
-      error: () => { this.cargandoPaquetes = false; this.notify.error('No se pudieron cargar los paquetes.'); }
-    });
+    // cargar paquetes (SIN effects): HTTP aquí y al terminar despachamos al store
+    this.cargandoPaquetes = true;
+    this.errorPaquetes = null;
+    // Usa tu PaqueteService existente
+    
+  }
 
-    // si cambian paquete, asegurar fechaInicio set
+  // ⚠️ Si ya tienes PaqueteService inyectado, QUITA el import dinámico de arriba y usa esto:
+  // private paqueteSrv = inject(PaqueteService);
+  // y en ngOnInit:
+  // this.paqueteSrv.buscarTodos().subscribe({
+  //   next: (lista) => { this.store.dispatch(ReinscripcionActions.setListaPaquetes({ paquetes: lista ?? [] })); this.cargandoPaquetes = false; },
+  //   error: () => { this.errorPaquetes = 'No se pudieron cargar los paquetes.'; this.cargandoPaquetes = false; }
+  // });
+
+  // form -> store
+  constructor() {
     this.form.controls.paqueteId.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
-        if (!this.form.controls.fechaInicio.value) {
-          this.form.controls.fechaInicio.setValue(this.hoyISO(), { emitEvent: false });
-        }
-      });
+      .subscribe(id => this.store.dispatch(ReinscripcionActions.setPaqueteId({ paqueteId: Number(id ?? 0) })));
+
+    this.form.controls.descuento.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(d => this.store.dispatch(ReinscripcionActions.setDescuento({ descuento: Number(d ?? 0) })));
+
+    this.form.controls.fechaInicio.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(f => this.store.dispatch(ReinscripcionActions.setFechaInicio({ fechaInicio: String(f ?? hoyISO()) })));
   }
 
   abrirResumen(): void {
-    const id = this.paqueteIdSig();
-    if (id <= 0) {
-      this.notify.aviso('Selecciona un paquete para continuar.');
+    if ((this.form.controls.paqueteId.value ?? 0) <= 0) {
       this.form.markAllAsTouched();
+      this.mensajeError = 'Selecciona un paquete para continuar.';
       return;
     }
+    this.mensajeError = null;
     this.mostrarResumen.set(true);
   }
   cerrarResumen(): void { this.mostrarResumen.set(false); }
 
   confirmar(tipoPago: TipoPago): void {
-  const idPaquete = this.paqueteIdSig();
-  if (idPaquete <= 0) {
-    this.notify.aviso('Selecciona un paquete.');
-    return;
-  }
+    const paquete = this.paqueteActualSig();
+    if (!paquete) { this.notify.aviso('Selecciona un paquete.'); return; }
 
-  const payload = {
-    socio:      { idSocio: this.idSocio },
-    paquete:    { idPaquete },
-    movimiento: this.form.controls.movimiento.value!, // 'REINSCRIPCION'
-    tipoPago,
-    descuento:  this.descuento()
-    // total y fechaInicio: solo UI (no se envían por ahora)
-  };
+    const fechaInicio = this.fechaInicioSelSig() ?? hoyISO();
+    const fechaFin    = calcularFechaFin(fechaInicio, paquete.tiempo);
 
-  this.guardando = true;
-  this.membresiaSrv.guardar(payload as any).subscribe({
-    next: (resp: any) => {
-      this.guardando = false;
-      this.mostrarResumen.set(false);
-      this.notify.exito('Reinscripción realizada correctamente.');
+    const payload = {
+      socio:      { idSocio: this.idSocio },
+      paquete:    { idPaquete: paquete.idPaquete },
+      movimiento: this.form.controls.movimiento.value!, // 'REINSCRIPCION'
+      tipoPago,
+      descuento:  this.descuentoSelSig()
+    };
 
-      // ====== IMPRIMIR TICKET DE MEMBRESÍA ======
-      const p = this.paqueteSeleccionado();
-      const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
+    this.guardando = true;
+    this.membresiaSrv.guardar(payload as any).subscribe({
+      next: (resp: any) => {
+        this.guardando = false;
+        this.mostrarResumen.set(false);
+        this.notify.exito('Reinscripción realizada correctamente.');
 
-      this.ticket.verMembresiaDesdeContexto({
-        ctx,
-        folio: resp?.idMembresia ?? resp?.id ?? '',
-        fecha: new Date(), // o resp?.fechaInicio si lo manda backend
-        socioNombre: this.nombreCompleto(),
-        paqueteNombre: p?.nombre ?? null,
-        precioPaquete: Number(p?.precio ?? 0),
-        descuento: Number(this.descuento()),
-        costoInscripcion: 0,            // reincripción → 0
-        tipoPago: String(tipoPago)
-      });
-      // ===========================================
+        // Ticket
+        const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
+        const socioNombre = this.nombreCompleto();
 
-      this.router.navigate(['/pages/socio', this.idSocio, 'historial']);
-    },
-    error: () => {
-      this.guardando = false;
-      this.notify.error('No se pudo completar la reinscripción.');
-    }
-  });
-}
+        this.ticket.verMembresiaDesdeContexto({
+          ctx,
+          folio: resp?.idMembresia ?? resp?.id ?? '',
+          fecha: new Date(),
+          socioNombre,
+          paqueteNombre: paquete?.nombre ?? null,
+          precioPaquete: Number(paquete?.precio ?? 0),
+          descuento: Number(this.descuentoSelSig() ?? 0),
+          costoInscripcion: 0,
+          tipoPago
+        });
 
-
-  // helpers fecha
-  private hoyISO(): string {
-    return new Date().toISOString().slice(0, 10);
+        this.store.dispatch(ReinscripcionActions.reset());
+        this.router.navigate(['/pages/socio', this.idSocio, 'historial']);
+      },
+      error: () => {
+        this.guardando = false;
+        this.notify.error('No se pudo completar la reinscripción.');
+      }
+    });
   }
 
   nombreCompleto(): string {
@@ -199,27 +204,22 @@ export class Reinscripcion implements OnInit {
     return s ? `${s.nombre ?? ''} ${s.apellido ?? ''}`.trim() : '';
   }
 
-  // ===== contexto ticket (gimnasio + cajero) =====
+  // Contexto ticket
   private cargarContextoDesdeToken(): void {
     const token = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
     if (!token) return;
 
     try {
       const decoded: any = this.jwt.decodeToken(token);
-
-      // Cajero (username del token)
       this.cajero = decoded?.preferred_username ?? decoded?.sub ?? this.cajero;
 
-      // id_gimnasio en el token (o tenantId / gimnasioId)
       const idGym = decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
       if (idGym) {
         this.gymSrv.buscarPorId(Number(idGym)).subscribe({
-          next: (g) => this.gym = g,
-          error: () => this.gym = null // no rompe el flujo
+          next: (g) => { this.gym = g; },
+          error: () => { this.gym = null; }
         });
       }
-    } catch {
-      // token inválido → usar fallbacks
-    }
+    } catch { /* token inválido */ }
   }
 }

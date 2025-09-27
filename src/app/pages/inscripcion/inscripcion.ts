@@ -112,9 +112,7 @@ export class Inscripcion implements OnInit {
   fechaInicioSelSig      = this.store.selectSignal(selectFechaInicio);
   paqueteIdSelSig        = this.store.selectSignal(selectPaqueteId);
   costoInscripcionSig    = this.store.selectSignal(selectCostoInscripcion);
-  precioPaqueteSig = this.store.selectSignal(selectPrecioPaquete); // 👈 NUEVO
-// descuentoSelSig ya lo tienes (selectDescuento)
-
+  precioPaqueteSig    = this.store.selectSignal(selectPrecioPaquete);
 
   // Ciclo de vida
   ngOnInit(): void {
