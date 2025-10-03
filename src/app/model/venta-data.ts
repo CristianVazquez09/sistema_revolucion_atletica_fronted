@@ -1,10 +1,11 @@
-import { TipoPago } from '../util/enums/tipo-pago';
+import { PagoData } from './membresia-data';
 import { DetalleVentaData } from './detalle-venta-data';
 
+/** Respuesta del backend para una venta */
 export interface VentaData {
-  idVenta?: number; // opcional al crear
-  fecha?: string; // la setea el backend y te la devuelve
+  idVenta?: number;
+  fecha?: string;            // la coloca tu backend
   total: number;
-  tipoPago: TipoPago;
+  pagos: PagoData[];         // 👈 reemplaza al tipoPago único
   detalles: DetalleVentaData[];
 }

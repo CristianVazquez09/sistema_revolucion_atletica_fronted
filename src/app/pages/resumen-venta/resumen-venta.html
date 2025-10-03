@@ -1,8 +1,8 @@
-<!-- Usa tus clases rcm-* que ya definiste en tu css global -->
 <div class="rcm-card">
+  <!-- Header -->
   <div class="rcm-header">
     <h3 class="rcm-title">Resumen de venta</h3>
-    <button type="button" class="rcm-close" (click)="cancelar.emit()">✕</button>
+    <button type="button" class="rcm-icon-btn rcm-close" (click)="cancelar.emit()" aria-label="Cerrar">✕</button>
   </div>
 
   <!-- Fecha -->
@@ -16,35 +16,83 @@
   <!-- Items -->
   <div class="rcm-block">
     <div class="font-semibold mb-2">Artículos</div>
+
     <div *ngIf="items.length === 0" class="text-sm text-gray-600">Sin artículos.</div>
 
     <div *ngFor="let it of items" class="rcm-item">
-      <div class="truncate">{{ it.nombre }} <span class="text-gray-500">× {{ it.cantidad }}</span></div>
+      <div class="truncate">
+        {{ it.nombre }}
+        <span class="text-gray-500">× {{ it.cantidad }}</span>
+      </div>
       <div class="rcm-amount">
-        {{ it.precioUnit * it.cantidad | currency:'USD':'symbol':'1.2-2' }}
+        {{ it.precioUnit * it.cantidad | currency:'MXN':'symbol-narrow':'1.2-2' }}
       </div>
     </div>
 
     <div class="rcm-total">
       <div>Total</div>
-      <div>{{ total | currency:'USD':'symbol':'1.2-2' }}</div>
+      <div>{{ total | currency:'MXN':'symbol-narrow':'1.2-2' }}</div>
     </div>
   </div>
 
-  <!-- Tipo de pago -->
-  <div class="rcm-block rcm-block--small">
-    <label class="rcm-paylabel">Tipo de pago</label>
-    <div class="rcm-select">
-      <select [(ngModel)]="tipoPago">
-        <option *ngFor="let op of opcionesPago" [ngValue]="op">{{ op }}</option>
-      </select>
-      <div class="rcm-caret">▼</div>
+  <!-- Pagos por método -->
+  <div class="rcm-block">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+      <label class="rcm-paylabel">Pagos por método</label>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" class="rcm-btn rcm-btn--blue" (click)="llenarExactoEn('EFECTIVO')">
+          Efectivo exacto
+        </button>
+        <button type="button" class="rcm-btn rcm-btn--blue" (click)="llenarExactoEn('TARJETA')">
+          Tarjeta exacto
+        </button>
+        <button type="button" class="rcm-btn rcm-btn--blue" (click)="llenarExactoEn('TRANSFERENCIA')">
+          Transferencia exacto
+        </button>
+        <button type="button" class="rcm-btn rcm-btn--ghost" (click)="vaciar()">Vaciar</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="rcm-input">
+        <label class="rcm-input-label">Efectivo</label>
+        <input
+          type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*"
+          [(ngModel)]="efectivoStr" name="efectivo" class="rcm-input-el" placeholder="0.00">
+      </div>
+
+      <div class="rcm-input">
+        <label class="rcm-input-label">Tarjeta</label>
+        <input
+          type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*"
+          [(ngModel)]="tarjetaStr" name="tarjeta" class="rcm-input-el" placeholder="0.00">
+      </div>
+
+      <div class="rcm-input">
+        <label class="rcm-input-label">Transferencia</label>
+        <input
+          type="text" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*"
+          [(ngModel)]="transferenciaStr" name="transferencia" class="rcm-input-el" placeholder="0.00">
+      </div>
+    </div>
+
+    <!-- Validación -->
+    <div class="mt-3 text-sm flex items-center justify-between">
+      <div [ngClass]="{ 'text-green-700': pagosValidos, 'text-red-600': !pagosValidos }">
+        Suma de pagos: <strong>{{ sumaPagos | currency:'MXN':'symbol-narrow':'1.2-2' }}</strong>
+        <span *ngIf="!pagosValidos">• Falta/Excede: {{ diferencia | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+      </div>
+      <div class="text-xs text-gray-500">
+        Total: {{ total | currency:'MXN':'symbol-narrow':'1.2-2' }}
+      </div>
     </div>
   </div>
 
   <!-- CTA -->
   <div class="rcm-footer">
-    <button class="rcm-cta" [disabled]="guardando || items.length === 0" (click)="onConfirmar()">
+    <button class="rcm-cta rcm-cta--blue"
+            [disabled]="guardando || items.length === 0 || !pagosValidos"
+            (click)="onConfirmar()">
       {{ guardando ? 'Procesando…' : 'Confirmar y pagar' }}
     </button>
     <div class="mt-2 text-center">

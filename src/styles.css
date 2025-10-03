@@ -181,3 +181,40 @@
   color: var(--color-brand-black);
   background: var(--color-brand-bg);
 }
+
+
+/* Toolbar superior de pagos: más aire entre label y botones */
+.rcm-toolbar{
+  @apply flex flex-wrap items-center justify-between gap-4 md:gap-6 mb-3 md:mb-4;
+}
+.rcm-toolbar-actions{
+  @apply flex flex-wrap gap-3 md:gap-4;
+}
+
+/* Label con más separación inferior para despegar inputs */
+.rcm-paylabel{
+  @apply block text-sm font-semibold text-gray-800 mb-2 md:mb-3;
+}
+
+/* Botones más cómodos, con tu azul */
+.rcm-btn{
+  @apply inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs md:text-sm font-medium border transition;
+}
+.rcm-btn--blue{
+  @apply text-white border-transparent bg-[color:var(--color-ra-azul-fuerte)] hover:brightness-110;
+}
+.rcm-btn--ghost{
+  @apply bg-white text-[color:var(--color-ra-slate)] border-gray-300 hover:bg-gray-50;
+}
+
+/* Inputs más altos y con focus usando tu azul */
+.rcm-input-label{
+  @apply block text-xs font-semibold text-[color:var(--color-ra-slate)] mb-2;
+}
+.rcm-input-el{
+  @apply w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm outline-none
+         focus:ring-2 focus:ring-[color:var(--color-ra-azul-fuerte)] focus:border-[color:var(--color-ra-azul-fuerte)];
+  
+}
+.rcm-input-el::-webkit-outer-spin-button,
+.rcm-input-el::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }

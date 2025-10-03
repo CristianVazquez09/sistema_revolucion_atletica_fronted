@@ -1,4 +1,3 @@
-// src/app/pages/agregar-membresia/agregar-membresia.ts
 import { Component, OnInit, inject, signal, computed, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -20,11 +19,13 @@ import { GimnasioData } from '../../model/gimnasio-data';
 
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
-import { TipoPago } from '../../util/enums/tipo-pago';
 import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
 import { calcularFechaFin, calcularTotal, hoyISO } from '../../util/fechas-precios';
 import { TiempoPlan } from '../../util/enums/tiempo-plan';
 import { environment } from '../../../environments/environment';
+
+// 👇 Importa pagos[]
+import { MembresiaData, PagoData } from '../../model/membresia-data';
 
 @Component({
   selector: 'app-agregar-membresia',
@@ -95,7 +96,7 @@ export class AgregarMembresia implements OnInit {
   total         = computed(() => calcularTotal(this.precioPaquete(), this.descuento()));
 
   fechaInicio   = computed(() => this.fechaInicioSig());
-  fechaPago     = computed(() => {
+  fechaFin      = computed(() => {
     const t = this.paqueteSeleccionado()?.tiempo ?? null;
     return calcularFechaFin(this.fechaInicio(), t as TiempoPlan | null);
   });
@@ -114,13 +115,13 @@ export class AgregarMembresia implements OnInit {
   ngOnInit(): void {
     this.cargarContextoDesdeToken(); // 👈 carga gym + cajero para el ticket
 
-    // Cargar cat. paquetes para el selector
+    // Cargar paquetes
     this.paqueteSrv.buscarTodos().subscribe({
       next: lista => { this.paquetes = lista ?? []; this.cargandoPaquetes = false; },
       error: () => { this.cargandoPaquetes = false; this.error = 'No se pudieron cargar los paquetes.'; }
     });
 
-    // Si cambian paquete, asegura fecha inicio
+    // Asegura fechaInicio
     this.formMembresia.controls.paqueteId.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
@@ -137,21 +138,16 @@ export class AgregarMembresia implements OnInit {
 
     try {
       const decoded: any = this.jwt.decodeToken(token);
-
-      // Cajero (username del token)
       this.cajero = decoded?.preferred_username ?? decoded?.sub ?? this.cajero;
 
-      // id_gimnasio en el token (o tenantId / gimnasioId)
       const idGym = decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
       if (idGym) {
         this.gymSrv.buscarPorId(Number(idGym)).subscribe({
           next: (g) => this.gym = g,
-          error: () => this.gym = null // no romper flujo
+          error: () => this.gym = null
         });
       }
-    } catch {
-      // token inválido → usar fallbacks
-    }
+    } catch { /* noop */ }
   }
 
   // ── Acciones
@@ -182,17 +178,32 @@ export class AgregarMembresia implements OnInit {
   }
   cerrarResumen(): void { this.mostrarResumen.set(false); }
 
-  confirmar(tipoPago: TipoPago): void {
+  // 👇 AHORA recibe pagos[] del modal
+  confirmar(pagos: PagoData[]): void {
     const s = this.socio(); if (!s?.idSocio) { this.noti.aviso('Primero busca un socio.'); return; }
     const idPaquete = this.paqueteIdSig(); if ((idPaquete ?? 0) <= 0) { this.noti.aviso('Selecciona un paquete.'); return; }
 
-    const payload = {
-      socio:      { idSocio: s.idSocio },
-      paquete:    { idPaquete },
+    // Validación suma de pagos
+    const totalUI = this.total() ?? 0;
+    const sumaPagos = (pagos ?? []).reduce((a, p) => a + (Number(p.monto) || 0), 0);
+    if (Math.abs(totalUI - sumaPagos) > 0.01) {
+      this.noti.aviso('La suma de pagos no coincide con el total.');
+      return;
+    }
+
+    const fechaInicio = this.fechaInicio();
+    const fechaFin    = this.fechaFin(); // lo calculamos para cumplir tu interfaz
+
+    // Payload cumpliendo tu interfaz (paquete con solo id -> cast)
+    const payload: MembresiaData = {
+      socio:   { idSocio: s.idSocio } as SocioData,
+      paquete: { idPaquete: idPaquete! } as unknown as PaqueteData,
+      fechaInicio,
+      fechaFin,
       movimiento: this.formMembresia.controls.movimiento.value!, // 'REINSCRIPCION'
-      tipoPago,
-      descuento:  this.descuento()
-      // total/fechaInicio: UI
+      pagos,
+      descuento: this.descuento() ?? 0,
+      total: totalUI
     };
 
     this.guardando = true;
@@ -210,32 +221,34 @@ export class AgregarMembresia implements OnInit {
             telefono:  this.gym?.telefono ?? ''
           };
 
-          const folio = resp?.idMembresia ?? resp?.id ?? ''; // usa el id que devuelva tu backend
-          const socioNombre = `${s.nombre ?? ''} ${s.apellido ?? ''}`.trim();
-          const p = this.paqueteSeleccionado();
-          const concepto = resp?.paquete?.nombre
+          // Texto de pagos para el ticket
+          const pagoLabel = (pagos ?? [])
+            .filter(p => (p?.monto ?? 0) > 0)
+            .map(p => {
+              const lbl = p.tipoPago === 'EFECTIVO' ? 'Efectivo' : p.tipoPago === 'TARJETA' ? 'Tarjeta' : 'Transferencia';
+              return `${lbl}: ${new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',minimumFractionDigits:2}).format(Number(p.monto)||0)}`;
+            })
+            .join(' · ');
+
+          const folio        = resp?.idMembresia ?? resp?.id ?? '';
+          const socioNombre  = `${s.nombre ?? ''} ${s.apellido ?? ''}`.trim();
+          const pSel         = this.paqueteSeleccionado();
+          const concepto     = resp?.paquete?.nombre
             ? `Membresía ${resp.paquete.nombre}`
-            : (p?.nombre ? `Membresía ${p.nombre}` : 'Membresía');
+            : (pSel?.nombre ? `Membresía ${pSel.nombre}` : 'Membresía');
+          const importe      = Number(resp?.total ?? totalUI);
+          const fechaTicket  = resp?.fechaInicio ?? new Date();
 
-          const importe = Number(resp?.total ?? this.total());
-          const fecha   = resp?.fechaInicio ?? new Date();
-          const pago    = resp?.tipoPago ?? tipoPago;
-
-          // Para pruebas en pantalla:
           this.ticket.verMembresiaComoHtml({
             negocio,
-            folio,                 // aparecerá grande/centrado si ya actualizaste el TicketService
-            fecha,
+            folio,
+            fecha: fechaTicket,
             cajero: this.cajero,
             socio: socioNombre,
             concepto,
             importe,
-            tipoPago: pago
+            tipoPago: pagoLabel || '—'
           });
-
-          // Para impresión real:
-          // this.ticket.imprimirMembresia({ negocio, folio, fecha, cajero: this.cajero, socio: socioNombre, concepto, importe, tipoPago: pago });
-          // ======================
 
           this.router.navigate(['/pages/socio', s.idSocio, 'historial']);
         },

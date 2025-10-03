@@ -40,7 +40,6 @@
       <div class="text-center text-red-600 py-10 text-lg">{{ error }}</div>
     }
 
-    <!-- Contenido -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <!-- Socio -->
       <section class="rounded-xl2 border border-gray-200 bg-gray-50 p-4">
@@ -135,7 +134,7 @@
             <div>
               <label class="block text-sm font-medium mb-1">Fecha de pago</label>
               <div class="input-filled bg-gray-100 pointer-events-none select-none">
-                {{ fechaPago() | date:'dd/MM/yyyy' }}
+                {{ fechaFin() | date:'dd/MM/yyyy' }}
               </div>
             </div>
           </div>
@@ -159,14 +158,14 @@
   </div>
 </div>
 
-<!-- Modal de resumen -->
+<!-- Modal de resumen (con pagos múltiples) -->
 @if (mostrarResumen()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center" (click)="cerrarResumen()">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
     <div class="relative z-10 w-full max-w-[560px] mx-4" (click)="$event.stopPropagation()">
       <app-resumen-compra
         [socioNombre]="socio() ? (socio()!.nombre + ' ' + socio()!.apellido) : ''"
-        [fechaPago]="fechaPago()"
+        [fechaPago]="fechaFin()"
         [concepto]="paqueteSeleccionado()?.nombre ?? 'Paquete'"
         [montoPaquete]="precioPaquete()"
         [montoInscripcion]="0"

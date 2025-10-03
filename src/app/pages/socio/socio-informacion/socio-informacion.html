@@ -28,74 +28,85 @@
   </div>
 </div>
 
-<!-- Tabla (contenido más pequeño y centrado) -->
+<!-- Tabla -->
 <div class="mx-2 md:mx-6 lg:mx-8 bg-[color:var(--color-ra-white)] rounded-xl2 shadow-card ring-1 ring-black/10 overflow-hidden text-[13px]">
   <table class="w-full table-fixed">
-    <!-- Cols: más espacio a las fechas; menos a movimiento/importe/desc/total -->
     <colgroup>
-  <col class="w-[8%]">    <!-- ID -->
-  <col class="w-[12%]">   <!-- Movimiento -->
-  <col class="w-[18%]">   <!-- Paquete --> <!-- NUEVA -->
-  <col class="w-[14%]">   <!-- Fecha -->
-  <col class="w-[14%]">   <!-- Fecha pago -->
-  <col class="w-[9%]">    <!-- Importe -->
-  <col class="w-[9%]">    <!-- Descuento -->
-  <col class="w-[12%]">   <!-- Tipo de pago -->
-  <col class="w-[10%]">   <!-- Total -->
-</colgroup>
-
+      <col class="w-[8%]">    <!-- ID -->
+      <col class="w-[12%]">   <!-- Movimiento -->
+      <col class="w-[18%]">   <!-- Paquete -->
+      <col class="w-[14%]">   <!-- Fecha -->
+      <col class="w-[14%]">   <!-- Fecha pago -->
+      <col class="w-[9%]">    <!-- Importe -->
+      <col class="w-[9%]">    <!-- Descuento -->
+      <col class="w-[12%]">   <!-- Pagos (chips) -->
+      <col class="w-[10%]">   <!-- Total -->
+    </colgroup>
 
     <thead>
-  <tr class="bg-[color:var(--color-ra-grayLight)]/40">
-    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">ID</th>
-    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Movimiento</th>
-    <th class="py-2 px-3 text-left   font-semibold uppercase text-[color:var(--color-ra-slate)]">Paquete</th> <!-- NUEVA -->
-    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Fecha</th>
-    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Fecha pago</th>
-    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Importe</th>
-    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Descuento</th>
-    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Tipo de pago</th>
-    <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Total</th>
-  </tr>
-</thead>
-
+      <tr class="bg-[color:var(--color-ra-grayLight)]/40">
+        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">ID</th>
+        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Movimiento</th>
+        <th class="py-2 px-3 text-left   font-semibold uppercase text-[color:var(--color-ra-slate)]">Paquete</th>
+        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Fecha</th>
+        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Fecha pago</th>
+        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Importe</th>
+        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Descuento</th>
+        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Pagos</th>
+        <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Total</th>
+      </tr>
+    </thead>
 
     <tbody>
-  @if (cargando) {
-    <tr><td colspan="9" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Cargando…</td></tr>
-  } @else if (error) {
-    <tr><td colspan="9" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
-  } @else if (movimientos.length === 0) {
-    <tr><td colspan="9" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Sin movimientos.</td></tr>
-  } @else {
-    @for (m of movimientos; track m.idMembresia) {
-      <tr class="border-t border-[color:var(--color-ra-grayLight)]/60">
-        <td class="py-2 px-3 text-center">{{ m.idMembresia }}</td>
-        <td class="py-2 px-3 text-center truncate">{{ m.movimiento }}</td>
+      @if (cargando) {
+        <tr><td colspan="9" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Cargando…</td></tr>
+      } @else if (error) {
+        <tr><td colspan="9" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
+      } @else if (movimientos.length === 0) {
+        <tr><td colspan="9" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Sin movimientos.</td></tr>
+      } @else {
+        @for (m of movimientos; track m.idMembresia) {
+          <tr class="border-t border-[color:var(--color-ra-grayLight)]/60">
+            <td class="py-2 px-3 text-center">{{ m.idMembresia }}</td>
+            <td class="py-2 px-3 text-center truncate">{{ m.movimiento }}</td>
 
-        <!-- 👇 NUEVA celda: nombre del paquete (con fallback al id) -->
-        <td class="py-2 px-3 text-left truncate"
-            [title]="m.paquete.nombre || ('#' + (m.paquete.idPaquete))">
-          {{ m.paquete.nombre || ('#' + (m.paquete.idPaquete )) }}
-        </td>
+            <!-- Paquete -->
+            <td class="py-2 px-3 text-left truncate"
+                [title]="m.paquete.nombre || ('#' + (m.paquete.idPaquete))">
+              {{ m.paquete.nombre || ('#' + (m.paquete.idPaquete)) }}
+            </td>
 
-        <td class="py-2 px-3 text-center">{{ m.fechaInicio | date:'dd/MM/yyyy' }}</td>
-        <td class="py-2 px-3 text-center">{{ m.fechaFin    | date:'dd/MM/yyyy' }}</td>
-        <td class="py-2 px-3 text-center">{{ m.paquete.precio | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
-        <td class="py-2 px-3 text-center">{{ m.descuento        | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
-        <td class="py-2 px-3 text-center">{{ m.tipoPago }}</td>
-        <td class="py-2 px-3 text-center font-semibold">{{ m.total | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
-      </tr>
-    }
-  }
-</tbody>
+            <td class="py-2 px-3 text-center">{{ m.fechaInicio | date:'dd/MM/yyyy' }}</td>
+            <td class="py-2 px-3 text-center">{{ m.fechaFin    | date:'dd/MM/yyyy' }}</td>
+            <td class="py-2 px-3 text-center">{{ m.paquete.precio | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
+            <td class="py-2 px-3 text-center">{{ m.descuento        | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
 
+            <!-- Pagos: chips -->
+            <td class="py-2 px-3">
+              @if (pagosConMonto(m.pagos).length) {
+                <div class="flex flex-wrap gap-1.5 justify-center">
+                  @for (p of pagosConMonto(m.pagos); track p.tipoPago) {
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 border border-gray-200">
+                      <span class="font-medium">{{ labelPago(p.tipoPago) }}:</span>
+                      <span>{{ p.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+                    </span>
+                  }
+                </div>
+              } @else {
+                <div class="text-center text-gray-500">—</div>
+              }
+            </td>
+
+            <td class="py-2 px-3 text-center font-semibold">{{ m.total | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
+          </tr>
+        }
+      }
+    </tbody>
   </table>
 
-  <!-- Paginador con "Mostrar X por página" (también más compacto) -->
+  <!-- Paginador -->
   <div class="pager text-[13px]">
     <div class="pager-row">
-      <!-- Selector tamaño -->
       <div class="pager-select">
         <span class="text-[13px] text-[color:var(--color-ra-slate)]">Mostrar</span>
         <select class="pager-select-el" [ngModel]="tamanio" (ngModelChange)="cambiarTamanioPagina($event)">
@@ -104,7 +115,6 @@
         <span class="text-[13px] text-[color:var(--color-ra-slate)]">por página</span>
       </div>
 
-      <!-- Controles -->
       <nav class="pager-nav" aria-label="Paginación">
         <button class="pager-btn pager-btn--ghost"   (click)="irPrimera()"  [disabled]="pagina === 0"                    title="Primera">«</button>
         <button class="pager-btn pager-btn--ghost"   (click)="irAnterior()" [disabled]="pagina === 0"                    title="Anterior">‹</button>
@@ -112,7 +122,6 @@
         <button class="pager-btn pager-btn--ghost"   (click)="irUltima()"   [disabled]="pagina + 1 >= totalPaginas"      title="Última">»</button>
       </nav>
 
-      <!-- Info -->
       <div class="pager-info">
         Mostrando <strong>{{ rangoDesde }}</strong>–<strong>{{ rangoHasta }}</strong>
         de <strong>{{ totalElementos }}</strong>
@@ -121,4 +130,3 @@
     </div>
   </div>
 </div>
-

@@ -1,9 +1,10 @@
-<!-- Barra superior -->
+<!-- src/app/pages/historial/historial.html -->
+
+<!-- Barra superior (sin cambios) -->
 <div class="ml-2 md:ml-4 mr-4 md:mr-8 mb-2 flex items-center justify-between">
   <div class="flex items-center gap-3">
     <button [routerLink]="['/pages/inscripcion']" type="button" 
             class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-100">
-      <!-- ícono flecha-izquierda -->
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="1.8">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
@@ -23,7 +24,7 @@
       <col class="w-[18%]">  <!-- Socio -->
       <col class="w-[18%]">  <!-- Paquete -->
       <col class="w-[12%]">  <!-- Movimiento -->
-      <col class="w-[10%]">  <!-- Tipo Pago -->
+      <col class="w-[18%]">  <!-- Pagos (ampliado) -->
       <col class="w-[12%]">  <!-- Inicio -->
       <col class="w-[12%]">  <!-- Fin -->
       <col class="w-[10%]">  <!-- Total -->
@@ -35,7 +36,7 @@
         <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Socio</th>
         <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Paquete</th>
         <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Movimiento</th>
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Pago</th>
+        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Pagos</th>
         <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Inicio</th>
         <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Fin</th>
         <th class="py-4 px-4 text-right  text-ra-slate font-semibold uppercase">Total</th>
@@ -75,10 +76,20 @@
               </span>
             </td>
 
-            <td class="py-3 px-4 text-center">
-              <span class="inline-block text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
-                {{ h.tipoPago }}
-              </span>
+            <!-- Pagos: chips por método con monto -->
+            <td class="py-3 px-4">
+              @if (pagosConMonto(h.pagos).length) {
+                <div class="flex flex-wrap gap-1.5 justify-center">
+                  @for (p of pagosConMonto(h.pagos); track p.tipoPago) {
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 border border-gray-200">
+                      <span class="font-medium">{{ labelPago(p.tipoPago) }}:</span>
+                      <span>{{ p.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+                    </span>
+                  }
+                </div>
+              } @else {
+                <div class="text-center text-gray-500">—</div>
+              }
             </td>
 
             <td class="py-3 px-4 text-center">{{ h.fechaInicio | date:'dd/MM/yyyy' }}</td>
@@ -98,7 +109,7 @@
     </tbody>
   </table>
 
-  <!-- Paginador -->
+  <!-- Paginador (igual) -->
   <div class="pager">
     <div class="pager-row">
       <div class="pager-select">

@@ -179,6 +179,8 @@
   </section>
 </div>
 
+<!-- ... (toda tu vista arriba se queda igual; si quieres, cambia USD->MXN en precios/total) ... -->
+
 <!-- Modal Resumen de Venta -->
 @if (mostrarModalResumen) {
   <div class="fixed inset-0 z-50 flex items-center justify-center">
@@ -190,10 +192,10 @@
         [items]="carrito"
         [total]="total"
         [guardando]="realizandoPago"
-        tipoPagoInicial="EFECTIVO"
         (cancelar)="cerrarModalResumen()"
-        (confirmar)="confirmarVentaDesdeModal($event)">
+        (confirmar)="confirmarVentaDesdeModal($event)"><!-- 👈 ahora $event = PagoData[] -->
       </app-resumen-venta>
     </div>
   </div>
 }
+

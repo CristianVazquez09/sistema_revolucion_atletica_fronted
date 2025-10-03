@@ -6,6 +6,7 @@ import { HistorialService } from '../../../services/historial-service';
 import { PagedResponse } from '../../../model/paged-response';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { PagoData } from '../../../model/membresia-data';
 
 @Component({
   selector: 'app-historial',
@@ -100,5 +101,19 @@ export class Historial implements OnInit {
     if (this.paginaActual === ultima) return;
     this.paginaActual = ultima;
     this.cargar();
+  }
+
+  // ====== Helpers de pagos para la vista ======
+  pagosConMonto(pagos?: PagoData[] | null): PagoData[] {
+    return (pagos ?? []).filter(p => Number(p?.monto) > 0);
+  }
+
+  labelPago(tipo: PagoData['tipoPago'] | string): string {
+    switch (tipo) {
+      case 'EFECTIVO': return 'Efectivo';
+      case 'TARJETA': return 'Tarjeta';
+      case 'TRANSFERENCIA': return 'Transferencia';
+      default: return String(tipo);
+    }
   }
 }

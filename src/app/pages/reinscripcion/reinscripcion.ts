@@ -7,14 +7,16 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { SocioService } from '../../services/socio-service';
 import { MembresiaService } from '../../services/membresia-service';
 import { NotificacionService } from '../../services/notificacion-service';
+import { PaqueteService } from '../../services/paquete-service';
 
 import { SocioData } from '../../model/socio-data';
-import { MembresiaData } from '../../model/membresia-data';
+import { MembresiaData, PagoData } from '../../model/membresia-data';
+
 import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
-import { TipoPago } from '../../util/enums/tipo-pago';
+
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
-import { hoyISO, calcularFechaFin } from '../../util/fechas-precios';
+import { hoyISO } from '../../util/fechas-precios';
 
 // Ticket
 import { JwtHelperService } from '@auth0/angular-jwt';
@@ -32,7 +34,6 @@ import {
   selectTotalVista, selectTotalSinDescuento, selectFechaPagoVista,
   selectDescuento, selectFechaInicio, selectPaqueteId
 } from './state/reinscripcion-selectors';
-import { PaqueteService } from '../../services/paquete-service';
 
 @Component({
   selector: 'app-reinscripcion',
@@ -50,8 +51,8 @@ export class Reinscripcion implements OnInit {
 
   private socioSrv     = inject(SocioService);
   private membresiaSrv = inject(MembresiaService);
+  private paqueteSrv   = inject(PaqueteService);
   private notify       = inject(NotificacionService);
-  private paqueteSrv = inject(PaqueteService)
 
   // Ticket
   private gymSrv = inject(GimnasioService);
@@ -110,20 +111,24 @@ export class Reinscripcion implements OnInit {
       error: () => this.notify.error('No se pudo cargar el socio.')
     });
 
-    // cargar paquetes (SIN effects): HTTP aquí y al terminar despachamos al store
+    // cargar paquetes (HTTP aquí y luego al store)
     this.cargandoPaquetes = true;
     this.errorPaquetes = null;
-    // Usa tu PaqueteService existente
-    
-  }
+    this.paqueteSrv.buscarTodos().subscribe({
+      next: (lista) => {
+        this.store.dispatch(ReinscripcionActions.setListaPaquetes({ paquetes: lista ?? [] }));
+        this.cargandoPaquetes = false;
 
-  // ⚠️ Si ya tienes PaqueteService inyectado, QUITA el import dinámico de arriba y usa esto:
-  // private paqueteSrv = inject(PaqueteService);
-  // y en ngOnInit:
-  // this.paqueteSrv.buscarTodos().subscribe({
-  //   next: (lista) => { this.store.dispatch(ReinscripcionActions.setListaPaquetes({ paquetes: lista ?? [] })); this.cargandoPaquetes = false; },
-  //   error: () => { this.errorPaquetes = 'No se pudieron cargar los paquetes.'; this.cargandoPaquetes = false; }
-  // });
+        // sincroniza paqueteId inicial del form -> store
+        const initId = Number(this.form.controls.paqueteId.value ?? 0);
+        this.store.dispatch(ReinscripcionActions.setPaqueteId({ paqueteId: initId }));
+      },
+      error: () => {
+        this.errorPaquetes = 'No se pudieron cargar los paquetes.';
+        this.cargandoPaquetes = false;
+      }
+    });
+  }
 
   // form -> store
   constructor() {
@@ -151,19 +156,26 @@ export class Reinscripcion implements OnInit {
   }
   cerrarResumen(): void { this.mostrarResumen.set(false); }
 
-  confirmar(tipoPago: TipoPago): void {
+  // ⬇️ Ahora recibe pagos[] desde el modal
+  confirmar(pagos: PagoData[]): void {
     const paquete = this.paqueteActualSig();
     if (!paquete) { this.notify.aviso('Selecciona un paquete.'); return; }
 
-    const fechaInicio = this.fechaInicioSelSig() ?? hoyISO();
-    const fechaFin    = calcularFechaFin(fechaInicio, paquete.tiempo);
+    // Validar suma de pagos = total
+    const total = this.totalVistaSig() ?? 0;
+    const sumaPagos = (pagos ?? []).reduce((a, p) => a + (Number(p.monto) || 0), 0);
+    if (Math.abs(total - sumaPagos) > 0.01) {
+      this.notify.aviso('La suma de pagos no coincide con el total.');
+      return;
+    }
 
-    const payload = {
-      socio:      { idSocio: this.idSocio },
-      paquete:    { idPaquete: paquete.idPaquete },
+    const payload: Partial<MembresiaData> = {
+      socio:      { idSocio: this.idSocio } as any,
+      paquete:    { idPaquete: paquete.idPaquete } as any,
       movimiento: this.form.controls.movimiento.value!, // 'REINSCRIPCION'
-      tipoPago,
-      descuento:  this.descuentoSelSig()
+      pagos,                                            // 👈 pagos mixtos
+      descuento:  this.descuentoSelSig() ?? 0
+      // fechaInicio/fechaFin/total los puede calcular el backend
     };
 
     this.guardando = true;
@@ -177,16 +189,28 @@ export class Reinscripcion implements OnInit {
         const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
         const socioNombre = this.nombreCompleto();
 
+        // "Efectivo: $X · Tarjeta: $Y · Transferencia: $Z"
+        const pagoLabel = (pagos ?? [])
+          .filter(p => (p?.monto ?? 0) > 0)
+          .map(p => {
+            const label = p.tipoPago === 'EFECTIVO' ? 'Efectivo'
+                         : p.tipoPago === 'TARJETA' ? 'Tarjeta'
+                         : 'Transferencia';
+            const m = Number(p.monto) || 0;
+            return `${label}: ${new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(m)}`;
+          })
+          .join(' · ');
+
         this.ticket.verMembresiaDesdeContexto({
           ctx,
           folio: resp?.idMembresia ?? resp?.id ?? '',
-          fecha: new Date(),
+          fecha: new Date(), // o resp?.fechaInicio
           socioNombre,
           paqueteNombre: paquete?.nombre ?? null,
           precioPaquete: Number(paquete?.precio ?? 0),
           descuento: Number(this.descuentoSelSig() ?? 0),
           costoInscripcion: 0,
-          tipoPago
+          tipoPago: pagoLabel || '—'
         });
 
         this.store.dispatch(ReinscripcionActions.reset());
@@ -220,6 +244,6 @@ export class Reinscripcion implements OnInit {
           error: () => { this.gym = null; }
         });
       }
-    } catch { /* token inválido */ }
+    } catch { /* noop */ }
   }
 }

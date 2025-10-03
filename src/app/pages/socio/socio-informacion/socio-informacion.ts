@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
-import { MembresiaData } from '../../../model/membresia-data';
+import { MembresiaData, PagoData } from '../../../model/membresia-data'; // 👈 agrega PagoData
 import { MembresiaService } from '../../../services/membresia-service';
 import { FormsModule } from '@angular/forms';
 import { PagedResponse } from '../../../model/paged-response';
@@ -12,7 +12,7 @@ import { PagedResponse } from '../../../model/paged-response';
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './socio-informacion.html',
-  styleUrl: './socio-informacion.css' // puedes dejarlo vacío; no es necesario
+  styleUrl: './socio-informacion.css'
 })
 export class SocioInformacion implements OnInit {
 
@@ -45,7 +45,7 @@ export class SocioInformacion implements OnInit {
     this.cargar();
   }
 
-  // Helpers mostrador X–Y de Z (si los quieres usar)
+  // Helpers mostrador X–Y de Z
   get rangoDesde(): number {
     if (this.totalElementos === 0) return 0;
     return this.pagina * this.tamanio + 1;
@@ -69,9 +69,9 @@ export class SocioInformacion implements OnInit {
           this.tamanio = resp.pagina?.tamanio ?? this.tamanio;
           this.pagina = resp.pagina?.numero ?? this.pagina;
 
-          // Rellena encabezado con el primer registro (si existe)
-          const s = this.movimientos[0]?.socio;
-          this.socioNombre = s ? `${s.nombre} ${s.apellido}` : null;
+          // Encabezado con el primer registro (si existe)
+          const s = this.movimientos[0]?.socio as any;
+          this.socioNombre = s ? `${s.nombre ?? ''} ${s.apellido ?? ''}`.trim() || null : null;
           this.socioTelefono = s?.telefono ?? null;
 
           // Si la página quedó vacía y no es la primera, retrocede
@@ -113,5 +113,19 @@ export class SocioInformacion implements OnInit {
     if (this.pagina === this.totalPaginas - 1) return;
     this.pagina = this.totalPaginas - 1;
     this.cargar();
+  }
+
+  // ===== Pagos (helpers para la vista) =====
+  pagosConMonto(pagos?: PagoData[] | null): PagoData[] {
+    return (pagos ?? []).filter(p => Number(p?.monto) > 0);
+  }
+
+  labelPago(tipo: PagoData['tipoPago'] | string): string {
+    switch (tipo) {
+      case 'EFECTIVO': return 'Efectivo';
+      case 'TARJETA': return 'Tarjeta';
+      case 'TRANSFERENCIA': return 'Transferencia';
+      default: return String(tipo);
+    }
   }
 }
