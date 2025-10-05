@@ -6,6 +6,10 @@ import { ProductoService } from '../../services/producto-service';
 import { ProductoData } from '../../model/producto-data';
 import { NotificacionService } from '../../services/notificacion-service';
 
+// Deducir admin
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { environment } from '../../../environments/environment';
+
 @Component({
   selector: 'app-producto',
   standalone: true,
@@ -18,23 +22,66 @@ export class Producto implements OnInit {
   private productoSrv = inject(ProductoService);
   private router = inject(Router);
   private notificacion = inject(NotificacionService);
+  private jwt = inject(JwtHelperService);
 
-  productos: ProductoData[] = [];
+  // Admin?
+  isAdmin = false;
+
+  productos: (ProductoData & { gimnasio?: any })[] = [];
   loading = true;
   error: string | null = null;
 
   // Modal
   mostrarModal = signal(false);
-  productoEditando: ProductoData | null = null;
+  productoEditando: (ProductoData & { gimnasio?: any }) | null = null;
 
-  ngOnInit(): void { this.cargar(); }
+  ngOnInit(): void {
+    this.isAdmin = this.deducirEsAdminDesdeToken();
+    this.cargar();
+  }
+
+  private deducirEsAdminDesdeToken(): boolean {
+    const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
+    if (!raw) return false;
+    try {
+      const decoded: any = this.jwt.decodeToken(raw);
+      const roles: string[] = [
+        ...(Array.isArray(decoded?.roles) ? decoded.roles : []),
+        ...(Array.isArray(decoded?.authorities) ? decoded.authorities : []),
+        ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
+      ]
+        .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
+        .map(r => String(r).toUpperCase());
+      return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
+    } catch {
+      return false;
+    }
+  }
+
+  // helpers de gimnasio compat (id | idGimnasio)
+  getGymId(obj: any): number | null {
+    if (!obj) return null;
+    const id = obj.id ?? obj.idGimnasio ?? null;
+    return id != null ? Number(id) : null;
+  }
+  gymLabel(obj: any): string {
+    const id = this.getGymId(obj);
+    return obj?.nombre ?? (id != null ? `#${id}` : '—');
+  }
 
   cargar(): void {
     this.loading = true;
     this.error = null;
     this.productoSrv.buscarTodos().subscribe({
-      next: data => { this.productos = data ?? []; this.loading = false; },
-      error: err => { console.error(err); this.error = 'No se pudieron cargar los productos.'; this.loading = false; }
+      next: data => {
+        this.productos = (data ?? []).filter(Boolean) as any[];
+        this.loading = false;
+      },
+      error: err => {
+        console.error(err);
+        this.error = 'No se pudieron cargar los productos.';
+        this.loading = false;
+      }
     });
   }
 
@@ -43,7 +90,7 @@ export class Producto implements OnInit {
     this.mostrarModal.set(true);
   }
 
-  editar(p: ProductoData): void {
+  editar(p: ProductoData & { gimnasio?: any }): void {
     this.productoEditando = p;
     this.mostrarModal.set(true);
   }

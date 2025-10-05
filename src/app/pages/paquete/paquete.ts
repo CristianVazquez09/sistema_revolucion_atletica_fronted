@@ -8,6 +8,9 @@ import { PaqueteModal } from './paquete-modal/paquete-modal';
 import { NotificacionService } from '../../services/notificacion-service';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
 
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { environment } from '../../../environments/environment';
+
 @Component({
   selector: 'app-paquete-componet',
   standalone: true,
@@ -18,6 +21,11 @@ import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
 export class Paquete implements OnInit {
 
   private notificacion = inject(NotificacionService);
+  private servicioPaquetes = inject(PaqueteService);
+  private jwt = inject(JwtHelperService);
+
+  // Rol
+  isAdmin = false;
 
   // Estado de pantalla
   listaPaquetes: PaqueteData[] = [];
@@ -28,13 +36,27 @@ export class Paquete implements OnInit {
   mostrarModalPaquete = signal(false);
   paqueteEnEdicion: PaqueteData | null = null;
 
-  constructor(private servicioPaquetes: PaqueteService) {}
-
-  // Ciclo de vida
   ngOnInit(): void {
+    this.isAdmin = this.esAdminDesdeToken();
     this.cargarPaquetes();
+  }
 
-    
+  private esAdminDesdeToken(): boolean {
+    const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
+    if (!raw) return false;
+    try {
+      const decoded: any = this.jwt.decodeToken(raw);
+      const roles: string[] = [
+        ...(Array.isArray(decoded?.roles) ? decoded.roles : []),
+        ...(Array.isArray(decoded?.authorities) ? decoded.authorities : []),
+        ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
+      ]
+      .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
+      .map(r => String(r).toUpperCase());
+      return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
+    } catch {
+      return false;
+    }
   }
 
   // Acciones
@@ -77,5 +99,16 @@ export class Paquete implements OnInit {
       error: () => this.notificacion.error('No se pudo eliminar.'),
     });
   }
+
+  // Dentro de tu clase Paquete
+displayGimnasio(p: PaqueteData): string {
+  const g: any = p?.gimnasio ?? {};
+  const nombre = g?.nombre as string | undefined;
+  const id = (g?.idGimnasio ?? g?.id) as number | undefined; // backend a veces manda id, a veces idGimnasio
+  if (nombre && nombre.trim().length) return nombre;
+  if (id != null) return `#${id}`;
+  return '—';
+}
+
 
 }

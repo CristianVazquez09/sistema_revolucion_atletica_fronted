@@ -1,3 +1,5 @@
+import { GimnasioData } from "./gimnasio-data";
+
 // src/app/model/socio.ts
 export interface SocioData {
   idSocio: number;
@@ -9,4 +11,5 @@ export interface SocioData {
   fechaNacimiento: string; // ISO 'YYYY-MM-DD' o Date
   genero: 'MASCULINO' | 'FEMENINO' | 'OTRO';
   comentarios?: string;
+  gimnasio?: GimnasioData;
 }

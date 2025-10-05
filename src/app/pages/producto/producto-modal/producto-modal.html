@@ -1,15 +1,31 @@
-<!-- Contenedor del modal -->
 <div class="mx-auto w-full rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
 
   <!-- Header -->
   <div class="flex items-start justify-between px-6 pt-5">
     <h2 class="text-[20px] font-bold text-ra-slate leading-none">{{ titulo() }}</h2>
-    <button class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700"
+    <button type="button"
+            class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700"
             (click)="cancelar.emit()" aria-label="Cerrar">✕</button>
   </div>
 
-  <!-- Body / Form -->
+  <!-- Form -->
   <form class="px-6 pb-6 pt-4 space-y-4" [formGroup]="form" (ngSubmit)="submit()">
+
+    <!-- SOLO ADMIN: Gimnasio -->
+    @if (isAdmin) {
+      <div>
+        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Gimnasio</label>
+        <select class="input-filled" formControlName="gimnasioId">
+          <option [ngValue]="null" disabled>Selecciona un gimnasio</option>
+          @for (g of gimnasios; track g.idGimnasio) {
+            <option [ngValue]="g.idGimnasio">{{ g.nombre }}</option>
+          }
+        </select>
+        @if ((intentoGuardar || form.controls.gimnasioId.touched) && form.controls.gimnasioId.invalid) {
+          <p class="text-sm text-red-600 mt-1">Selecciona un gimnasio.</p>
+        }
+      </div>
+    }
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
@@ -39,27 +55,34 @@
     </div>
 
     <div>
-      <label class="block text-sm font-semibold text-ra-slate mb-1.5">Categoría</label>
-      <div class="relative">
-        <select formControlName="idCategoria" class="input-filled">
-          <option [ngValue]="null" disabled>Selecciona una categoría</option>
-          @for (c of categorias; track c.idCategoria) {
-            <option [ngValue]="c.idCategoria">{{ c.nombre }}</option>
-          }
-        </select>
-      </div>
-      @if (cargandoCategorias) {
-        <p class="text-sm text-gray-500 mt-1">Cargando categorías…</p>
-      } @else if (!categorias.length) {
-        <p class="text-sm text-red-600 mt-1">No hay categorías. Crea una en la sección “Categorías”.</p>
+      <label class="block text-sm font-semibold text-ra-slate mb-1.5">
+        Categoría
+        @if (isAdmin && form.controls.gimnasioId.value != null) {
+          <span class="ml-1 text-xs text-gray-500">({{ gimNombrePorId(form.controls.gimnasioId.value) }})</span>
+        }
+      </label>
+
+      <select formControlName="idCategoria" class="input-filled">
+        <option [ngValue]="null" disabled>Selecciona una categoría</option>
+        @for (c of categoriasFiltradas; track (c.idCategoria ?? $index)) {
+          <option [ngValue]="c.idCategoria">{{ catOptionText(c) }}</option>
+        }
+      </select>
+
+      @if (isAdmin && !cargandoCategorias && form.controls.gimnasioId.value != null && !categoriasFiltradas.length) {
+        <p class="text-sm text-gray-600 mt-1">No hay categorías en este gimnasio.</p>
       }
     </div>
 
     @if (error) { <div class="text-red-600 text-sm">{{ error }}</div> }
 
     <div class="flex items-center justify-end gap-2 pt-2">
-      <button type="button" (click)="cancelar.emit()" class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100">Cancelar</button>
-      <button type="submit" [disabled]="guardando" class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60">
+      <button type="button"
+              (click)="cancelar.emit()"
+              class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100">Cancelar</button>
+      <button type="submit"
+              [disabled]="guardando"
+              class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60">
         {{ guardando ? 'Guardando…' : 'Guardar' }}
       </button>
     </div>

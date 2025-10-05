@@ -1,77 +1,126 @@
 <!-- Encabezado -->
 <div class="mx-2 md:mx-6 lg:mx-8 mb-4 flex items-center justify-between">
-  <h1 class="text-2xl font-bold text-brand-slate">Categorías</h1>
+  <h1 class="text-2xl font-bold text-[color:var(--color-ra-slate)]">Categorías</h1>
 
-  <!-- Reemplaza topbar-btn--red -->
   <a routerLink="/pages/inventario"
-     class="px-4 py-2 rounded-md shadow-card text-white bg-blue-900 hover:bg-[color:var(--color-ra-rojo-fuerte)]">
+     class="px-4 py-2 rounded-md shadow-card text-white bg-[color:var(--color-ra-azul-fuerte)] hover:brightness-110">
     Volver a productos
   </a>
 </div>
 
-<!-- Card formulario (crear/editar en el mismo componente) -->
+<!-- Card formulario (crear/editar) -->
 <div class="mx-2 md:mx-6 lg:mx-8 mb-6 card">
   <div class="card-header flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <h2 class="text-xl font-semibold text-brand-slate">
+      <h2 class="text-xl font-semibold text-[color:var(--color-ra-slate)]">
         {{ esEdicion ? 'Editar categoría' : 'Agregar categoría' }}
       </h2>
       @if (esEdicion) {
-        <span class="tag tag-green">Editando ID: {{ idEditando }}</span>
+        <span class="inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">
+          Editando ID: {{ idEditando }}
+        </span>
       }
     </div>
-    
   </div>
 
-  <form class="p-6 space-y-3" [formGroup]="form" (ngSubmit)="guardar()">
+  <form class="p-6 space-y-4" [formGroup]="form" (ngSubmit)="guardar()">
+
+    <!-- SOLO ADMIN: selector de gimnasio (sin [disabled]; se maneja en TS) -->
+    @if (isAdmin) {
+      <div>
+        <label class="block text-sm font-medium mb-1">Gimnasio</label>
+        <select class="input-filled" formControlName="gimnasioId">
+          @if (cargandoGimnasios) {
+            <option [ngValue]="null" disabled>Cargando gimnasios…</option>
+          } @else if (errorGimnasios) {
+            <option [ngValue]="null" disabled>{{ errorGimnasios }}</option>
+          } @else if (!gimnasios.length) {
+            <option [ngValue]="null" disabled>Sin gimnasios</option>
+          } @else {
+            @for (g of gimnasios; track getGymId(g) ?? $index) {
+              <option [ngValue]="getGymId(g)">{{ g.nombre }}</option>
+            }
+          }
+        </select>
+        @if (form.controls.gimnasioId.touched && form.controls.gimnasioId.invalid) {
+          <div class="text-sm text-red-600 mt-1">Selecciona un gimnasio.</div>
+        }
+      </div>
+    }
+
+    <!-- Nombre -->
     <div>
+      <label class="block text-sm font-medium mb-1">Nombre</label>
       <input formControlName="nombre" class="input-filled" placeholder="Nombre de la categoría*">
       @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
         <div class="text-sm text-red-600 mt-1">El nombre es obligatorio (máx. 80).</div>
       }
     </div>
 
+    <!-- Acciones -->
     <div class="flex justify-end gap-2">
       @if (esEdicion) {
-        <button type="button" (click)="cancelarEdicion()" class="px-4 py-2 rounded-md bg-ra-rojo-oscuro text-ra-white hover:bg-ra-green2 shadow-card inline-flex items-center gap-2">Cancelar</button>
+        <button type="button"
+                (click)="cancelarEdicion()"
+                class="px-4 py-2 rounded-md border border-gray-300 bg-white text-[color:var(--color-ra-slate)] hover:bg-gray-50">
+          Cancelar
+        </button>
       }
-      <button type="submit" [disabled]="guardando" class="px-4 py-2 rounded-md bg-blue-800 text-ra-white hover:bg-ra-green2 shadow-card inline-flex items-center gap-2">
+      <button type="submit"
+              [disabled]="guardando"
+              class="px-4 py-2 rounded-md bg-[color:var(--color-ra-azul-fuerte)] text-white hover:brightness-110">
         {{ guardando ? 'Guardando…' : (esEdicion ? 'Actualizar' : 'Guardar') }}
       </button>
     </div>
   </form>
 </div>
 
-<!-- Tabla categorías (sin clases nuevas) -->
+<!-- Tabla categorías -->
 <div class="shadow-card rounded-xl2 overflow-hidden mx-2 md:mx-6 lg:mx-8 bg-white ring-1 ring-black/10">
   <div class="overflow-x-auto">
     <table class="w-full table-fixed">
       <colgroup>
-        <col class="w-[18%]">
-        <col class="w-[64%]">
-        <col class="w-[18%]">
+        <col class="w-[14%]"> <!-- ID -->
+        <col class="w-[48%]"> <!-- Nombre -->
+        @if (isAdmin) { <col class="w-[20%]"> } <!-- Gimnasio -->
+        <col class="w-[18%]"> <!-- Acciones -->
       </colgroup>
 
       <thead>
         <tr class="bg-[color:var(--color-ra-grayLight)]/40">
           <th class="py-4 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">ID</th>
           <th class="py-4 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">Nombre</th>
+          @if (isAdmin) {
+            <th class="py-4 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">Gimnasio</th>
+          }
           <th class="py-4 px-6 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Acciones</th>
         </tr>
       </thead>
 
       <tbody>
         @if (loading) {
-          <tr><td colspan="3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Cargando…</td></tr>
+          <tr><td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Cargando…</td></tr>
         } @else if (error) {
-          <tr><td colspan="3" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
+          <tr><td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
         } @else if (categorias.length === 0) {
-          <tr><td colspan="3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Sin resultados.</td></tr>
+          <tr><td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Sin resultados.</td></tr>
         } @else {
-          @for (c of categorias; track c.idCategoria) {
+          @for (c of categorias; track c.idCategoria ?? $index) {
             <tr class="border-t border-[color:var(--color-ra-grayLight)]/60 hover:bg-[color:var(--color-ra-bg)]">
               <td class="py-3 px-6">{{ c.idCategoria }}</td>
               <td class="py-3 px-6 truncate">{{ c.nombre }}</td>
+
+              @if (isAdmin) {
+                <td class="py-3 px-6">
+                  <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
+                    <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+                    </svg>
+                    {{ gymLabel(c.gimnasio) }}
+                  </span>
+                </td>
+              }
+
               <td class="py-2 px-6">
                 <div class="flex items-center justify-center gap-2">
                   <button (click)="editar(c)" class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40" title="Editar">
@@ -89,4 +138,3 @@
     </table>
   </div>
 </div>
-

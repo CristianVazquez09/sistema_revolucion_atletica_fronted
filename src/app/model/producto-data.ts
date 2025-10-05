@@ -1,4 +1,5 @@
 import { CategoriaData } from "./categoria-data";
+import { GimnasioData } from "./gimnasio-data";
 
 export interface ProductoData {
   idProducto?: number;
@@ -8,4 +9,6 @@ export interface ProductoData {
   precioVenta: number;
   cantidad: number;
   categoria: CategoriaData;
+  gimnasio?: GimnasioData;
+  
 }

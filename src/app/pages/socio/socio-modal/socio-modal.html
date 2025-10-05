@@ -2,11 +2,12 @@
 <div class="mx-auto w-full rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
   <!-- Header -->
   <div class="flex items-start justify-between px-6 pt-5">
-    <h2 class="text-[20px] font-bold text-ra-slate leading-none">Editar Socio</h2>
+    <h2 class="text-[20px] font-bold text-ra-slate leading-none">{{ titulo() }}</h2>
 
     <button
       class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
-      (click)="cancelar.emit()" aria-label="Cerrar">
+      (click)="cancelar.emit()"
+      aria-label="Cerrar">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
       </svg>
@@ -15,6 +16,33 @@
 
   <!-- Body -->
   <form class="px-6 pb-6 pt-4 space-y-4" (ngSubmit)="guardar()" [formGroup]="formulario">
+
+    <!-- SOLO ADMIN: Gimnasio -->
+    @if (isAdmin) {
+      <div>
+        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Gimnasio</label>
+        <div class="relative">
+          <!-- OJO: sin [disabled]; el control nace disabled en TS y luego se habilita -->
+          <select formControlName="gimnasioId"
+                  class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 pr-10 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent">
+            <option [ngValue]="null" disabled>Selecciona un gimnasio</option>
+            @for (g of gimnasios; track g.idGimnasio) {
+              <option [ngValue]="g.idGimnasio">{{ g.nombre }}</option>
+            }
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.06l3.71-3.83a.75.75 0 1 1 1.08 1.04l-4.25 4.39a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+
+        @if (formulario.controls['gimnasioId'].touched && formulario.controls['gimnasioId'].invalid) {
+          <p class="text-sm text-red-600 mt-1">Selecciona un gimnasio.</p>
+        }
+      </div>
+    }
+
     <!-- Grid avatar + campos -->
     <div class="grid grid-cols-[96px_1fr] gap-4 items-start">
       <!-- Avatar placeholder -->

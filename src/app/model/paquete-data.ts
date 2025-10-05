@@ -1,4 +1,5 @@
 import { TiempoPlan } from "../util/enums/tiempo-plan";
+import { GimnasioData } from "./gimnasio-data";
 
 export interface PaqueteData {
   idPaquete: number;
@@ -6,5 +7,6 @@ export interface PaqueteData {
   precio: number;
   tiempo: TiempoPlan;
   costoInscripcion: number;
+  gimnasio?: GimnasioData;
 }
 

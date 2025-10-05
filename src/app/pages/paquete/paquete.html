@@ -4,44 +4,61 @@
 
   <button
     (click)="abrirModalParaCrear()"
-    class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-ra-azul-fuerte text-ra-white hover:bg-ra-green2 shadow-card">
+    class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card">
     <img src="iconos/agregar.svg" alt="" class="w-5 h-5">
     <span>Agregar paquete</span>
   </button>
 </div>
 
 <!-- Tabla -->
-<div class="shadow-card rounded-xl2 overflow-hidden mx-4 md:mx-10 bg-ra-bg">
+<div class="shadow-card rounded-xl2 overflow-hidden mx-4 md:mx-10 bg-ra-white ring-1 ring-black/10">
   <table class="w-full table-fixed">
     <colgroup>
-      <col class="w-[44%]"><col class="w-[16%]"><col class="w-[14%]"><col class="w-[14%]"><col class="w-[12%]">
+      <col class="w-[34%]"><col class="w-[14%]"><col class="w-[14%]"><col class="w-[14%]">
+      @if (isAdmin) { <col class="w-[14%]"> }
+      <col class="w-[10%]">
     </colgroup>
 
     <thead>
       <tr class="bg-[color:var(--color-ra-grayLight)]/40 text-[color:var(--color-ra-slate)]">
-        <th class="py-4 px-6 text-center -ra-textslate font-semibold uppercase">Nombre</th>
-        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Tiempo</th>
-        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Precio</th>
-        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Inscripción</th>
-        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Acciones</th>
+        <th class="py-4 px-6 text-left font-semibold uppercase">Nombre</th>
+        <th class="py-4 px-6 text-center font-semibold uppercase">Tiempo</th>
+        <th class="py-4 px-6 text-center font-semibold uppercase">Precio</th>
+        <th class="py-4 px-6 text-center font-semibold uppercase">Inscripción</th>
+        @if (isAdmin) {
+          <th class="py-4 px-6 text-left font-semibold uppercase">Gimnasio</th>
+        }
+        <th class="py-4 px-6 text-center font-semibold uppercase">Acciones</th>
       </tr>
     </thead>
 
     <tbody>
       @if (estaCargando) {
-        <tr><td colspan="5" class="py-6 px-6 text-center text-ra-slate">Cargando…</td></tr>
+        <tr><td [attr.colspan]="isAdmin ? 6 : 5" class="py-6 px-6 text-center text-ra-slate">Cargando…</td></tr>
       } @else if (mensajeError) {
-        <tr><td colspan="5" class="py-6 px-6 text-center text-red-600">{{ mensajeError }}</td></tr>
+        <tr><td [attr.colspan]="isAdmin ? 6 : 5" class="py-6 px-6 text-center text-red-600">{{ mensajeError }}</td></tr>
       } @else {
         @if (listaPaquetes.length === 0) {
-          <tr><td colspan="5" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td></tr>
+          <tr><td [attr.colspan]="isAdmin ? 6 : 5" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td></tr>
         } @else {
           @for (p of listaPaquetes; track p.idPaquete) {
             <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
               <td class="py-4 px-6 text-left truncate">{{ p.nombre }}</td>
-              <td class="py-4 px-6 text-center">{{ p.tiempo | tiempoPlan}}</td>
+              <td class="py-4 px-6 text-center">{{ p.tiempo | tiempoPlan }}</td>
               <td class="py-4 px-6 text-center text-sm">{{ p.precio | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
               <td class="py-4 px-6 text-center text-sm">{{ p.costoInscripcion | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+
+              @if (isAdmin) {
+                <td class="py-4 px-6 text-left">
+                  <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
+                    <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+                    </svg>
+                    {{ displayGimnasio(p) }}
+                  </span>
+                </td>
+              }
+
               <td class="py-2 px-6">
                 <div class="flex items-center justify-center gap-2">
                   <button (click)="abrirModalParaEditar(p)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
@@ -63,10 +80,7 @@
 <!-- Modal -->
 @if (mostrarModalPaquete()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <!-- Backdrop -->
     <div class="absolute inset-0 bg-black/50" (click)="cerrarModalPaquete()"></div>
-
-    <!-- Contenedor modal -->
     <div class="relative z-10 w-full max-w-lg mx-4">
       <div class="bg-ra-white rounded-xl2 shadow-card">
         <app-paquete-modal

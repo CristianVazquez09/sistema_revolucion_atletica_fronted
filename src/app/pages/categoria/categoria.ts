@@ -7,6 +7,12 @@ import { CategoriaService } from '../../services/categoria-service';
 import { CategoriaData } from '../../model/categoria-data';
 import { NotificacionService } from '../../services/notificacion-service';
 
+import { GimnasioService } from '../../services/gimnasio-service';
+import { GimnasioData } from '../../model/gimnasio-data';
+
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { environment } from '../../../environments/environment';
+
 @Component({
   selector: 'app-categoria',
   standalone: true,
@@ -21,88 +27,193 @@ export class Categoria implements OnInit {
   private categoriaSrv = inject(CategoriaService);
   private notificacion = inject(NotificacionService);
 
+  private gimnasioSrv = inject(GimnasioService);
+  private jwt = inject(JwtHelperService);
+
+  // Estado admin/tenant
+  isAdmin = false;
+
   // Estado
   categorias: CategoriaData[] = [];
   loading = true;
   error: string | null = null;
 
+  // Gimnasios (solo admin)
+  gimnasios: GimnasioData[] = [];
+  cargandoGimnasios = false;
+  errorGimnasios: string | null = null;
+
   // Modo edición (null = crear)
   private categoriaEditando: CategoriaData | null = null;
 
-  // Form
+  // Form: gimnasioId se habilita solo si eres admin
   form = this.fb.group({
-    nombre: ['', [Validators.required, Validators.maxLength(80)]]
+    nombre: ['', [Validators.required, Validators.maxLength(80)]],
+    gimnasioId: this.fb.control<number | null>({ value: null, disabled: true })
   });
 
   guardando = false;
 
   ngOnInit(): void {
-    this.cargar();
+    this.isAdmin = this.deducirEsAdminDesdeToken();
+
+    if (this.isAdmin) {
+      this.form.controls.gimnasioId.addValidators([Validators.required]);
+      this.cargarGimnasiosYLuegoCategorias();
+    } else {
+      this.form.controls.gimnasioId.clearValidators();
+      this.form.controls.gimnasioId.disable({ emitEvent: false });
+      this.cargarCategorias();
+    }
   }
 
-  // Carga de categorías
-  cargar(): void {
-    this.loading = true;
-    this.error = null;
-    this.categoriaSrv.buscarTodos().subscribe({
-      next: data => { this.categorias = data ?? []; this.loading = false; },
-      error: err => { console.error(err); this.loading = false; this.error = 'No se pudieron cargar las categorías.'; }
+  // === helpers id/label compatibles con id || idGimnasio ===
+  getGymId(obj: any): number | null {
+    if (!obj) return null;
+    const id = obj.id ?? obj.idGimnasio ?? null;
+    return id != null ? Number(id) : null;
+  }
+  gymLabel(obj: any): string {
+    const id = this.getGymId(obj);
+    return obj?.nombre ?? (id != null ? `#${id}` : '—');
+  }
+
+  // --- Helpers de rol ---
+  private deducirEsAdminDesdeToken(): boolean {
+    const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
+    if (!raw) return false;
+    try {
+      const decoded: any = this.jwt.decodeToken(raw);
+      const roles: string[] = [
+        ...(Array.isArray(decoded?.roles) ? decoded.roles : []),
+        ...(Array.isArray(decoded?.authorities) ? decoded.authorities : []),
+        ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
+      ]
+        .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
+        .map(r => String(r).toUpperCase());
+      return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
+    } catch {
+      return false;
+    }
+  }
+
+  // --- Cargas ---
+  private cargarGimnasiosYLuegoCategorias(): void {
+    this.cargandoGimnasios = true;
+    this.errorGimnasios = null;
+
+    this.gimnasioSrv.buscarTodos().subscribe({
+      next: (lista) => {
+        this.gimnasios = (lista ?? []).filter(Boolean);
+        const pre = this.getGymId(this.gimnasios[0]);
+        if (pre != null) {
+          this.form.controls.gimnasioId.setValue(pre, { emitEvent: false });
+        }
+        this.form.controls.gimnasioId.enable({ emitEvent: false });
+        this.cargandoGimnasios = false;
+        this.cargarCategorias();
+      },
+      error: () => {
+        this.cargandoGimnasios = false;
+        this.errorGimnasios = 'No se pudieron cargar los gimnasios.';
+        this.cargarCategorias();
+      }
     });
   }
 
-  // Guardar (crear o actualizar según modo)
+  private cargarCategorias(): void {
+    this.loading = true;
+    this.error = null;
+    this.categoriaSrv.buscarTodos().subscribe({
+      next: data => {
+        this.categorias = (data ?? []).filter(Boolean);
+        this.loading = false;
+      },
+      error: err => {
+        console.error(err);
+        this.loading = false;
+        this.error = 'No se pudieron cargar las categorías.';
+      }
+    });
+  }
+
+  // --- Guardar (crear/actualizar) ---
   guardar(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
     this.guardando = true;
-    const payload: CategoriaData = {
-      nombre: String(this.form.controls.nombre.value ?? '').trim() as any
-    };
 
-    const obs = this.categoriaEditando?.idCategoria
-      ? this.categoriaSrv.actualizar(this.categoriaEditando.idCategoria, payload)
+    const nombre = String(this.form.controls.nombre.value ?? '').trim();
+    const payload: any = { nombre };
+
+    // ⬅️ IMPORTANTE: enviar gimnasio como { id } cuando eres admin
+    if (this.isAdmin) {
+      if (this.form.controls.gimnasioId.disabled) {
+        this.form.controls.gimnasioId.enable({ emitEvent: false });
+      }
+      const idG = this.form.controls.gimnasioId.value;
+      if (idG != null) payload.gimnasio = { id: Number(idG) };
+    }
+
+    const esEdicion = !!this.categoriaEditando?.idCategoria;
+    const obs = esEdicion
+      ? this.categoriaSrv.actualizar(this.categoriaEditando!.idCategoria!, payload)
       : this.categoriaSrv.guardar(payload);
 
     obs.subscribe({
       next: () => {
         this.guardando = false;
-        this.cancelarEdicion(); // limpia form y modo
-        this.cargar();
+        this.cancelarEdicion();
+        this.cargarCategorias();
+        this.notificacion.exito('Categoría guardada.');
       },
       error: err => {
         console.error(err);
         this.guardando = false;
-        this.notificacion.exito('No se pudo guardar la categoría.');
+        this.notificacion.error('No se pudo guardar la categoría.');
       }
     });
   }
 
-  // Entrar a modo edición
+  // --- Edición ---
   editar(c: CategoriaData): void {
     this.categoriaEditando = c;
+    if (this.isAdmin) this.form.controls.gimnasioId.enable({ emitEvent: false });
+
     this.form.reset({
-      nombre: String(c.nombre ?? '')
+      nombre: String(c.nombre ?? ''),
+      // soporta backend que devuelva gimnasio.id o gimnasio.idGimnasio
+      gimnasioId: this.isAdmin ? (this.getGymId(c.gimnasio) ?? this.form.controls.gimnasioId.value) : null
     });
   }
 
-  // Cancelar edición y volver a modo crear
   cancelarEdicion(): void {
     this.categoriaEditando = null;
-    this.form.reset({ nombre: '' });
+    if (this.isAdmin) {
+      this.form.reset({
+        nombre: '',
+        gimnasioId: this.form.controls.gimnasioId.enabled
+          ? (this.form.controls.gimnasioId.value ?? null)
+          : null
+      });
+    } else {
+      this.form.reset({ nombre: '', gimnasioId: null });
+      this.form.controls.gimnasioId.disable({ emitEvent: false });
+    }
   }
 
-  // Eliminar
+  // --- Eliminar ---
   eliminar(c: CategoriaData) {
     if (!c.idCategoria) return;
     if (!confirm(`¿Eliminar categoría "${c.nombre}"?`)) return;
 
     this.categoriaSrv.eliminar(c.idCategoria).subscribe({
-      next: () => this.cargar(),
+      next: () => { this.notificacion.exito('Categoría eliminada.'); this.cargarCategorias(); },
       error: () => this.notificacion.error('No se pudo eliminar la categoría.')
     });
   }
 
-  // Helpers de template
+  // --- Helpers de template ---
   get esEdicion(): boolean { return !!this.categoriaEditando; }
   get idEditando(): number | null { return this.categoriaEditando?.idCategoria ?? null; }
 }

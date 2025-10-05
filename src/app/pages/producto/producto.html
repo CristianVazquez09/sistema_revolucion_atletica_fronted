@@ -1,116 +1,116 @@
 <!-- Barra superior -->
 <div class="mx-4 md:mx-10 mb-4 flex items-center justify-between">
+  <!-- Acciones izquierda -->
+  <div class="flex gap-2">
+    <a routerLink="/pages/inventario"
+       class="px-4 py-2 rounded-md bg-ra-rojo-oscuro text-white hover:bg-red-700 shadow-card">
+      Ver productos
+    </a>
+    <a routerLink="/pages/categoria"
+       class="px-4 py-2 rounded-md bg-ra-rojo-oscuro text-white hover:bg-red-700 shadow-card">
+      Categorías
+    </a>
+  </div>
 
-    <!-- Derecha: Ver / Categorías -->
-    <div class="flex gap-2">
-        <a routerLink="/pages/inventario"
-            class="px-4 py-2 rounded-md bg-ra-rojo-oscuro text-white hover:bg-red-700 shadow-card">
-            Ver productos
-        </a>
-        <a routerLink="/pages/categoria"
-            class="px-4 py-2 rounded-md bg-ra-rojo-oscuro text-white hover:bg-red-700 shadow-card">
-            Categorías
-        </a>
-    </div>
-
-    <!-- Izquierda: Agregar -->
-    <div class="flex">
-        <button (click)="abrirCrear()"
-            class="px-4 py-2 rounded-md bg-ra-azul-fuerte text-ra-white hover:bg-ra-green2 shadow-card inline-flex items-center gap-2">
-            <img src="iconos/agregar.svg" class="w-5 h-5" alt="">
-            Agregar producto
-        </button>
-    </div>
+  <!-- Agregar -->
+  <div class="flex">
+    <button (click)="abrirCrear()"
+            class="px-4 py-2 rounded-md bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card inline-flex items-center gap-2">
+      <img src="iconos/agregar.svg" class="w-5 h-5" alt="">
+      Agregar producto
+    </button>
+  </div>
 </div>
 
 <!-- Tabla -->
-<!-- Tabla -->
 <div class="shadow-card rounded-xl2 overflow-hidden mx-4 md:mx-10 bg-ra-white">
-    <table class="w-full table-fixed">
-        <colgroup>
-            <col class="w-[8%]"> <!-- ID -->
-            <col class="w-[18%]"> <!-- Nombre -->
-            <col class="w-[14%]"> <!-- Código -->
-            <col class="w-[14%]"> <!-- Precio compra -->
-            <col class="w-[14%]"> <!-- Precio venta -->
-            <col class="w-[10%]"> <!-- Cantidad -->
-            <col class="w-[14%]"> <!-- Categoría -->
-            <col class="w-[8%] min-w-[110px]"> <!-- Acciones -->
-        </colgroup>
+  <table class="w-full table-fixed">
+    <colgroup>
+      <col class="w-[8%]">  <!-- ID -->
+      <col class="w-[18%]"> <!-- Nombre -->
+      <col class="w-[14%]"> <!-- Código -->
+      <col class="w-[14%]"> <!-- Precio compra -->
+      <col class="w-[14%]"> <!-- Precio venta -->
+      <col class="w-[10%]"> <!-- Cantidad -->
+      <col class="w-[14%]"> <!-- Categoría -->
+      @if (isAdmin) { <col class="w-[12%]"> } <!-- Gimnasio (solo admin) -->
+      <col class="w-[8%] min-w-[110px]"> <!-- Acciones -->
+    </colgroup>
 
-        <thead>
-            <tr class="bg-ra-grayLight/40">
-                <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">ID</th>
-                <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Nombre</th>
-                <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Código</th>
-                <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Precio compra</th>
-                <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Precio venta</th>
-                <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Cantidad</th>
-                <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Categoría</th>
-                <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Acciones</th>
-            </tr>
-        </thead>
+    <thead>
+      <tr class="bg-ra-grayLight/40">
+        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">ID</th>
+        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Nombre</th>
+        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Código</th>
+        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Precio compra</th>
+        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Precio venta</th>
+        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Cantidad</th>
+        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Categoría</th>
+        @if (isAdmin) {
+          <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Gimnasio</th>
+        }
+        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Acciones</th>
+      </tr>
+    </thead>
 
-        <tbody>
-            @if (loading) {
-            <tr>
-                <td colspan="8" class="py-6 px-6 text-center text-ra-slate">Cargando…</td>
-            </tr>
-            } @else if (error) {
-            <tr>
-                <td colspan="8" class="py-6 px-6 text-center text-red-600">{{ error }}</td>
-            </tr>
-            } @else if (productos.length === 0) {
-            <tr>
-                <td colspan="8" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td>
-            </tr>
-            } @else {
-            @for (p of productos; track p.idProducto) {
-            <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg text-center">
-                <td class="py-3 px-6 text-center">{{ p.idProducto }}</td>
-                <td class="py-3 px-6 truncate">{{ p.nombre }}</td>
-                <td class="py-3 px-6 text-center">{{ p.codigo }}</td>
+    <tbody>
+      @if (loading) {
+        <tr><td [attr.colspan]="isAdmin ? 9 : 8" class="py-6 px-6 text-center text-ra-slate">Cargando…</td></tr>
+      } @else if (error) {
+        <tr><td [attr.colspan]="isAdmin ? 9 : 8" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
+      } @else if (productos.length === 0) {
+        <tr><td [attr.colspan]="isAdmin ? 9 : 8" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td></tr>
+      } @else {
+        @for (p of productos; track p.idProducto ?? $index) {
+          <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg text-center">
+            <td class="py-3 px-6">{{ p.idProducto }}</td>
+            <td class="py-3 px-6 truncate">{{ p.nombre }}</td>
+            <td class="py-3 px-6">{{ p.codigo }}</td>
+            <td class="py-3 px-6 text-sm">{{ (+p.precioCompra) | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+            <td class="py-3 px-6 text-sm">{{ (+p.precioVenta)  | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+            <td class="py-3 px-6">{{ p.cantidad }}</td>
+            <td class="py-3 px-6 truncate">{{ p.categoria.nombre }}</td>
 
-                <!-- Usa +p.precioCompra si tu modelo tiene Number en vez de number -->
-                <td class="py-3 px-6 text-center text-sm">
-                    {{ (+p.precioCompra) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-                </td>
-                <td class="py-3 px-6 text-center text-sm">
-                    {{ (+p.precioVenta) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-                </td>
-
-                <td class="py-3 px-6 text-center">{{ p.cantidad }}</td>
-                <td class="py-3 px-6 text-center truncate">{{ p.categoria.nombre }}</td>
-
-                <!-- Acciones -->
-                <td class="py-2 px-3">
-                    <div class="flex items-center justify-center gap-2">
-                        <!-- Editar (SVG inline) -->
-                        <button (click)="editar(p)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
-                            <img src="iconos/editar.svg" alt="Editar" class="w-9 h-9" />
-                        </button>
-                        <!-- Eliminar (SVG inline) -->
-                        <button (click)="eliminar(p)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar">
-                            <img src="iconos/eliminar.svg" alt="Editar" class="w-9 h-9" />
-                        </button>
-                    </div>
-                </td>
-            </tr>
+            @if (isAdmin) {
+              <td class="py-3 px-6">
+                <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
+                  <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+                  </svg>
+                  {{ gymLabel(p.gimnasio) }}
+                </span>
+              </td>
             }
-            }
-        </tbody>
-    </table>
+
+            <td class="py-2 px-3">
+              <div class="flex items-center justify-center gap-2">
+                <button (click)="editar(p)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
+                  <img src="iconos/editar.svg" alt="Editar" class="w-9 h-9" />
+                </button>
+                <button (click)="eliminar(p)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar">
+                  <img src="iconos/eliminar.svg" alt="Eliminar" class="w-9 h-9" />
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
 </div>
 
 <!-- Modal -->
 @if (mostrarModal()) {
-<div class="fixed inset-0 z-50 flex items-center justify-center">
+  <div class="fixed inset-0 z-50 flex items-center justify-center">
     <div class="absolute inset-0 bg-black/50" (click)="cerrarModal()"></div>
     <div class="relative z-10 w-full max-w-2xl mx-4">
-        <div class="bg-ra-white rounded-xl2 shadow-card">
-            <app-producto-modal [producto]="productoEditando" (cancelar)="cerrarModal()" (guardado)="onGuardado()">
-            </app-producto-modal>
-        </div>
+      <div class="bg-ra-white rounded-xl2 shadow-card">
+        <app-producto-modal
+          [producto]="productoEditando"
+          (cancelar)="cerrarModal()"
+          (guardado)="onGuardado()">
+        </app-producto-modal>
+      </div>
     </div>
-</div>
+  </div>
 }

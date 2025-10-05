@@ -21,6 +21,10 @@ import { Router } from '@angular/router';
 import { NotificacionService } from '../../services/notificacion-service';
 import { PagedResponse } from '../../model/paged-response';
 
+// Admin: detectar desde token
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { environment } from '../../../environments/environment';
+
 @Component({
   selector: 'app-socio',
   standalone: true,
@@ -33,6 +37,10 @@ export class Socio implements OnInit, OnDestroy {
   listaSocios: SocioData[] = [];
   cargando = true;
   mensajeError: string | null = null;
+
+  // Admin
+  private jwt = inject(JwtHelperService);
+  isAdmin = false;
 
   // Modal
   modalSocioVisible = signal(false);
@@ -52,32 +60,33 @@ export class Socio implements OnInit, OnDestroy {
   private subsBusqueda?: Subscription;
   private destroyRef = inject(DestroyRef);
 
-  constructor(private socioService: SocioService, private router:Router, private notificacion:NotificacionService) {}
+  constructor(
+    private socioService: SocioService,
+    private router: Router,
+    private notificacion: NotificacionService
+  ) {}
 
   // ─────────── Ciclo de vida ───────────
   ngOnInit(): void {
-    // Carga inicial (listado normal)
+    this.isAdmin = this.deducirEsAdminDesdeToken();
     this.cargarSocios();
 
-    // Pipeline de búsqueda: trim -> debounce -> distinct -> (vacío => listado normal) -> (3+ => buscar)
     this.subsBusqueda = this.busqueda$
       .pipe(
         map((v) => v.trim()),
         debounceTime(400),
         distinctUntilChanged(),
         tap((texto) => {
-          // Si limpian el campo (0 caracteres), reset y recarga listado normal
           if (texto.length === 0) {
             this.paginaActual = 0;
             this.cargarSocios();
           }
         }),
-        // Solo dispara búsqueda cuando hay 3+ caracteres
         filter((texto) => texto.length >= this.minCaracteresBusqueda),
         switchMap((texto) => {
           this.cargando = true;
           this.mensajeError = null;
-          this.paginaActual = 0; // nueva búsqueda => desde la primera página
+          this.paginaActual = 0;
           return this.socioService
             .buscarSociosPorNombre(texto, this.paginaActual, this.tamanioPagina)
             .pipe(finalize(() => (this.cargando = false)));
@@ -86,15 +95,32 @@ export class Socio implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (resp: PagedResponse<SocioData>) => this.aplicarRespuesta(resp),
-        error: (err) => {
-          console.error(err);
-          this.mensajeError = 'No se pudo ejecutar la búsqueda.';
-        },
+        error: () => { this.mensajeError = 'No se pudo ejecutar la búsqueda.'; },
       });
   }
 
   ngOnDestroy(): void {
     this.subsBusqueda?.unsubscribe();
+  }
+
+  // --- Admin helper
+  private deducirEsAdminDesdeToken(): boolean {
+    const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
+    if (!raw) return false;
+    try {
+      const decoded: any = this.jwt.decodeToken(raw);
+      const roles: string[] = [
+        ...(Array.isArray(decoded?.roles) ? decoded.roles : []),
+        ...(Array.isArray(decoded?.authorities) ? decoded.authorities : []),
+        ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
+      ]
+        .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
+        .map(r => String(r).toUpperCase());
+
+      return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
+    } catch {
+      return false;
+    }
   }
 
   // ─────────── Helpers de UI (rango mostrado) ───────────
@@ -115,7 +141,6 @@ export class Socio implements OnInit, OnDestroy {
     this.tamanioPagina = resp.pagina?.tamanio ?? this.tamanioPagina;
     this.paginaActual = resp.pagina?.numero ?? this.paginaActual;
 
-    // Si quedó vacía la página actual (p.ej. tras eliminar), retrocede una y recarga.
     if (this.listaSocios.length === 0 && this.paginaActual > 0) {
       this.paginaActual = this.paginaActual - 1;
       this.cargarSocios();
@@ -129,23 +154,16 @@ export class Socio implements OnInit, OnDestroy {
     const texto = this.terminoBusqueda.trim();
     const fuente$ =
       texto.length >= this.minCaracteresBusqueda
-        ? this.socioService.buscarSociosPorNombre(
-            texto,
-            this.paginaActual,
-            this.tamanioPagina
-          )
+        ? this.socioService.buscarSociosPorNombre(texto, this.paginaActual, this.tamanioPagina)
         : this.socioService.buscarSocios(this.paginaActual, this.tamanioPagina);
 
     fuente$.pipe(finalize(() => (this.cargando = false))).subscribe({
       next: (resp: PagedResponse<SocioData>) => this.aplicarRespuesta(resp),
-      error: (err) => {
-        console.error(err);
-        this.mensajeError = 'No se pudo cargar la lista de listaSocios.';
-      },
+      error: () => { this.mensajeError = 'No se pudo cargar la lista de socios.'; },
     });
   }
 
-  // ─────────── Eventos del buscador ───────────
+  // ─────────── Búsqueda ───────────
   onBuscarChange(valor: string): void {
     this.terminoBusqueda = valor;
     this.busqueda$.next(valor);
@@ -157,7 +175,7 @@ export class Socio implements OnInit, OnDestroy {
   // ─────────── Paginación ───────────
   cambiarTamanioPagina(nuevo: number | string): void {
     this.tamanioPagina = Number(nuevo);
-    this.paginaActual = 0; // siempre resetear a la primera
+    this.paginaActual = 0;
     this.cargarSocios();
   }
   irPrimera(): void {
@@ -192,7 +210,7 @@ export class Socio implements OnInit, OnDestroy {
   }
   despuesDeGuardarSocio(): void {
     this.cerrarModalSocio();
-    this.cargarSocios(); // mantiene página actual si aplica
+    this.cargarSocios();
   }
   eliminarSocio(s: SocioData): void {
     if (!confirm(`¿Eliminar al socio "${s.nombre} ${s.apellido}"?`)) return;
@@ -205,5 +223,15 @@ export class Socio implements OnInit, OnDestroy {
   verHistorial(s: SocioData): void {
     if (!s?.idSocio) return;
     this.router.navigate(['/pages/socio', s.idSocio, 'historial']);
+  }
+
+  // Mostrar gym con tolerancia a id ó idGimnasio
+  displayGimnasio(s: SocioData): string {
+    const g: any = s?.gimnasio ?? {};
+    const nombre = g?.nombre as string | undefined;
+    const id = (g?.idGimnasio ?? g?.id) as number | undefined;
+    if (nombre && nombre.trim().length) return nombre;
+    if (id != null) return `#${id}`;
+    return '—';
   }
 }
