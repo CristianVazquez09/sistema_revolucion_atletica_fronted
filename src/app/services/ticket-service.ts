@@ -50,6 +50,13 @@ export interface TicketEntrenador extends TicketHeader {
   importe: number | string;
   tipoPago: string;
 }
+// --- NUEVO: tipo para ticket de Accesoría ---
+export interface TicketAccesoria extends TicketHeader {
+  concepto: string;           // p.ej. "Accesoría Visita"
+  entrenador?: string;        // nombre del entrenador
+  importe: number | string;
+  tipoPago: string;           // "Efectivo: $X · Tarjeta: $Y"
+}
 
 // ======== Tipos de alto nivel (desacoplados del componente) ========
 
@@ -517,4 +524,50 @@ ${this.baseStyles()}
     return items.reduce((acc: number, it: TicketItem) =>
       acc + (this.toInt(it.cantidad) * this.toNum(it.precioUnit)), 0);
   }
+
+  // --- NUEVO: API pública ---
+imprimirAccesoria(data: TicketAccesoria) {
+  const html = this.htmlAccesoria(data);
+  this.abrirYImprimir(html, `ticket-accesoria-${data.folio ?? ''}.html`);
+}
+verAccesoriaComoHtml(data: TicketAccesoria) {
+  const html = this.htmlAccesoria(data).replace('onload="window.print();window.close();"', '');
+  const w = window.open('', '_blank', 'noopener,noreferrer');
+  if (!w) { this.descargarHtml(`ticket-accesoria-${data.folio ?? ''}.html`, html); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+}
+
+// --- NUEVO: renderer ---
+private htmlAccesoria(d: TicketAccesoria): string {
+  const idBlock = this.docId('ACCESORÍA', d.folio);
+  return `<!doctype html>
+<html><head><meta charset="utf-8"><title>Ticket Accesoría</title>
+${this.baseStyles()}
+</head>
+<body onload="window.print();window.close();">
+<div class="ticket">
+  <div class="brand">${this.escape('REVOLUCIÓN ATLÉTICA')}</div>
+  <div class="title">${this.escape(String(d.negocio.nombre))}</div>
+  ${d.negocio.direccion ? `<div class="muted">${this.escape(String(d.negocio.direccion))}</div>` : ''}
+  ${d.negocio.telefono ? `<div class="muted">TEL: ${this.escape(String(d.negocio.telefono))}</div>` : ''}
+
+  <div class="hr"></div>
+  ${d.folio ? `<div class="muted">FOLIO: <strong>${this.escape(String(d.folio))}</strong></div>` : ''}
+  <div class="muted">FECHA: ${this.fechaLarga(d.fecha)}</div>
+  ${d.cajero ? `<div class="muted">CAJERO: ${this.escape(String(d.cajero))}</div>` : ''}
+  ${d.socio  ? `<div class="muted">SOCIO: ${this.escape(String(d.socio))}</div>` : ''}
+
+  ${d.entrenador ? `<div class="muted">ENTRENADOR: ${this.escape(String(d.entrenador))}</div>` : ''}
+
+  ${idBlock ? idBlock + '<div class="hr"></div>' : '<div class="hr"></div>'}
+
+  <div class="mb-1"><strong>${this.escape(String(d.concepto))}</strong></div>
+  <div class="row"><div>IMPORTE</div><div class="right">${this.money(this.toNum(d.importe))}</div></div>
+  <div class="row"><div>PAGO</div><div class="right">${this.escape(String(d.tipoPago))}</div></div>
+
+  <div class="hr"></div>
+  <div class="center">¡Gracias!</div>
+</div>
+</body></html>`;
+}
 }

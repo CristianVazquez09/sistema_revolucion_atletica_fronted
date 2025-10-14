@@ -13,6 +13,8 @@ import { Historial } from "./inscripcion/historial/historial";
 import { CorteCaja } from "./corte-caja/corte-caja";
 import { AgregarMembresia } from "./agregar-membresia/agregar-membresia";
 import { Administracion } from "./administracion/administracion";
+import { Entrenador } from "./entrenador/entrenador";
+import { Accesoria } from "./accesoria/accesoria";
 
 export const pagesRoutes: Routes = [
   { path: 'paquete', component: Paquete},
@@ -27,6 +29,8 @@ export const pagesRoutes: Routes = [
   { path: 'historial', component: Historial },
   { path: 'corte-caja', component: CorteCaja }, 
   { path: 'agregar-membresia', component: AgregarMembresia },
+  { path: 'entrenador', component: Entrenador },
+  { path: 'accesoria', component: Accesoria },
   {
     path: 'admin',
     component: Administracion,

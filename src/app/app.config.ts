@@ -8,13 +8,12 @@ import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { JwtModule } from '@auth0/angular-jwt';
 import { ServerErrorsInterceptor } from './interceptor/server-errors.interceptor';
 
-// NgRx
 import { provideStore } from '@ngrx/store';
 import { provideState } from '@ngrx/store';
 
-// Usa SIEMPRE el alias común; que angular.json haga fileReplacements
 import { environment } from '../environments/environment';
 import { inscripcionFeature } from './pages/inscripcion/state/inscripcion-reducer';
+import { TenantInterceptor } from './core/tenant.interceptor';
 
 export function tokenGetter() {
   return sessionStorage.getItem(environment.TOKEN_NAME);
@@ -34,14 +33,16 @@ export const appConfig: ApplicationConfig = {
       })
     ),
 
+    // 👇 Solo UNA llamada a provideHttpClient y usando withInterceptorsFromDi
     provideHttpClient(withInterceptorsFromDi()),
+
+    // Interceptors de DI (en orden)
     { provide: HTTP_INTERCEPTORS, useClass: ServerErrorsInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: TenantInterceptor,        multi: true },
+
     { provide: LocationStrategy, useClass: HashLocationStrategy },
 
-    // 🔴 Faltaba el store raíz
     provideStore(),
-
-    // ✅ Registra tu feature
     provideState(inscripcionFeature),
   ],
 };
