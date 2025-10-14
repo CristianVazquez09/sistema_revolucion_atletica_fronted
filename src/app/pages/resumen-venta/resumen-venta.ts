@@ -1,7 +1,6 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TipoPago } from '../../util/enums/tipo-pago';
 import { PagoData } from '../../model/membresia-data';
 
 type ItemResumen = { nombre: string; cantidad: number; precioUnit: number; };
@@ -13,68 +12,67 @@ type ItemResumen = { nombre: string; cantidad: number; precioUnit: number; };
   templateUrl: './resumen-venta.html',
   styleUrl: './resumen-venta.css'
 })
-export class ResumenVenta implements OnChanges {
-
-  /** Entradas */
-  @Input() fecha: Date | string = new Date();
+export class ResumenVenta {
+  // Datos del resumen (equivalentes a ResumenCompra)
+  @Input() fecha: string | Date | null = new Date();
   @Input() items: ItemResumen[] = [];
-  @Input() total = 0;                 // total esperado (carrito)
+  @Input() total = 0;
   @Input() guardando = false;
 
-  /** Salidas */
   @Output() cancelar = new EventEmitter<void>();
-  @Output() confirmar = new EventEmitter<PagoData[]>();  // 👈 enviamos pagos[]
+  @Output() confirmar = new EventEmitter<PagoData[]>();
 
-  // Estado local para los 3 métodos
+  // Entradas como texto para evitar spinners y permitir coma
   efectivoStr = '';
   tarjetaStr = '';
   transferenciaStr = '';
 
-  // Compatibilidad por si el padre cambia los items/total
-  ngOnChanges(_c: SimpleChanges): void {
-    // no-op; mantén si más tarde quieres recalcular/limpiar
-  }
-
-  /** Parse seguro (coma o punto) */
-  private parseMonto(s: string): number {
-    if (!s) return 0;
-    const n = Number(String(s).replace(',', '.'));
+  // ───────────────────────── Helpers numéricos (idénticos a compra) ─────────────────────────
+  private toNum(v: string): number {
+    if (!v) return 0;
+    // Acepta coma decimal
+    const n = Number(String(v).replace(',', '.'));
     return Number.isFinite(n) ? n : 0;
   }
 
+  get efectivo(): number       { return this.toNum(this.efectivoStr); }
+  get tarjeta(): number        { return this.toNum(this.tarjetaStr); }
+  get transferencia(): number  { return this.toNum(this.transferenciaStr); }
+
   get sumaPagos(): number {
-    return this.parseMonto(this.efectivoStr) + this.parseMonto(this.tarjetaStr) + this.parseMonto(this.transferenciaStr);
+    return +(this.efectivo + this.tarjeta + this.transferencia).toFixed(2);
   }
   get diferencia(): number {
-    return this.total - this.sumaPagos;
+    return +((this.total ?? 0) - this.sumaPagos).toFixed(2);
   }
   get pagosValidos(): boolean {
-    return Math.abs(this.diferencia) < 0.01; // tolerancia
+    // tolerancia centavos
+    return Math.abs(this.diferencia) <= 0.01 && this.sumaPagos > 0;
   }
 
-  llenarExactoEn(tipo: TipoPago) {
-    const faltante = this.total - this.sumaPagos;
-    const val = (v: number) => (v <= 0 ? '' : String(v.toFixed(2)));
-    if (tipo === 'EFECTIVO')       this.efectivoStr = val(this.parseMonto(this.efectivoStr) + Math.max(0, faltante));
-    if (tipo === 'TARJETA')        this.tarjetaStr  = val(this.parseMonto(this.tarjetaStr)  + Math.max(0, faltante));
-    if (tipo === 'TRANSFERENCIA')  this.transferenciaStr = val(this.parseMonto(this.transferenciaStr) + Math.max(0, faltante));
+  // ───────────────────────── Acciones UI (idénticas a compra) ─────────────────────────
+  llenarExactoEn(metodo: 'EFECTIVO'|'TARJETA'|'TRANSFERENCIA'): void {
+    const t = (this.total ?? 0).toFixed(2);
+    if (metodo === 'EFECTIVO') {
+      this.efectivoStr = t; this.tarjetaStr = ''; this.transferenciaStr = '';
+    } else if (metodo === 'TARJETA') {
+      this.efectivoStr = ''; this.tarjetaStr = t; this.transferenciaStr = '';
+    } else {
+      this.efectivoStr = ''; this.tarjetaStr = ''; this.transferenciaStr = t;
+    }
   }
-  vaciar() {
+  vaciar(): void {
     this.efectivoStr = this.tarjetaStr = this.transferenciaStr = '';
   }
 
-  /** Construye el array de pagos filtrando ceros */
-  private buildPagos(): PagoData[] {
-    const pagos: PagoData[] = [
-      { tipoPago: 'EFECTIVO',      monto: this.parseMonto(this.efectivoStr) },
-      { tipoPago: 'TARJETA',       monto: this.parseMonto(this.tarjetaStr) },
-      { tipoPago: 'TRANSFERENCIA', monto: this.parseMonto(this.transferenciaStr) },
-    ];
-    return pagos.filter(p => (p.monto ?? 0) > 0.0001);
-  }
+  confirmarPago(): void {
+    if (!this.pagosValidos) return;
 
-  onConfirmar(): void {
-    if (this.guardando || !this.pagosValidos || this.items.length === 0) return;
-    this.confirmar.emit(this.buildPagos());        // 👈 regresamos pagos[]
+    const pagos: PagoData[] = [];
+    if (this.efectivo > 0)      pagos.push({ tipoPago: 'EFECTIVO',      monto: this.efectivo });
+    if (this.tarjeta  > 0)      pagos.push({ tipoPago: 'TARJETA',       monto: this.tarjeta });
+    if (this.transferencia > 0) pagos.push({ tipoPago: 'TRANSFERENCIA', monto: this.transferencia });
+
+    this.confirmar.emit(pagos);
   }
 }

@@ -1,6 +1,6 @@
 import { TipoPago } from '../util/enums/tipo-pago';
 
-export type OrigenCorte = 'VENTA' | 'MEMBRESIA';
+export type OrigenCorte = 'VENTA' | 'MEMBRESIA' | 'ACCESORIA';
 
 export interface ResumenPagoDTO {
   origen: OrigenCorte;
@@ -9,22 +9,24 @@ export interface ResumenPagoDTO {
   total: number;
 }
 
-
-
 export type CorteEstado = 'ABIERTO' | 'CERRADO';
 
 export interface CorteCajaResponseDTO {
   idCorte: number;
-  apertura: string;         
-  cierre: string | null;    
+  apertura: string;          // ISO-8601
+  cierre: string | null;     // ISO-8601
   estado: CorteEstado;
-  totalGeneral: number;     
+
+  totalGeneral: number;
   totalVentas: number;
   totalMembresias: number;
+
+  /** NUEVO: total acumulado de accesorias */
+  totalAccesorias: number;
+
   desgloses: ResumenPagoDTO[];
 }
 
 export interface CerrarCorte {
-  hasta: string;
+  hasta: string; // 'YYYY-MM-DDTHH:mm:ss' (local, sin zona)
 }
-

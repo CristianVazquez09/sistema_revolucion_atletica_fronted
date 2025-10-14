@@ -4,7 +4,6 @@
     <h1 class="text-2xl font-bold text-ra-slate">Corte de Caja</h1>
 
     @if (corte?.idCorte != null) {
-      <!-- Chip con ID del corte -->
       <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-ra-slate ring-1 ring-black/10">
         ID: {{ corte?.idCorte }}
       </span>
@@ -12,19 +11,10 @@
   </div>
 
   <div class="flex items-center gap-2">
-    <button
-      type="button"
-      (click)="abrirCorte()"
-      [disabled]="estaAbierto || cargando"
-      class="btn-green">
+    <button type="button" (click)="abrirCorte()" [disabled]="estaAbierto || cargando" class="btn-green">
       Abrir corte
     </button>
-
-    <button
-      type="button"
-      (click)="cerrarCorte()"
-      [disabled]="!estaAbierto || cargando"
-      class="btn-red">
+    <button type="button" (click)="cerrarCorte()" [disabled]="!estaAbierto || cargando" class="btn-red">
       Cerrar corte
     </button>
   </div>
@@ -45,7 +35,6 @@
   <div class="card-header flex items-center justify-between">
     <div class="flex items-center gap-3">
       <div class="text-lg font-semibold text-ra-slate">Resumen</div>
-
       @if (corte?.estado) {
         <span
           class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
@@ -82,18 +71,33 @@
     <!-- Totales -->
     <div class="summary-box">
       <div class="font-semibold text-ra-slate mb-2">Totales</div>
+
       <div class="flex items-center justify-between text-sm py-1">
         <span>Ventas</span>
-        <span class="font-medium">{{ corte?.totalVentas | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+        <span class="font-medium">
+          {{ totalVentasUI | currency:'MXN':'symbol-narrow':'1.2-2' }}
+        </span>
       </div>
+
       <div class="flex items-center justify-between text-sm py-1">
         <span>Membresías</span>
-        <span class="font-medium">{{ corte?.totalMembresias | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+        <span class="font-medium">
+          {{ totalMembresiasUI | currency:'MXN':'symbol-narrow':'1.2-2' }}
+        </span>
       </div>
+
+      <!-- Accesorías -->
+      <div class="flex items-center justify-between text-sm py-1">
+        <span>Accesorías</span>
+        <span class="font-medium">
+          {{ totalAccesoriasUI | currency:'MXN':'symbol-narrow':'1.2-2' }}
+        </span>
+      </div>
+
       <div class="mt-2 border-t pt-2 flex items-center justify-between">
         <span class="font-semibold">Total general</span>
         <span class="font-bold text-ra-slate">
-          {{ corte?.totalGeneral | currency:'MXN':'symbol-narrow':'1.2-2' }}
+          {{ totalGeneralUI | currency:'MXN':'symbol-narrow':'1.2-2' }}
         </span>
       </div>
     </div>

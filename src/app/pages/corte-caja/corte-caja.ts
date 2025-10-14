@@ -6,7 +6,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { CorteCajaService } from '../../services/corte-caja-service';
 import { NotificacionService } from '../../services/notificacion-service';
-import { CorteCajaResponseDTO, CerrarCorte } from '../../model/corte-caja-data';
+import { CorteCajaResponseDTO, CerrarCorte, ResumenPagoDTO, OrigenCorte } from '../../model/corte-caja-data';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -29,13 +29,11 @@ export class CorteCaja implements OnInit {
 
   // ───────────────── Ciclo de vida ───────────────────
   ngOnInit(): void {
-    // 1) Si existe un ID persistido para ESTE tenant → cargar por ID
     const idPersistido = this.obtenerCortePersistidoPorTenant();
     if (idPersistido != null) {
       this.cargarCortePorId(idPersistido);
       return;
     }
-    // 2) Si no, intentar autocargar el corte abierto del tenant actual
     this.autocargarCorteAbierto();
   }
 
@@ -48,7 +46,7 @@ export class CorteCaja implements OnInit {
       .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (resp) => {
-          this.corte = resp;
+          this.corte = this.normalizarCorte(resp);
           this.persistirCortePorTenant(resp.idCorte);
           this.noti.exito('Corte abierto.');
         },
@@ -67,12 +65,56 @@ export class CorteCaja implements OnInit {
       .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (resp) => {
-          this.corte = resp; // dejamos visible el resumen de cierre
+          this.corte = this.normalizarCorte(resp); // mantener resumen consistente
           this.borrarCortePersistidoPorTenant();
           this.noti.exito('Corte cerrado.');
         },
         error: (e) => this.mostrarError(e, 'No se pudo cerrar el corte.')
       });
+  }
+
+  // ───────────────── Helpers de totales (fallback) ───
+  private sumar(origen: OrigenCorte, arr?: ResumenPagoDTO[] | null): number {
+    if (!arr?.length) return 0;
+    return arr
+      .filter(d => d?.origen === origen && typeof d?.total === 'number')
+      .reduce((acc, d) => acc + (d.total || 0), 0);
+  }
+
+  /** Asegura que totalVentas/totalMembresias/totalAccesorias/totalGeneral existan. */
+  private normalizarCorte(resp: CorteCajaResponseDTO): CorteCajaResponseDTO {
+    const desgloses = resp?.desgloses ?? [];
+
+    const tv = (typeof resp.totalVentas === 'number' ? resp.totalVentas : this.sumar('VENTA', desgloses));
+    const tm = (typeof resp.totalMembresias === 'number' ? resp.totalMembresias : this.sumar('MEMBRESIA', desgloses));
+    const ta = (typeof resp.totalAccesorias === 'number' ? resp.totalAccesorias : this.sumar('ACCESORIA', desgloses));
+
+    const tg = (typeof resp.totalGeneral === 'number'
+      ? resp.totalGeneral
+      : (tv + tm + ta));
+
+    return {
+      ...resp,
+      totalVentas: tv,
+      totalMembresias: tm,
+      totalAccesorias: ta,
+      totalGeneral: tg
+    };
+  }
+
+  // Getters para plantilla (usan lo que venga del backend o el cálculo)
+  get totalVentasUI(): number {
+    return this.corte?.totalVentas ?? this.sumar('VENTA', this.corte?.desgloses);
+  }
+  get totalMembresiasUI(): number {
+    return this.corte?.totalMembresias ?? this.sumar('MEMBRESIA', this.corte?.desgloses);
+  }
+  get totalAccesoriasUI(): number {
+    return this.corte?.totalAccesorias ?? this.sumar('ACCESORIA', this.corte?.desgloses);
+  }
+  get totalGeneralUI(): number {
+    if (!this.corte) return 0;
+    return this.corte.totalGeneral ?? (this.totalVentasUI + this.totalMembresiasUI + this.totalAccesoriasUI);
   }
 
   // ───────────────── Consultas internas ──────────────
@@ -83,7 +125,7 @@ export class CorteCaja implements OnInit {
       .subscribe({
         next: (resp) => {
           if (!resp) return; // 404 silencioso (no hay corte abierto)
-          this.corte = resp;
+          this.corte = this.normalizarCorte(resp);
           this.persistirCortePorTenant(resp.idCorte);
           this.noti.info(`Corte #${resp.idCorte} abierto cargado.`);
         },
@@ -99,7 +141,7 @@ export class CorteCaja implements OnInit {
       .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (resp) => {
-          this.corte = resp;
+          this.corte = this.normalizarCorte(resp);
           this.persistirCortePorTenant(resp.idCorte);
         },
         error: (e) => this.mostrarError(e, 'No se pudo consultar el corte.')
@@ -127,11 +169,9 @@ export class CorteCaja implements OnInit {
 
   // ─────────────── Persistencia por Tenant ───────────
   private claveTenant(): string | null {
-    // Si ya guardas tenantId explícito en sessionStorage, úsalo:
     const t = sessionStorage.getItem('tenantId');
     if (t != null) return `corteActualId@tenant:${t}`;
 
-    // Si no, obténlo del token:
     const token = sessionStorage.getItem(environment.TOKEN_NAME);
     if (!token) return null;
     try {
