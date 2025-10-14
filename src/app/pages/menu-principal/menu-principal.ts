@@ -1,16 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, HostListener, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { MenuService } from '../../services/menu-service';
-import { MenuData } from '../..//model/menu-data';
+import { MenuData } from '../../model/menu-data';
 import { environment } from '../../../environments/environment';
 import { CorteCajaService } from '../../services/corte-caja-service';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-menu-principal',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NgClass],
   templateUrl: './menu-principal.html',
   styleUrl: './menu-principal.css'
 })
@@ -20,16 +21,17 @@ export class MenuPrincipal {
   cargando = false;
   errorMsg: string | null = null;
 
+  /** Estado del drawer (menú desplegable) */
+  menuAbierto = signal(false);
+
   constructor(
     private menuService: MenuService,
     private jwt: JwtHelperService,
     private router: Router,
     private corteState: CorteCajaService
-  
   ) {}
 
   ngOnInit(): void {
-    // 1) Obtener el nombre (primero lo guardado; si no, del token -> sub)
     this.username = sessionStorage.getItem('username') ?? '';
     if (!this.username) {
       const token = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
@@ -37,31 +39,33 @@ export class MenuPrincipal {
       this.username = decoded?.preferred_username ?? decoded?.sub ?? '';
     }
 
-    // 2) Si tenemos nombre, pedir menús (usando tu MenuService tal cual)
     if (this.username) {
       this.cargando = true;
-      this.errorMsg = null;
       this.menuService.getMenusByUser(this.username).subscribe({
         next: (data) => {
           this.menus = data ?? [];
-          this.menuService.setMenuChange(this.menus); // si otros componentes escuchan
+          this.menuService.setMenuChange(this.menus);
           this.cargando = false;
-          // Debug útil:
-          // console.debug('Menús cargados para', this.username, this.menus);
         },
-        error: (e) => {
+        error: () => {
           this.cargando = false;
           this.errorMsg = 'No fue posible cargar los menús.';
-          // console.error(e);
         }
       });
     } else {
-      // No hay nombre disponible; evita llamadas vacías
       this.menus = [];
       this.menuService.setMenuChange([]);
     }
   }
 
+  toggleMenu(): void { this.menuAbierto.update(v => !v); }
+  closeMenu(): void { this.menuAbierto.set(false); }
+
+  /** Cerrar con tecla ESC */
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(ev: KeyboardEvent) {
+    if (ev.key === 'Escape' && this.menuAbierto()) this.closeMenu();
+  }
 
   get fechaHoy(): string {
     const opts: Intl.DateTimeFormatOptions = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
@@ -69,19 +73,14 @@ export class MenuPrincipal {
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
-   cerrarSesion(): void {
+  cerrarSesion(): void {
     try {
-      // Limpia credenciales y cualquier resto de sesión
       sessionStorage.removeItem(environment.TOKEN_NAME);
       sessionStorage.removeItem('username');
       sessionStorage.removeItem('authorities');
-
-
-      // Limpia el estado de menús en memoria
       this.menuService.setMenuChange([]);
       this.menus = [];
     } finally {
-      // Redirige al login
       this.router.navigate(['/login']);
     }
   }

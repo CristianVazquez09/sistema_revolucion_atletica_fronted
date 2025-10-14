@@ -1,60 +1,103 @@
 <div class="h-screen w-full flex bg-neutral-100">
-  <!-- Sidebar -->
-  <aside class="w-80 bg-ra-rojo-fuerte text-white flex flex-col">
-    <!-- Logo -->
-    <div class="h-60 flex items-center justify-center border-b border-red-600">
-      <img src="imagenes/logo-revolucion-atletica.png" alt="Logo Revolución Atlética" class="h-80 object-contain" />
+  <!-- Sidebar que EMPUJA header + contenido -->
+  <aside
+    class="bg-ra-rojo-fuerte text-white transition-all duration-300 ease-in-out overflow-hidden border-r"
+    [ngClass]="{
+      'w-80 border-red-600/60': menuAbierto(),  
+      'w-0 border-transparent': !menuAbierto()
+    }"
+    role="navigation"
+    aria-label="Menú principal"
+  >
+    <!-- Logo MÁS GRANDE -->
+    <div class="h-32 flex items-center justify-center border-b border-red-600/70">
+      <img
+        src="imagenes/logo-revolucion-atletica.png"
+        alt="Logo Revolución Atlética"
+        class="h-52 object-contain"  
+      />
     </div>
 
-    <!-- Menu -->
-    <nav class="flex-1  ">
-
+    <!-- Opciones MÁS GRANDES -->
+    <nav class="flex-1 overflow-y-auto py-3">
       @for (m of menus; track $index) {
-      <a routerLink="{{m.url}}" routerLinkActive="bg-ra-rojo-oscuro"
-        class="group flex items-center gap-6 rounded px-6 py-4 hover:bg-ra-rojo-oscuro transition border-y border-white text-xl">
-        <img src="{{m.icono}}" alt="Icono calendario" class="w-8 h-8 text-white" />
-        <span>{{m.nombre}}</span>
-      </a>
+        <a
+          routerLink="{{ m.url }}"
+          routerLinkActive="bg-ra-rojo-oscuro"
+          class="flex items-center gap-4 px-5 py-4 text-lg mx-2 my-1 rounded-md border border-white/10 hover:bg-ra-rojo-oscuro transition"
+          [title]="m.nombre"
+          [attr.aria-label]="m.nombre"
+        >
+          <img [src]="m.icono" alt="" class="w-8 h-8 shrink-0" />  <!-- icono más grande -->
+          <span class="truncate">{{ m.nombre }}</span>
+        </a>
       }
     </nav>
 
-    <div class="px-4 py-3 text-xs text-white/80 border-t border-red-600">
+    <div class="px-4 py-3 text-xs text-white/80 border-t border-red-600/70">
       © Revolución Atlética
     </div>
   </aside>
 
-  <main class="flex-1 flex flex-col overflow-hidden">
-    <!-- Top bar -->
-    <header class="h-16 bg-white border-b border-neutral-200 flex items-center justify-between px-6">
-      <div class="text-xl">
-        <span class="font-semibold">FECHA: </span>
-        <span>{{fechaHoy}}</span>
-      </div>
+  <!-- Columna derecha: HEADER + CONTENIDO (ambos se empujan por el sidebar) -->
+  <div class="flex-1 flex flex-col min-w-0 transition-[width] duration-300">
+    <!-- Top bar (también se desplaza) -->
+    <header class="h-14 bg-white border-b border-neutral-200 flex items-center justify-between px-3 sm:px-4">
+      <div class="flex items-center gap-3">
+        <!-- Botón hamburguesa -->
+        <button
+          type="button"
+          class="inline-flex items-center justify-center rounded-md border border-neutral-300 bg-white hover:bg-neutral-50 active:bg-neutral-100 w-9 h-9"
+          (click)="toggleMenu()"
+          [attr.aria-expanded]="menuAbierto()"
+          aria-label="Alternar menú"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
 
-      <div class="flex items-center gap-3 text-neutral-700">
-        <div class="flex items-center gap-2 text-xl">
-          <img src="iconos/usuario.svg" alt="usuario" class="w-6 h-6" />
-          <span>{{username}}</span>
+        <!-- Título -->
+        <div class="text-base sm:text-lg font-medium text-neutral-800">
+          Revolución Atlética
         </div>
 
-        <!-- Botón Cerrar sesión -->
-        <button type="button" (click)="cerrarSesion()"
-          class="inline-flex items-center gap-2 rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:bg-ra-rojo-fuerte bg-ra-rojo"
-          aria-label="Cerrar sesión" title="Cerrar sesión">
-          <!-- ícono power -->
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#fff"
-            stroke-width="1.8" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m5.657-3.657a8 8 0 11-11.314 0" />
+        <!-- Fecha -->
+        <div class="hidden md:block text-sm text-neutral-600">
+          <span class="font-semibold">FECHA: </span>
+          <span>{{ fechaHoy }}</span>
+        </div>
+      </div>
+
+      <!-- Usuario + Salir -->
+      <div class="flex items-center gap-3 text-neutral-700">
+        <div class="hidden sm:flex items-center gap-2 text-sm">
+          <img src="iconos/usuario.svg" alt="usuario" class="w-5 h-5" />
+          <span class="truncate max-w-[180px]">{{ username }}</span>
+        </div>
+
+        <button
+          type="button"
+          (click)="cerrarSesion()"
+          class="inline-flex items-center gap-2 rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:bg-ra-rojo-fuerte bg-ra-rojo text-white"
+          aria-label="Cerrar sesión"
+          title="Cerrar sesión"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+               fill="none" stroke="#fff" stroke-width="1.8" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m5.657-3.657a8 8 0 11-11.314 0"/>
           </svg>
           <span class="hidden sm:inline text-ra-bg">Salir</span>
         </button>
       </div>
     </header>
 
-
-    <!-- Content -->
-    <section class="py-6 px-2 overflow-auto">
-      <router-outlet />
-    </section>
-  </main>
+    <!-- Contenido -->
+    <main class="flex-1 overflow-hidden">
+      <section class="py-4 px-2 sm:px-4 overflow-auto">
+        <router-outlet />
+      </section>
+    </main>
+  </div>
 </div>
