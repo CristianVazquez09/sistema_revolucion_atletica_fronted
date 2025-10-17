@@ -31,24 +31,23 @@ export const pagesRoutes: Routes = [
   { path: 'agregar-membresia', component: AgregarMembresia },
   { path: 'entrenador', component: Entrenador },
   { path: 'accesoria', component: Accesoria },
-  {
-    path: 'admin',
-    component: Administracion,
-    children: [
-      { path: '', pathMatch: 'full', redirectTo: 'membresias' },
-      {
-        path: 'membresias',
-        loadComponent: () =>
-          import('./administracion/membresia/membresia')
-            .then(m => m.Membresia)
-      },
-      // cuando quieras agregar más:
-      // { path: 'socios', loadComponent: () => import('./administracion/socios/admin-socios').then(m => m.AdminSocios) },
-      // { path: 'corte-caja', loadComponent: () => import('./administracion/corte/admin-corte').then(m => m.AdminCorte) },
-      // { path: 'estadisticas', loadComponent: () => import('./administracion/estadisticas/admin-estadisticas').then(m => m.AdminEstadisticas) },
-      // { path: 'informes', loadComponent: () => import('./administracion/informes/admin-informes').then(m => m.AdminInformes) },
-    ]
-  }
+ 
+ {
+  path: 'admin',
+  component: Administracion,
+  children: [
+  
+    { path: 'membresias',
+      loadComponent: () => import('./administracion/membresia/membresia').then(m => m.Membresia),
+      data: { title: 'Membresías' }
+    },
+    { path: 'corte-caja',
+      loadComponent: () => import('./administracion/corte-caja-admin/corte-caja-admin').then(m => m.CorteCajaAdmin),
+      data: { title: 'Cortes de caja' }
+    },
+    { path: 'ventas',     loadComponent: () => import('./administracion/ventas-admin/ventas-admin').then(m => m.VentasAdmin) }, // 👈 nuevo
+  ]
+}
 
 
 ];

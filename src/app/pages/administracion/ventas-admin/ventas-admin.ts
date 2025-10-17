@@ -2,45 +2,39 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { MembresiaData } from '../../../model/membresia-data';
+import { VentaService, VentaPageResponse, PageMeta } from '../../../services/venta-service';
+import { VentaData } from '../../../model/venta-data';
 import { NotificacionService } from '../../../services/notificacion-service';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../environments/environment';
-import { MembresiaModal } from './membresia-modal/membresia-modal';
-import { MembresiaPageResponse, MembresiaService } from '../../../services/membresia-service';
-
-type PageMeta = { size: number; number: number; totalElements: number; totalPages: number; };
+import { VentasAdminModal } from './ventas-admin-modal/ventas-admin-modal';
 
 @Component({
-  selector: 'app-membresia',
+  selector: 'app-ventas-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, MembresiaModal],
-  templateUrl: './membresia.html',
-  styleUrl: './membresia.css' // vacío, no lo necesitamos
+  imports: [CommonModule, FormsModule, VentasAdminModal],
+  templateUrl: './ventas-admin.html',
+  styleUrl: './ventas-admin.css'
 })
-export class Membresia {
-  private srv  = inject(MembresiaService);
+export class VentasAdmin {
+  private srv  = inject(VentaService);
   private noti = inject(NotificacionService);
   private jwt  = inject(JwtHelperService);
 
-  // estado
-  rows: MembresiaData[] = [];
+  rows: VentaData[] = [];
   page: PageMeta = { size: 10, number: 0, totalElements: 0, totalPages: 0 };
   cargando = false;
   error: string | null = null;
 
-  // filtros/orden
   sizeSel = 10;
-  sortCampo: 'fechaInicio' | 'fechaFin' | 'idMembresia' | 'total' = 'fechaInicio';
+  sortCampo: 'fecha' | 'idVenta' | 'total' = 'fecha';
   sortDir: 'asc' | 'desc' = 'desc';
 
-  // admin?
   esAdmin = false;
 
-  // modal
   mostrarModal = signal(false);
-  idEditando: number | null = null;
+  idVer: number | null = null;
 
   ngOnInit(): void {
     this.esAdmin = this.detectarAdmin();
@@ -68,13 +62,13 @@ export class Membresia {
     this.cargando = true;
     this.srv.listar({ page: pageUI, size: this.sizeSel, sort: this.sortSel })
       .subscribe({
-        next: (resp: MembresiaPageResponse) => {
+        next: (resp: VentaPageResponse) => {
           this.rows = resp?.content ?? [];
           this.page = resp?.page ?? { size: this.sizeSel, number: (pageUI - 1), totalElements: 0, totalPages: 0 };
           this.cargando = false;
         },
         error: () => {
-          this.error = 'No se pudieron cargar las membresías.';
+          this.error = 'No se pudieron cargar las ventas.';
           this.noti.error(this.error);
           this.cargando = false;
         }
@@ -89,24 +83,22 @@ export class Membresia {
   next(): void { if (this.puedeNext) this.cargar(this.pageUI + 1); }
   go(n: number): void { this.cargar(n); }
 
-  // acciones
-  editar(m: MembresiaData): void { this.idEditando = m.idMembresia ?? null; this.mostrarModal.set(true); }
-  cerrarModal(): void { this.mostrarModal.set(false); this.idEditando = null; }
-  onGuardado(): void { this.cerrarModal(); this.cargar(this.pageUI); }
+  // modal
+  ver(v: VentaData): void { this.idVer = v.idVenta ?? null; this.mostrarModal.set(true); }
+  cerrarModal(): void { this.mostrarModal.set(false); this.idVer = null; }
 
-  eliminar(m: MembresiaData): void {
-    if (!m?.idMembresia) return;
-    if (!confirm(`¿Eliminar la membresía #${m.idMembresia}?`)) return;
-    this.srv.eliminar(m.idMembresia).subscribe({
+  eliminar(v: VentaData): void {
+    if (!v?.idVenta) return;
+    if (!confirm(`¿Eliminar la venta #${v.idVenta}?`)) return;
+    this.srv.eliminar(v.idVenta).subscribe({
       next: () => this.cargar(this.pageUI),
-      error: () => this.noti.error('No se pudo eliminar la membresía.')
+      error: () => this.noti.error('No se pudo eliminar la venta.')
     });
   }
 
-  // helpers UI
-  pagosChip(m: MembresiaData): string {
+  pagosChip(v: VentaData): string {
     const tot = (tipo: string) =>
-      (m.pagos ?? []).filter(p => p.tipoPago === tipo).reduce((a, p) => a + (Number(p.monto) || 0), 0);
+      (v.pagos ?? []).filter(p => p.tipoPago === tipo).reduce((a, p) => a + (Number(p.monto) || 0), 0);
     const fmt = (n: number) =>
       new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2 }).format(n);
     const chips: string[] = [];
@@ -116,9 +108,14 @@ export class Membresia {
     return chips.join(' · ') || '—';
   }
 
-  gymNombre(g: any): string {
-    return g?.nombre ?? (g?.idGimnasio ?? g?.id ? `#${g?.idGimnasio ?? g?.id}` : '—');
+  gymDeVenta(v: VentaData): string {
+    // tomamos el gimnasio del producto (o de su categoría)
+    const d = v.detalles?.[0];
+    const g = d?.producto?.gimnasio ?? d?.producto?.categoria?.gimnasio;
+    if (!g) return '—';
+    const id = g.idGimnasio ?? g.idGimnasio;
+    return g.nombre ?? (id ? `#${id}` : '—');
   }
 
-  trackById = (_: number, it: MembresiaData) => it.idMembresia!;
+  trackById = (_: number, it: VentaData) => it.idVenta!;
 }

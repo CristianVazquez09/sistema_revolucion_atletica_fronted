@@ -1,0 +1,84 @@
+<div class="mx-auto w-full rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+  <!-- Header -->
+  <div class="flex items-start justify-between px-6 pt-5">
+    <h2 class="text-[20px] font-bold text-ra-slate leading-none">
+      {{ data?.idVenta ? ('Venta #' + data?.idVenta) : 'Venta' }}
+    </h2>
+    <button
+      class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+      (click)="cancelar.emit()" aria-label="Cerrar">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  @if (cargando) {
+    <div class="px-6 py-5 text-sm text-ra-slate">Cargando…</div>
+  }
+  @if (error && !cargando) {
+    <div class="px-6 py-5 text-sm text-red-600">{{ error }}</div>
+  }
+
+  @if (!cargando && !error && data) {
+    <div class="px-6 pb-6 pt-2 space-y-4">
+      <!-- info principal -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+          <div class="text-xs text-ra-slate/70 uppercase font-semibold mb-1">Fecha</div>
+          <div class="font-medium">{{ data.fecha | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+          <div class="text-xs text-ra-slate/70 uppercase font-semibold mb-1">Usuario</div>
+          <div class="font-medium">{{ data.usuario?.nombreUsuario || '—' }}</div>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+          <div class="text-xs text-ra-slate/70 uppercase font-semibold mb-1">Pagos</div>
+          <div class="font-medium text-sm">{{ pagosChip(data) }}</div>
+        </div>
+      </div>
+
+      <!-- Detalles -->
+      <div class="rounded-xl2 overflow-hidden bg-white ring-1 ring-black/10">
+        <table class="w-full table-fixed text-sm">
+          <colgroup>
+            <col class="w-[14%]"> <!-- ID Prod -->
+            <col class="w-[34%]"> <!-- Producto -->
+            <col class="w-[14%]"> <!-- Cant -->
+            <col class="w-[19%]"> <!-- Precio -->
+            <col class="w-[19%]"> <!-- Subtotal -->
+          </colgroup>
+          <thead>
+            <tr class="bg-ra-grayLight/40">
+              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Id Prod</th>
+              <th class="py-3 px-4 text-left   text-ra-slate font-semibold uppercase">Producto</th>
+              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Cant</th>
+              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">P. Venta</th>
+              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">SubTotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of data.detalles; track d.idDetalle?? $index) {
+              <tr class="border-t border-ra-grayLight/60">
+                <td class="py-2 px-4 text-center">{{ d.producto.idProducto }}</td>
+                <td class="py-2 px-4 truncate">
+                  <div class="font-medium">{{ d.producto.nombre }}</div>
+                  <div class="text-xs text-ra-slate/70">{{ d.producto.codigo }}</div>
+                </td>
+                <td class="py-2 px-4 text-center">{{ d.cantidad }}</td>
+                <td class="py-2 px-4 text-center">{{ d.producto.precioVenta | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+                <td class="py-2 px-4 text-center font-semibold">{{ d.subTotal | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex items-center justify-end">
+        <div class="text-lg font-bold">
+          Total: {{ data.total | currency:'MXN':'symbol-narrow':'1.2-2' }}
+        </div>
+      </div>
+    </div>
+  }
+</div>

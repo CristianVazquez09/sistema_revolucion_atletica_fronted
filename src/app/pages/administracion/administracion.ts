@@ -1,29 +1,51 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { filter, startWith } from 'rxjs/operators';
 
 type AdminCard = {
-  key: 'membresias' | 'corte' | 'socios' | 'estadisticas' | 'informes';
+  key: 'membresias' | 'corte' | 'cortes' | 'estadisticas' | 'informes';
   titulo: string;
   descripcion: string;
   ruta: string | any[];
-  iconBg: string; // tailwind bg-* para el círculo del ícono
+  iconBg: string;
 };
 
 @Component({
   selector: 'app-administracion',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, RouterOutlet], // 👈 SIN FormsModule, SIN NgModel
   templateUrl: './administracion.html',
-  styleUrl: './administracion.css' // opcional; puedes dejarlo vacío
+  styleUrl: './administracion.css'
 })
 export class Administracion {
-  // Ajusta estas rutas a las reales de tu router
+  mostrarTarjetas = true;
+  tituloHijo = '';
+
+  constructor(private router: Router, private route: ActivatedRoute) {}
+
+  ngOnInit(): void {
+    this.router.events.pipe(
+      filter(e => e instanceof NavigationEnd),
+      startWith(null)
+    ).subscribe(() => {
+      const url = this.router.url.replace(/\/+$/, '');
+      // Mostrar tarjetas solo en /admin
+      this.mostrarTarjetas = /\/admin$/.test(url);
+      // Título del hijo (si hay)
+      const child = this.route.firstChild;
+      this.tituloHijo = child?.snapshot?.data?.['title'] ?? '';
+    });
+  }
+
   cards: AdminCard[] = [
-    { key: 'membresias',  titulo: 'Membresías',     descripcion: 'Inscribir · Reinscribir',      ruta: ['/pages/inscripcion'],  iconBg: 'bg-blue-100' },
-    { key: 'corte',       titulo: 'Corte de caja',  descripcion: 'Abrir · Cerrar · Resumen',      ruta: ['/pages/corte-caja'],   iconBg: 'bg-emerald-100' },
-    { key: 'socios',      titulo: 'Socios',         descripcion: 'Altas · Edición · Historial',   ruta: ['/pages/socio'],        iconBg: 'bg-indigo-100' },
-    { key: 'estadisticas',titulo: 'Estadísticas',   descripcion: 'Indicadores y tendencias',      ruta: ['/pages/estadisticas'], iconBg: 'bg-amber-100' },
-    { key: 'informes',    titulo: 'Informes',       descripcion: 'Reportes y exportaciones',      ruta: ['/pages/informes'],     iconBg: 'bg-rose-100' },
+    { key: 'membresias',  titulo: 'Membresías',     descripcion: 'Inscribir · Reinscribir',  ruta: ['membresias'],  iconBg: 'bg-blue-100' },
+    { key: 'cortes',      titulo: 'Cortes de caja', descripcion: 'Movimientos y totales',    ruta: ['corte-caja'],  iconBg: 'bg-rose-100' },
+    { key: 'corte',       titulo: 'Ventas',         descripcion: 'POS · Detalles',           ruta: ['ventas'],      iconBg: 'bg-emerald-100' },
   ];
+
+  regresar(): void {
+    if (this.router.url.startsWith('/pages/')) this.router.navigate(['/pages/admin']);
+    else this.router.navigate(['/admin']);
+  }
 }
