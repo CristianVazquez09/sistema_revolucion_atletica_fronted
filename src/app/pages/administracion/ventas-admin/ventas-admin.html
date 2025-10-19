@@ -1,51 +1,69 @@
-<!-- Filtros / acciones -->
-<div class="mx-4 md:mx-10 mb-4 flex items-center justify-between">
+<!-- Barra superior (estilo Membresías) -->
+<div class="mx-4 md:mx-10 mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
   <div class="text-xl font-semibold text-ra-slate">Ventas</div>
 
   <div class="flex flex-wrap items-center gap-2">
-    <!-- Campo orden -->
+    <!-- Buscador por ID -->
+    <div class="flex items-center gap-2">
+      <label class="hidden md:inline text-sm text-ra-slate/80">Venta ID</label>
+      <input type="number" min="1"
+             class="w-[150px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+             placeholder="#"
+             [(ngModel)]="buscarId"
+             (keyup.enter)="buscar()">
+      <button type="button"
+              class="px-3 py-2 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-sm"
+              (click)="buscar()">Buscar</button>
+      <button type="button"
+              class="px-3 py-2 rounded-md border text-sm"
+              [disabled]="!buscandoPorId && !buscarId"
+              (click)="limpiarBusqueda()">Limpiar</button>
+    </div>
+
+    <div class="w-px h-6 mx-2 bg-gray-200 hidden md:block"></div>
+
+    <!-- Orden/size -->
+    <span class="hidden md:inline text-sm text-ra-slate/80">Ordenar por</span>
     <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-            [(ngModel)]="sortCampo" (change)="go(1)">
+            [(ngModel)]="sortCampo" (change)="go(1)" [disabled]="buscandoPorId">
       <option [ngValue]="'fecha'">Fecha</option>
       <option [ngValue]="'idVenta'">ID</option>
       <option [ngValue]="'total'">Total</option>
     </select>
 
-    <!-- Dirección -->
     <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-            [(ngModel)]="sortDir" (change)="go(1)">
+            [(ngModel)]="sortDir" (change)="go(1)" [disabled]="buscandoPorId">
       <option [ngValue]="'desc'">Desc</option>
       <option [ngValue]="'asc'">Asc</option>
     </select>
 
-    <!-- Size -->
     <label class="text-sm text-ra-slate/80 ml-2">Por página</label>
     <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-            [(ngModel)]="sizeSel" (change)="go(1)">
+            [(ngModel)]="sizeSel" (change)="go(1)" [disabled]="buscandoPorId">
       <option [ngValue]="10">10</option>
       <option [ngValue]="25">25</option>
       <option [ngValue]="50">50</option>
     </select>
 
     <button type="button"
-            class="px-4 py-2 rounded-md bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card text-sm"
-            (click)="go(1)">
+            class="px-4 py-2 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-sm"
+            (click)="go(1)" [disabled]="buscandoPorId">
       Actualizar
     </button>
   </div>
 </div>
 
-<!-- Tabla / Card -->
+<!-- Tabla -->
 <div class="shadow-card rounded-xl2 overflow-hidden mx-4 md:mx-10 bg-ra-white">
   <table class="w-full table-fixed text-sm">
     <colgroup>
-      <col class="w-[8%]">   <!-- ID -->
-      <col class="w-[18%]">  <!-- Fecha -->
-      <col class="w-[20%]">  <!-- Usuario -->
-      @if (esAdmin) { <col class="w-[18%]"> } <!-- Gimnasio -->
-      <col class="w-[24%]">  <!-- Pagos -->
-      <col class="w-[12%]">  <!-- Total -->
-      <col class="w-[10%]">  <!-- Acciones -->
+      <col class="w-[8%]">
+      <col class="w-[18%]">
+      <col class="w-[20%]">
+      @if (esAdmin) { <col class="w-[18%]"> }
+      <col class="w-[24%]">
+      <col class="w-[12%]">
+      <col class="w-[10%]">
     </colgroup>
 
     <thead>
@@ -118,12 +136,17 @@
   <div>
     Página <strong>{{ pageUI }}</strong> de <strong>{{ page.totalPages || 1 }}</strong>
     <span class="ml-2 text-ra-slate/70">({{ page.totalElements || 0 }} registros)</span>
+    @if (buscandoPorId) {
+      <span class="ml-3 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+        Modo búsqueda por ID
+      </span>
+    }
   </div>
   <div class="flex items-center gap-2">
     <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50"
-            [disabled]="!puedePrev" (click)="prev()">Anterior</button>
+            [disabled]="!puedePrev || buscandoPorId" (click)="prev()">Anterior</button>
     <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50"
-            [disabled]="!puedeNext" (click)="next()">Siguiente</button>
+            [disabled]="!puedeNext || buscandoPorId" (click)="next()">Siguiente</button>
   </div>
 </div>
 
@@ -134,7 +157,8 @@
     <div class="relative z-10 w-full max-w-[900px] mx-4">
       <app-ventas-admin-modal
         [idVenta]="idVer!"
-        (cancelar)="cerrarModal()">
+        (cancelar)="cerrarModal()"
+        (guardado)="onGuardado($event)">
       </app-ventas-admin-modal>
     </div>
   </div>

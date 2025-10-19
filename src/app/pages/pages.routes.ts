@@ -15,6 +15,8 @@ import { AgregarMembresia } from "./agregar-membresia/agregar-membresia";
 import { Administracion } from "./administracion/administracion";
 import { Entrenador } from "./entrenador/entrenador";
 import { Accesoria } from "./accesoria/accesoria";
+import { gerenteGuard } from "../guards/gerente-guards";
+import { adminGuard } from "../guards/admin-guards";
 
 export const pagesRoutes: Routes = [
   { path: 'paquete', component: Paquete},
@@ -32,20 +34,35 @@ export const pagesRoutes: Routes = [
   { path: 'entrenador', component: Entrenador },
   { path: 'accesoria', component: Accesoria },
  
- {
+// pages.routes.ts
+{
   path: 'admin',
   component: Administracion,
+  canMatch: [adminGuard],
+  data: {
+    sectionTitle: 'Administración',
+    allowed: ['membresias','cortes','ventas','gimnasios','estadisticas','usuarios']
+  },
   children: [
-  
-    { path: 'membresias',
-      loadComponent: () => import('./administracion/membresia/membresia').then(m => m.Membresia),
-      data: { title: 'Membresías' }
-    },
-    { path: 'corte-caja',
-      loadComponent: () => import('./administracion/corte-caja-admin/corte-caja-admin').then(m => m.CorteCajaAdmin),
-      data: { title: 'Cortes de caja' }
-    },
-    { path: 'ventas',     loadComponent: () => import('./administracion/ventas-admin/ventas-admin').then(m => m.VentasAdmin) }, // 👈 nuevo
+    // NO redirectTo aquí para ver el grid
+    { path: 'membresias', loadComponent: () => import('./administracion/membresia/membresia').then(m => m.Membresia), data: { title: 'Membresías' } },
+    { path: 'corte-caja', loadComponent: () => import('./administracion/corte-caja-admin/corte-caja-admin').then(m => m.CorteCajaAdmin), data: { title: 'Cortes de caja' } },
+    { path: 'ventas',     loadComponent: () => import('./administracion/ventas-admin/ventas-admin').then(m => m.VentasAdmin), data: { title: 'Ventas' } },
+  ]
+},
+{
+  path: 'gerencia',
+  component: Administracion,
+  canMatch: [gerenteGuard],
+  data: {
+    sectionTitle: 'Operación', // o “Gerencia”
+    allowed: ['membresias','cortes','ventas']
+  },
+  children: [
+    // SIN redirectTo aquí también
+    { path: 'membresias', loadComponent: () => import('./administracion/membresia/membresia').then(m => m.Membresia), data: { title: 'Membresías' } },
+    { path: 'corte-caja', loadComponent: () => import('./administracion/corte-caja-admin/corte-caja-admin').then(m => m.CorteCajaAdmin), data: { title: 'Cortes de caja' } },
+    { path: 'ventas',     loadComponent: () => import('./administracion/ventas-admin/ventas-admin').then(m => m.VentasAdmin), data: { title: 'Ventas' } },
   ]
 }
 

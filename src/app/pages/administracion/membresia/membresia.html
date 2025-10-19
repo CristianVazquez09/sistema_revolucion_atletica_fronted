@@ -1,8 +1,29 @@
-<!-- Barra superior (igual estilo que Ventas) -->
+<!-- Barra superior -->
 <div class="mx-4 md:mx-10 mb-4 flex items-center justify-between">
   <div class="text-xl font-semibold text-ra-slate">Membresías</div>
 
   <div class="flex flex-wrap items-center gap-2">
+    <!-- Buscar por ID -->
+    <div class="flex items-center gap-2 mr-2">
+      <input type="number" min="1" placeholder="ID membresía"
+             class="w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+             [(ngModel)]="idBuscar"
+             (keyup.enter)="buscarPorId()">
+      <button type="button"
+              class="px-3 py-2 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-sm disabled:opacity-60"
+              [disabled]="buscando || !idBuscar"
+              (click)="buscarPorId()">
+        Buscar
+      </button>
+      <button type="button"
+              class="px-3 py-2 rounded-md border text-sm disabled:opacity-60"
+              [disabled]="buscando && !idBuscar"
+              (click)="limpiarBusqueda()">
+        Limpiar
+      </button>
+    </div>
+
+    <!-- Orden -->
     <span class="hidden md:inline text-sm text-ra-slate/80">Ordenar por</span>
     <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
             [(ngModel)]="sortCampo" (change)="go(1)">
@@ -18,6 +39,7 @@
       <option [ngValue]="'asc'">Asc</option>
     </select>
 
+    <!-- Size -->
     <label class="text-sm text-ra-slate/80 ml-2">Por página</label>
     <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
             [(ngModel)]="sizeSel" (change)="go(1)">
@@ -34,24 +56,22 @@
   </div>
 </div>
 
-
-
 <!-- Tabla / Card -->
 <div class="shadow-card rounded-xl2 overflow-hidden mx-4 md:mx-10 bg-ra-white ring-1 ring-black/10">
   <table class="w-full table-fixed text-[13px]">
     <colgroup>
-      <col class="w-[7%]">   <!-- ID -->
-      <col class="w-[18%]">  <!-- Socio -->
-      <col class="w-[16%]">  <!-- Paquete -->
-      <col class="w-[10%]">  <!-- F. inicio -->
-      <col class="w-[10%]">  <!-- F. fin -->
-      <col class="w-[10%]">  <!-- Movimiento -->
-      <col class="w-[18%]">  <!-- Pagos -->
-      <col class="w-[7%]">   <!-- Desc. -->
-      <col class="w-[10%]">  <!-- Total -->
-      <col class="w-[12%]">  <!-- Usuario -->
-      @if (esAdmin) { <col class="w-[16%]"> } <!-- Gimnasio (admin) -->
-      <col class="w-[10%] min-w-[120px]"> <!-- Acciones -->
+      <col class="w-[7%]">
+      <col class="w-[18%]">
+      <col class="w-[16%]">
+      <col class="w-[10%]">
+      <col class="w-[10%]">
+      <col class="w-[10%]">
+      <col class="w-[18%]">
+      <col class="w-[7%]">
+      <col class="w-[10%]">
+      <col class="w-[12%]">
+      @if (esAdmin) { <col class="w-[16%]"> }
+      <col class="w-[10%] min-w-[120px]">
     </colgroup>
 
     <thead>
@@ -84,7 +104,6 @@
         @for (m of rows; track trackById($index, m)) {
           <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
             <td class="py-3 px-4 text-center font-medium">#{{ m.idMembresia }}</td>
-
             <td class="py-3 px-4">
               <div class="font-medium truncate">
                 {{ m.socio.nombre }} {{ m.socio.apellido }}
@@ -93,17 +112,12 @@
                 ID: {{ m.socio.idSocio }} · {{ m.socio.telefono || '—' }}
               </div>
             </td>
-
             <td class="py-3 px-4">
               <div class="truncate font-medium">{{ m.paquete.nombre }}</div>
-              <div class="text-xs text-ra-slate/70">
-                {{ m.paquete.tiempo || '—' }}
-              </div>
+              <div class="text-xs text-ra-slate/70">{{ m.paquete.tiempo || '—' }}</div>
             </td>
-
             <td class="py-3 px-4 text-center">{{ m.fechaInicio | date:'dd/MM/yyyy' }}</td>
             <td class="py-3 px-4 text-center">{{ m.fechaFin    | date:'dd/MM/yyyy' }}</td>
-
             <td class="py-3 px-4 text-center">
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
                     [ngClass]="{
@@ -114,23 +128,14 @@
                 {{ m.movimiento }}
               </span>
             </td>
-
-            <td class="py-3 px-4">
-              <div class="truncate">{{ pagosChip(m) }}</div>
-            </td>
-
+            <td class="py-3 px-4"><div class="truncate">{{ pagosChip(m) }}</div></td>
             <td class="py-3 px-4 text-center">
               {{ (m.descuento || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
             </td>
-
             <td class="py-3 px-4 text-center font-semibold">
               {{ (m.total || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
             </td>
-
-            <td class="py-3 px-4 text-center">
-              {{ m.usuario?.nombreUsuario || '—' }}
-            </td>
-
+            <td class="py-3 px-4 text-center">{{ m.usuario?.nombreUsuario || '—' }}</td>
             @if (esAdmin) {
               <td class="py-3 px-4 text-center">
                 <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
@@ -141,7 +146,6 @@
                 </span>
               </td>
             }
-
             <td class="py-2 px-3">
               <div class="flex items-center justify-center gap-2">
                 <button (click)="editar(m)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
@@ -179,7 +183,6 @@
     <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModal()"></div>
     <div class="relative z-10 w-full max-w-[820px] mx-4">
       <div class="bg-ra-white rounded-2xl shadow-2xl ring-1 ring-black/5">
-        <!-- Asumiendo que el modal recibe el id para cargar y emite cancelar/guardado -->
         <app-membresia-modal
           [idMembresia]="idEditando"
           (cancelar)="cerrarModal()"

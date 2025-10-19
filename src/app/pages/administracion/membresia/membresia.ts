@@ -17,7 +17,7 @@ type PageMeta = { size: number; number: number; totalElements: number; totalPage
   standalone: true,
   imports: [CommonModule, FormsModule, MembresiaModal],
   templateUrl: './membresia.html',
-  styleUrl: './membresia.css' // vacío, no lo necesitamos
+  styleUrl: './membresia.css'
 })
 export class Membresia {
   private srv  = inject(MembresiaService);
@@ -34,6 +34,10 @@ export class Membresia {
   sizeSel = 10;
   sortCampo: 'fechaInicio' | 'fechaFin' | 'idMembresia' | 'total' = 'fechaInicio';
   sortDir: 'asc' | 'desc' = 'desc';
+
+  // búsqueda por ID
+  idBuscar: number | null = null;
+  buscando = false;
 
   // admin?
   esAdmin = false;
@@ -56,7 +60,8 @@ export class Membresia {
         ...(Array.isArray(d?.roles) ? d.roles : []),
         ...(Array.isArray(d?.authorities) ? d.authorities : []),
         ...(Array.isArray(d?.realm_access?.roles) ? d.realm_access.roles : []),
-      ].concat([d?.role, d?.rol, d?.perfil].filter(Boolean) as string[]).map(r => String(r).toUpperCase());
+      ].concat([d?.role, d?.rol, d?.perfil].filter(Boolean) as string[])
+       .map(r => String(r).toUpperCase());
       return d?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     } catch { return false; }
   }
@@ -81,7 +86,39 @@ export class Membresia {
       });
   }
 
-  // paginación
+  /* ========================== Búsqueda por ID ========================== */
+
+  buscarPorId(): void {
+    const id = Number(this.idBuscar || 0);
+    if (!id) {
+      this.limpiarBusqueda(); // si vacío, vuelve a listado
+      return;
+    }
+    this.error = null;
+    this.buscando = true;
+    this.srv.buscarPorId(id).subscribe({
+      next: (m: MembresiaData) => {
+        this.rows = [m];
+        this.page = { size: 1, number: 0, totalElements: 1, totalPages: 1 };
+        this.buscando = false;
+      },
+      error: () => {
+        this.rows = [];
+        this.page = { size: 1, number: 0, totalElements: 0, totalPages: 0 };
+        this.buscando = false;
+        this.error = `No existe la membresía #${id}.`;
+        this.noti.error(this.error);
+      }
+    });
+  }
+
+  limpiarBusqueda(): void {
+    this.idBuscar = null;
+    this.cargar(1);
+  }
+
+  /* ============================ Paginación ============================ */
+
   get pageUI(): number { return (this.page?.number ?? 0) + 1; }
   get puedePrev(): boolean { return this.pageUI > 1; }
   get puedeNext(): boolean { return this.pageUI < (this.page?.totalPages ?? 1); }
@@ -89,7 +126,8 @@ export class Membresia {
   next(): void { if (this.puedeNext) this.cargar(this.pageUI + 1); }
   go(n: number): void { this.cargar(n); }
 
-  // acciones
+  /* ============================= Acciones ============================= */
+
   editar(m: MembresiaData): void { this.idEditando = m.idMembresia ?? null; this.mostrarModal.set(true); }
   cerrarModal(): void { this.mostrarModal.set(false); this.idEditando = null; }
   onGuardado(): void { this.cerrarModal(); this.cargar(this.pageUI); }
@@ -103,10 +141,12 @@ export class Membresia {
     });
   }
 
-  // helpers UI
+  /* ============================ Helpers UI ============================ */
+
   pagosChip(m: MembresiaData): string {
     const tot = (tipo: string) =>
-      (m.pagos ?? []).filter(p => p.tipoPago === tipo).reduce((a, p) => a + (Number(p.monto) || 0), 0);
+      (m.pagos ?? []).filter(p => p.tipoPago === tipo)
+        .reduce((a, p) => a + (Number(p.monto) || 0), 0);
     const fmt = (n: number) =>
       new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2 }).format(n);
     const chips: string[] = [];

@@ -18,29 +18,40 @@ import { VentasAdminModal } from './ventas-admin-modal/ventas-admin-modal';
   styleUrl: './ventas-admin.css'
 })
 export class VentasAdmin {
+  // --- inyección de servicios ---
   private srv  = inject(VentaService);
   private noti = inject(NotificacionService);
   private jwt  = inject(JwtHelperService);
 
+  // --- estado de tabla/paginación ---
   rows: VentaData[] = [];
   page: PageMeta = { size: 10, number: 0, totalElements: 0, totalPages: 0 };
   cargando = false;
   error: string | null = null;
 
+  // --- filtros/orden ---
   sizeSel = 10;
   sortCampo: 'fecha' | 'idVenta' | 'total' = 'fecha';
   sortDir: 'asc' | 'desc' = 'desc';
 
+  // --- auth ---
   esAdmin = false;
 
+  // --- modal ---
   mostrarModal = signal(false);
   idVer: number | null = null;
 
+  // --- búsqueda por ID ---
+  buscarId: string = '';
+  buscandoPorId = false;
+
+  // ============= Ciclo de vida =============
   ngOnInit(): void {
     this.esAdmin = this.detectarAdmin();
     this.cargar(1);
   }
 
+  // ============= Helpers =============
   private detectarAdmin(): boolean {
     const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
     if (!raw) return false;
@@ -50,14 +61,19 @@ export class VentasAdmin {
         ...(Array.isArray(d?.roles) ? d.roles : []),
         ...(Array.isArray(d?.authorities) ? d.authorities : []),
         ...(Array.isArray(d?.realm_access?.roles) ? d.realm_access.roles : []),
-      ].concat([d?.role, d?.rol, d?.perfil].filter(Boolean) as string[]).map(r => String(r).toUpperCase());
+      ].concat([d?.role, d?.rol, d?.perfil].filter(Boolean) as string[])
+       .map(r => String(r).toUpperCase());
       return d?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     } catch { return false; }
   }
 
   get sortSel(): string { return `${this.sortCampo},${this.sortDir}`; }
 
+  // ============= Carga / paginación =============
   cargar(pageUI: number): void {
+    // si estamos en búsqueda puntual por ID, ignoramos listado
+    if (this.buscandoPorId) { this.buscar(); return; }
+
     this.error = null;
     this.cargando = true;
     this.srv.listar({ page: pageUI, size: this.sizeSel, sort: this.sortSel })
@@ -83,10 +99,65 @@ export class VentasAdmin {
   next(): void { if (this.puedeNext) this.cargar(this.pageUI + 1); }
   go(n: number): void { this.cargar(n); }
 
-  // modal
-  ver(v: VentaData): void { this.idVer = v.idVenta ?? null; this.mostrarModal.set(true); }
+  // ============= Búsqueda por ID =============
+  buscar(): void {
+    const id = Number(this.buscarId);
+    if (!id || isNaN(id) || id <= 0) {
+      this.noti.error('Ingresa un ID de venta válido.');
+      return;
+    }
+
+    this.cargando = true;
+    this.error = null;
+
+    this.srv.buscarPorId(id).subscribe({
+      next: (venta) => {
+        this.rows = venta ? [venta] : [];
+        this.page = { size: 1, number: 0, totalElements: this.rows.length, totalPages: 1 };
+        this.buscandoPorId = true;
+        this.cargando = false;
+        if (!venta) this.noti.error(`No se encontró la venta #${id}.`);
+      },
+      error: () => {
+        this.cargando = false;
+        this.rows = [];
+        this.page = { size: 1, number: 0, totalElements: 0, totalPages: 1 };
+        this.buscandoPorId = true;
+        this.noti.error(`No se encontró la venta #${id}.`);
+      }
+    });
+  }
+
+  limpiarBusqueda(): void {
+    this.buscarId = '';
+    this.buscandoPorId = false;
+    this.cargar(1);
+  }
+
+  // ============= Modal =============
+  ver(v: VentaData): void {
+    this.idVer = v.idVenta ?? null;
+    this.mostrarModal.set(true);
+  }
   cerrarModal(): void { this.mostrarModal.set(false); this.idVer = null; }
 
+  onGuardado(venta: VentaData) {
+    // toast
+    (this.noti as any).exito ? this.noti.exito('Venta actualizada.') : this.noti.exito?.('Venta actualizada.');
+
+    // si estamos en modo búsqueda por ID y coincide, actualiza inline
+    if (this.buscandoPorId && venta?.idVenta === Number(this.buscarId || 0)) {
+      this.rows = [venta];
+      this.page = { size: 1, number: 0, totalElements: 1, totalPages: 1 };
+      this.cerrarModal();
+      return;
+    }
+    // si no, recarga el listado donde estábamos
+    this.cargar(this.pageUI);
+    this.cerrarModal();
+  }
+
+  // ============= Acciones tabla =============
   eliminar(v: VentaData): void {
     if (!v?.idVenta) return;
     if (!confirm(`¿Eliminar la venta #${v.idVenta}?`)) return;
@@ -109,12 +180,12 @@ export class VentasAdmin {
   }
 
   gymDeVenta(v: VentaData): string {
-    // tomamos el gimnasio del producto (o de su categoría)
-    const d = v.detalles?.[0];
-    const g = d?.producto?.gimnasio ?? d?.producto?.categoria?.gimnasio;
+    const g = v.gimnasio
+      ?? v.detalles?.[0]?.producto?.gimnasio
+      ?? v.detalles?.[0]?.producto?.categoria?.gimnasio;
     if (!g) return '—';
-    const id = g.idGimnasio ?? g.idGimnasio;
-    return g.nombre ?? (id ? `#${id}` : '—');
+    const id = (g as any).idGimnasio ?? (g as any).id;
+    return (g as any).nombre ?? (id ? `#${id}` : '—');
   }
 
   trackById = (_: number, it: VentaData) => it.idVenta!;

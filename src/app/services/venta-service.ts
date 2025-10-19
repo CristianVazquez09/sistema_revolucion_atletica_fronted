@@ -5,6 +5,7 @@ import { environment } from '../../environments/environment';
 import { GenericService } from './generic-service';
 import { VentaCreateRequest } from '../model/venta-create';
 import { map, Observable } from 'rxjs';
+import { VentaPatchAction, VentaPatchRequest } from '../model/venta-patch';
 
 export type PageMeta = { size: number; number: number; totalElements: number; totalPages: number; };
 export interface VentaPageResponse { content: VentaData[]; page: PageMeta; }
@@ -39,5 +40,10 @@ export class VentaService extends GenericService<VentaData>{
 
     const params = new HttpParams({ fromObject: paramsObj });
     return this.http.get<VentaPageResponse>(this.url, { params });
+  }
+
+  // PATCH con acciones
+  patch(id: number, body: any): Observable<VentaData> {
+    return this.http.patch<VentaData>(`${this.url}/${id}`, body);
   }
 }

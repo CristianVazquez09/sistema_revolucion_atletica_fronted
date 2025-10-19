@@ -1,0 +1,11 @@
+/* administracion.css */
+:host {
+  display: block;
+  /* deja “aire” aunque el menú esté cerrado y en móviles con notch */
+  padding-bottom: max(72px, env(safe-area-inset-bottom));
+}
+
+/* opcional: un poco de separación extra bajo el grid de tarjetas */
+.admin-grid {
+  margin-bottom: 1rem; /* ~16px */
+}

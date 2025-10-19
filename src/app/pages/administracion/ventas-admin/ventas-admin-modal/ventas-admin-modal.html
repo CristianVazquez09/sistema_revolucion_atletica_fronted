@@ -2,83 +2,213 @@
   <!-- Header -->
   <div class="flex items-start justify-between px-6 pt-5">
     <h2 class="text-[20px] font-bold text-ra-slate leading-none">
-      {{ data?.idVenta ? ('Venta #' + data?.idVenta) : 'Venta' }}
+      Venta #{{ data?.idVenta || '—' }}
     </h2>
+
     <button
       class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
-      (click)="cancelar.emit()" aria-label="Cerrar">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      (click)="cancelar.emit()"
+      aria-label="Cerrar">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
       </svg>
     </button>
   </div>
 
-  @if (cargando) {
-    <div class="px-6 py-5 text-sm text-ra-slate">Cargando…</div>
-  }
-  @if (error && !cargando) {
-    <div class="px-6 py-5 text-sm text-red-600">{{ error }}</div>
-  }
+  <div class="px-6 pb-6 pt-4 space-y-5">
+    @if (cargando) {
+      <div class="text-sm text-ra-slate">Cargando…</div>
+    } @else if (error) {
+      <div class="text-sm text-red-600">{{ error }}</div>
+    } @else if (data) {
 
-  @if (!cargando && !error && data) {
-    <div class="px-6 pb-6 pt-2 space-y-4">
-      <!-- info principal -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-          <div class="text-xs text-ra-slate/70 uppercase font-semibold mb-1">Fecha</div>
-          <div class="font-medium">{{ data.fecha | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+      <!-- Usuario / Fecha -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="text-sm">
+          <div class="font-semibold text-ra-slate/90">Usuario</div>
+          <div class="text-ra-slate">{{ data.usuario?.nombreUsuario || '—' }}</div>
         </div>
-        <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-          <div class="text-xs text-ra-slate/70 uppercase font-semibold mb-1">Usuario</div>
-          <div class="font-medium">{{ data.usuario?.nombreUsuario || '—' }}</div>
-        </div>
-        <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
-          <div class="text-xs text-ra-slate/70 uppercase font-semibold mb-1">Pagos</div>
-          <div class="font-medium text-sm">{{ pagosChip(data) }}</div>
+        <div class="text-sm">
+          <div class="font-semibold text-ra-slate/90">Fecha</div>
+          <div class="text-ra-slate">{{ data.fecha | date:'dd/MM/yyyy HH:mm:ss' }}</div>
         </div>
       </div>
 
       <!-- Detalles -->
-      <div class="rounded-xl2 overflow-hidden bg-white ring-1 ring-black/10">
-        <table class="w-full table-fixed text-sm">
+      <div class="rounded-xl2 overflow-hidden bg-ra-white shadow-card ring-1 ring-black/10">
+        <table class="w-full table-fixed text-[13px]">
           <colgroup>
-            <col class="w-[14%]"> <!-- ID Prod -->
-            <col class="w-[34%]"> <!-- Producto -->
-            <col class="w-[14%]"> <!-- Cant -->
-            <col class="w-[19%]"> <!-- Precio -->
-            <col class="w-[19%]"> <!-- Subtotal -->
+            <col class="w-[12%]"><col class="w-[36%]"><col class="w-[16%]"><col class="w-[18%]"><col class="w-[18%]">
           </colgroup>
           <thead>
             <tr class="bg-ra-grayLight/40">
-              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Id Prod</th>
-              <th class="py-3 px-4 text-left   text-ra-slate font-semibold uppercase">Producto</th>
-              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Cant</th>
-              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">P. Venta</th>
-              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">SubTotal</th>
+              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Detalle</th>
+              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Producto</th>
+              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Precio u.</th>
+              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Cantidad</th>
+              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            @for (d of data.detalles; track d.idDetalle?? $index) {
+            @for (d of detalles(); track d._key) {
               <tr class="border-t border-ra-grayLight/60">
-                <td class="py-2 px-4 text-center">{{ d.producto.idProducto }}</td>
-                <td class="py-2 px-4 truncate">
-                  <div class="font-medium">{{ d.producto.nombre }}</div>
-                  <div class="text-xs text-ra-slate/70">{{ d.producto.codigo }}</div>
+                <td class="py-3 px-4 text-center">
+                  <span class="inline-block min-w-[4ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700">
+                    {{ d.idDetalle > 0 ? d.idDetalle : 'nuevo' }}
+                  </span>
+                  <div class="text-[11px] text-ra-slate/60" *ngIf="d.idDetalle>0">#{{ d.idDetalle }}</div>
                 </td>
-                <td class="py-2 px-4 text-center">{{ d.cantidad }}</td>
-                <td class="py-2 px-4 text-center">{{ d.producto.precioVenta | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
-                <td class="py-2 px-4 text-center font-semibold">{{ d.subTotal | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+
+                <td class="py-3 px-4">
+                  <div class="text-sm font-medium truncate" [title]="d.nombreProducto">{{ d.nombreProducto }}</div>
+                  <div class="text-xs text-ra-slate/70">#{{ d.idProducto }}</div>
+
+                  <!-- Reemplazar producto -->
+                  <div class="mt-2 flex items-center gap-2">
+                    <input type="number"
+                           class="w-[140px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-1.5 shadow-inner text-sm"
+                           placeholder="ID nuevo"
+                           [value]="d.productoNuevoId ?? ''"
+                           (input)="setProductoNuevo(d, ($any($event.target).valueAsNumber || null))">
+                    <span class="text-xs text-ra-slate/70">ID producto nuevo</span>
+                  </div>
+                </td>
+
+                <td class="py-3 px-4 text-center">
+                  {{ d.precioUnit | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                </td>
+
+                <td class="py-3 px-4">
+                  <div class="flex items-center justify-center gap-2">
+                    <button type="button" class="px-2 py-1 rounded-md border hover:bg-gray-50" (click)="decCantidad(d)">−</button>
+                    <input type="number" min="1"
+                           class="w-[80px] text-center rounded-xl border border-gray-200 bg-gray-100 px-2 py-1.5 shadow-inner text-sm"
+                           [value]="d.cantidad"
+                           (input)="onCantidadDirecta(d, ($any($event.target).value))">
+                    <button type="button" class="px-2 py-1 rounded-md border hover:bg-gray-50" (click)="incCantidad(d)">+</button>
+                  </div>
+                  @if (d._changedCantidad) {
+                    <div class="text-[11px] text-amber-700 text-center mt-1">cambiar a {{ d.cantidad }}</div>
+                  }
+                </td>
+
+                <td class="py-3 px-4">
+                  <div class="flex items-center justify-center gap-2">
+                    <button type="button" class="p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar detalle"
+                            (click)="eliminarDetalle(d)">
+                      <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
+                    </button>
+                  </div>
+                </td>
               </tr>
             }
           </tbody>
         </table>
       </div>
 
-      <div class="flex items-center justify-end">
-        <div class="text-lg font-bold">
-          Total: {{ data.total | currency:'MXN':'symbol-narrow':'1.2-2' }}
+      <!-- Agregar detalle -->
+      <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3 items-end">
+        <div>
+          <label class="block text-sm font-semibold text-ra-slate mb-1.5">ID Producto</label>
+          <input type="number"
+                 class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green"
+                 [value]="nuevoIdProducto ?? ''"
+                 (input)="nuevoIdProducto = ($any($event.target).valueAsNumber || null)">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ra-slate mb-1.5">Cantidad</label>
+          <input type="number" min="1"
+                 class="w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green"
+                 [value]="nuevoCantidad"
+                 (input)="nuevoCantidad = Math.max(1, $any($event.target).valueAsNumber || 1)">
+        </div>
+        <button type="button"
+                class="h-[42px] px-4 rounded-md bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card"
+                (click)="agregarDetalle()">
+          Agregar producto
+        </button>
+      </div>
+
+      <!-- Pagos + Resumen -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+        <div class="rounded-xl2 bg-ra-white shadow-card ring-1 ring-black/10 p-4">
+          <div class="text-sm font-semibold text-ra-slate mb-2">Pagos</div>
+
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-xs">EFECTIVO</span>
+              <input type="number" min="0"
+                     class="w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                     [value]="efectivo()"
+                     (input)="efectivo.set(($any($event.target).valueAsNumber ?? 0) || 0)" />
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 text-blue-800 px-2 py-0.5 text-xs">TARJETA</span>
+              <input type="number" min="0"
+                     class="w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                     [value]="tarjeta()"
+                     (input)="tarjeta.set(($any($event.target).valueAsNumber ?? 0) || 0)" />
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center gap-1 rounded-full bg-violet-100 text-violet-800 px-2 py-0.5 text-xs">TRANSFERENCIA</span>
+              <input type="number" min="0"
+                     class="w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                     [value]="transferencia()"
+                     (input)="transferencia.set(($any($event.target).valueAsNumber ?? 0) || 0)" />
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-xl2 bg-ra-white shadow-card ring-1 ring-black/10 p-4">
+          <div class="text-sm font-semibold text-ra-slate mb-2">Resumen</div>
+
+          <div class="text-sm flex justify-between">
+            <span>Total calculado (vista)</span>
+            <span class="font-semibold">{{ totalCalculadoVista() | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+          </div>
+
+          <div class="text-sm flex justify-between">
+            <span>Suma de pagos</span>
+            <span class="font-semibold">{{ sumaPagos() | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+          </div>
+
+          <div class="text-sm flex justify-between"
+               [ngClass]="{ 'text-amber-700': desbalance() !== 0, 'text-emerald-700': desbalance() === 0 }">
+            <span>Diferencia</span>
+            <span class="font-semibold">{{ desbalance() | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+          </div>
+
+          <button type="button"
+                  class="mt-2 px-3 py-1.5 rounded-md border text-sm"
+                  (click)="ajustarPagosAlTotal()">
+            Igualar pagos al total
+          </button>
+
+          <div class="text-xs text-ra-slate/70 mt-1">
+            El total definitivo lo recalcula el servidor al aplicar las acciones.
+          </div>
         </div>
       </div>
-    </div>
-  }
+
+      @if (error) {
+        <div class="text-sm text-red-600">{{ error }}</div>
+      }
+
+      <!-- Footer -->
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button type="button" (click)="cancelar.emit()"
+                class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100">
+          Cancelar
+        </button>
+        <button type="button"
+                [disabled]="guardando || !canSave()"
+                class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60"
+                (click)="guardar()">
+          {{ guardando ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+      </div>
+    }
+  </div>
 </div>

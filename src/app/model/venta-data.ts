@@ -1,6 +1,7 @@
 import { PagoData } from './membresia-data';
 import { DetalleVentaData } from './detalle-venta-data';
 import { UsuarioData } from './usuario-data';
+import { GimnasioData } from './gimnasio-data';
 
 /** Respuesta del backend para una venta */
 export interface VentaData {
@@ -10,4 +11,5 @@ export interface VentaData {
   pagos: PagoData[];         // 👈 reemplaza al tipoPago único
   detalles: DetalleVentaData[];
   usuario?: UsuarioData
+  gimnasio?: GimnasioData
 }
