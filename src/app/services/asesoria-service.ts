@@ -7,10 +7,10 @@ import { environment } from '../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
-export class AccesoriaService extends GenericService<EntrenadorData>{
+export class AsesoriaService extends GenericService<EntrenadorData>{
 
   constructor(protected override http: HttpClient){
-    super(http, `${environment.HOST}/accesorias`)
+    super(http, `${environment.HOST}/asesorias`)
   }
 
   

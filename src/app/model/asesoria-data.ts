@@ -5,7 +5,7 @@ import { GimnasioData } from './gimnasio-data';
 import { PagoData } from './membresia-data';
 import { SocioData } from './socio-data';
 
-export interface AccesoriaCreateRequest {
+export interface AsesoriaCreateRequest {
   precio: number;
   tiempo: TiempoPlan;
   entrenador: EntrenadorData;
@@ -16,7 +16,7 @@ export interface AccesoriaCreateRequest {
 
 
 
-export interface AccesoriaCreateRequest {
+export interface AsesoriaCreateRequest {
   precio: number;
   tiempo: TiempoPlan;
   entrenador: EntrenadorData;

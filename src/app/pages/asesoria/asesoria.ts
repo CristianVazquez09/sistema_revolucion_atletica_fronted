@@ -3,7 +3,6 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { finalize, of, switchMap } from 'rxjs';
 
-import { AccesoriaService } from '../../services/accesoria-service';
 import { EntrenadorService } from '../../services/entrenador-service';
 import { SocioService } from '../../services/socio-service';
 import { GimnasioService } from '../../services/gimnasio-service';
@@ -20,19 +19,20 @@ import { NotificacionService } from '../../services/notificacion-service';
 import { TicketService, VentaContexto } from '../../services/ticket-service';
 import { ResumenVenta } from '../resumen-venta/resumen-venta';
 import { crearContextoTicket } from '../../util/ticket-contexto';
-import { AccesoriaCreateRequest } from '../../model/accesoria-data';
+import { AsesoriaCreateRequest } from '../../model/asesoria-data';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
+import { AsesoriaService } from '../../services/asesoria-service';
 
 @Component({
-  selector: 'app-accesoria',
+  selector: 'app-asesoria',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, ResumenVenta, TiempoPlanLabelPipe],
-  templateUrl: './accesoria.html',
-  styleUrls: ['./accesoria.css'],
+  templateUrl: './asesoria.html',
+  styleUrls: ['./asesoria.css'],
 })
-export class Accesoria implements OnInit {
+export class Asesoria implements OnInit {
   // Servicios
-  private accesoriaSrv   = inject(AccesoriaService);
+  private asesoriaSrv   = inject(AsesoriaService);
   private entrenadorSrv  = inject(EntrenadorService);
   private socioSrv       = inject(SocioService);
   private gymSrv         = inject(GimnasioService);
@@ -241,7 +241,7 @@ export class Accesoria implements OnInit {
     const socioNombre = `${this.socio?.nombre ?? ''} ${this.socio?.apellido ?? ''}`.trim();
     const entrenadorNombre = `${this.entrenadorSel?.nombre ?? ''} ${this.entrenadorSel?.apellido ?? ''}`.trim();
 
-    const req: AccesoriaCreateRequest = {
+    const req: AsesoriaCreateRequest = {
       precio,
       tiempo: this.form.controls.tiempo.value as unknown as TiempoPlan,
       entrenador: { idEntrenador: this.form.controls.idEntrenador.value! } as EntrenadorData,
@@ -251,7 +251,7 @@ export class Accesoria implements OnInit {
     };
 
     this.guardando = true;
-    this.accesoriaSrv.guardar(req as any)
+    this.asesoriaSrv.guardar(req as any)
       .pipe(finalize(() => (this.guardando = false)))
       .subscribe({
         next: (resp: any) => {
@@ -278,13 +278,13 @@ export class Accesoria implements OnInit {
             [item as any],
             ctx,
             labelPagos || '—',
-            (resp?.idAccesoriaPersonalizada ?? resp?.id ?? undefined),
+            (resp?.idAsesoriaPersonalizada ?? resp?.id ?? undefined),
             new Date()
           );
 
           this.resetUI();
         },
-        error: () => this.noti.error('No se pudo registrar la accesoria.')
+        error: () => this.noti.error('No se pudo registrar la asesoria.')
       });
   }
 

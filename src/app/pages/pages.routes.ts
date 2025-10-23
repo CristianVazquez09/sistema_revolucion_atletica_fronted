@@ -14,7 +14,7 @@ import { CorteCaja } from "./corte-caja/corte-caja";
 import { AgregarMembresia } from "./agregar-membresia/agregar-membresia";
 import { Administracion } from "./administracion/administracion";
 import { Entrenador } from "./entrenador/entrenador";
-import { Accesoria } from "./accesoria/accesoria";
+import { Asesoria } from "./asesoria/asesoria";
 import { gerenteGuard } from "../guards/gerente-guards";
 import { adminGuard } from "../guards/admin-guards";
 
@@ -32,7 +32,7 @@ export const pagesRoutes: Routes = [
   { path: 'corte-caja', component: CorteCaja }, 
   { path: 'agregar-membresia', component: AgregarMembresia },
   { path: 'entrenador', component: Entrenador },
-  { path: 'accesoria', component: Accesoria },
+  { path: 'asesoria', component: Asesoria },
  
 // pages.routes.ts
 {
