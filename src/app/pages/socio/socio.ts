@@ -234,4 +234,8 @@ export class Socio implements OnInit, OnDestroy {
     if (id != null) return `#${id}`;
     return '—';
   }
+  verAsesorias(s: SocioData): void {
+  if (!s?.idSocio) return;
+  this.router.navigate(['/pages/socio', s.idSocio, 'asesorias']);
+}
 }

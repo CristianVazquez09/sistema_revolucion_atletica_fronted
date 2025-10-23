@@ -5,6 +5,8 @@ import { PagedResponse, toPagedResponse } from '../model/paged-response';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable, map } from 'rxjs';
+import { MembresiaData } from '../model/membresia-data';
+import { AsesoriaContratoData } from '../model/asesoria-contrato-data';
 
 @Injectable({
   providedIn: 'root'
@@ -28,6 +30,17 @@ export class SocioService extends GenericService<SocioData> {
     return this.http
       .get(`${this.url}/buscar/${n}?page=${pagina}&size=${tamanio}`)
       .pipe(map((raw: any) => toPagedResponse<SocioData>(raw)));
+  }
+
+  obtenerAsesoriasDeSocio(
+    idSocio: number,
+    pagina: number,
+    tamanio: number
+  ): Observable<PagedResponse<AsesoriaContratoData>> {
+    const url = `${environment.HOST}/socios/${idSocio}/asesorias?page=${pagina}&size=${tamanio}`;
+    return this.http
+      .get<any>(url)
+      .pipe(map(raw => toPagedResponse<AsesoriaContratoData>(raw)));
   }
   
   

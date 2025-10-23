@@ -6,20 +6,22 @@
 <!-- BUSCADOR -->
 <div class="ml-2 md:ml-4 mr-4 md:mr-8 mb-4">
   <div class="relative max-w-md">
-    <input type="text" class="input-filled pl-10 pr-9" placeholder="Buscar por nombre"
-           [ngModel]="terminoBusqueda" (ngModelChange)="onBuscarChange($event)" />
-    <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+    <input type="text" class="input-filled pl-10 pr-9" placeholder="Buscar por nombre" [ngModel]="terminoBusqueda"
+      (ngModelChange)="onBuscarChange($event)" />
+    <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor">
       <circle cx="11" cy="11" r="7" stroke-width="2"></circle>
       <path d="M21 21l-4.3-4.3" stroke-width="2" stroke-linecap="round"></path>
     </svg>
     <button *ngIf="terminoBusqueda" type="button" title="Limpiar" aria-label="Limpiar"
-            class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full grid place-items-center text-gray-500 hover:text-gray-700 hover:bg-gray-200"
-            (click)="limpiarBusqueda()">&times;</button>
+      class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full grid place-items-center text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+      (click)="limpiarBusqueda()">&times;</button>
   </div>
 </div>
 
 <!-- Tabla -->
-<div class="rounded-xl2 overflow-hidden ml-2 md:ml-4 mr-4 md:mr-8 bg-ra-white shadow-card ring-1 ring-black/10 text-[13px]">
+<div
+  class="rounded-xl2 overflow-hidden ml-2 md:ml-4 mr-4 md:mr-8 bg-ra-white shadow-card ring-1 ring-black/10 text-[13px]">
   <table class="w-full table-fixed">
     <colgroup>
       <col class="w-[6%]">
@@ -28,7 +30,8 @@
       <col class="w-[22%]">
       <col class="w-[12%]">
       <col class="w-[12%]">
-      @if (isAdmin) { <col class="w-[16%]"> }  <!-- Gimnasio -->
+      @if (isAdmin) {
+      <col class="w-[16%]"> } <!-- Gimnasio -->
       <col class="w-[16%]">
     </colgroup>
 
@@ -41,7 +44,7 @@
         <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">F. Nacimiento</th>
         <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Género</th>
         @if (isAdmin) {
-          <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Gimnasio</th>
+        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Gimnasio</th>
         }
         <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Acciones</th>
       </tr>
@@ -49,70 +52,85 @@
 
     <tbody>
       @if (cargando) {
-        <tr><td [attr.colspan]="isAdmin ? 8 : 7" class="py-6 px-6 text-center text-ra-slate">Cargando…</td></tr>
+      <tr>
+        <td [attr.colspan]="isAdmin ? 8 : 7" class="py-6 px-6 text-center text-ra-slate">Cargando…</td>
+      </tr>
       } @else if (mensajeError) {
-        <tr><td [attr.colspan]="isAdmin ? 8 : 7" class="py-6 px-6 text-center text-red-600">{{ mensajeError }}</td></tr>
+      <tr>
+        <td [attr.colspan]="isAdmin ? 8 : 7" class="py-6 px-6 text-center text-red-600">{{ mensajeError }}</td>
+      </tr>
       } @else {
-        @if (listaSocios.length === 0) {
-          <tr><td [attr.colspan]="isAdmin ? 8 : 7" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td></tr>
-        } @else {
-          @for (s of listaSocios; track s.idSocio) {
-            <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
-              <td class="py-3 px-4 text-center">
-                <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700">
-                  {{ s.idSocio }}
-                </span>
-              </td>
+      @if (listaSocios.length === 0) {
+      <tr>
+        <td [attr.colspan]="isAdmin ? 8 : 7" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td>
+      </tr>
+      } @else {
+      @for (s of listaSocios; track s.idSocio) {
+      <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
+        <td class="py-3 px-4 text-center">
+          <span
+            class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700">
+            {{ s.idSocio }}
+          </span>
+        </td>
 
-              <td class="py-3 px-4 text-left">
-                <div class="font-medium truncate">{{ s.nombre }} {{ s.apellido }}</div>
-                <div class="text-xs text-ra-slate/70 truncate" [title]="s.direccion">
-                  {{ s.direccion }}
-                </div>
-              </td>
+        <td class="py-3 px-4 text-left">
+          <div class="font-medium truncate">{{ s.nombre }} {{ s.apellido }}</div>
+          <div class="text-xs text-ra-slate/70 truncate" [title]="s.direccion">
+            {{ s.direccion }}
+          </div>
+        </td>
 
-              <td class="py-3 px-4 text-center truncate" [title]="s.telefono">{{ s.telefono }}</td>
-              <td class="py-3 px-4 text-center truncate" [title]="s.email">{{ s.email }}</td>
-              <td class="py-3 px-4 text-center">{{ s.fechaNacimiento | date:'dd/MM/yyyy' }}</td>
+        <td class="py-3 px-4 text-center truncate" [title]="s.telefono">{{ s.telefono }}</td>
+        <td class="py-3 px-4 text-center truncate" [title]="s.email">{{ s.email }}</td>
+        <td class="py-3 px-4 text-center">{{ s.fechaNacimiento | date:'dd/MM/yyyy' }}</td>
 
-              <td class="py-3 px-4 text-center">
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
-                      [ngClass]="{
+        <td class="py-3 px-4 text-center">
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold" [ngClass]="{
                         'bg-pink-100 text-pink-700': s.genero === 'FEMENINO',
                         'bg-blue-100 text-blue-700': s.genero === 'MASCULINO',
                         'bg-gray-100 text-gray-700': s.genero !== 'FEMENINO' && s.genero !== 'MASCULINO'
                       }">
-                  {{ s.genero }}
-                </span>
-              </td>
+            {{ s.genero }}
+          </span>
+        </td>
 
-              @if (isAdmin) {
-                <td class="py-3 px-4 text-center">
-                  <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
-                    <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
-                    </svg>
-                    {{ displayGimnasio(s) }}
-                  </span>
-                </td>
-              }
-
-              <td class="py-2 px-4">
-                <div class="flex items-center justify-center gap-1">
-                  <button (click)="verHistorial(s)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Historial">
-                    <img src="iconos/historial.svg" alt="Historial" class="w-5 h-5" />
-                  </button>
-                  <button (click)="abrirModalParaEditar(s)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
-                    <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5" />
-                  </button>
-                  <button (click)="eliminarSocio(s)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar">
-                    <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          }
+        @if (isAdmin) {
+        <td class="py-3 px-4 text-center">
+          <span
+            class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
+            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+            </svg>
+            {{ displayGimnasio(s) }}
+          </span>
+        </td>
         }
+
+        <td class="py-2 px-4">
+          <div class="flex items-center justify-center gap-1">
+            <button (click)="verHistorial(s)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Historial">
+              <img src="iconos/historial.svg" alt="Historial" class="w-5 h-5" />
+            </button>
+            <button (click)="verAsesorias(s)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Asesorías">
+              <!-- Usa tu pack de íconos; dejo un SVG simple -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5" fill="none"
+                stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8v8M7 10v4M17 10v4M20 8v8M7 12h10" />
+              </svg>
+
+            </button>
+            <button (click)="abrirModalParaEditar(s)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
+              <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5" />
+            </button>
+            <button (click)="eliminarSocio(s)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar">
+              <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
+            </button>
+          </div>
+        </td>
+      </tr>
+      }
+      }
       }
     </tbody>
   </table>
@@ -129,10 +147,14 @@
       </div>
 
       <nav class="pager-nav" aria-label="Paginación">
-        <button class="pager-btn pager-btn--ghost" (click)="irPrimera()"   [disabled]="paginaActual === 0" title="Primera">«</button>
-        <button class="pager-btn pager-btn--ghost" (click)="irAnterior()"  [disabled]="paginaActual === 0" title="Anterior">‹</button>
-        <button class="pager-btn pager-btn--primary" (click)="irSiguiente()" [disabled]="paginaActual + 1 >= totalPaginas" title="Siguiente">Siguiente ›</button>
-        <button class="pager-btn pager-btn--ghost" (click)="irUltima()"    [disabled]="paginaActual + 1 >= totalPaginas" title="Última">»</button>
+        <button class="pager-btn pager-btn--ghost" (click)="irPrimera()" [disabled]="paginaActual === 0"
+          title="Primera">«</button>
+        <button class="pager-btn pager-btn--ghost" (click)="irAnterior()" [disabled]="paginaActual === 0"
+          title="Anterior">‹</button>
+        <button class="pager-btn pager-btn--primary" (click)="irSiguiente()"
+          [disabled]="paginaActual + 1 >= totalPaginas" title="Siguiente">Siguiente ›</button>
+        <button class="pager-btn pager-btn--ghost" (click)="irUltima()" [disabled]="paginaActual + 1 >= totalPaginas"
+          title="Última">»</button>
       </nav>
 
       <div class="pager-info">
@@ -146,16 +168,13 @@
 
 <!-- Modal -->
 @if (modalSocioVisible()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModalSocio()"></div>
-    <div class="relative z-10 w-full max-w-[640px] mx-4">
-      <div class="bg-ra-white rounded-2xl shadow-2xl ring-1 ring-black/5">
-        <app-socio-modal
-          [socio]="socioActual"
-          (cancelar)="cerrarModalSocio()"
-          (guardado)="despuesDeGuardarSocio()">
-        </app-socio-modal>
-      </div>
+<div class="fixed inset-0 z-50 flex items-center justify-center">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModalSocio()"></div>
+  <div class="relative z-10 w-full max-w-[640px] mx-4">
+    <div class="bg-ra-white rounded-2xl shadow-2xl ring-1 ring-black/5">
+      <app-socio-modal [socio]="socioActual" (cancelar)="cerrarModalSocio()" (guardado)="despuesDeGuardarSocio()">
+      </app-socio-modal>
     </div>
   </div>
+</div>
 }

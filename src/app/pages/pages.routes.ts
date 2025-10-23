@@ -17,6 +17,7 @@ import { Entrenador } from "./entrenador/entrenador";
 import { Asesoria } from "./asesoria/asesoria";
 import { gerenteGuard } from "../guards/gerente-guards";
 import { adminGuard } from "../guards/admin-guards";
+import { SocioInfoAsesoria } from "./socio/socio-info-asesoria/socio-info-asesoria";
 
 export const pagesRoutes: Routes = [
   { path: 'paquete', component: Paquete},
@@ -33,6 +34,7 @@ export const pagesRoutes: Routes = [
   { path: 'agregar-membresia', component: AgregarMembresia },
   { path: 'entrenador', component: Entrenador },
   { path: 'asesoria', component: Asesoria },
+   { path: 'socio/:idSocio/asesorias', component: SocioInfoAsesoria },
  
 // pages.routes.ts
 {
