@@ -1,0 +1,97 @@
+<div class="rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+  <div class="flex items-start justify-between px-6 pt-5 pb-2">
+    <h2 class="text-[18px] font-bold text-ra-slate leading-none">
+      {{ idUsuario ? ('Editar usuario #' + idUsuario) : 'Crear usuario' }}
+    </h2>
+    <button class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700"
+            (click)="cancelar.emit()" aria-label="Cerrar">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="px-6 pb-6 pt-2 space-y-4">
+    @if (cargando) {
+      <div class="text-sm text-ra-slate">Cargando…</div>
+    } @else {
+
+      @if (error) { <div class="text-sm text-red-600">{{ error }}</div> }
+
+      <!-- ⬇️ novalidate desactiva validación nativa del navegador -->
+      <form [formGroup]="form" (ngSubmit)="guardar()" novalidate
+            class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <div>
+          <label class="block text-sm font-semibold text-ra-slate mb-1.5">Nombre de usuario</label>
+          <input type="text" formControlName="nombreUsuario"
+                 class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 shadow-inner"
+                 placeholder="usuario" />
+          @if (form.controls.nombreUsuario.touched && form.controls.nombreUsuario.invalid) {
+            <div class="text-xs text-red-600 mt-1">Mínimo 3 caracteres.</div>
+          }
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-ra-slate mb-1.5">
+            Contraseña <span class="text-ra-slate/60 text-xs">(obligatoria al crear)</span>
+          </label>
+          <input type="password" formControlName="contrasenia"
+                 class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 shadow-inner"
+                 placeholder="{{ idUsuario ? 'dejar en blanco para no cambiar' : 'contraseña' }}" />
+          @if (form.controls.contrasenia.touched && form.controls.contrasenia.invalid && !idUsuario) {
+            <div class="text-xs text-red-600 mt-1">Mínimo 6 caracteres.</div>
+          }
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-ra-slate mb-1.5">Rol</label>
+          <select formControlName="rolNombre"
+                  class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 shadow-inner">
+            <option value="" disabled>— Selecciona un rol —</option>
+            @for (r of roles; track r.nombre) {
+              <option [ngValue]="r.nombre">{{ r.nombre }}</option>
+            }
+          </select>
+          @if (form.controls.rolNombre.touched && form.controls.rolNombre.invalid) {
+            <div class="text-xs text-red-600 mt-1">Selecciona un rol.</div>
+          }
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-ra-slate mb-1.5">Gimnasio</label>
+          <select formControlName="gimnasioId"
+                  class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 shadow-inner">
+            <option [ngValue]="null">— Sin gimnasio —</option>
+            @for (g of gimnasios; track trackGymBy($index, g)) {
+              <option [ngValue]="g.id">{{ g.nombre || ('#' + g.id) }}</option>
+            }
+          </select>
+          <div class="text-xs text-ra-slate/70 mt-1">
+            Si no seleccionas ninguno, el usuario quedará sin gimnasio asignado.
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="activo" formControlName="activo"
+                 class="h-4 w-4 rounded border-gray-300" />
+          <label for="activo" class="text-sm text-ra-slate">Activo</label>
+        </div>
+
+        <div class="md:col-span-2 flex items-center justify-end gap-2 pt-2">
+          <button type="button" (click)="cancelar.emit()"
+                  class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100">
+            Cancelar
+          </button>
+
+          <!-- Si quieres ver logs aunque el form sea inválido, deja solo [disabled]="guardando" -->
+          <button type="submit" [disabled]="guardando || form.invalid"
+                  class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60">
+            {{ guardando ? 'Guardando…' : (idUsuario ? 'Guardar cambios' : 'Crear usuario') }}
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

@@ -48,6 +48,7 @@ export const pagesRoutes: Routes = [
     { path: 'membresias', loadComponent: () => import('./administracion/membresia/membresia').then(m => m.Membresia), data: { title: 'Membresías' } },
     { path: 'corte-caja', loadComponent: () => import('./administracion/corte-caja-admin/corte-caja-admin').then(m => m.CorteCajaAdmin), data: { title: 'Cortes de caja' } },
     { path: 'ventas',     loadComponent: () => import('./administracion/ventas-admin/ventas-admin').then(m => m.VentasAdmin), data: { title: 'Ventas' } },
+    { path: 'usuarios',     loadComponent: () => import('./administracion/usuarios-admin/usuarios-admin').then(m => m.UsuariosAdmin), data: { title: 'Usuarios' } },
   ]
 },
 {
@@ -63,6 +64,7 @@ export const pagesRoutes: Routes = [
     { path: 'membresias', loadComponent: () => import('./administracion/membresia/membresia').then(m => m.Membresia), data: { title: 'Membresías' } },
     { path: 'corte-caja', loadComponent: () => import('./administracion/corte-caja-admin/corte-caja-admin').then(m => m.CorteCajaAdmin), data: { title: 'Cortes de caja' } },
     { path: 'ventas',     loadComponent: () => import('./administracion/ventas-admin/ventas-admin').then(m => m.VentasAdmin), data: { title: 'Ventas' } },
+    
   ]
 }
 

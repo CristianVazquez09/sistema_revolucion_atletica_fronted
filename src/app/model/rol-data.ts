@@ -1,4 +1,5 @@
 export interface RolData {
-    idRol:number;
-    name: string
+    idRol?:number;
+    nombre: string
+    descripcion?:string
 }

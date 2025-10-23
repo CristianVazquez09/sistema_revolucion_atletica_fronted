@@ -1,84 +1,194 @@
 <div class="mx-auto w-full rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+  <!-- Header -->
   <div class="flex items-start justify-between px-6 pt-5">
-    <h2 class="text-[20px] font-bold text-ra-slate leading-none">Editar membresía #{{ idMembresia }}</h2>
-    <button class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700"
-            (click)="cancelar.emit()" aria-label="Cerrar">×</button>
+    <h2 class="text-[20px] font-bold text-ra-slate leading-none">
+      Membresía #{{ data?.idMembresia || '—' }}
+    </h2>
+
+    <button
+      class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+      (click)="cancelar.emit()"
+      aria-label="Cerrar">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
   </div>
 
-  <div class="px-6 pb-6 pt-4">
+  <div class="px-6 pb-6 pt-4 space-y-5">
     @if (cargando) {
-      <div class="py-6 text-center">Cargando…</div>
+      <div class="text-sm text-ra-slate">Cargando…</div>
     } @else if (error) {
-      <div class="py-2 text-sm text-red-600">{{ error }}</div>
+      <div class="text-sm text-red-600">{{ error }}</div>
     } @else if (data) {
 
-      <!-- Datos fijos -->
-      <div class="grid md:grid-cols-2 gap-4 mb-4 text-sm">
-        <div>
-          <div class="font-semibold text-ra-slate/80">Socio</div>
-          <div class="font-medium">{{ data.socio.nombre }} {{ data.socio.apellido }}</div>
-          <div class="text-xs text-ra-slate/70 truncate">{{ data.socio.email }}</div>
-        </div>
-        <div>
-          <div class="font-semibold text-ra-slate/80">Paquete</div>
-          <div class="font-medium">{{ data.paquete.nombre }}</div>
-          <div class="text-xs text-ra-slate/70">Tiempo: {{ data.paquete.tiempo }}</div>
-        </div>
-        <div>
-          <div class="font-semibold text-ra-slate/80">Pagos</div>
-          <div class="flex flex-wrap gap-1">
-            @for (p of data.pagos; track $index) {
-              <span class="inline-flex items-center rounded-full bg-gray-100 text-gray-700 px-2 py-0.5 text-xs">
-                {{ p.tipoPago }}: {{ (p.monto || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-              </span>
-            }
+      <!-- Socio / Paquete actual -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="text-sm">
+          <div class="font-semibold text-ra-slate/90">Socio</div>
+          <div class="text-ra-slate">
+            {{ data.socio.nombre }} {{ data.socio.apellido }} (ID: {{ data.socio.idSocio }})
           </div>
         </div>
-        <div>
-          <div class="font-semibold text-ra-slate/80">Usuario</div>
-          <div>{{ data.usuario?.nombreUsuario || '—' }}</div>
+        <div class="text-sm">
+          <div class="font-semibold text-ra-slate/90">Paquete actual</div>
+          <div class="text-ra-slate">
+            #{{ data.paquete.idPaquete }} — {{ data.paquete.nombre }} ·
+            Precio {{ (data.paquete.precio || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }},
+            Inscripción {{ (data.paquete.costoInscripcion || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
+          </div>
         </div>
       </div>
 
-      <!-- Form editable -->
-      <form [formGroup]="form" (ngSubmit)="guardar()" class="space-y-3">
-        <div class="grid md:grid-cols-2 gap-3">
+      <!-- Cambiar paquete -->
+      <div class="rounded-xl2 bg-ra-white shadow-card ring-1 ring-black/10 p-4">
+        <div class="text-sm font-semibold text-ra-slate mb-2">Cambiar paquete (opcional)</div>
+        <div class="flex flex-wrap items-end gap-3">
           <div>
-            <label class="block text-sm font-semibold text-ra-slate mb-1.5">Fecha inicio</label>
-            <input type="date" formControlName="fechaInicio"
-                   class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green">
+            <label class="block text-sm font-semibold text-ra-slate mb-1.5">ID paquete nuevo</label>
+            <input type="number"
+                   class="w-[200px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                   [value]="paqueteNuevoId ?? ''"
+                   (input)="setPaqueteNuevoId(($any($event.target).valueAsNumber || null))">
           </div>
-          <div>
-            <label class="block text-sm font-semibold text-ra-slate mb-1.5">Fecha fin</label>
-            <input type="date" formControlName="fechaFin"
-                   class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green">
+
+          <div class="text-sm text-ra-slate/80">
+            @if (paqueteNuevo) {
+              <div>
+                {{ paqueteNuevo.nombre }} ·
+                Precio {{ (paqueteNuevo.precio || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }},
+                Inscripción {{ (paqueteNuevo.costoInscripcion || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
+              </div>
+            } @else if (paqueteNuevoId) {
+              <div class="text-amber-700">Introduce un ID válido para previsualizar.</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Fechas y Descuento -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-ra-slate mb-1.5">Fecha inicio</label>
+          <input type="date"
+                 class="w-full rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                 [value]="fechaInicio()"
+                 (input)="fechaInicio.set($any($event.target).value || '')">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ra-slate mb-1.5">Fecha fin</label>
+          <input type="date"
+                 class="w-full rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                 [value]="fechaFin()"
+                 (input)="fechaFin.set($any($event.target).value || '')">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ra-slate mb-1.5">Descuento</label>
+          <input type="number" min="0" step="0.01"
+                 class="w-full rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                 [value]="descuento()"
+                 (input)="descuento.set(($any($event.target).valueAsNumber ?? 0) || 0)">
+        </div>
+      </div>
+
+      <!-- Pagos + Resumen -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+        <div class="rounded-xl2 bg-ra-white shadow-card ring-1 ring-black/10 p-4">
+          <div class="text-sm font-semibold text-ra-slate mb-2">Pagos</div>
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-xs">EFECTIVO</span>
+              <input type="number" min="0" step="0.01"
+                     class="w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                     [value]="efectivo()"
+                     (input)="efectivo.set(($any($event.target).valueAsNumber ?? 0) || 0)" />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 text-blue-800 px-2 py-0.5 text-xs">TARJETA</span>
+              <input type="number" min="0" step="0.01"
+                     class="w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                     [value]="tarjeta()"
+                     (input)="tarjeta.set(($any($event.target).valueAsNumber ?? 0) || 0)" />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center gap-1 rounded-full bg-violet-100 text-violet-800 px-2 py-0.5 text-xs">TRANSFERENCIA</span>
+              <input type="number" min="0" step="0.01"
+                     class="w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                     [value]="transferencia()"
+                     (input)="transferencia.set(($any($event.target).valueAsNumber ?? 0) || 0)" />
+            </div>
           </div>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm font-semibold text-ra-slate mb-1.5">Descuento</label>
-            <input type="number" step="0.01" formControlName="descuento"
-                   class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green">
-          </div>
-          <div>
-            <label class="block text-sm font-semibold text-ra-slate mb-1.5">Total</label>
-            <input type="number" step="0.01" formControlName="total"
-                   class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green">
-          </div>
-        </div>
+        <div class="rounded-xl2 bg-ra-white shadow-card ring-1 ring-black/10 p-4">
+          <div class="text-sm font-semibold text-ra-slate mb-2">Resumen</div>
 
-        <div class="flex items-center justify-end gap-2 pt-2">
-          <button type="button" (click)="cancelar.emit()"
-                  class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100">
-            Cancelar
+          <div class="text-sm flex justify-between">
+            <span>Precio base</span>
+            <span class="font-semibold">{{ (data.paquete.precio ) | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+          </div>
+          <div class="text-sm flex justify-between">
+            <span>Inscripción</span>
+            <span class="font-semibold">{{ (data.paquete.costoInscripcion ) | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+          </div>
+
+          @if (paqueteNuevo) {
+            <div class="text-xs text-ra-slate/70 mt-1">
+              Previsualizando paquete nuevo: 
+              {{ paqueteNuevo.nombre }} ({{ paqueteNuevo.precio | currency:'MXN':'symbol-narrow':'1.2-2' }} + {{ (paqueteNuevo.costoInscripcion || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }})
+            </div>
+          }
+
+          <div class="text-sm flex justify-between mt-2">
+            <span>Descuento</span>
+            <span class="font-semibold">− {{ (descuento() || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+          </div>
+
+          <div class="text-sm flex justify-between mt-1">
+            <span><strong>Total calculado (vista)</strong></span>
+            <span class="font-semibold">{{ totalCalculadoVista() | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+          </div>
+
+          <div class="text-sm flex justify-between">
+            <span>Suma de pagos</span>
+            <span class="font-semibold">{{ sumaPagos() | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+          </div>
+
+          <div class="text-sm flex justify-between"
+               [ngClass]="{ 'text-amber-700': desbalance() !== 0, 'text-emerald-700': desbalance() === 0 }">
+            <span>Diferencia</span>
+            <span class="font-semibold">{{ desbalance() | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+          </div>
+
+          <button type="button"
+                  class="mt-2 px-3 py-1.5 rounded-md border text-sm"
+                  (click)="ajustarPagosAlTotal()">
+            Igualar pagos al total
           </button>
-          <button type="submit" [disabled]="guardando"
-                  class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60">
-            {{ guardando ? 'Guardando…' : 'Guardar cambios' }}
-          </button>
+
+          <div class="text-xs text-ra-slate/70 mt-1">
+            El total definitivo lo recalcula el servidor al aplicar las acciones.
+          </div>
         </div>
-      </form>
+      </div>
+
+      @if (error) {
+        <div class="text-sm text-red-600">{{ error }}</div>
+      }
+
+      <!-- Footer -->
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button type="button" (click)="cancelar.emit()"
+                class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100">
+          Cancelar
+        </button>
+        <button type="button"
+                [disabled]="guardando || !canSave()"
+                class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60"
+                (click)="guardar()">
+          {{ guardando ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+      </div>
     }
   </div>
 </div>

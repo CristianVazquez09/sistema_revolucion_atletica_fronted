@@ -6,6 +6,7 @@ import { environment } from '../../environments/environment';
 import { MembresiaData } from '../model/membresia-data';
 import { PagedResponse, toPagedResponse } from '../model/paged-response';
 import { Observable, map } from 'rxjs';
+import { MembresiaPatchRequest } from '../model/membresia-patch';
 
 type PageMetaApi = { size: number; number: number; totalElements: number; totalPages: number; };
 export type MembresiaPageResponse = { content: MembresiaData[]; page: PageMetaApi; };
@@ -38,6 +39,10 @@ export class MembresiaService extends GenericService<MembresiaData> {
       .set('size', String(opts.size ?? 10))
       .set('sort', String(opts.sort ?? 'fechaInicio,desc'));
     return this.http.get<MembresiaPageResponse>(`${this.url}`, { params });
+  }
+
+  patch(id: number, body: MembresiaPatchRequest): Observable<MembresiaData> {
+    return this.http.patch<MembresiaData>(`${this.url}/${id}`, body);
   }
   
   

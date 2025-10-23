@@ -1,0 +1,106 @@
+<div class="mx-4 md:mx-10 mb-4 flex items-center justify-between">
+  <div class="text-xl font-semibold text-ra-slate">Usuarios</div>
+
+  <div class="flex items-center gap-2">
+    <button type="button"
+            class="px-4 py-2 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-sm"
+            (click)="cargar()">
+      Actualizar
+    </button>
+    <button type="button"
+            class="px-4 py-2 rounded-md bg-emerald-600 text-white hover:brightness-110 shadow-card text-sm"
+            (click)="crear()">
+      + Crear usuario
+    </button>
+  </div>
+</div>
+
+<div class="shadow-card rounded-xl2 overflow-hidden mx-4 md:mx-10 bg-ra-white ring-1 ring-black/10">
+  <table class="w-full table-fixed text-[13px]">
+    <colgroup>
+      <col class="w-[8%]">   <!-- ID -->
+      <col class="w-[20%]">  <!-- Usuario -->
+      <col class="w-[16%]">  <!-- Rol -->
+      <col class="w-[24%]">  <!-- Gimnasio -->
+      <col class="w-[12%]">  <!-- Activo -->
+      <col class="w-[12%]">  <!-- Acciones -->
+    </colgroup>
+
+    <thead>
+      <tr class="bg-ra-grayLight/40">
+        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">ID</th>
+        <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Usuario</th>
+        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Rol</th>
+        <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Gimnasio</th>
+        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Activo</th>
+        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @if (cargando) {
+        <tr><td colspan="6" class="py-6 px-6 text-center text-ra-slate">Cargando…</td></tr>
+      } @else if (error) {
+        <tr><td colspan="6" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
+      } @else if (!rows.length) {
+        <tr><td colspan="6" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td></tr>
+      } @else {
+        @for (u of rows; track trackById($index, u)) {
+          <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
+            <td class="py-3 px-4 text-center font-medium">#{{ u.id }}</td>
+
+            <td class="py-3 px-4">
+              <div class="font-medium truncate">{{ u.nombreUsuario }}</div>
+            </td>
+
+            <td class="py-3 px-4 text-center">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
+                          bg-indigo-100 text-indigo-700">
+                {{ rolPrincipal(u) }}
+              </span>
+            </td>
+
+            <td class="py-3 px-4">
+              <div class="truncate font-medium">{{ gymNombre(u) }}</div>
+            </td>
+
+            <td class="py-3 px-4 text-center">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
+                    [ngClass]="{ 'bg-emerald-100 text-emerald-700': u.activo, 'bg-gray-100 text-gray-700': !u.activo }">
+                {{ u.activo ? 'Sí' : 'No' }}
+              </span>
+            </td>
+
+            <td class="py-2 px-3">
+              <div class="flex items-center justify-center gap-2">
+                <button (click)="editar(u)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
+                  <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5" />
+                </button>
+                <button (click)="eliminar(u)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar">
+                  <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal -->
+@if (modalAbierto()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModal()"></div>
+    <div class="relative z-10 w-full max-w-[720px] mx-4">
+      <div class="bg-ra-white rounded-2xl shadow-2xl ring-1 ring-black/5">
+        <app-usuarios-admin-modal
+          [idUsuario]="idEditando"        
+          (cancelar)="cerrarModal()"
+          (guardado)="onGuardado()">
+        </app-usuarios-admin-modal>
+      </div>
+    </div>
+  </div>
+}
+
