@@ -117,7 +117,7 @@ export class Socio implements OnInit, OnDestroy {
         .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
         .map(r => String(r).toUpperCase());
 
-      return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
+      return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('GERENTE');
     } catch {
       return false;
     }

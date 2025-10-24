@@ -1,6 +1,9 @@
 <!-- Encabezado compacto -->
 <div class="mx-2 md:mx-6 lg:mx-8 mt-3 mb-3">
-  <div class="flex items-center justify-between bg-[color:var(--color-ra-white)] ring-1 ring-black/10 shadow-card rounded-xl2 px-4 py-3">
+  <div
+    class="flex items-center justify-between bg-[color:var(--color-ra-white)] ring-1 ring-black/10 shadow-card rounded-xl2 px-4 py-3">
+
+    <!-- avatar + nombre + teléfono -->
     <div class="flex items-center gap-3">
       <div class="w-12 h-12 rounded-xl bg-gray-200 grid place-items-center text-gray-500">
         <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2">
@@ -18,15 +21,25 @@
       </div>
     </div>
 
-    <a routerLink="/pages/socio"
-       class="w-10 h-10 rounded-xl bg-[color:var(--color-ra-azul-fuerte)] text-white grid place-items-center hover:brightness-110"
-       title="Volver">
-      <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
-      </svg>
-    </a>
+    <!-- badge + volver -->
+    <div class="flex items-center gap-2">
+      <span
+        class="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium
+               bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] ring-1 ring-black/5">
+        Membresías
+      </span>
+      <a routerLink="/pages/socio"
+         class="w-10 h-10 rounded-xl bg-[color:var(--color-ra-azul-fuerte)] text-white grid place-items-center hover:brightness-110"
+         title="Volver">
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </a>
+    </div>
+
   </div>
 </div>
+
 
 <!-- Tabla -->
 <div class="mx-2 md:mx-6 lg:mx-8 bg-[color:var(--color-ra-white)] rounded-xl2 shadow-card ring-1 ring-black/10 overflow-hidden text-[13px]">

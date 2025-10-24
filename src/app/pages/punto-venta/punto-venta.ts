@@ -297,9 +297,9 @@ export class PuntoVenta implements OnInit {
 
         if (venta?.detalles?.length) {
           // si tu TicketService ya soporta breakdown, envíalo en el "tipoPago"
-          this.ticket.verVentaDesdeBackend(venta, ctx, labelPagos || '—');
+          this.ticket.imprimirVentaDesdeBackend(venta, ctx, labelPagos || '—');
         } else {
-          this.ticket.verVentaDesdeCarrito(this.carrito, ctx, labelPagos || '—', venta?.idVenta, new Date());
+          this.ticket.imprimirVentaDesdeCarrito(this.carrito, ctx, labelPagos || '—', venta?.idVenta, new Date());
         }
 
         // Limpieza

@@ -1,37 +1,45 @@
-<!-- Barra superior -->
-<div class="ml-2 md:ml-4 mr-4 md:mr-8 mb-2 flex items-center justify-between">
-  <div class="flex items-center gap-2">
-    <a routerLink="/pages/socio"
-       class="px-3 py-1.5 rounded-md border border-gray-300 bg-white text-sm text-ra-slate hover:bg-gray-50">
-      ← Socios
-    </a>
-    <div>
-      <h1 class="text-2xl font-bold text-ra-slate">Asesorías personalizadas</h1>
-      <div class="text-sm text-ra-slate/80">
-        {{ socioNombre || ('Socio ' + idSocio) }} · {{ socioTelefono || '—' }}
+<!-- Encabezado compacto -->
+<div class="mx-2 md:mx-6 lg:mx-8 mt-3 mb-3">
+  <div
+    class="flex items-center justify-between bg-[color:var(--color-ra-white)] ring-1 ring-black/10 shadow-card rounded-xl2 px-4 py-3">
+
+    <!-- avatar + nombre + teléfono -->
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-xl bg-gray-200 grid place-items-center text-gray-500">
+        <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="8" r="4"></circle>
+          <path d="M4 20c2.5-3 5-4 8-4s5.5 1 8 4" stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="font-semibold text-[color:var(--color-ra-slate)] leading-tight">
+          {{ socioNombre || ('Socio ' + idSocio) }}
+        </div>
+        <div class="text-sm text-[color:var(--color-ra-slate)]/70">
+          {{ socioTelefono || '—' }}
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Selector de tamaño y refrescar -->
-  <div class="flex items-center gap-2">
+    <!-- badge + volver -->
     <div class="flex items-center gap-2">
-      <span class="text-sm text-ra-slate/80">Mostrar</span>
-      <select class="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
-              [ngModel]="tamanio"
-              (ngModelChange)="cambiarTamanioPagina($event)">
-        <option *ngFor="let t of tamaniosDisponibles" [ngValue]="t">{{ t }}</option>
-      </select>
-      <span class="text-sm text-ra-slate/80">por página</span>
+      <span
+        class="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium
+               bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] ring-1 ring-black/5">
+        Asesorías
+      </span>
+      <a routerLink="/pages/socio"
+         class="w-10 h-10 rounded-xl bg-[color:var(--color-ra-azul-fuerte)] text-white grid place-items-center hover:brightness-110"
+         title="Volver">
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+      </a>
     </div>
 
-    <button type="button"
-            class="px-3 py-1.5 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-sm"
-            (click)="cargar()">
-      Actualizar
-    </button>
   </div>
 </div>
+
 
 <!-- Tabla -->
 <div class="rounded-xl2 overflow-hidden ml-2 md:ml-4 mr-4 md:mr-8 bg-ra-white shadow-card ring-1 ring-black/10 text-[13px]">
