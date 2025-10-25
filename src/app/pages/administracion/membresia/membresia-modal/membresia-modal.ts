@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { MembresiaService } from '../../../../services/membresia-service';
-import { PaqueteService,  } from '../../../../services/paquete-service';
+import { PaqueteService } from '../../../../services/paquete-service';
 import { MembresiaData, PagoData } from '../../../../model/membresia-data';
 import { MembresiaPatchRequest } from '../../../../model/membresia-patch';
 import { PaqueteData } from '../../../../model/paquete-data';
@@ -53,15 +53,19 @@ export class MembresiaModal implements OnInit {
     this.srv.buscarPorId(this.idMembresia).subscribe({
       next: (m) => {
         this.data = m;
+
         // fechas (normaliza a yyyy-MM-dd)
         this.fechaInicio.set(this.ymd(m.fechaInicio));
         this.fechaFin.set(this.ymd(m.fechaFin));
+
         // descuento
         this.descuento.set(Number(m.descuento || 0));
-        // pagos
-        const sum = (tipo: string) => (m.pagos ?? []).filter(p => p.tipoPago === tipo)
+
+        // pagos (cargar tal cual)
+        const sum = (tipo: string) => (m.pagos ?? [])
+          .filter(p => p.tipoPago === tipo)
           .reduce((a, p) => a + Number(p.monto || 0), 0);
-        this.efectivo.set(sum('TRANSFERENCIA') === 0 ? sum('EFECTIVO') : sum('EFECTIVO')); // solo por si venías con transf
+        this.efectivo.set(sum('EFECTIVO'));
         this.tarjeta.set(sum('TARJETA'));
         this.transferencia.set(sum('TRANSFERENCIA'));
 
@@ -78,8 +82,16 @@ export class MembresiaModal implements OnInit {
     return Number(this.paqueteNuevo?.precio ?? this.data.paquete?.precio ?? 0);
   });
 
+  /**
+   * ⬅️ Importante:
+   * Si la membresía es de REINSCRIPCION, NO cobramos costoInscripcion,
+   * aun cuando se cambie de paquete dentro del modal.
+   */
   private inscripcionVista = computed<number>(() => {
     if (!this.data) return 0;
+    const esReinscripcion = String(this.data.movimiento) === 'REINSCRIPCION';
+    if (esReinscripcion) return 0;
+
     return Number(this.paqueteNuevo?.costoInscripcion ?? this.data.paquete?.costoInscripcion ?? 0);
   });
 
@@ -138,12 +150,12 @@ export class MembresiaModal implements OnInit {
     // congelamos valores
     const yInicio = this.fechaInicio();
     const yFin    = this.fechaFin();
-    let desc      = this.round2(this.descuento() || 0);
+    const desc    = this.round2(this.descuento() || 0);
 
-    // si cambió de paquete, el total vista se recalcula con el nuevo paquete
+    // total vista ya considera que si es REINSCRIPCION no cobra costoInscripcion
     const totalVista = this.totalCalculadoVista();
 
-    // pagos (ajustamos EFECTIVO si hace falta, como en ventas)
+    // pagos (ajustamos EFECTIVO si hace falta)
     let ef = this.round2(this.efectivo() || 0);
     let tj = selfRound2(this.tarjeta() || 0);
     let tr = selfRound2(this.transferencia() || 0);
@@ -192,19 +204,23 @@ export class MembresiaModal implements OnInit {
       next: (actualizada) => {
         this.guardando = false;
         this.data = actualizada;
+
         // re-sincroniza estado visual con respuesta real
         this.fechaInicio.set(this.ymd(actualizada.fechaInicio));
         this.fechaFin.set(this.ymd(actualizada.fechaFin));
         this.descuento.set(Number(actualizada.descuento || 0));
-        const sum = (tipo: string) => (actualizada.pagos ?? []).filter(p => p.tipoPago === tipo)
+
+        const sum = (tipo: string) => (actualizada.pagos ?? [])
+          .filter(p => p.tipoPago === tipo)
           .reduce((a, p) => a + Number(p.monto || 0), 0);
         this.efectivo.set(sum('EFECTIVO'));
         this.tarjeta.set(sum('TARJETA'));
         this.transferencia.set(sum('TRANSFERENCIA'));
+
         this.paqueteNuevoId = null;
         this.paqueteNuevo = null;
 
-        this.guardado.emit(actualizada); // avisa al padre
+        this.guardado.emit(actualizada);
       },
       error: (err) => {
         this.guardando = false;

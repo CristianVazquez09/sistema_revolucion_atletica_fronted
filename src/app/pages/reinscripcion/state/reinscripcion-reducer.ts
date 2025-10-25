@@ -1,3 +1,4 @@
+// src/app/pages/reinscripcion/state/reinscripcion-reducer.ts
 import { createFeature, createReducer, on } from '@ngrx/store';
 import { initialReinscripcionState } from './reinscripcion-models';
 import { ReinscripcionActions } from './reinscripcion-actions';
@@ -19,5 +20,6 @@ export const reinscripcionFeature = createFeature({
 export const {
   name: REINSCRIPCION_FEATURE_KEY,
   reducer: reinscripcionReducer,
+  // 👇 Selector base ya creado por createFeature
   selectReinscripcionState,
 } = reinscripcionFeature;

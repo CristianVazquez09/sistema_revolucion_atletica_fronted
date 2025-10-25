@@ -69,13 +69,19 @@ export class Entrenador implements OnInit {
       this.cargandoGimnasios = true;
       this.gimnasioSrv.buscarTodos().subscribe({
         next: (lista) => {
-          // Normaliza por si el backend usa "id" en vez de "idGimnasio"
-          this.gimnasios = (lista ?? []).map((g) => ({
+          // ⬇️ Solo gimnasios activos (si no existe el campo, se considera activo)
+          const soloActivos = (lista ?? []).filter(
+            (g: any) => g?.activo !== false
+          );
+
+          // Normaliza por si el backend usa "id" en lugar de "idGimnasio"
+          this.gimnasios = soloActivos.map((g) => ({
             idGimnasio: (g as any).idGimnasio ?? (g as any).id,
             nombre: g.nombre,
             direccion: g.direccion,
             telefono: g.telefono,
           }));
+
           // Preselecciona el primero si estamos creando
           if (!this.entrenadorEditando && this.gimnasios.length) {
             this.form.controls.gimnasioId.setValue(
@@ -83,6 +89,7 @@ export class Entrenador implements OnInit {
               { emitEvent: false }
             );
           }
+
           this.form.controls.gimnasioId.enable({ emitEvent: false });
           this.cargandoGimnasios = false;
           this.cargar();
@@ -129,20 +136,22 @@ export class Entrenador implements OnInit {
 
   // --- CRUD ---
   cargar(): void {
-    this.loading = true;
-    this.error = null;
-    this.entrenadorSrv.buscarTodos().subscribe({
-      next: (data) => {
-        this.entrenadores = data ?? [];
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error(err);
-        this.loading = false;
-        this.error = 'No se pudieron cargar los entrenadores.';
-      },
-    });
-  }
+  this.loading = true;
+  this.error = null;
+  this.entrenadorSrv.buscarTodos().subscribe({
+    next: (data) => {
+      // ⬇️ Solo entrenadores activos (si no existe el campo, se considera activo)
+      this.entrenadores = (data ?? []).filter((e: any) => e?.activo !== false);
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error(err);
+      this.loading = false;
+      this.error = 'No se pudieron cargar los entrenadores.';
+    },
+  });
+}
+
 
   guardar(): void {
     if (this.form.invalid) {

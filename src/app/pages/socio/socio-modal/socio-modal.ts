@@ -40,7 +40,7 @@ export class SocioModal implements OnInit, OnDestroy {
     telefono:        new FormControl('', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]),
     email:           new FormControl('', [Validators.email, Validators.maxLength(120)]),
     direccion:       new FormControl('', [Validators.maxLength(200)]),
-    genero:          new FormControl(null as 'MASCULINO' | 'FEMENINO' | 'OTRO' | null, [Validators.required]),
+    genero:          new FormControl(null as 'MASCULINO' | 'FEMENINO'  | null, [Validators.required]),
     fechaNacimiento: new FormControl(null as string | null, [Validators.required]),
     comentarios:     new FormControl(''),
 
@@ -164,9 +164,25 @@ export class SocioModal implements OnInit, OnDestroy {
     this.guardando = true;
 
     const f = this.formulario.getRawValue();
-    const gymId = this.isAdmin ? this.formulario.controls['gimnasioId'].value : null;
 
-    // Construir payload
+    // Determinar/Conservar estado activo:
+    // - Si es creación => true
+    // - Si es edición  => conservar lo que tenga el socio; si viene undefined, forzar true
+    const activo = this.socio ? (this.socio.activo !== false) : true;
+
+    // Gimnasio a enviar:
+    // - Admin: el seleccionado en el form
+    // - No admin: conservar el mismo gimnasio del socio (si existe) para evitar que el backend lo borre con un replace
+    let gymObj: { id: number } | undefined;
+    if (this.isAdmin) {
+      const gymId = this.formulario.controls['gimnasioId'].value;
+      if (gymId != null) gymObj = { id: Number(gymId) };
+    } else if (this.socio?.gimnasio) {
+      const gid = (this.socio.gimnasio as any).id ?? (this.socio.gimnasio as any).idGimnasio;
+      if (gid != null) gymObj = { id: Number(gid) };
+    }
+
+    // Construir payload COMPLETO (para backends que hacen replace)
     const basePayload: SocioData = {
       idSocio: this.socio?.idSocio ?? 0,
       nombre: f.nombre!,
@@ -176,17 +192,15 @@ export class SocioModal implements OnInit, OnDestroy {
       direccion: f.direccion ?? '',
       genero: f.genero!,
       fechaNacimiento: f.fechaNacimiento!,
-      comentarios: f.comentarios ?? ''
-    };
+      comentarios: f.comentarios ?? '',
+      activo // <-- clave para NO perder el estado
+    } as SocioData;
 
-    // Adjuntar gimnasio si es admin (el backend de socios puede usar id o idGimnasio; mandamos ambos)
-    const payloadConGym: any = this.isAdmin && gymId
-      ? { ...basePayload, gimnasio: { idGimnasio: Number(gymId), id: Number(gymId) } }
-      : basePayload;
+    const payload: any = gymObj ? { ...basePayload, gimnasio: gymObj } : basePayload;
 
     const obs = this.socio
-      ? this.socioService.actualizar(this.socio.idSocio, payloadConGym)
-      : this.socioService.guardar(payloadConGym as SocioData);
+      ? this.socioService.actualizar(this.socio.idSocio, payload)
+      : this.socioService.guardar(payload as SocioData);
 
     obs.subscribe({
       next: () => { this.guardando = false; this.guardado.emit(); },

@@ -135,17 +135,23 @@ export class Socio implements OnInit, OnDestroy {
 
   // ─────────── Carga y manejo de respuestas ───────────
   private aplicarRespuesta(resp: PagedResponse<SocioData>): void {
-    this.listaSocios = resp.contenido ?? [];
-    this.totalPaginas = resp.pagina?.totalPaginas ?? 0;
-    this.totalElementos = resp.pagina?.totalElementos ?? 0;
-    this.tamanioPagina = resp.pagina?.tamanio ?? this.tamanioPagina;
-    this.paginaActual = resp.pagina?.numero ?? this.paginaActual;
+  // ⬇️ Filtra solo activos para mostrar
+  this.listaSocios = this.soloActivos(resp.contenido);
 
-    if (this.listaSocios.length === 0 && this.paginaActual > 0) {
-      this.paginaActual = this.paginaActual - 1;
-      this.cargarSocios();
-    }
+  // Mantén la paginación que te manda el backend
+  this.totalPaginas   = resp.pagina?.totalPaginas   ?? 0;
+  this.totalElementos = resp.pagina?.totalElementos ?? 0;
+  this.tamanioPagina  = resp.pagina?.tamanio        ?? this.tamanioPagina;
+  this.paginaActual   = resp.pagina?.numero         ?? this.paginaActual;
+
+  // Si la página viene vacía (después del filtro podrían quedar 0),
+  // intenta retroceder una página para no dejar la UI en blanco.
+  if (this.listaSocios.length === 0 && this.paginaActual > 0) {
+    this.paginaActual = this.paginaActual - 1;
+    this.cargarSocios();
   }
+}
+
 
   cargarSocios(): void {
     this.cargando = true;
@@ -213,12 +219,21 @@ export class Socio implements OnInit, OnDestroy {
     this.cargarSocios();
   }
   eliminarSocio(s: SocioData): void {
-    if (!confirm(`¿Eliminar al socio "${s.nombre} ${s.apellido}"?`)) return;
-    this.socioService.eliminar(s.idSocio).subscribe({
-      next: () => this.cargarSocios(),
-      error: () => this.notificacion.error('No se pudo eliminar.'),
-    });
-  }
+  if (!s?.idSocio) return;
+  if (!confirm(`¿Desactivar al socio "${s.nombre} ${s.apellido}"?`)) return;
+
+  const actualizado: SocioData = { ...s, activo: false };
+
+  // Usamos actualizar en lugar de eliminar:
+  this.socioService.actualizar(s.idSocio, actualizado).subscribe({
+    next: () => {
+      this.notificacion.exito('Socio desactivado.');
+      this.cargarSocios();
+    },
+    error: () => this.notificacion.error('No se pudo desactivar al socio.'),
+  });
+}
+
 
   verHistorial(s: SocioData): void {
     if (!s?.idSocio) return;
@@ -236,6 +251,15 @@ export class Socio implements OnInit, OnDestroy {
   }
   verAsesorias(s: SocioData): void {
   if (!s?.idSocio) return;
-  this.router.navigate(['/pages/socio', s.idSocio, 'asesorias']);
+  this.router.
+  
+  navigate(['/pages/socio', s.idSocio, 'asesorias']);
 }
+
+/** Devuelve solo elementos cuyo atributo `activo` NO sea false.
+ *  Si no viene el campo, se consideran activos. */
+private soloActivos<T>(arr: T[] | null | undefined): T[] {
+  return (arr ?? []).filter((x: any) => x?.activo !== false);
+}
+
 }

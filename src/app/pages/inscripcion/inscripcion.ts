@@ -135,21 +135,33 @@ export class Inscripcion implements OnInit {
   }
 
   private cargarPaquetes(): void {
-    this.cargandoPaquetes = true;
-    this.paqueteSrv.buscarTodos().subscribe({
-      next: lista => {
-        this.listaPaquetes = lista ?? [];
-        this.cargandoPaquetes = false;
-        this.store.dispatch(InscripcionActions.setListaPaquetes({ paquetes: this.listaPaquetes }));
-        const idInit = Number(this.formularioInscripcion.controls.paqueteId.value ?? 0);
-        this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: idInit }));
-      },
-      error: () => {
-        this.cargandoPaquetes = false;
-        this.mensajeError = 'No se pudieron cargar los paquetes.';
+  this.cargandoPaquetes = true;
+  this.paqueteSrv.buscarTodos().subscribe({
+    next: (lista) => {
+      // ⬇️ Quedarnos SOLO con activos (si falta el campo, se asume activo)
+      const activos = (lista ?? []).filter(p => p?.activo !== false);
+
+      // Asigna a la lista local y al store
+      this.listaPaquetes = activos;
+      this.cargandoPaquetes = false;
+      this.store.dispatch(InscripcionActions.setListaPaquetes({ paquetes: activos }));
+
+      // Validar el paqueteId actual contra la lista activa
+      const idInit = Number(this.formularioInscripcion.controls.paqueteId.value ?? 0);
+      const valido = activos.some(p => Number(p.idPaquete) === idInit) ? idInit : 0;
+
+      if (valido !== idInit) {
+        this.formularioInscripcion.controls.paqueteId.setValue(valido, { emitEvent: false });
       }
-    });
-  }
+      this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: valido }));
+    },
+    error: () => {
+      this.cargandoPaquetes = false;
+      this.mensajeError = 'No se pudieron cargar los paquetes.';
+    }
+  });
+}
+
 
   abrirModalResumen(): void {
     const faltantes = this.camposFaltantes();

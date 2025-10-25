@@ -147,14 +147,25 @@ export class PuntoVenta implements OnInit {
 
   // === Categorías / Productos ===
   private cargarCategorias(): void {
-    this.cargandoCategorias = true;
-    this.error = null;
+  this.cargandoCategorias = true;
+  this.error = null;
 
-    this.categoriaSrv.buscarTodos().subscribe({
-      next: (lista) => { this.categorias = lista ?? []; this.cargandoCategorias = false; this.modo = 'categorias'; },
-      error: () => { this.cargandoCategorias = false; this.error = 'No se pudieron cargar las categorías.'; },
-    });
-  }
+  this.categoriaSrv.buscarTodos().subscribe({
+    next: (lista) => {
+      // 👇 Solo activas (si no trae 'activo', lo asumimos como true)
+      this.categorias = (lista ?? []).filter(c => c?.activo !== false);
+      this.cargandoCategorias = false;
+      this.modo = 'categorias';
+      // reset de paginación si la página actual queda fuera
+      this.paginaCategorias = Math.min(this.paginaCategorias, Math.max(0, this.totalPagCats - 1));
+    },
+    error: () => {
+      this.cargandoCategorias = false;
+      this.error = 'No se pudieron cargar las categorías.';
+    },
+  });
+}
+
 
   seleccionarCategoria(c: CategoriaData): void {
     if (!c?.idCategoria) return;

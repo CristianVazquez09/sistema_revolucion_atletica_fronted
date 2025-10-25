@@ -122,20 +122,23 @@ export class Categoria implements OnInit {
   }
 
   private cargarCategorias(): void {
-    this.loading = true;
-    this.error = null;
-    this.categoriaSrv.buscarTodos().subscribe({
-      next: data => {
-        this.categorias = (data ?? []).filter(Boolean);
-        this.loading = false;
-      },
-      error: err => {
-        console.error(err);
-        this.loading = false;
-        this.error = 'No se pudieron cargar las categorías.';
-      }
-    });
-  }
+  this.loading = true;
+  this.error = null;
+
+  this.categoriaSrv.buscarTodos().subscribe({
+    next: data => {
+      // 👇 Solo mostrar activas (si no trae campo, se asume activa)
+      this.categorias = (data ?? []).filter(c => c?.activo !== false);
+      this.loading = false;
+    },
+    error: err => {
+      console.error(err);
+      this.loading = false;
+      this.error = 'No se pudieron cargar las categorías.';
+    }
+  });
+}
+
 
   // --- Guardar (crear/actualizar) ---
   guardar(): void {
@@ -203,15 +206,21 @@ export class Categoria implements OnInit {
   }
 
   // --- Eliminar ---
-  eliminar(c: CategoriaData) {
-    if (!c.idCategoria) return;
-    if (!confirm(`¿Eliminar categoría "${c.nombre}"?`)) return;
+  desactivar(c: CategoriaData) {
+  if (!c?.idCategoria) return;
+  if (!confirm(`¿Desactivar categoría "${c.nombre}"?`)) return;
 
-    this.categoriaSrv.eliminar(c.idCategoria).subscribe({
-      next: () => { this.notificacion.exito('Categoría eliminada.'); this.cargarCategorias(); },
-      error: () => this.notificacion.error('No se pudo eliminar la categoría.')
-    });
-  }
+  const actualizado: CategoriaData = { ...c, activo: false };
+
+  this.categoriaSrv.actualizar(c.idCategoria, actualizado).subscribe({
+    next: () => {
+      this.notificacion.exito('Categoría desactivada.');
+      this.cargarCategorias();
+    },
+    error: () => this.notificacion.error('No se pudo desactivar la categoría.')
+  });
+}
+
 
   // --- Helpers de template ---
   get esEdicion(): boolean { return !!this.categoriaEditando; }

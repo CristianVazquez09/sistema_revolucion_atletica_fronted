@@ -9,6 +9,7 @@ export interface ProductoData {
   precioVenta: number;
   cantidad: number;
   categoria: CategoriaData;
+  activo:boolean;
   gimnasio?: GimnasioData;
   
 }

@@ -442,10 +442,26 @@ ${this.baseStyles()}
 
   // ===== Infra =====
   private abrirYImprimir(html: string, nombreArchivo: string) {
-    const popup = window.open('', '_blank', 'width=380,height=600,noopener,noreferrer');
-    if (!popup) { this.descargarHtml(nombreArchivo, html); return; }
-    popup.document.open(); popup.document.write(html); popup.document.close();
+  const sanitized = html.replace('onload="window.print();window.close();"', '');
+  const electronApi = (window as any)?.electron;
+
+  if (electronApi?.printTicket) {
+    const preferred = localStorage.getItem('ra_printer_name') || undefined;
+    electronApi.printTicket(sanitized, preferred)
+      .catch((err: any) => console.error('[TicketService] Error al imprimir:', err));
+    return;
   }
+
+  // Fallback navegador (lo que ya tenías)
+  const win = window.open('', '_blank', 'width=380,height=600,noopener,noreferrer');
+  if (!win) { this.descargarHtml(nombreArchivo, sanitized); return; }
+  win.document.open(); win.document.write(sanitized); win.document.close();
+  const doPrint = () => { try { win.focus(); win.print(); } finally { setTimeout(() => win.close(), 300); } };
+  if (win.document.readyState === 'complete') setTimeout(doPrint, 100);
+  else win.addEventListener('load', () => setTimeout(doPrint, 100));
+}
+
+
 
   private baseStyles(): string {
     return `

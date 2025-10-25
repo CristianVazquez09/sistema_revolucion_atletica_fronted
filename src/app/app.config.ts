@@ -14,6 +14,7 @@ import { provideState } from '@ngrx/store';
 import { environment } from '../environments/environment';
 import { inscripcionFeature } from './pages/inscripcion/state/inscripcion-reducer';
 import { TenantInterceptor } from './core/tenant.interceptor';
+import { REINSCRIPCION_FEATURE_KEY, reinscripcionReducer } from './pages/reinscripcion/state/reinscripcion-reducer';
 
 export function tokenGetter() {
   return sessionStorage.getItem(environment.TOKEN_NAME);
@@ -45,6 +46,7 @@ export const appConfig: ApplicationConfig = {
     provideStore(),
     provideState(inscripcionFeature),
     { provide: LOCALE_ID, useValue: 'es-MX' },
+     provideState(REINSCRIPCION_FEATURE_KEY, reinscripcionReducer),
     
     
   ],

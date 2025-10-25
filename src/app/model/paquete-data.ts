@@ -8,5 +8,6 @@ export interface PaqueteData {
   tiempo: TiempoPlan;
   costoInscripcion: number;
   gimnasio?: GimnasioData;
+  activo:boolean;
 }
 

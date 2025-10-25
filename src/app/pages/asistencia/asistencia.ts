@@ -24,23 +24,23 @@ type EstadoSemaforo = 'verde' | 'amarillo' | 'rojo';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink, TiempoPlanLabelPipe],
   templateUrl: './asistencia.html',
-  styleUrl: './asistencia.css'
+  styleUrl: './asistencia.css',
 })
 export class Asistencia implements OnInit {
   // ───────────────────── Inyección de dependencias ─────────────────────
-  private readonly formBuilder     = inject(FormBuilder);
-  private readonly socioService    = inject(SocioService);
-  private readonly membresiaService= inject(MembresiaService);
-  private readonly notificaciones  = inject(NotificacionService);
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly socioService = inject(SocioService);
+  private readonly membresiaService = inject(MembresiaService);
+  private readonly notificaciones = inject(NotificacionService);
   private readonly asistenciaStore = inject(AsistenciaStore);
-  private readonly jwtHelper       = inject(JwtHelperService);
+  private readonly jwtHelper = inject(JwtHelperService);
 
   // ───────────────────── Formulario ─────────────────────
   formulario = this.formBuilder.nonNullable.group({
     idSocio: this.formBuilder.nonNullable.control<string>('', [
       Validators.required,
-      Validators.pattern(/^\d+$/)
-    ])
+      Validators.pattern(/^\d+$/),
+    ]),
   });
 
   // ───────────────────── Estado de vista ─────────────────────
@@ -54,25 +54,45 @@ export class Asistencia implements OnInit {
   // Fecha actual
   hoy = hoyISO();
   get fechaHoyTexto(): string {
-    const opts: Intl.DateTimeFormatOptions = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+    const opts: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    };
     const s = new Date().toLocaleDateString('es-MX', opts);
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
   // ───────────────────── Derivados de UI ─────────────────────
+  // ───────────── NUEVO: respeta socio inactivo ─────────────
+  private socioInactivo = computed(() => {
+    const s = this.socio();
+    return !!s && (s as any)?.activo === false;
+  });
+
+  // Si el socio está inactivo, TODAS las tarjetas se pintan en rojo
   tarjetas = computed(() =>
-    (this.membresias() ?? []).map(m => ({
+    (this.membresias() ?? []).map((m) => ({
       ...m,
-      estado: this.calcularSemaforo(m.fechaFin) as EstadoSemaforo
+      estado: this.socioInactivo()
+        ? ('rojo' as EstadoSemaforo)
+        : (this.calcularSemaforo(m.fechaFin) as EstadoSemaforo),
     }))
   );
 
-  autorizado = computed(() => this.tarjetas().some(t => t.estado !== 'rojo'));
+  // Si está inactivo, no está autorizado aunque tenga membresía vigente
+  autorizado = computed(
+    () =>
+      !this.socioInactivo() && this.tarjetas().some((t) => t.estado !== 'rojo')
+  );
 
+  // Si está inactivo, no mostramos próxima fecha de pago
   proximaFechaPago = computed(() => {
+    if (this.socioInactivo()) return null;
     const fechas = this.tarjetas()
-      .filter(t => t.estado !== 'rojo')
-      .map(t => t.fechaFin!)
+      .filter((t) => t.estado !== 'rojo')
+      .map((t) => t.fechaFin!)
       .filter(Boolean)
       .sort();
     return fechas[0] ?? null;
@@ -86,7 +106,9 @@ export class Asistencia implements OnInit {
   // ───────────────────── Acciones públicas (compatibles con el HTML) ─────────────────────
   buscar(): void {
     if (this.formulario.invalid) {
-      this.notificaciones.aviso('Ingresa un ID numérico de socio (solo dígitos).');
+      this.notificaciones.aviso(
+        'Ingresa un ID numérico de socio (solo dígitos).'
+      );
       this.formulario.markAllAsTouched();
       return;
     }
@@ -124,7 +146,7 @@ export class Asistencia implements OnInit {
     this.error = null;
 
     const socio$ = this.socioService.buscarPorId(id).pipe(
-      catchError(err => {
+      catchError((err) => {
         // No pertenece al gimnasio o no existe
         if (err?.status === 403 || err?.status === 404) return of(null);
         // Otros errores suben al bloque error del subscribe
@@ -132,10 +154,12 @@ export class Asistencia implements OnInit {
       })
     );
 
-    const membresias$ = this.membresiaService.buscarMembresiasVigentesPorSocio(id).pipe(
-      // Si fallan, no tumbamos todo; mostramos aviso y seguimos con socio si existe
-      catchError(() => of([] as MembresiaData[]))
-    );
+    const membresias$ = this.membresiaService
+      .buscarMembresiasVigentesPorSocio(id)
+      .pipe(
+        // Si fallan, no tumbamos todo; mostramos aviso y seguimos con socio si existe
+        catchError(() => of([] as MembresiaData[]))
+      );
 
     forkJoin({ socio: socio$, membresias: membresias$ })
       .pipe(finalize(() => (this.cargando = false)))
@@ -152,7 +176,8 @@ export class Asistencia implements OnInit {
           this.asistenciaStore.guardarEstado(id, socio, membresias ?? []);
           this.persistirIdSocioDeTenant(id);
         },
-        error: (e) => this.notificarError(e, 'No se pudo realizar la consulta.')
+        error: (e) =>
+          this.notificarError(e, 'No se pudo realizar la consulta.'),
       });
   }
 
@@ -161,10 +186,12 @@ export class Asistencia implements OnInit {
     if (!fechaFinISO) return 'rojo';
     const hoy = new Date(this.hoy + 'T00:00:00');
     const fin = new Date(fechaFinISO + 'T00:00:00');
-    const dias = Math.floor((fin.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+    const dias = Math.floor(
+      (fin.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24)
+    );
     if (dias > 3) return 'verde';
-    if (dias > 0) return 'amarillo';  // 1–3 días
-    return 'rojo';                    // hoy o vencido
+    if (dias > 0) return 'amarillo'; // 1–3 días
+    return 'rojo'; // hoy o vencido
   }
 
   private formatearId(id?: number | null): string {
@@ -180,29 +207,44 @@ export class Asistencia implements OnInit {
   }
 
   /** Mensaje claro según contexto y status. */
-  private mensajeLegible(err: any, ctx: 'SOCIO' | 'MEMBRESIAS' | 'GEN', fallback: string): string {
+  private mensajeLegible(
+    err: any,
+    ctx: 'SOCIO' | 'MEMBRESIAS' | 'GEN',
+    fallback: string
+  ): string {
     const body = err?.error ?? {};
     const fromBody = body.message ?? body.error ?? body.title ?? null;
 
     // Validación 422 con detalles
     if (Array.isArray(body.errors) && body.errors.length) {
       const first = body.errors[0];
-      const detail = first?.defaultMessage || first?.message || JSON.stringify(first);
+      const detail =
+        first?.defaultMessage || first?.message || JSON.stringify(first);
       return fromBody ? `${fromBody}: ${detail}` : detail;
     }
 
     switch (err?.status) {
-      case 0:   return 'Sin conexión con el servidor.';
-      case 400: return ctx === 'SOCIO' ? (fromBody ?? 'El ID de socio no es válido.') : (fromBody ?? 'Solicitud inválida.');
-      case 401: return fromBody ?? 'Tu sesión expiró o no estás autenticado (401).';
+      case 0:
+        return 'Sin conexión con el servidor.';
+      case 400:
+        return ctx === 'SOCIO'
+          ? fromBody ?? 'El ID de socio no es válido.'
+          : fromBody ?? 'Solicitud inválida.';
+      case 401:
+        return fromBody ?? 'Tu sesión expiró o no estás autenticado (401).';
       case 403:
       case 404:
-        if (ctx === 'SOCIO') return 'Socio no encontrado o no pertenece a tu gimnasio.';
+        if (ctx === 'SOCIO')
+          return 'Socio no encontrado o no pertenece a tu gimnasio.';
         return fromBody ?? 'No se encontraron datos.';
-      case 409: return fromBody ?? 'Conflicto de datos (409).';
-      case 422: return fromBody ?? 'Datos inválidos (422).';
-      case 500: return fromBody ?? 'Error interno del servidor (500).';
-      default:  return fromBody ?? err?.message ?? fallback;
+      case 409:
+        return fromBody ?? 'Conflicto de datos (409).';
+      case 422:
+        return fromBody ?? 'Datos inválidos (422).';
+      case 500:
+        return fromBody ?? 'Error interno del servidor (500).';
+      default:
+        return fromBody ?? err?.message ?? fallback;
     }
   }
 
@@ -218,24 +260,29 @@ export class Asistencia implements OnInit {
       const decoded: any = this.jwtHelper.decodeToken(token);
       const tenantId = decoded?.tenantId ?? decoded?.gimnasioId ?? null;
       const user = decoded?.preferred_username ?? decoded?.sub ?? 'user';
-      return tenantId != null ? `asistenciaSocioId@tenant:${tenantId}|user:${user}` : null;
+      return tenantId != null
+        ? `asistenciaSocioId@tenant:${tenantId}|user:${user}`
+        : null;
     } catch {
       return null;
     }
   }
 
   private persistirIdSocioDeTenant(id: number): void {
-    const key = this.clavePersistencia(); if (key) sessionStorage.setItem(key, String(id));
+    const key = this.clavePersistencia();
+    if (key) sessionStorage.setItem(key, String(id));
   }
 
   private leerIdSocioPersistidoDeTenant(): number | null {
-    const key = this.clavePersistencia(); if (!key) return null;
+    const key = this.clavePersistencia();
+    if (!key) return null;
     const raw = sessionStorage.getItem(key);
     const id = raw ? Number(raw) : NaN;
     return Number.isFinite(id) ? id : null;
   }
 
   private limpiarIdSocioPersistidoDeTenant(): void {
-    const key = this.clavePersistencia(); if (key) sessionStorage.removeItem(key);
+    const key = this.clavePersistencia();
+    if (key) sessionStorage.removeItem(key);
   }
 }

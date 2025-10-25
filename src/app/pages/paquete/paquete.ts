@@ -61,17 +61,21 @@ export class Paquete implements OnInit {
 
   // Acciones
   cargarPaquetes(): void {
-    this.estaCargando = true;
-    this.mensajeError = null;
+  this.estaCargando = true;
+  this.mensajeError = null;
 
-    this.servicioPaquetes
-      .buscarTodos()
-      .pipe(finalize(() => (this.estaCargando = false)))
-      .subscribe({
-        next: (data) => { this.listaPaquetes = data ?? []; },
-        error: () => { this.mensajeError = 'No se pudo cargar la lista de paquetes.'; },
-      });
-  }
+  this.servicioPaquetes
+    .buscarTodos()
+    .pipe(finalize(() => (this.estaCargando = false)))
+    .subscribe({
+      next: (data) => {
+        // Muestra solo los activos (si alguno viene sin campo, lo tratamos como activo)
+        this.listaPaquetes = (data ?? []).filter(p => p?.activo !== false);
+      },
+      error: () => { this.mensajeError = 'No se pudo cargar la lista de paquetes.'; },
+    });
+}
+
 
   abrirModalParaCrear(): void {
     this.paqueteEnEdicion = null;
@@ -92,13 +96,28 @@ export class Paquete implements OnInit {
     this.cargarPaquetes();
   }
 
-  eliminarPaquete(paquete: PaqueteData): void {
-    if (!confirm(`¿Eliminar paquete "${paquete.nombre}"?`)) return;
-    this.servicioPaquetes.eliminar(paquete.idPaquete).subscribe({
-      next: () => this.cargarPaquetes(),
-      error: () => this.notificacion.error('No se pudo eliminar.'),
-    });
-  }
+  // src/app/pages/paquete/paquete.ts (tu componente)
+// src/app/pages/paquete/paquete.ts
+desactivarPaquete(paquete: PaqueteData): void {
+  if (!paquete?.idPaquete) return;
+  if (!confirm(`¿Desactivar paquete "${paquete.nombre}"?`)) return;
+
+  // Clonamos y marcamos inactivo
+  const actualizado: PaqueteData = {
+    ...paquete,
+    activo: false
+  };
+
+  this.servicioPaquetes.actualizar(paquete.idPaquete, actualizado).subscribe({
+    next: () => {
+      this.notificacion.exito('Paquete desactivado.');
+      this.cargarPaquetes();
+    },
+    error: () => this.notificacion.error('No se pudo desactivar el paquete.'),
+  });
+}
+
+
 
   // Dentro de tu clase Paquete
 displayGimnasio(p: PaqueteData): string {

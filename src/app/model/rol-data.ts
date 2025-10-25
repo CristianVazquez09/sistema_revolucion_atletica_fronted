@@ -3,3 +3,5 @@ export interface RolData {
     nombre: string
     descripcion?:string
 }
+
+

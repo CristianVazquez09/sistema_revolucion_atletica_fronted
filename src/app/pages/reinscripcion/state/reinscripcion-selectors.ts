@@ -1,30 +1,51 @@
+// src/app/pages/reinscripcion/state/reinscripcion-selectors.ts
 import { createSelector } from '@ngrx/store';
 import { selectReinscripcionState } from './reinscripcion-reducer';
-import { calcularFechaFin, calcularTotal } from '../../../util/fechas-precios';
+import { ReinscripcionState } from './reinscripcion-models';
 
-export const selectListaPaquetes = createSelector(selectReinscripcionState, s => s.listaPaquetes);
-export const selectPaqueteId     = createSelector(selectReinscripcionState, s => s.paqueteId);
-export const selectDescuento     = createSelector(selectReinscripcionState, s => s.descuento);
-export const selectFechaInicio   = createSelector(selectReinscripcionState, s => s.fechaInicio);
-
-export const selectPaqueteActual = createSelector(
-  selectListaPaquetes, selectPaqueteId,
-  (lista, id) => lista.find(p => p.idPaquete === id) ?? null
+export const selectListaPaquetes = createSelector(
+  selectReinscripcionState,
+  (s: ReinscripcionState) => s.listaPaquetes
 );
 
-export const selectPrecioPaquete = createSelector(selectPaqueteActual, p => p?.precio ?? 0);
+export const selectPaqueteId = createSelector(
+  selectReinscripcionState,
+  (s: ReinscripcionState) => s.paqueteId
+);
 
-export const selectTotalVista = createSelector(
-  selectPrecioPaquete, selectDescuento,
-  (precio, descuento) => calcularTotal(precio, descuento) // reinscripción no cobra inscripción
+export const selectDescuento = createSelector(
+  selectReinscripcionState,
+  (s: ReinscripcionState) => s.descuento
+);
+
+export const selectFechaInicio = createSelector(
+  selectReinscripcionState,
+  (s: ReinscripcionState) => s.fechaInicio
+);
+
+export const selectPaqueteActual = createSelector(
+  selectListaPaquetes,
+  selectPaqueteId,
+  (lista, id) => lista.find(p => Number(p.idPaquete) === Number(id)) ?? null
+);
+
+export const selectPrecioPaquete = createSelector(
+  selectPaqueteActual,
+  (p) => Number(p?.precio ?? 0)
 );
 
 export const selectTotalSinDescuento = createSelector(
   selectPrecioPaquete,
-  (precio) => calcularTotal(precio, 0)
+  (precio) => precio
+);
+
+export const selectTotalVista = createSelector(
+  selectPrecioPaquete,
+  selectDescuento,
+  (precio, descuento) => Math.max(0, Number(precio) - Number(descuento || 0))
 );
 
 export const selectFechaPagoVista = createSelector(
-  selectFechaInicio, selectPaqueteActual,
-  (inicio, p) => calcularFechaFin(inicio, p?.tiempo ?? null)
+  selectFechaInicio,
+  (f) => f
 );

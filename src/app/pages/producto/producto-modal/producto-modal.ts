@@ -80,58 +80,64 @@ export class ProductoModal implements OnInit, OnDestroy {
 
   // ===== Cargas =====
   private cargarGimnasios(done?: () => void): void {
-    this.cargandoGimnasios = true;
-    this.gimnasioSrv.buscarTodos().subscribe({
-      next: (lista) => {
-        // Normaliza: siempre idGimnasio
-        const vistos = new Set<number>();
-        this.gimnasios = (lista ?? [])
-          .map((g: any) => ({
-            idGimnasio: typeof g.idGimnasio === 'number' ? g.idGimnasio : Number(g.id),
-            nombre: g.nombre,
-            direccion: g.direccion,
-            telefono: g.telefono
-          } as GimnasioData))
-          .filter(g => {
-            if (!g.idGimnasio) return false;
-            if (vistos.has(g.idGimnasio)) return false;
-            vistos.add(g.idGimnasio);
-            return true;
-          });
+  this.cargandoGimnasios = true;
+  this.gimnasioSrv.buscarTodos().subscribe({
+    next: (lista) => {
+      // ⬇️ Toma solo gimnasios activos (si no existe el campo, lo consideramos activo)
+      const soloActivos = (lista ?? []).filter((g: any) => g?.activo !== false);
 
-        this.cargandoGimnasios = false;
+      // Normaliza: siempre idGimnasio
+      const vistos = new Set<number>();
+      this.gimnasios = soloActivos
+        .map((g: any) => ({
+          idGimnasio: typeof g.idGimnasio === 'number' ? g.idGimnasio : Number(g.id),
+          nombre: g.nombre,
+          direccion: g.direccion,
+          telefono: g.telefono
+        } as GimnasioData))
+        .filter(g => {
+          if (!g.idGimnasio) return false;
+          if (vistos.has(g.idGimnasio)) return false;
+          vistos.add(g.idGimnasio);
+          return true;
+        });
 
-        // Si no es edición, preselecciona el primero
-        if (!this.producto && this.gimnasios.length) {
-          this.form.controls.gimnasioId.setValue(this.gimnasios[0].idGimnasio, { emitEvent: false });
-        }
+      this.cargandoGimnasios = false;
 
-        done?.();
-      },
-      error: () => { this.cargandoGimnasios = false; done?.(); }
-    });
-  }
+      // Si no es edición, preselecciona el primero
+      if (!this.producto && this.gimnasios.length) {
+        this.form.controls.gimnasioId.setValue(this.gimnasios[0].idGimnasio, { emitEvent: false });
+      }
+
+      done?.();
+    },
+    error: () => { this.cargandoGimnasios = false; done?.(); }
+  });
+}
+
 
   private cargarCategorias(done?: () => void): void {
-    this.cargandoCategorias = true;
-    this.categoriaSrv.buscarTodos().subscribe({
-      next: (data) => {
-        this.categorias = data ?? [];
-        this.cargandoCategorias = false;
+  this.cargandoCategorias = true;
+  this.categoriaSrv.buscarTodos().subscribe({
+    next: (data) => {
+      // ⬇️ Solo categorías activas (si no existe el campo, lo consideramos activo)
+      this.categorias = (data ?? []).filter((c: any) => c?.activo !== false);
+      this.cargandoCategorias = false;
 
-        if (!this.isAdmin) {
-          this.categoriasFiltradas = [...this.categorias];
-        }
-
-        done?.();
-      },
-      error: () => {
-        this.cargandoCategorias = false;
-        this.error = 'No se pudieron cargar categorías.';
-        done?.();
+      if (!this.isAdmin) {
+        this.categoriasFiltradas = [...this.categorias];
       }
-    });
-  }
+
+      done?.();
+    },
+    error: () => {
+      this.cargandoCategorias = false;
+      this.error = 'No se pudieron cargar categorías.';
+      done?.();
+    }
+  });
+}
+
 
   private precargarEdicion(): void {
     if (!this.producto) return;
