@@ -1,0 +1,21 @@
+/* Asegura que el componente pueda encoger y permitir scroll interno */
+:host {
+  display: block;
+  min-height: 0;
+}
+
+/* Ajusta este offset a tu layout real:
+   260px ≈ (header + márgenes + alto del card de formulario).
+   Si ves que aún “se sale”, baja este número; si sobra espacio, súbelo. */
+.scroll-card {
+  height: calc(100dvh - 260px);
+  overflow: hidden;           /* el scroll ocurre en .scroll-inner */
+  border-radius: 14px;        /* mantén redondeo del card */
+}
+
+.scroll-inner {
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable both-edges; /* evita saltos al aparecer la barra */
+}

@@ -1,15 +1,14 @@
 <!-- Encabezado -->
 <div class="mx-2 md:mx-6 lg:mx-8 mb-4 flex items-center justify-between">
   <h1 class="text-2xl font-bold text-[color:var(--color-ra-slate)]">Categorías</h1>
-
   <a routerLink="/pages/inventario"
      class="px-4 py-2 rounded-md shadow-card text-white bg-[color:var(--color-ra-azul-fuerte)] hover:brightness-110">
     Volver a productos
   </a>
 </div>
 
-<!-- Card formulario (crear/editar) -->
-<div class="mx-2 md:mx-6 lg:mx-8 mb-6 card">
+<!-- Card formulario -->
+<div class="mx-2 md:mx-6 lg:mx-8 mb-4 card">
   <div class="card-header flex items-center justify-between">
     <div class="flex items-center gap-3">
       <h2 class="text-xl font-semibold text-[color:var(--color-ra-slate)]">
@@ -24,8 +23,6 @@
   </div>
 
   <form class="p-6 space-y-4" [formGroup]="form" (ngSubmit)="guardar()">
-
-    <!-- SOLO ADMIN: selector de gimnasio (sin [disabled]; se maneja en TS) -->
     @if (isAdmin) {
       <div>
         <label class="block text-sm font-medium mb-1">Gimnasio</label>
@@ -48,7 +45,6 @@
       </div>
     }
 
-    <!-- Nombre -->
     <div>
       <label class="block text-sm font-medium mb-1">Nombre</label>
       <input formControlName="nombre" class="input-filled" placeholder="Nombre de la categoría*">
@@ -57,7 +53,6 @@
       }
     </div>
 
-    <!-- Acciones -->
     <div class="flex justify-end gap-2">
       @if (esEdicion) {
         <button type="button"
@@ -75,66 +70,74 @@
   </form>
 </div>
 
-<!-- Tabla categorías -->
-<div class="shadow-card rounded-xl2 overflow-hidden mx-2 md:mx-6 lg:mx-8 bg-white ring-1 ring-black/10">
-  <div class="overflow-x-auto">
-    <table class="w-full table-fixed">
-      <colgroup>
-        <col class="w-[14%]"> <!-- ID -->
-        <col class="w-[48%]"> <!-- Nombre -->
-        @if (isAdmin) { <col class="w-[20%]"> } <!-- Gimnasio -->
-        <col class="w-[18%]"> <!-- Acciones -->
-      </colgroup>
+<!-- Tabla con alto máximo fijo y scroll interno -->
+<div class="mx-2 md:mx-6 lg:mx-8">
+  <div class="shadow-card rounded-xl2 bg-white ring-1 ring-black/10 overflow-hidden">
+    <div class="overflow-x-auto">
+      <!-- 👇 Aquí se fuerza el alto máximo -->
+      <div class="relative overflow-auto max-h-[240px] md:max-h-[320px] lg:max-h-[380px]">
 
-      <thead>
-        <tr class="bg-[color:var(--color-ra-grayLight)]/40">
-          <th class="py-4 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">ID</th>
-          <th class="py-4 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">Nombre</th>
-          @if (isAdmin) {
-            <th class="py-4 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">Gimnasio</th>
-          }
-          <th class="py-4 px-6 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Acciones</th>
-        </tr>
-      </thead>
+        <table class="w-full table-fixed min-w-[700px]">
+          <colgroup>
+            <col class="w-[14%]">
+            <col class="w-[48%]">
+            @if (isAdmin) { <col class="w-[20%]"> }
+            <col class="w-[18%]">
+          </colgroup>
 
-      <tbody>
-        @if (loading) {
-          <tr><td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Cargando…</td></tr>
-        } @else if (error) {
-          <tr><td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
-        } @else if (categorias.length === 0) {
-          <tr><td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Sin resultados.</td></tr>
-        } @else {
-          @for (c of categorias; track c.idCategoria ?? $index) {
-            <tr class="border-t border-[color:var(--color-ra-grayLight)]/60 hover:bg-[color:var(--color-ra-bg)]">
-              <td class="py-3 px-6">{{ c.idCategoria }}</td>
-              <td class="py-3 px-6 truncate">{{ c.nombre }}</td>
-
+          <!-- Encabezado fijo -->
+          <thead class="sticky top-0 z-10 bg-[color:var(--color-ra-grayLight)]/40">
+            <tr>
+              <th class="py-3 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">ID</th>
+              <th class="py-3 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">Nombre</th>
               @if (isAdmin) {
-                <td class="py-3 px-6">
-                  <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
-                    <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
-                    </svg>
-                    {{ gymLabel(c.gimnasio) }}
-                  </span>
-                </td>
+                <th class="py-3 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">Gimnasio</th>
               }
-
-              <td class="py-2 px-6">
-                <div class="flex items-center justify-center gap-2">
-                  <button (click)="editar(c)" class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40" title="Editar">
-                    <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5" />
-                  </button>
-                  <button (click)="desactivar(c)" class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40" title="Eliminar">
-                    <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
-                  </button>
-                </div>
-              </td>
+              <th class="py-3 px-6 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Acciones</th>
             </tr>
-          }
-        }
-      </tbody>
-    </table>
+          </thead>
+
+          <tbody>
+            @if (loading) {
+              <tr><td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Cargando…</td></tr>
+            } @else if (error) {
+              <tr><td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
+            } @else if (categorias.length === 0) {
+              <tr><td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Sin resultados.</td></tr>
+            } @else {
+              @for (c of categorias; track c.idCategoria ?? $index) {
+                <tr class="border-t border-[color:var(--color-ra-grayLight)]/60 hover:bg-[color:var(--color-ra-bg)]">
+                  <td class="py-2.5 px-6">{{ c.idCategoria }}</td>
+                  <td class="py-2.5 px-6 truncate">{{ c.nombre }}</td>
+
+                  @if (isAdmin) {
+                    <td class="py-2.5 px-6">
+                      <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
+                        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+                        </svg>
+                        {{ gymLabel(c.gimnasio) }}
+                      </span>
+                    </td>
+                  }
+
+                  <td class="py-1.5 px-6">
+                    <div class="flex items-center justify-center gap-2">
+                      <button (click)="editar(c)" class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40" title="Editar">
+                        <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5" />
+                      </button>
+                      <button (click)="desactivar(c)" class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40" title="Eliminar">
+                        <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+      <!-- /max-h -->
+    </div>
   </div>
 </div>

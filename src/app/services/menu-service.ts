@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { MenuData } from '../model/menu-data';
@@ -29,5 +29,11 @@ export class MenuService extends GenericService<MenuData> {
   setMenuChange(menus: MenuData[]){
     this.menuChange.next(menus);
   }
+
+  readonly menuAbierto = signal(false);
+
+  toggleDrawer(): void { this.menuAbierto.update(v => !v); }
+  abrirDrawer(): void { this.menuAbierto.set(true); }
+  cerrarDrawer(): void { this.menuAbierto.set(false); }
   
 }

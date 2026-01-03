@@ -1,145 +1,298 @@
-<!-- Encabezado -->
-<div class="mx-2 md:mx-6 lg:mx-8 mb-4 flex items-center justify-between">
-  <h1 class="text-2xl font-bold text-[color:var(--color-ra-slate)]">Entrenadores</h1>
+<!-- src/app/pages/entrenador/entrenador.html -->
 
-  <a routerLink="/pages/socio"
-     class="px-4 py-2 rounded-md shadow-card text-white bg-[color:var(--color-ra-azul-fuerte)] hover:brightness-110">
+<!-- =========================
+     ENCABEZADO (COMPACTO)
+     - En md+: título + botón SIEMPRE en la misma fila
+     - En <md: se apila
+========================= -->
+<div
+  class="mx-2 md:mx-6 lg:mx-8 mb-3
+         flex flex-col gap-2
+         md:flex-row md:items-center md:justify-between md:gap-3
+         min-w-0"
+>
+  <h1 class="text-lg sm:text-xl lg:text-2xl font-bold text-[color:var(--color-ra-slate)] shrink-0">
+    Entrenadores
+  </h1>
+
+  <a
+    routerLink="/pages/socio"
+    class="shrink-0 whitespace-nowrap
+           inline-flex items-center justify-center
+           px-3 py-2 md:px-3 md:py-2
+           rounded-md shadow-card
+           text-[11px] sm:text-xs md:text-sm
+           text-white bg-[color:var(--color-ra-azul-fuerte)] hover:brightness-110"
+  >
     Ir a socios
   </a>
 </div>
 
-<!-- Card formulario (crear/editar) -->
-<div class="mx-2 md:mx-6 lg:mx-8 mb-6 card">
-  <div class="card-header flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <h2 class="text-xl font-semibold text-[color:var(--color-ra-slate)]">
+<!-- =========================
+     CARD FORM (COMPACTO)
+========================= -->
+<div class="mx-2 md:mx-6 lg:mx-8 mb-4 card">
+  <div class="card-header flex items-center justify-between min-w-0">
+    <div class="flex items-center gap-2 min-w-0">
+      <h2 class="text-base sm:text-lg lg:text-xl font-semibold text-[color:var(--color-ra-slate)] truncate">
         {{ esEdicion ? 'Editar entrenador' : 'Agregar entrenador' }}
       </h2>
+
       @if (esEdicion) {
-        <span class="inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">
+        <span class="inline-flex items-center px-2 py-0.5 text-[10px] sm:text-xs rounded-full bg-green-100 text-green-700 whitespace-nowrap">
           Editando ID: {{ idEditando }}
         </span>
       }
     </div>
   </div>
 
-  <form class="p-6 space-y-4" [formGroup]="form" (ngSubmit)="guardar()">
-    <!-- SOLO ADMIN: seleccionar gimnasio -->
+  <form class="p-4 sm:p-5 lg:p-6 space-y-3" [formGroup]="form" (ngSubmit)="guardar()">
     @if (isAdmin) {
       <div>
-        <label class="block text-sm font-medium mb-1">Gimnasio</label>
-        <!-- OJO: sin [disabled]; el control nace disabled en TS y se habilita cuando carga -->
-        <select class="input-filled" formControlName="gimnasioId">
+        <label class="block text-xs sm:text-sm font-medium mb-1">Gimnasio</label>
+        <select class="input-filled text-[11px] sm:text-sm" formControlName="gimnasioId">
           <option [ngValue]="null" disabled>Selecciona un gimnasio</option>
           @for (g of gimnasios; track g.idGimnasio) {
             <option [ngValue]="g.idGimnasio">{{ g.nombre }}</option>
           }
         </select>
+
         @if (form.controls.gimnasioId.touched && form.controls.gimnasioId.invalid) {
-          <div class="text-sm text-red-600 mt-1">Selecciona un gimnasio.</div>
+          <div class="text-[11px] sm:text-sm text-red-600 mt-1">Selecciona un gimnasio.</div>
         }
       </div>
     }
 
+    <!-- Inputs: 1 columna en <md, 2 en md+ -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm font-medium mb-1">Nombre</label>
-        <input formControlName="nombre" class="input-filled" placeholder="Nombre*">
+        <label class="block text-xs sm:text-sm font-medium mb-1">Nombre</label>
+        <input formControlName="nombre" class="input-filled text-[11px] sm:text-sm" placeholder="Nombre*">
         @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
-          <div class="text-sm text-red-600 mt-1">El nombre es obligatorio.</div>
+          <div class="text-[11px] sm:text-sm text-red-600 mt-1">El nombre es obligatorio.</div>
         }
       </div>
 
       <div>
-        <label class="block text-sm font-medium mb-1">Apellido</label>
-        <input formControlName="apellido" class="input-filled" placeholder="Apellido*">
+        <label class="block text-xs sm:text-sm font-medium mb-1">Apellido</label>
+        <input formControlName="apellido" class="input-filled text-[11px] sm:text-sm" placeholder="Apellido*">
         @if (form.controls.apellido.touched && form.controls.apellido.invalid) {
-          <div class="text-sm text-red-600 mt-1">El apellido es obligatorio.</div>
+          <div class="text-[11px] sm:text-sm text-red-600 mt-1">El apellido es obligatorio.</div>
         }
       </div>
     </div>
 
     <div class="flex justify-end gap-2">
       @if (esEdicion) {
-        <button type="button"
-                (click)="cancelarEdicion()"
-                class="px-4 py-2 rounded-md border border-gray-300 bg-white text-[color:var(--color-ra-slate)] hover:bg-gray-50">
+        <button
+          type="button"
+          (click)="cancelarEdicion()"
+          class="px-3 py-2 rounded-md border border-gray-300 bg-white
+                 text-[11px] sm:text-sm text-[color:var(--color-ra-slate)] hover:bg-gray-50"
+        >
           Cancelar
         </button>
       }
-      <button type="submit"
-              [disabled]="guardando"
-              class="px-4 py-2 rounded-md bg-[color:var(--color-ra-azul-fuerte)] text-white hover:brightness-110">
+
+      <button
+        type="submit"
+        [disabled]="guardando"
+        class="px-3 py-2 rounded-md bg-[color:var(--color-ra-azul-fuerte)] text-white hover:brightness-110
+               text-[11px] sm:text-sm"
+      >
         {{ guardando ? 'Guardando…' : (esEdicion ? 'Actualizar' : 'Guardar') }}
       </button>
     </div>
   </form>
 </div>
 
-<!-- Tabla -->
-<div class="shadow-card rounded-xl2 overflow-hidden mx-2 md:mx-6 lg:mx-8 bg-white ring-1 ring-black/10">
-  <div class="overflow-x-auto">
-    <table class="w-full table-fixed">
-      <colgroup>
-        <col class="w-[12%]">
-        <col class="w-[46%]">
-        @if (isAdmin) { <col class="w-[24%]"> }
-        <col class="w-[18%]">
-      </colgroup>
+<!-- =========================
+     TABLA (SIN SCROLL HORIZONTAL)
+     - Compacta en md/lg/xl/2xl
+     - En <lg: ocultamos "Acciones" como columna y lo metemos dentro del nombre
+     - Gimnasio SOLO ADMIN:
+       * Visible en lg+
+       * En <lg lo metemos en la celda de entrenador (para no forzar ancho)
+========================= -->
+<div class="mx-2 md:mx-6 lg:mx-8 min-w-0">
+  <div class="shadow-card rounded-xl2 bg-white ring-1 ring-black/10 overflow-hidden min-w-0">
+    <div class="overflow-x-hidden">
+      <div
+        class="relative overflow-auto
+               max-h-[240px]
+               md:max-h-[320px]
+               lg:max-h-[380px]
+               xl:max-h-[420px]
+               2xl:max-h-[480px]"
+      >
+        <table class="w-full min-w-0 table-fixed text-[11px] sm:text-xs lg:text-sm">
+          <colgroup>
+            <col class="w-14 sm:w-16 lg:w-[12%]"><!-- ID -->
+            <col class="w-auto"><!-- Entrenador -->
+            @if (isAdmin) {
+              <col class="hidden lg:table-column w-[26%] xl:w-[24%]"><!-- Gimnasio (lg+) -->
+            }
+            <col class="hidden lg:table-column w-[20%]"><!-- Acciones (lg+) -->
+          </colgroup>
 
-      <thead>
-        <tr class="bg-[color:var(--color-ra-grayLight)]/40">
-          <th class="py-4 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">ID</th>
-          <th class="py-4 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">Entrenador</th>
-          @if (isAdmin) {
-            <th class="py-4 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">Gimnasio</th>
-          }
-          <th class="py-4 px-6 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Acciones</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        @if (loading) {
-          <tr><td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Cargando…</td></tr>
-        } @else if (error) {
-          <tr><td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
-        } @else if (entrenadores.length === 0) {
-          <tr><td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Sin resultados.</td></tr>
-        } @else {
-          @for (e of entrenadores; track e.idEntrenador) {
-            <tr class="border-t border-[color:var(--color-ra-grayLight)]/60 hover:bg-[color:var(--color-ra-bg)]">
-              <td class="py-3 px-6">{{ e.idEntrenador }}</td>
-
-              <td class="py-3 px-6 truncate">
-                <div class="font-medium">{{ e.nombre }} {{ e.apellido }}</div>
-              </td>
+          <!-- Encabezado sticky -->
+          <thead class="sticky top-0 z-10 bg-[color:var(--color-ra-grayLight)]/40 backdrop-blur">
+            <tr>
+              <th class="py-2 lg:py-3 px-3 lg:px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">ID</th>
+              <th class="py-2 lg:py-3 px-3 lg:px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">Entrenador</th>
 
               @if (isAdmin) {
-  <td class="py-3 px-6">
-    <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
-      <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
-      </svg>
-      {{ gymLabel(e.gimnasio) }}
-    </span>
-  </td>
-}
+                <th class="hidden lg:table-cell py-2 lg:py-3 px-3 lg:px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">
+                  Gimnasio
+                </th>
+              }
 
-
-              <td class="py-2 px-6">
-                <div class="flex items-center justify-center gap-2">
-                  <button (click)="editar(e)" class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40" title="Editar">
-                    <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5" />
-                  </button>
-                  <button (click)="eliminar(e)" class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40" title="Eliminar">
-                    <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
-                  </button>
-                </div>
-              </td>
+              <th class="hidden lg:table-cell py-2 lg:py-3 px-3 lg:px-6 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">
+                Acciones
+              </th>
             </tr>
-          }
-        }
-      </tbody>
-    </table>
+          </thead>
+
+          <tbody>
+            @if (loading) {
+              <tr>
+                <td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">
+                  Cargando…
+                </td>
+              </tr>
+            } @else if (error) {
+              <tr>
+                <td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-red-600">
+                  {{ error }}
+                </td>
+              </tr>
+            } @else if (entrenadores.length === 0) {
+              <tr>
+                <td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">
+                  Sin resultados.
+                </td>
+              </tr>
+            } @else {
+              @for (e of entrenadores; track e.idEntrenador) {
+                <tr class="border-t border-[color:var(--color-ra-grayLight)]/60 hover:bg-[color:var(--color-ra-bg)]">
+                  <!-- ID -->
+                  <td class="py-2 px-3 lg:px-6 align-top">
+                    <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] sm:text-xs font-mono text-gray-700">
+                      {{ e.idEntrenador }}
+                    </span>
+                  </td>
+
+                  <!-- Entrenador -->
+                  <td class="py-2 px-3 lg:px-6 align-top min-w-0">
+                    <div class="font-medium truncate">
+                      {{ e.nombre }} {{ e.apellido }}
+                    </div>
+
+                    <!-- <lg: mostramos gimnasio aquí si es admin -->
+                    @if (isAdmin) {
+                      <div class="mt-1 lg:hidden">
+                        <span
+                          class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10
+                                 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-[10px] sm:text-xs max-w-full"
+                          [title]="gymLabel(e.gimnasio)"
+                        >
+                          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+                          </svg>
+                          <span class="truncate min-w-0">{{ gymLabel(e.gimnasio) }}</span>
+                        </span>
+                      </div>
+                    }
+
+                    <!-- <lg: acciones abajo (para evitar scroll horizontal) -->
+                    <div class="mt-2 flex items-center gap-2 lg:hidden">
+                      <button
+                        (click)="verAsesorias(e)"
+                        class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
+                        title="Ver asesorías activas"
+                      >
+                        <img src="iconos/usuario_asesoria.svg" alt="Asesorías" class="w-5 h-5" />
+                      </button>
+
+                      <button
+                        (click)="editar(e)"
+                        class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
+                        title="Editar"
+                      >
+                        <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5" />
+                      </button>
+
+                      <button
+                        (click)="eliminar(e)"
+                        class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
+                        title="Eliminar"
+                      >
+                        <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
+                      </button>
+                    </div>
+                  </td>
+
+                  <!-- Gimnasio (lg+) -->
+                  @if (isAdmin) {
+                    <td class="hidden lg:table-cell py-2 px-3 lg:px-6 align-top min-w-0">
+                      <span
+                        class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10
+                               text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs max-w-full"
+                        [title]="gymLabel(e.gimnasio)"
+                      >
+                        <svg viewBox="0 0 24 24" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+                        </svg>
+                        <span class="truncate min-w-0">{{ gymLabel(e.gimnasio) }}</span>
+                      </span>
+                    </td>
+                  }
+
+                  <!-- Acciones (lg+) -->
+                  <td class="hidden lg:table-cell py-2 px-3 lg:px-6 align-top">
+                    <div class="flex items-center justify-center gap-2">
+                      <button
+                        (click)="verAsesorias(e)"
+                        class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
+                        title="Ver asesorías activas"
+                      >
+                        <img src="iconos/usuario_asesoria.svg" alt="Asesorías" class="w-5 h-5" />
+                      </button>
+
+                      <button
+                        (click)="editar(e)"
+                        class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
+                        title="Editar"
+                      >
+                        <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5" />
+                      </button>
+
+                      <button
+                        (click)="eliminar(e)"
+                        class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
+                        title="Eliminar"
+                      >
+                        <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- Modal asesorías por entrenador -->
+@if (mostrarModal && entrenadorSeleccionado) {
+  <app-entrenador-modal
+    [entrenador]="entrenadorSeleccionado"
+    [asesorias]="asesoriasModal"
+    [cargando]="cargandoModal"
+    [error]="errorModal"
+    (cerrar)="cerrarModal()"
+  />
+}

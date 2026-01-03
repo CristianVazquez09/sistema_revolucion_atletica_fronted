@@ -1,4 +1,5 @@
 import { TiempoPlan } from "../util/enums/tiempo-plan";
+import { TipoPaquete } from "../util/enums/tipo-paquete";
 import { GimnasioData } from "./gimnasio-data";
 
 export interface PaqueteData {
@@ -9,5 +10,14 @@ export interface PaqueteData {
   costoInscripcion: number;
   gimnasio?: GimnasioData;
   activo:boolean;
+
+  // NUEVO: para planes por visitas (null/undefined => plan por días)
+  visitasMaximas?: number | null;
+
+  // (Lo usaremos después; ya está en backend)
+  soloFinesDeSemana?: boolean;
+
+  // NUEVO: tipo de paquete (gimnasio, zona de combate, mixto)
+  tipoPaquete?: TipoPaquete;
 }
 

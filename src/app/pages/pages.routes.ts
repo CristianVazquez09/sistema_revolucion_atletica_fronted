@@ -18,23 +18,45 @@ import { Asesoria } from "./asesoria/asesoria";
 import { gerenteGuard } from "../guards/gerente-guards";
 import { adminGuard } from "../guards/admin-guards";
 import { SocioInfoAsesoria } from "./socio/socio-info-asesoria/socio-info-asesoria";
+import { AsistenciaHistorial } from "./inscripcion/asistencia-historial/asistencia-historial";
+import { ReinscripcionAdelantada } from "./inscripcion/reinscripcion-adelantada/reinscripcion-adelantada";
 
 export const pagesRoutes: Routes = [
-  { path: 'paquete', component: Paquete},
+  {path: 'paquete', component: Paquete},
   {path: 'asistencia', component: Asistencia},
+  {path: 'historial-asistencias', component: AsistenciaHistorial},
+  {path: 'reinscripcion-adelantada', component: ReinscripcionAdelantada},
   {path: 'socio', component: Socio},
   {path: 'inscripcion', component: Inscripcion},
   {path: 'inventario', component: Producto},
   {path: 'categoria', component: Categoria},
   {path: 'punto-venta', component: PuntoVenta},
-   { path: 'socio/:idSocio/historial', component: SocioInformacion },
-   { path: 'reinscripcion/:id', component: Reinscripcion },
+  {path: 'socio/:idSocio/historial', component: SocioInformacion },
+  {path: 'reinscripcion/:id', component: Reinscripcion },
   { path: 'historial', component: Historial },
   { path: 'corte-caja', component: CorteCaja }, 
   { path: 'agregar-membresia', component: AgregarMembresia },
   { path: 'entrenador', component: Entrenador },
   { path: 'asesoria', component: Asesoria },
    { path: 'socio/:idSocio/asesorias', component: SocioInfoAsesoria },
+   {
+    path: 'huella',
+    loadComponent: () =>
+      import('./huella-modal/huella-modal').then(m => m.HuellaModal)
+  },
+  { path: 'membresia', redirectTo: 'membresia', pathMatch: 'full' },
+  { 
+  path: 'membresia',
+  loadComponent: () =>
+    import('./administracion/membresia/membresia').then(m => m.Membresia),
+  data: { title: 'Membresías', scope: 'recepcion' }
+},
+{ 
+  path: 'ventas',
+  loadComponent: () =>
+    import('./administracion/ventas-admin/ventas-admin').then(m => m.VentasAdmin),
+  data: { title: 'Ventas', scope: 'recepcion' }
+},
  
 // pages.routes.ts
 {
@@ -51,6 +73,12 @@ export const pagesRoutes: Routes = [
     { path: 'corte-caja', loadComponent: () => import('./administracion/corte-caja-admin/corte-caja-admin').then(m => m.CorteCajaAdmin), data: { title: 'Cortes de caja' } },
     { path: 'ventas',     loadComponent: () => import('./administracion/ventas-admin/ventas-admin').then(m => m.VentasAdmin), data: { title: 'Ventas' } },
     { path: 'usuarios',     loadComponent: () => import('./administracion/usuarios-admin/usuarios-admin').then(m => m.UsuariosAdmin), data: { title: 'Usuarios' } },
+    {
+      path: 'estadisticas',
+      loadComponent: () =>
+        import('./administracion/reportes/reportes').then(m => m.Reportes),
+      data: { title: 'Reportes' }
+    }
   ]
 },
 {

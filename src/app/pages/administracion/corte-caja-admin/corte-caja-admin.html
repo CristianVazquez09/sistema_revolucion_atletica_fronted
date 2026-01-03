@@ -1,195 +1,551 @@
-<!-- Barra superior (igual estilo que Ventas) -->
-<div class="mx-4 md:mx-10 mb-4 flex items-center justify-between">
-  <div class="text-xl font-semibold text-ra-slate">Cortes de caja</div>
+<!-- =========================================================
+     WRAPPER: desde <xl aplica “compactado” SIN dejar hueco abajo
+     (usa zoom para que NO reserve el alto original como pasa con scale)
+========================================================= -->
+<div
+  class="
+    [@media(max-width:1279px)]:[zoom:0.92]
+    [@media(max-width:1100px)]:[zoom:0.88]
+    [@media(max-width:980px)]:[zoom:0.84]
+    [@media(max-width:860px)]:[zoom:0.80]
+  "
+>
+  <!-- =========================
+       BARRA SUPERIOR
+       - Estado arriba
+       - Orden/size/actualizar: SOLO 2XL+ (abajo en <2XL)
+  ========================= -->
+  <div
+    class="mx-3 sm:mx-4 md:mx-10 mb-2 xl:mb-4 flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between gap-2 xl:gap-3"
+  >
+    <div class="text-base sm:text-lg xl:text-xl font-semibold text-ra-slate shrink-0">
+      Cortes de caja
+    </div>
 
-  <div class="flex flex-wrap items-center gap-2">
-    <label class="text-sm text-ra-slate/80">Estado</label>
-    <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-            [(ngModel)]="estadoSel" (change)="go(1)">
-      <option [ngValue]="''">Todos</option>
-      <option [ngValue]="'ABIERTO'">Abiertos</option>
-      <option [ngValue]="'CERRADO'">Cerrados</option>
+    <div
+      class="w-full 2xl:w-auto flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-end gap-2 xl:gap-3 text-[11px] xl:text-[12px] leading-none min-w-0"
+    >
+      <!-- Estado (si falta ancho: scroll horizontal) -->
+      <div class="flex flex-nowrap items-center gap-2 xl:gap-3 overflow-x-auto [-webkit-overflow-scrolling:touch]">
+        <label class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">
+          Estado
+        </label>
+
+        <select
+          class="h-8 xl:h-9 rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+          [(ngModel)]="estadoSel"
+          (change)="go(1)"
+        >
+          <option [ngValue]="''">Todos</option>
+          <option [ngValue]="'ABIERTO'">Abiertos</option>
+          <option [ngValue]="'CERRADO'">Cerrados</option>
+        </select>
+      </div>
+
+      <!-- ORDEN ARRIBA: SOLO 2XL+ -->
+      <div class="hidden 2xl:flex items-center gap-2 shrink-0">
+        <span class="text-[12px] text-ra-slate/80 whitespace-nowrap">Ordenar por</span>
+
+        <select
+          class="h-9 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-[12px]"
+          [(ngModel)]="sortCampo"
+          (change)="go(1)"
+        >
+          <option [ngValue]="'apertura'">Apertura</option>
+          <option [ngValue]="'cierre'">Cierre</option>
+          <option [ngValue]="'idCorte'">ID</option>
+        </select>
+
+        <select
+          class="h-9 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-[12px]"
+          [(ngModel)]="sortDir"
+          (change)="go(1)"
+        >
+          <option [ngValue]="'desc'">Desc</option>
+          <option [ngValue]="'asc'">Asc</option>
+        </select>
+
+        <span class="text-[12px] text-ra-slate/80 whitespace-nowrap">Por página</span>
+        <select
+          class="h-9 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-[12px]"
+          [(ngModel)]="sizeSel"
+          (change)="go(1)"
+        >
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="25">25</option>
+          <option [ngValue]="50">50</option>
+        </select>
+
+        <button
+          type="button"
+          class="h-9 px-4 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-[12px]"
+          (click)="go(1)"
+        >
+          Actualizar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       TABLA (scroll interno + encabezado sticky)
+       ✅ <xl: Usuarios (Abierto/Cerrado) juntos
+       ✅ <xl: Movs (Ventas/Memb/Accs) juntos (más bonito)
+       ✅ Acciones: iconos NO se hacen mini en xl/1400px
+       ✅ Total: sin text-sm ni nada que lo agrande
+  ========================= -->
+  <div class="shadow-card rounded-xl2 mx-3 sm:mx-4 md:mx-10 bg-ra-white">
+    <div class="overflow-x-auto">
+      <div
+        #cortesScroller
+        class="
+          overflow-auto
+          max-h-[calc(100dvh-250px)]
+          sm:max-h-[calc(100dvh-240px)]
+          md:max-h-[calc(100dvh-235px)]
+          lg:max-h-[calc(100dvh-235px)]
+          xl:max-h-[calc(100dvh-360px)]
+          2xl:max-h-[calc(100dvh-340px)]
+          [@media(max-height:900px)]:max-h-[calc(100dvh-310px)]
+          [@media(max-height:820px)]:max-h-[calc(100dvh-330px)]
+        "
+      >
+        <table
+          class="w-full table-fixed text-[9px] sm:text-[10px] lg:text-[11px] xl:text-[12px]"
+          [ngClass]="{
+            'min-w-[860px] xl:min-w-[980px]': !esAdmin,
+            'min-w-[980px] xl:min-w-[1120px]': esAdmin
+          }"
+        >
+          <colgroup>
+            <col class="w-[5%]" />   <!-- ID -->
+            <col class="w-[14%]" />  <!-- Apertura -->
+            <col class="w-[14%]" />  <!-- Cierre -->
+            <col class="w-[10%]" />  <!-- Estado -->
+            @if (esAdmin) { <col class="w-[16%]" /> } <!-- Gimnasio -->
+
+            <!-- ✅ <xl: Usuarios -->
+            <col class="w-[14%] xl:hidden" /> <!-- Usuarios -->
+
+            <!-- ✅ xl+: Abierto/Cerrado separados -->
+            <col class="w-[12%] hidden xl:table-column" /> <!-- Abierto por -->
+            <col class="w-[12%] hidden xl:table-column" /> <!-- Cerrado por -->
+
+            <!-- ✅ <xl: Movs -->
+            <col class="w-[16%] xl:hidden" /> <!-- Movs -->
+
+            <!-- ✅ xl+: Ventas/Memb/Accs separados -->
+            <col class="w-[8%] hidden xl:table-column" />   <!-- Ventas -->
+            <col class="w-[10%] hidden xl:table-column" />  <!-- Membresías -->
+            <col class="w-[10%] hidden xl:table-column" />  <!-- Accesorías -->
+
+            <col class="w-[9%]" />   <!-- Total -->
+            <col class="w-[9%]" />   <!-- Acciones -->
+          </colgroup>
+
+          <thead class="sticky top-0 bg-ra-grayLight/40 z-10">
+            <tr class="text-ra-slate">
+              <th
+                class="text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]"
+              >
+                <button class="inline-flex items-center gap-1 hover:underline" (click)="setSortCampo('idCorte')">
+                  ID
+                  @if (isCampoActivo('idCorte')) {
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="w-3 h-3 xl:w-3.5 xl:h-3.5 inline"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      [ngClass]="{ 'rotate-180': sortDir === 'asc' }"
+                    >
+                      <path d="M6 9l6 6 6-6"></path>
+                    </svg>
+                  }
+                </button>
+              </th>
+
+              <th
+                class="text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]"
+              >
+                <button class="inline-flex items-center gap-1 hover:underline" (click)="setSortCampo('apertura')">
+                  Apertura
+                  @if (isCampoActivo('apertura')) {
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="w-3 h-3 xl:w-3.5 xl:h-3.5 inline"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      [ngClass]="{ 'rotate-180': sortDir === 'asc' }"
+                    >
+                      <path d="M6 9l6 6 6-6"></path>
+                    </svg>
+                  }
+                </button>
+              </th>
+
+              <th
+                class="text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]"
+              >
+                <button class="inline-flex items-center gap-1 hover:underline" (click)="setSortCampo('cierre')">
+                  Cierre
+                  @if (isCampoActivo('cierre')) {
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="w-3 h-3 xl:w-3.5 xl:h-3.5 inline"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      [ngClass]="{ 'rotate-180': sortDir === 'asc' }"
+                    >
+                      <path d="M6 9l6 6 6-6"></path>
+                    </svg>
+                  }
+                </button>
+              </th>
+
+              <th
+                class="text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]"
+              >
+                Estado
+              </th>
+
+              @if (esAdmin) {
+                <th
+                  class="text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]"
+                >
+                  Gimnasio
+                </th>
+              }
+
+              <!-- ✅ <xl: Usuarios -->
+              <th
+                class="xl:hidden text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px]"
+              >
+                Usuarios
+              </th>
+
+              <!-- ✅ xl+: Abierto/Cerrado -->
+              <th
+                class="hidden xl:table-cell text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]"
+              >
+                Abierto por
+              </th>
+              <th
+                class="hidden xl:table-cell text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]"
+              >
+                Cerrado por
+              </th>
+
+              <!-- ✅ <xl: Movs -->
+              <th
+                class="xl:hidden text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px]"
+              >
+                Movs
+              </th>
+
+              <!-- ✅ xl+: Ventas/Memb/Accs -->
+              <th
+                class="hidden xl:table-cell text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]"
+              >
+                Ventas
+              </th>
+              <th
+                class="hidden xl:table-cell text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]"
+              >
+                <span class="md:hidden">Memb.</span>
+                <span class="hidden md:inline">Membresías</span>
+              </th>
+              <th
+                class="hidden xl:table-cell text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]"
+              >
+                <span class="md:hidden">Accs.</span>
+                <span class="hidden md:inline">Accesorías</span>
+              </th>
+
+              <th
+                class="text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]"
+              >
+                Total
+              </th>
+
+              <th
+                class="text-center font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]"
+              >
+                Acciones
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @if (cargando) {
+              <tr>
+                <td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Cargando…</td>
+              </tr>
+            }
+            @else if (error) {
+              <tr>
+                <td [attr.colspan]="99" class="py-6 px-6 text-center text-red-600">{{ error }}</td>
+              </tr>
+            }
+            @else if (!cortes.length) {
+              <tr>
+                <td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td>
+              </tr>
+            }
+            @else {
+              @for (c of cortes; track trackById($index, c)) {
+                <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg text-center">
+                  <!-- ID -->
+                  <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 font-medium">
+                    #{{ c.idCorte }}
+                  </td>
+
+                  <!-- Apertura -->
+                  <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 whitespace-nowrap">
+                    {{ c.apertura | date:'dd/MM/yyyy' }}<br class="hidden md:block" />
+                    {{ c.apertura | date:'HH:mm:ss' }}
+                  </td>
+
+                  <!-- Cierre -->
+                  <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 whitespace-nowrap">
+                    {{ c.cierre | date:'dd/MM/yyyy' }}<br class="hidden md:block" />
+                    {{ c.cierre | date:'HH:mm:ss' }}
+                  </td>
+
+                  <!-- Estado -->
+                  <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6">
+                    <span
+                      class="inline-flex items-center gap-1 rounded-full px-1.5 xl:px-2 py-0.5 text-[9px] sm:text-[10px] xl:text-xs font-semibold"
+                      [ngClass]="{
+                        'bg-emerald-100 text-emerald-700': c.estado === 'ABIERTO',
+                        'bg-gray-200 text-gray-700': c.estado === 'CERRADO'
+                      }"
+                    >
+                      {{ c.estado }}
+                    </span>
+                  </td>
+
+                  <!-- Gimnasio -->
+                  @if (esAdmin) {
+                    <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6">
+                      <span
+                        class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)]
+                               px-1.5 xl:px-2 py-0.5 text-[9px] sm:text-[10px] xl:text-xs"
+                      >
+                        <svg viewBox="0 0 24 24" class="w-3 h-3 xl:w-4 xl:h-4" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+                        </svg>
+                        <span class="truncate max-w-[220px]">{{ c.gimnasio?.nombre || '—' }}</span>
+                      </span>
+
+                      <div class="hidden xl:block text-xs text-ra-slate/70 mt-0.5 truncate">
+                        {{ c.gimnasio?.direccion }}
+                      </div>
+                    </td>
+                  }
+
+                  <!-- ✅ <xl: Usuarios compactados -->
+                  <td class="xl:hidden py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6">
+                    <div class="mx-auto w-full max-w-[220px] rounded-lg border border-gray-200 bg-gray-50 px-2 py-1 text-left">
+                      <div class="flex items-center gap-1 min-w-0">
+                        <span class="shrink-0 text-[9px] text-ra-slate/70">A:</span>
+                        <span class="truncate text-[9.5px] sm:text-[10px] font-medium">
+                          {{ c.abiertoPor?.nombreUsuario || '—' }}
+                        </span>
+                      </div>
+                      <div class="mt-0.5 flex items-center gap-1 min-w-0">
+                        <span class="shrink-0 text-[9px] text-ra-slate/70">C:</span>
+                        <span class="truncate text-[9.5px] sm:text-[10px] font-medium">
+                          {{ c.cerradoPor?.nombreUsuario || '—' }}
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- ✅ xl+: Abierto/Cerrado -->
+                  <td class="hidden xl:table-cell py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 truncate">
+                    {{ c.abiertoPor?.nombreUsuario || '—' }}
+                  </td>
+
+                  <td class="hidden xl:table-cell py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 truncate">
+                    {{ c.cerradoPor?.nombreUsuario || '—' }}
+                  </td>
+
+                  <!-- ✅ <xl: Movs (V/M/A juntos y más bonito) -->
+                  <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 xl:hidden">
+                    <div class="mx-auto w-full max-w-[260px] rounded-lg border border-gray-200 bg-gray-50 p-1.5">
+                      <div class="grid grid-cols-3 gap-1">
+                        <div class="rounded-md bg-white border border-gray-200 px-1 py-1 text-center">
+                          <div class="text-[8px] text-ra-slate/60 leading-none">V</div>
+                          <div class="text-[9px] sm:text-[10px] font-semibold leading-none mt-0.5 whitespace-nowrap">
+                            {{ c.totalVentas | currency:'MXN':'symbol-narrow':'1.0-0' }}
+                          </div>
+                        </div>
+
+                        <div class="rounded-md bg-white border border-gray-200 px-1 py-1 text-center">
+                          <div class="text-[8px] text-ra-slate/60 leading-none">M</div>
+                          <div class="text-[9px] sm:text-[10px] font-semibold leading-none mt-0.5 whitespace-nowrap">
+                            {{ c.totalMembresias | currency:'MXN':'symbol-narrow':'1.0-0' }}
+                          </div>
+                        </div>
+
+                        <div class="rounded-md bg-white border border-gray-200 px-1 py-1 text-center">
+                          <div class="text-[8px] text-ra-slate/60 leading-none">A</div>
+                          <div class="text-[9px] sm:text-[10px] font-semibold leading-none mt-0.5 whitespace-nowrap">
+                            {{ c.totalAccesorias | currency:'MXN':'symbol-narrow':'1.0-0' }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- ✅ xl+: Ventas/Memb/Accs separados -->
+                  <td class="hidden xl:table-cell py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 font-semibold">
+                    {{ c.totalVentas | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                  </td>
+
+                  <td class="hidden xl:table-cell py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 font-semibold">
+                    {{ c.totalMembresias | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                  </td>
+
+                  <td class="hidden xl:table-cell py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 font-semibold">
+                    {{ c.totalAccesorias | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                  </td>
+
+                  <!-- ✅ TOTAL: sin text-sm; tamaño controlado -->
+                  <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 font-semibold text-[9px] sm:text-[10px] lg:text-[11px] xl:text-[12px]">
+                    {{ c.totalGeneral | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                  </td>
+
+                  <!-- ✅ ACCIONES: NO se hacen mini en xl/1400px -->
+                  <td class="py-0.5 xl:py-2 px-2 xl:px-4 2xl:px-6 text-center">
+                    <div class="flex items-center justify-center gap-1">
+                      <button
+                        type="button"
+                        class="p-1.5 xl:p-2.5 rounded hover:bg-ra-grayLight/40 shrink-0"
+                        (click)="verInfo(c)"
+                        title="Ver información del corte"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          class="w-4 h-4 xl:w-6 xl:h-6 shrink-0"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        >
+                          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="p-1.5 xl:p-2.5 rounded hover:bg-ra-grayLight/40 disabled:opacity-50 shrink-0"
+                        (click)="reimprimir(c)"
+                        [disabled]="reimprimiendo || c.estado !== 'CERRADO'"
+                        title="Reimprimir ticket"
+                      >
+                        <img
+                          src="iconos/impresora.svg"
+                          alt="Reimprimir"
+                          class="w-4 h-4 xl:w-6 xl:h-6 shrink-0"
+                        />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       ORDEN ABAJO (solo <2xl)
+  ========================= -->
+  <div
+    class="mx-3 sm:mx-4 md:mx-10 mt-1 xl:mt-2 mb-0.5 flex flex-wrap items-center justify-end gap-2 text-[11px] xl:text-[12px] 2xl:hidden"
+  >
+    <span class="text-ra-slate/80 whitespace-nowrap">Ordenar por</span>
+
+    <select
+      class="h-8 xl:h-9 w-[120px] rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+      [(ngModel)]="sortCampo"
+      (change)="go(1)"
+    >
+      <option [ngValue]="'apertura'">Apertura</option>
+      <option [ngValue]="'cierre'">Cierre</option>
+      <option [ngValue]="'idCorte'">ID</option>
     </select>
 
-    <span class="hidden md:inline text-sm text-ra-slate/80 ml-2">Ordenar por</span>
-    <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-            [(ngModel)]="sortSel" (change)="go(1)">
-      <option value="apertura,desc">Apertura ↓</option>
-      <option value="apertura,asc">Apertura ↑</option>
-      <option value="cierre,desc">Cierre ↓</option>
-      <option value="cierre,asc">Cierre ↑</option>
-      <option value="idCorte,desc">ID ↓</option>
-      <option value="idCorte,asc">ID ↑</option>
+    <select
+      class="h-8 xl:h-9 w-[80px] rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+      [(ngModel)]="sortDir"
+      (change)="go(1)"
+    >
+      <option [ngValue]="'desc'">Desc</option>
+      <option [ngValue]="'asc'">Asc</option>
     </select>
 
-    <label class="text-sm text-ra-slate/80 ml-2">Por página</label>
-    <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-            [(ngModel)]="sizeSel" (change)="go(1)">
+    <span class="text-ra-slate/80 whitespace-nowrap">Por página</span>
+
+    <select
+      class="h-8 xl:h-9 w-[70px] rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+      [(ngModel)]="sizeSel"
+      (change)="go(1)"
+    >
       <option [ngValue]="10">10</option>
       <option [ngValue]="25">25</option>
       <option [ngValue]="50">50</option>
     </select>
 
-    <button type="button"
-            class="px-4 py-2 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-sm"
-            (click)="go(1)">
+    <button
+      type="button"
+      class="h-8 xl:h-9 px-3 xl:px-4 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-[11px] xl:text-[12px]"
+      (click)="go(1)"
+    >
       Actualizar
     </button>
   </div>
-</div>
 
+  <!-- =========================
+       PAGINACIÓN (responsive)
+  ========================= -->
+  <div
+    class="mx-3 sm:mx-4 md:mx-10 mt-1 xl:mt-2 mb-2 flex items-center justify-between text-[11px] sm:text-xs xl:text-sm"
+  >
+    <div class="min-w-0">
+      Página <strong>{{ pageUI }}</strong> de <strong>{{ page.totalPages || 1 }}</strong>
+      <span class="ml-2 text-ra-slate/70">({{ page.totalElements || 0 }} registros)</span>
+    </div>
 
-
-<!-- Card / Tabla -->
-<!-- Card / Tabla (responsiva) -->
-<div class="mx-4 md:mx-10 overflow-x-auto">
-  <div class="inline-block min-w-[1100px] w-full bg-ra-white shadow-card rounded-xl2 overflow-hidden">
-    <table class="w-full table-fixed">
-      <colgroup>
-        <col class="w-[5%]">   <!-- ID -->
-        <col class="w-[14%]">  <!-- Apertura -->
-        <col class="w-[14%]">  <!-- Cierre -->
-        <col class="w-[10%]">  <!-- Estado -->
-        @if (esAdmin) { <col class="w-[16%]"> } <!-- Gimnasio (solo admin) -->
-        <col class="w-[12%]">  <!-- Abierto por -->
-        <col class="w-[12%]">  <!-- Cerrado por -->
-        <col class="w-[8%]">   <!-- Ventas -->
-        <col class="w-[10%]">   <!-- Membresías -->
-        <col class="w-[10%]">   <!-- Accesorías -->
-        <col class="w-[9%]">  <!-- Total -->
-      </colgroup>
-
-      <thead>
-        <tr class="bg-ra-grayLight/40">
-          <th class="py-3 md:py-4 px-4 md:px-6 text-center text-ra-slate font-semibold uppercase">
-            <button class="inline-flex items-center gap-1 hover:underline" (click)="setSortCampo('idCorte')">
-              ID
-              @if (isCampoActivo('idCorte')) {
-                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" stroke-width="2"
-                     [ngClass]="{ 'rotate-180': sortDir === 'asc' }">
-                  <path d="M6 9l6 6 6-6"></path>
-                </svg>
-              }
-            </button>
-          </th>
-
-          <th class="py-3 md:py-4 px-4 md:px-6 text-center text-ra-slate font-semibold uppercase">
-            <button class="inline-flex items-center gap-1 hover:underline" (click)="setSortCampo('apertura')">
-              Apertura
-              @if (isCampoActivo('apertura')) {
-                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" stroke-width="2"
-                     [ngClass]="{ 'rotate-180': sortDir === 'asc' }">
-                  <path d="M6 9l6 6 6-6"></path>
-                </svg>
-              }
-            </button>
-          </th>
-
-          <th class="py-3 md:py-4 px-4 md:px-6 text-center text-ra-slate font-semibold uppercase">
-            <button class="inline-flex items-center gap-1 hover:underline" (click)="setSortCampo('cierre')">
-              Cierre
-              @if (isCampoActivo('cierre')) {
-                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" stroke-width="2"
-                     [ngClass]="{ 'rotate-180': sortDir === 'asc' }">
-                  <path d="M6 9l6 6 6-6"></path>
-                </svg>
-              }
-            </button>
-          </th>
-
-          <th class="py-3 md:py-4 px-4 md:px-6 text-center text-ra-slate font-semibold uppercase">Estado</th>
-
-          @if (esAdmin) {
-            <th class="py-3 md:py-4 px-4 md:px-6 text-center text-ra-slate font-semibold uppercase">Gimnasio</th>
-          }
-
-          <th class="py-3 md:py-4 px-4 md:px-6 text-center text-ra-slate font-semibold uppercase">Abierto por</th>
-          <th class="py-3 md:py-4 px-4 md:px-6 text-center text-ra-slate font-semibold uppercase">Cerrado por</th>
-
-          <!-- Ventas -->
-          <th class="py-3 md:py-4 px-4 md:px-6 text-center text-ra-slate font-semibold uppercase">Ventas</th>
-
-          <!-- Membresías (abreviado en pantallas angostas) -->
-          <th class="py-3 md:py-4 px-4 md:px-6 text-center text-ra-slate font-semibold uppercase">
-            <span class="md:hidden">Memb.</span>
-            <span class="hidden md:inline">Membresías</span>
-          </th>
-
-          <!-- Accesorías (abreviado en pantallas angostas) -->
-          <th class="py-3 md:py-4 px-4 md:px-6 text-center text-ra-slate font-semibold uppercase">
-            <span class="md:hidden">Accs.</span>
-            <span class="hidden md:inline">Accesorías</span>
-          </th>
-
-          <th class="py-3 md:py-4 px-4 md:px-6 text-center text-ra-slate font-semibold uppercase">Total</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        @if (cargando) {
-          <tr><td [attr.colspan]="esAdmin ? 11 : 10" class="py-6 px-6 text-center text-ra-slate">Cargando…</td></tr>
-        } @else if (error) {
-          <tr><td [attr.colspan]="esAdmin ? 11 : 10" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
-        } @else if (!cortes.length) {
-          <tr><td [attr.colspan]="esAdmin ? 11 : 10" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td></tr>
-        } @else {
-          @for (c of cortes; track trackById($index, c)) {
-            <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg text-center">
-              <td class="py-3 px-6 font-medium">#{{ c.idCorte }}</td>
-              <td class="py-3 px-6 text-sm whitespace-nowrap">
-                {{ c.apertura | date:'dd/MM/yyyy' }}<br class="hidden md:block"/>{{ c.apertura | date:'HH:mm:ss' }}
-              </td>
-              <td class="py-3 px-6 text-sm whitespace-nowrap">
-                {{ c.cierre | date:'dd/MM/yyyy' }}<br class="hidden md:block"/>{{ c.cierre | date:'HH:mm:ss' }}
-              </td>
-              <td class="py-3 px-6">
-                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
-                      [ngClass]="{
-                        'bg-emerald-100 text-emerald-700': c.estado === 'ABIERTO',
-                        'bg-gray-200 text-gray-700': c.estado === 'CERRADO'
-                      }">
-                  {{ c.estado }}
-                </span>
-              </td>
-
-              @if (esAdmin) {
-                <td class="py-3 px-6">
-                  <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
-                    <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
-                    </svg>
-                    {{ c.gimnasio?.nombre || '—' }}
-                  </span>
-                  <div class="text-xs text-ra-slate/70 mt-0.5 truncate">{{ c.gimnasio?.direccion }}</div>
-                </td>
-              }
-
-              <td class="py-3 px-6 truncate">{{ c.abiertoPor?.nombreUsuario || '—' }}</td>
-              <td class="py-3 px-6 truncate">{{ c.cerradoPor?.nombreUsuario || '—' }}</td>
-
-              <td class="py-3 px-6 text-sm">{{ c.totalVentas     | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
-              <td class="py-3 px-6 text-sm">{{ c.totalMembresias | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
-              <td class="py-3 px-6 text-sm">{{ c.totalAccesorias | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
-              <td class="py-3 px-6 text-sm font-semibold">{{ c.totalGeneral | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
-            </tr>
-          }
-        }
-      </tbody>
-    </table>
+    <div class="flex items-center gap-2">
+      <button
+        class="rounded-md border px-2.5 xl:px-3 py-1 xl:py-1.5 bg-white disabled:opacity-50 text-[11px] xl:text-[12px]"
+        [disabled]="!puedePrev"
+        (click)="prev()"
+      >
+        Anterior
+      </button>
+      <button
+        class="rounded-md border px-2.5 xl:px-3 py-1 xl:py-1.5 bg-white disabled:opacity-50 text-[11px] xl:text-[12px]"
+        [disabled]="!puedeNext"
+        (click)="next()"
+      >
+        Siguiente
+      </button>
+    </div>
   </div>
-</div>
 
-
-<!-- Paginación -->
-<div class="mx-4 md:mx-10 mt-3 mb-2 flex items-center justify-between text-sm">
-  <div>
-    Página <strong>{{ pageUI }}</strong> de <strong>{{ page.totalPages || 1 }}</strong>
-    <span class="ml-2 text-ra-slate/70">({{ page.totalElements || 0 }} registros)</span>
-  </div>
-  <div class="flex items-center gap-2">
-    <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50"
-            [disabled]="!puedePrev" (click)="prev()">Anterior</button>
-    <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50"
-            [disabled]="!puedeNext" (click)="next()">Siguiente</button>
-  </div>
+  <!-- Modal de información del corte -->
+  @if (mostrarInfo && corteSeleccionado) {
+    <app-corte-caja-info
+      [corte]="corteSeleccionado"
+      (cerrar)="cerrarInfo()"
+    ></app-corte-caja-info>
+  }
 </div>

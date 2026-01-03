@@ -2,7 +2,7 @@ import { ApplicationConfig, importProvidersFrom, LOCALE_ID } from '@angular/core
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 
 import { JwtModule } from '@auth0/angular-jwt';
@@ -15,6 +15,7 @@ import { environment } from '../environments/environment';
 import { inscripcionFeature } from './pages/inscripcion/state/inscripcion-reducer';
 import { TenantInterceptor } from './core/tenant.interceptor';
 import { REINSCRIPCION_FEATURE_KEY, reinscripcionReducer } from './pages/reinscripcion/state/reinscripcion-reducer';
+import { authInterceptor } from './interceptor/auth.interceptor';
 
 export function tokenGetter() {
   return sessionStorage.getItem(environment.TOKEN_NAME);
@@ -36,6 +37,7 @@ export const appConfig: ApplicationConfig = {
 
     // 👇 Solo UNA llamada a provideHttpClient y usando withInterceptorsFromDi
     provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(withInterceptors([authInterceptor])),
 
     // Interceptors de DI (en orden)
     { provide: HTTP_INTERCEPTORS, useClass: ServerErrorsInterceptor, multi: true },

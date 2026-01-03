@@ -244,6 +244,7 @@ export class ProductoModal implements OnInit, OnDestroy {
       precioCompra: Number(f.precioCompra),
       precioVenta: Number(f.precioVenta),
       cantidad: Number(f.cantidad),
+      activo: true,
       categoria: { idCategoria: f.idCategoria! } // tu backend espera "idCategoria" en CategoriaDTO
     };
 

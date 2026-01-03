@@ -1,6 +1,6 @@
 {
   "name": "revolucion-atletica-frontend",
-  "version": "0.0.0",
+  "version": "0.0.3",
   "main": "electron/main.js",
   "build": {
     "appId": "com.revolucion.atletica",
@@ -15,16 +15,31 @@
     "win": {
       "target": "nsis",
       "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.productivity"
+    },
+    "publish": [
+    {
+      "provider": "github"
     }
+  ]
   },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "build:web": "ng build -c production --base-href ./",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "electron": "ng build --base-href ./&& electron .",
-    "package": "electron-builder"
+    "package": "electron-builder",
+    "postinstall": "patch-package",
+    "make:ico": "node scripts/make-ico.mjs",
+    "dist:win": "npm run make:ico && npm run build:web && electron-builder --win --publish never",
+    "publish": "npm run dist:win"
+
   },
   "prettier": {
     "overrides": [
@@ -45,6 +60,8 @@
     "@angular/platform-browser": "^20.1.0",
     "@angular/router": "^20.1.0",
     "@auth0/angular-jwt": "^5.2.0",
+    "@digitalpersona/core": "^0.2.6",
+    "@digitalpersona/devices": "^0.2.6",
     "@ngrx/effects": "^20.0.1",
     "@ngrx/store": "^20.0.1",
     "@ngrx/store-devtools": "^20.0.1",
@@ -56,20 +73,29 @@
     "rxjs": "~7.8.0",
     "tailwindcss": "^4.1.11",
     "tslib": "^2.3.0",
-    "zone.js": "~0.15.0"
+    "WebSdk": "file:src/shims/WebSdk",
+    "zone.js": "~0.15.0",
+    "electron-updater": "^6.6.2",
+    "electron-log": "^5.4.3"
+
   },
   "devDependencies": {
     "@angular/build": "^20.1.5",
     "@angular/cli": "^20.1.5",
     "@angular/compiler-cli": "^20.1.0",
+    "@tailwindcss/postcss": "^4.1.11",
     "@types/jasmine": "~5.1.0",
     "electron": "^37.2.6",
+    "electron-builder": "^26.0.12",
     "jasmine-core": "~5.8.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "patch-package": "^8.0.1",
+    "png-to-ico": "^3.0.1",
+    "sharp": "^0.34.4",
     "typescript": "~5.8.2"
   }
 }

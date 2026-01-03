@@ -1,0 +1,245 @@
+<!-- src/app/pages/corte-caja-info/corte-caja-info.html -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
+  <div
+    class="mx-4 w-full max-w-5xl rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 max-h-[90vh] flex flex-col overflow-hidden"
+  >
+    <!-- Header -->
+    <div class="flex items-start justify-between px-6 pt-5 pb-3 border-b border-gray-100">
+      <div>
+        <h2 class="text-lg font-bold text-ra-slate">
+          Corte de caja #{{ corte.idCorte }}
+        </h2>
+        <p class="text-xs text-gray-500">
+          Apertura:
+          {{ corte.apertura | date:'dd/MM/yyyy HH:mm' }}
+          @if (corte.cierre) {
+            · Cierre:
+            {{ corte.cierre | date:'dd/MM/yyyy HH:mm' }}
+          }
+        </p>
+      </div>
+
+      <button
+        class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+        (click)="cerrarModal()"
+        aria-label="Cerrar"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 py-4 space-y-4 overflow-y-auto text-sm">
+
+      @if (cargando) {
+        <div class="py-4 text-ra-slate">
+          Cargando información del corte…
+        </div>
+      } @else if (error) {
+        <div class="py-4 text-red-600">
+          {{ error }}
+        </div>
+      } @else if (detalle) {
+
+        <!-- Totales principales -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+            <div class="text-xs text-ra-slate/70">Ventas</div>
+            <div class="font-semibold">
+              {{ detalle.totalVentas | currency:'MXN':'symbol-narrow':'1.2-2' }}
+            </div>
+          </div>
+          <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+            <div class="text-xs text-ra-slate/70">Membresías</div>
+            <div class="font-semibold">
+              {{ detalle.totalMembresias | currency:'MXN':'symbol-narrow':'1.2-2' }}
+            </div>
+          </div>
+          <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+            <div class="text-xs text-ra-slate/70">Asesorías</div>
+            <div class="font-semibold">
+              {{ detalle.totalAccesorias | currency:'MXN':'symbol-narrow':'1.2-2' }}
+            </div>
+          </div>
+          <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
+            <div class="text-xs text-ra-slate/70">Total general</div>
+            <div class="font-semibold">
+              {{ detalle.totalGeneral | currency:'MXN':'symbol-narrow':'1.2-2' }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Caja y efectivo -->
+        <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 md:p-4 space-y-2">
+          <div class="text-sm font-semibold text-ra-slate mb-1">
+            Caja y efectivo
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div>
+              <div class="text-[11px] text-ra-slate/70">Fondo inicial</div>
+              <div class="font-medium">
+                {{ detalle.fondoCajaInicial | currency:'MXN':'symbol-narrow':'1.2-2' }}
+              </div>
+            </div>
+            <div>
+              <div class="text-[11px] text-ra-slate/70">Ingresos en efectivo</div>
+              <div class="font-medium">
+                {{ detalle.ingresosEfectivo | currency:'MXN':'symbol-narrow':'1.2-2' }}
+              </div>
+            </div>
+            <div>
+              <div class="text-[11px] text-ra-slate/70">Salidas de efectivo</div>
+              <div class="font-medium">
+                {{ detalle.totalSalidasEfectivo | currency:'MXN':'symbol-narrow':'1.2-2' }}
+              </div>
+            </div>
+            <div>
+              <div class="text-[11px] text-ra-slate/70">Efectivo esperado</div>
+              <div class="font-semibold text-emerald-700">
+                {{ detalle.efectivoEsperado | currency:'MXN':'symbol-narrow':'1.2-2' }}
+              </div>
+            </div>
+          </div>
+
+          @if (esCerrado()) {
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 pt-2 border-t border-gray-200">
+              <div>
+                <div class="text-[11px] text-ra-slate/70">Efectivo entregado</div>
+                <div class="font-medium">
+                  {{ detalle.efectivoEntregado | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                </div>
+              </div>
+              <div>
+                <div class="text-[11px] text-ra-slate/70">Efectivo en caja (conteo)</div>
+                <div class="font-medium">
+                  {{ detalle.efectivoEnCajaConteo | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                </div>
+              </div>
+              <div>
+                <div class="text-[11px] text-ra-slate/70">Faltante / sobrante</div>
+                <div
+                  class="font-semibold"
+                  [ngClass]="{
+                    'text-red-600': (detalle.faltante ?? 0) < 0,
+                    'text-emerald-700': (detalle.faltante ?? 0) >= 0
+                  }"
+                >
+                  {{ detalle.faltante | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Desglose por forma de pago -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <div class="text-sm font-semibold text-ra-slate">
+              Desglose por forma de pago
+            </div>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-gray-200">
+            <table class="min-w-full text-xs md:text-sm">
+              <thead class="bg-gray-50 text-ra-slate/80">
+                <tr>
+                  <th class="px-3 py-2 text-left">Origen</th>
+                  <th class="px-3 py-2 text-left">Forma de pago</th>
+                  <th class="px-3 py-2 text-center">Operaciones</th>
+                  <th class="px-3 py-2 text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (!detalle.desgloses?.length) {
+                  <tr>
+                    <td colspan="4" class="px-3 py-3 text-center text-ra-slate/70">
+                      Sin movimientos registrados.
+                    </td>
+                  </tr>
+                } @else {
+                  @for (fp of detalle.desgloses; track $index) {
+                    <tr class="border-t border-gray-100">
+                      <td class="px-3 py-2 capitalize">
+                        {{ fp.origen?.toLowerCase() }}
+                      </td>
+                      <td class="px-3 py-2">
+                        {{ fp.tipoPago }}
+                      </td>
+                      <td class="px-3 py-2 text-center">
+                        {{ fp.operaciones }}
+                      </td>
+                      <td class="px-3 py-2 text-right">
+                        {{ fp.total | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Salidas de efectivo -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <div class="text-sm font-semibold text-ra-slate">
+              Salidas de efectivo
+            </div>
+            <div class="text-xs text-ra-slate/70">
+              Total salidas:
+              {{ totalSalidasLocal() | currency:'MXN':'symbol-narrow':'1.2-2' }}
+            </div>
+          </div>
+          <div class="overflow-x-auto rounded-xl border border-gray-200">
+            <table class="min-w-full text-xs md:text-sm">
+              <thead class="bg-gray-50 text-ra-slate/80">
+                <tr>
+                  <th class="px-3 py-2 text-left">Fecha</th>
+                  <th class="px-3 py-2 text-left">Concepto</th>
+                  <th class="px-3 py-2 text-right">Monto</th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (!salidas.length) {
+                  <tr>
+                    <td colspan="3" class="px-3 py-3 text-center text-ra-slate/70">
+                      No hay salidas registradas en este corte.
+                    </td>
+                  </tr>
+                } @else {
+                  @for (s of salidas; track s.idSalida) {
+                    <tr class="border-t border-gray-100">
+                      <td class="px-3 py-2 whitespace-nowrap">
+                        {{ s.fecha | date:'dd/MM/yyyy HH:mm' }}
+                      </td>
+                      <td class="px-3 py-2">
+                        {{ s.concepto }}
+                      </td>
+                      <td class="px-3 py-2 text-right">
+                        {{ s.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-3 border-t border-gray-100 flex justify-end">
+      <button
+        type="button"
+        class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm"
+        (click)="cerrarModal()"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>

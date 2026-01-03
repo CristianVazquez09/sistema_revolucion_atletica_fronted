@@ -13,4 +13,6 @@ export interface SocioData {
   comentarios?: string;
   activo?:boolean;
   gimnasio?: GimnasioData;
+
+  huellaDigital?: string; 
 }

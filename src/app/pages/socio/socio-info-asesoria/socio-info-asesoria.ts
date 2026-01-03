@@ -1,4 +1,3 @@
-// src/app/pages/socio/socio-info-asesoria/socio-info-asesoria.ts
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -43,8 +42,37 @@ export class SocioInfoAsesoria implements OnInit {
 
   ngOnInit(): void {
     this.idSocio = Number(this.route.snapshot.paramMap.get('idSocio'));
-    this.cargar();
+    this.cargarHeaderSocio(); // 👈 carga confiable del encabezado
+    this.cargar();            // 👈 datos de la tabla
   }
+
+  /* =================== Header (nombre/teléfono) =================== */
+
+  private setHeaderFromSocio(s: any): void {
+    if (!s) return;
+    const nombre = `${s?.nombre ?? ''} ${s?.apellido ?? ''}`.trim();
+    this.socioNombre = nombre || (s?.idSocio ? `Socio ${s.idSocio}` : this.socioNombre);
+    this.socioTelefono = s?.telefono ?? this.socioTelefono ?? null;
+  }
+
+  private cargarHeaderSocio(): void {
+    // Llama al método real que tengas en SocioService para obtener por ID.
+    // Probamos algunos nombres comunes para no romper tu build si tiene otro nombre:
+    // obtenerPorId / getById / buscarPorId
+    const req =
+      (this.socioSrv as any).obtenerPorId?.(this.idSocio) ??
+      (this.socioSrv as any).getById?.(this.idSocio) ??
+      (this.socioSrv as any).buscarPorId?.(this.idSocio);
+
+    if (req?.subscribe) {
+      req.subscribe({
+        next: (s: any) => this.setHeaderFromSocio(s),
+        error: () => { /* silencioso; podemos caer al fallback desde la tabla */ }
+      });
+    }
+  }
+
+  /* =================== Rango X–Y de Z =================== */
 
   get rangoDesde(): number {
     if (this.totalElementos === 0) return 0;
@@ -54,6 +82,8 @@ export class SocioInfoAsesoria implements OnInit {
     const hasta = (this.pagina + 1) * this.tamanio;
     return Math.min(hasta, this.totalElementos);
   }
+
+  /* =================== Cargar tabla =================== */
 
   cargar(): void {
     this.cargando = true;
@@ -69,11 +99,14 @@ export class SocioInfoAsesoria implements OnInit {
           this.tamanio = resp.pagina?.tamanio ?? this.tamanio;
           this.pagina = resp.pagina?.numero ?? this.pagina;
 
-          // encabezado desde el primer item (si lo trae)
-          const s: any = this.asesorias[0]?.socio;
-          this.socioNombre = s ? `${s.nombre ?? ''} ${s.apellido ?? ''}`.trim() || null : null;
-          this.socioTelefono = s?.telefono ?? null;
+          // Si aún no tenemos header (p. ej. la llamada directa no respondió),
+          // intenta con el socio embebido en el primer item.
+          if (!this.socioNombre) {
+            const s: any = this.asesorias[0]?.socio;
+            if (s) this.setHeaderFromSocio(s);
+          }
 
+          // Si quedó vacía esta página y no es la primera, retrocede una
           if (this.asesorias.length === 0 && this.pagina > 0) {
             this.pagina = this.pagina - 1;
             this.cargar();
@@ -86,7 +119,8 @@ export class SocioInfoAsesoria implements OnInit {
       });
   }
 
-  // paginación
+  /* =================== Paginación =================== */
+
   cambiarTamanioPagina(nuevo: number | string): void {
     this.tamanio = Number(nuevo);
     this.pagina = 0;
@@ -102,16 +136,19 @@ export class SocioInfoAsesoria implements OnInit {
     this.cargar();
   }
 
-  // helpers UI
+  /* =================== Helpers UI =================== */
+
   labelTiempo(t: string | null | undefined): string {
     return String(t ?? '')
       .replace(/_/g, ' ')
       .toLowerCase()
       .replace(/\b\w/g, c => c.toUpperCase());
   }
+
   pagosConMonto(pagos?: PagoData[] | null): PagoData[] {
     return (pagos ?? []).filter(p => Number(p?.monto) > 0);
   }
+
   labelPago(tipo: PagoData['tipoPago'] | string): string {
     switch (tipo) {
       case 'EFECTIVO': return 'Efectivo';
@@ -120,12 +157,14 @@ export class SocioInfoAsesoria implements OnInit {
       default: return String(tipo);
     }
   }
+
   nombreEntrenador(a: AsesoriaContratoData): string {
     const e = a.entrenador;
     if (!e) return '—';
     const full = `${e.nombre ?? ''} ${e.apellido ?? ''}`.trim();
     return full || `#${e.idEntrenador}`;
   }
+
   nombreGimnasio(a: AsesoriaContratoData): string {
     const g = a.gimnasio;
     if (!g) return '—';

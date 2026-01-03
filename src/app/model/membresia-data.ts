@@ -12,6 +12,7 @@ export interface PagoData {
 
 export interface MembresiaData {
   idMembresia?: number;
+  folio?: number;
   socio: SocioData;
   paquete: PaqueteData;
   fechaInicio: string;  // YYYY-MM-DD
@@ -20,6 +21,7 @@ export interface MembresiaData {
   pagos: PagoData[];
   descuento: number;
   total: number;
+  visitasRestantes?: number | null;
   usuario?: UsuarioData;   // 👈 nuevo
   gimnasio?: GimnasioData
   

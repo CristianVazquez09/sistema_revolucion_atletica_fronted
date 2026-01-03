@@ -1,194 +1,651 @@
-<!-- Barra superior -->
-<div class="mx-4 md:mx-10 mb-4 flex items-center justify-between">
-  <div class="text-xl font-semibold text-ra-slate">Membresías</div>
-
-  <div class="flex flex-wrap items-center gap-2">
-    <!-- Buscar por ID -->
-    <div class="flex items-center gap-2 mr-2">
-      <input type="number" min="1" placeholder="ID membresía"
-             class="w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-             [(ngModel)]="idBuscar"
-             (keyup.enter)="buscarPorId()">
-      <button type="button"
-              class="px-3 py-2 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-sm disabled:opacity-60"
-              [disabled]="buscando || !idBuscar"
-              (click)="buscarPorId()">
-        Buscar
-      </button>
-      <button type="button"
-              class="px-3 py-2 rounded-md border text-sm disabled:opacity-60"
-              [disabled]="buscando && !idBuscar"
-              (click)="limpiarBusqueda()">
-        Limpiar
-      </button>
+<!-- membresia.html
+=========================================================
+WRAPPER: desde <xl aplica “compactado” SIN dejar hueco abajo
+(usa zoom para que NO reserve el alto original como pasa con scale)
+========================================================= -->
+<div
+  class="
+    [@media(max-width:1279px)]:[zoom:0.92]
+    [@media(max-width:1100px)]:[zoom:0.88]
+    [@media(max-width:980px)]:[zoom:0.84]
+    [@media(max-width:860px)]:[zoom:0.80]
+  "
+>
+  <!-- =========================
+       BARRA SUPERIOR
+       - SIN scroll horizontal: wrap en pantallas chicas
+       - ORDEN ARRIBA: SOLO 2XL+ y SOLO si el menú NO está abierto
+  ========================= -->
+  <div
+    class="mx-4 md:mx-10 mb-2 xl:mb-4 flex flex-col 2xl:flex-row 2xl:items-start 2xl:justify-between gap-2 xl:gap-3"
+  >
+    <div class="text-base sm:text-lg xl:text-xl font-semibold text-ra-slate shrink-0">
+      Membresías
     </div>
 
-    <!-- Orden -->
-    <span class="hidden md:inline text-sm text-ra-slate/80">Ordenar por</span>
-    <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-            [(ngModel)]="sortCampo" (change)="go(1)">
+    <div
+      class="w-full 2xl:w-auto flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-end gap-2 xl:gap-3 text-[11px] xl:text-[12px] leading-none min-w-0"
+    >
+      <!-- Controles (wrap en <2xl, sin overflow-x) -->
+      <div class="w-full flex flex-wrap 2xl:flex-nowrap items-center gap-2 xl:gap-3 min-w-0">
+        <!-- Folio -->
+        <div class="w-full sm:w-auto flex items-center gap-2 min-w-0">
+          <label class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">Folio</label>
+
+          <input
+            type="number"
+            min="1"
+            class="w-[120px] xl:w-[110px] h-8 xl:h-9 rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+            [(ngModel)]="folioBuscar"
+            (keyup.enter)="buscarPorFolio()"
+          />
+
+          <button
+            type="button"
+            class="h-8 xl:h-9 px-3 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-[11px] xl:text-[12px] disabled:opacity-60 shrink-0"
+            [disabled]="buscandoFolio || !folioBuscar"
+            (click)="buscarPorFolio()"
+          >
+            Buscar
+          </button>
+        </div>
+
+        <!-- Socio -->
+        <div class="w-full sm:w-auto flex items-center gap-2 min-w-0">
+          <label class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">Socio</label>
+
+          <input
+            type="text"
+            class="w-[220px] xl:w-[180px] 2xl:w-[200px] h-8 xl:h-9 rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+            [(ngModel)]="nombreBuscar"
+            (ngModelChange)="onNombreInputChange($event)"
+          />
+
+          <button
+            type="button"
+            class="h-8 xl:h-9 px-3 rounded-md border text-[11px] xl:text-[12px] shrink-0"
+            (click)="limpiarBusqueda()"
+          >
+            Limpiar
+          </button>
+        </div>
+
+        <!-- divisor (solo 2xl+) -->
+        <div class="w-px h-6 mx-1 bg-gray-200 hidden 2xl:block shrink-0"></div>
+
+        <!-- Rango de fechas -->
+        @if (!ocultarFechas()) {
+          <div class="w-full 2xl:w-auto flex flex-wrap 2xl:flex-nowrap items-center gap-2 min-w-0">
+            <label class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">Desde</label>
+            <input
+              type="date"
+              class="h-8 xl:h-9 w-[150px] xl:w-[140px] rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+              [(ngModel)]="fechaDesde"
+            />
+
+            <label class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">Hasta</label>
+            <input
+              type="date"
+              class="h-8 xl:h-9 w-[150px] xl:w-[140px] rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+              [(ngModel)]="fechaHasta"
+            />
+
+            <button
+              type="button"
+              class="h-8 xl:h-9 px-3 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-[11px] xl:text-[12px] shrink-0"
+              (click)="aplicarRangoFechas()"
+            >
+              Filtrar
+            </button>
+
+            <button
+              type="button"
+              class="h-8 xl:h-9 px-3 rounded-md border text-[11px] xl:text-[12px] disabled:opacity-60 shrink-0"
+              [disabled]="!filtroFechasActivo && !fechaDesde && !fechaHasta"
+              (click)="limpiarRangoFechas()"
+            >
+              Quitar filtro
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- ORDEN ARRIBA: SOLO 2XL+ Y SOLO si el menú NO está abierto -->
+      @if (!moverOrdenYSize()) {
+        <div class="hidden 2xl:flex items-center gap-2 shrink-0">
+          <span class="text-[11px] text-ra-slate/80 whitespace-nowrap">Ordenar por</span>
+
+          <select
+            class="h-9 w-[120px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-[12px]"
+            [(ngModel)]="sortCampo"
+            (change)="go(1)"
+          >
+            <option [ngValue]="'fechaInicio'">F. inicio</option>
+            <option [ngValue]="'fechaFin'">F. fin</option>
+            <option [ngValue]="'folio'">Folio</option>
+            <option [ngValue]="'idMembresia'">ID interno</option>
+            <option [ngValue]="'total'">Total</option>
+          </select>
+
+          <select
+            class="h-9 w-[90px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-[12px]"
+            [(ngModel)]="sortDir"
+            (change)="go(1)"
+          >
+            <option [ngValue]="'desc'">Desc</option>
+            <option [ngValue]="'asc'">Asc</option>
+          </select>
+
+          <span class="text-[11px] text-ra-slate/80 whitespace-nowrap">Por página</span>
+          <select
+            class="h-9 w-[80px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-[12px]"
+            [(ngModel)]="sizeSel"
+            (change)="go(1)"
+          >
+            <option [ngValue]="10">10</option>
+            <option [ngValue]="25">25</option>
+            <option [ngValue]="50">50</option>
+          </select>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- =========================
+       TABLA
+       ✅ MÁS COMPACTA EN <lg (paddings + tipografías + chips + acciones)
+  ========================= -->
+  <div #tablaWrap class="shadow-card rounded-xl2 mx-4 md:mx-10 bg-ra-white">
+    <div class="overflow-x-hidden lg:overflow-x-auto 2xl:overflow-x-hidden">
+      <div
+        #membresiasScroller
+        class="
+          min-h-[50vh]
+          overflow-auto
+          max-h-[calc(100dvh-235px)]
+          sm:max-h-[calc(100dvh-230px)]
+          md:max-h-[calc(100dvh-225px)]
+          xl:max-h-[calc(100dvh-320px)]
+          2xl:max-h-[calc(100dvh-340px)]
+          [@media(max-height:900px)]:max-h-[calc(100dvh-300px)]
+          [@media(max-height:820px)]:max-h-[calc(100dvh-330px)]
+        "
+      >
+        <table
+          class="
+            w-full border-collapse table-auto lg:table-fixed 2xl:table-fixed
+            text-[9px] sm:text-[10px] lg:text-[11px] xl:text-[13px]
+          "
+        >
+          <thead class="sticky top-0 bg-ra-grayLight/40 z-10">
+            <tr>
+              <th
+                class="
+                  py-0.5 sm:py-1 lg:py-1.5 xl:py-4
+                  px-1.5 sm:px-2 lg:px-3 xl:px-4
+                  text-center text-ra-slate font-semibold uppercase
+                  w-[72px] 2xl:w-[64px]
+                "
+              >
+                Folio
+              </th>
+
+              <th
+                class="
+                  py-0.5 sm:py-1 lg:py-1.5 xl:py-4
+                  px-1.5 sm:px-2 lg:px-3 xl:px-4
+                  text-left text-ra-slate font-semibold uppercase
+                  w-[38%] lg:w-[18%] 2xl:w-[16%]
+                "
+              >
+                Socio
+              </th>
+
+              <th
+                class="
+                  py-0.5 sm:py-1 lg:py-1.5 xl:py-4
+                  px-1.5 sm:px-2 lg:px-3 xl:px-4
+                  text-left text-ra-slate font-semibold uppercase
+                  w-[40%] lg:w-[16%] 2xl:w-[14%]
+                "
+              >
+                Paquete
+              </th>
+
+              <!-- Fechas (lg+) separadas SIEMPRE -->
+              <th
+                class="
+                  hidden lg:table-cell
+                  py-0.5 sm:py-1 lg:py-1.5 xl:py-4
+                  px-1.5 sm:px-2 lg:px-3 xl:px-4
+                  text-center text-ra-slate font-semibold uppercase
+                  w-[10%] 2xl:w-[9%]
+                "
+              >
+                F. inicio
+              </th>
+              <th
+                class="
+                  hidden lg:table-cell
+                  py-0.5 sm:py-1 lg:py-1.5 xl:py-4
+                  px-1.5 sm:px-2 lg:px-3 xl:px-4
+                  text-center text-ra-slate font-semibold uppercase
+                  w-[10%] 2xl:w-[9%]
+                "
+              >
+                F. fin
+              </th>
+
+              <!-- <2xl: columna compacta (Movimiento + Total) -->
+              <th
+                class="
+                  py-0.5 sm:py-1 lg:py-1.5 xl:py-4
+                  px-1.5 sm:px-2 lg:px-3 xl:px-4
+                  text-center text-ra-slate font-semibold uppercase
+                  2xl:hidden w-[110px] sm:w-[130px] min-w-[110px]
+                "
+              >
+                Movimiento
+              </th>
+
+              <!-- 2xl+: columnas normales -->
+              <th
+                class="
+                  hidden 2xl:table-cell
+                  py-0.5 sm:py-1 lg:py-1.5 xl:py-4
+                  px-1.5 sm:px-2 lg:px-3 xl:px-4
+                  text-center text-ra-slate font-semibold uppercase
+                  w-[10%] 2xl:w-[9%]
+                "
+              >
+                Movimiento
+              </th>
+              <th
+                class="
+                  hidden 2xl:table-cell
+                  py-0.5 sm:py-1 lg:py-1.5 xl:py-4
+                  px-1.5 sm:px-2 lg:px-3 xl:px-4
+                  text-center text-ra-slate font-semibold uppercase
+                  w-[10%] 2xl:w-[9%]
+                "
+              >
+                Total
+              </th>
+
+              <!-- Usuario (lg+) -->
+              <th
+                class="
+                  hidden lg:table-cell
+                  py-0.5 sm:py-1 lg:py-1.5 xl:py-4
+                  px-1.5 sm:px-2 lg:px-3 xl:px-4
+                  text-center text-ra-slate font-semibold uppercase
+                  w-[12%] 2xl:w-[11%]
+                "
+              >
+                Usuario
+              </th>
+
+              <!-- Gimnasio admin -->
+              @if (esAdmin) {
+                <th
+                  class="
+                    hidden xl:table-cell
+                    py-0.5 sm:py-1 lg:py-1.5 xl:py-4
+                    px-1.5 sm:px-2 lg:px-3 xl:px-4
+                    text-center text-ra-slate font-semibold uppercase
+                    w-[16%] 2xl:w-[13%]
+                  "
+                >
+                  Gimnasio
+                </th>
+                <th
+                  class="
+                    hidden lg:table-cell xl:hidden
+                    py-0.5 sm:py-1 lg:py-1.5 xl:py-4
+                    px-1.5 sm:px-2 lg:px-3 xl:px-4
+                    text-center text-ra-slate font-semibold uppercase
+                    w-[16%]
+                  "
+                >
+                  Gimnasio
+                </th>
+              }
+
+              <!-- Acciones -->
+              <th
+                class="
+                  py-0.5 sm:py-1 lg:py-1.5 xl:py-4
+                  px-1.5 sm:px-2 lg:px-3 xl:px-4
+                  text-center text-ra-slate font-semibold uppercase
+                  w-[116px] min-w-[116px] 2xl:w-[112px] 2xl:min-w-[112px]
+                "
+              >
+                Acciones
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @if (cargando) {
+              <tr>
+                <td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Cargando…</td>
+              </tr>
+            } @else if (error) {
+              <tr>
+                <td [attr.colspan]="99" class="py-6 px-6 text-center text-red-600">{{ error }}</td>
+              </tr>
+            } @else if (!rows.length) {
+              <tr>
+                <td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td>
+              </tr>
+            } @else {
+              @for (m of rows; track trackById($index, m)) {
+                <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
+                  <!-- Folio -->
+                  <td class="py-0.5 sm:py-1 xl:py-3 px-1.5 sm:px-2 xl:px-4 text-center font-medium">
+                    <div class="truncate">#{{ m.folio ?? '—' }}</div>
+                  </td>
+
+                  <!-- Socio -->
+                  <td class="py-0.5 sm:py-1 xl:py-3 px-1.5 sm:px-2 xl:px-4">
+                    <div class="font-medium truncate">
+                      {{ m.socio.nombre }} {{ m.socio.apellido }}
+                    </div>
+                    <div class="text-[8px] sm:text-[9px] lg:text-[10px] xl:text-xs text-ra-slate/70 truncate">
+                      ID: {{ m.socio.idSocio }} · {{ m.socio.telefono || '—' }}
+                    </div>
+                  </td>
+
+                  <!-- Paquete -->
+                  <td class="py-0.5 sm:py-1 xl:py-3 px-1.5 sm:px-2 xl:px-4">
+                    <div class="font-medium truncate">{{ m.paquete.nombre }}</div>
+
+                    <div class="mt-0.5">
+                      <span
+                        class="
+                          inline-flex items-center gap-1
+                          px-1 sm:px-1.5 xl:px-2
+                          py-0.5
+                          rounded-full bg-indigo-100 text-indigo-700
+                          text-[8px] sm:text-[9px] lg:text-[10px] xl:text-[11px]
+                        "
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          class="w-2.5 h-2.5 sm:w-3 sm:h-3 xl:w-3.5 xl:h-3.5"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        >
+                          <circle cx="12" cy="12" r="9"></circle>
+                          <path d="M12 7v5l3 2"></path>
+                        </svg>
+                        {{ m.paquete.tiempo | tiempoPlan }}
+                      </span>
+                    </div>
+
+                    <!-- <lg: fechas + usuario -->
+                    <!-- <lg: fechas + usuario -->
+<!-- <lg: fechas + usuario + gimnasio (admin) -->
+<div class="mt-0.5 lg:hidden flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[8px] sm:text-[9px] text-ra-slate/70">
+  <span class="whitespace-nowrap">
+    {{ m.fechaInicio | date:'dd/MM/yyyy' }} → {{ m.fechaFin | date:'dd/MM/yyyy' }}
+  </span>
+
+  <span class="truncate">
+    {{ m.usuario?.nombreUsuario || '—' }}
+  </span>
+
+  @if (esAdmin) {
+    <span
+      class="inline-flex items-center gap-1 rounded-full
+             bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)]
+             px-1.5 py-0.5"
+      title="Gimnasio"
+    >
+      <svg viewBox="0 0 24 24" class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+      </svg>
+      <span class="max-w-[180px] truncate">
+        {{ gymNombre(m.paquete.gimnasio || m.socio.gimnasio || m.gimnasio) }}
+      </span>
+    </span>
+  }
+</div>
+
+
+                  </td>
+
+                  <!-- Fechas (lg+) -->
+                  <td class="hidden lg:table-cell py-0.5 sm:py-1 xl:py-3 px-1.5 sm:px-2 xl:px-4 text-center">
+                    {{ m.fechaInicio | date:'dd/MM/yyyy' }}
+                  </td>
+                  <td class="hidden lg:table-cell py-0.5 sm:py-1 xl:py-3 px-1.5 sm:px-2 xl:px-4 text-center">
+                    {{ m.fechaFin | date:'dd/MM/yyyy' }}
+                  </td>
+
+                  <!-- <2xl: Movimiento+Total juntos -->
+                  <td class="py-0.5 sm:py-1 xl:py-3 px-1.5 sm:px-2 xl:px-4 text-center 2xl:hidden">
+                    <div class="flex flex-col items-center gap-0.5">
+                      <span
+                        class="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-semibold"
+                        [ngClass]="{
+                          'bg-emerald-100 text-emerald-700': m.movimiento === 'INSCRIPCION',
+                          'bg-indigo-100 text-indigo-700':  m.movimiento === 'REINSCRIPCION',
+                          'bg-gray-100 text-gray-700':      m.movimiento !== 'INSCRIPCION' && m.movimiento !== 'REINSCRIPCION'
+                        }"
+                      >
+                        {{ m.movimiento }}
+                      </span>
+
+                      <span class="font-semibold whitespace-nowrap text-[9px] sm:text-[10px]">
+                        {{ (m.total || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- 2xl+: Movimiento -->
+                  <td class="hidden 2xl:table-cell py-0.5 sm:py-1 xl:py-3 px-1.5 sm:px-2 xl:px-4 text-center">
+                    <span
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
+                      [ngClass]="{
+                        'bg-emerald-100 text-emerald-700': m.movimiento === 'INSCRIPCION',
+                        'bg-indigo-100 text-indigo-700':  m.movimiento === 'REINSCRIPCION',
+                        'bg-gray-100 text-gray-700':      m.movimiento !== 'INSCRIPCION' && m.movimiento !== 'REINSCRIPCION'
+                      }"
+                    >
+                      {{ m.movimiento }}
+                    </span>
+                  </td>
+
+                  <!-- 2xl+: Total -->
+                  <td class="hidden 2xl:table-cell py-0.5 sm:py-1 xl:py-3 px-1.5 sm:px-2 xl:px-4 text-center font-semibold">
+                    {{ (m.total || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                  </td>
+
+                  <!-- Usuario (lg+) -->
+                  <td class="hidden lg:table-cell py-0.5 sm:py-1 xl:py-3 px-1.5 sm:px-2 xl:px-4 text-center">
+                    {{ m.usuario?.nombreUsuario || '—' }}
+                  </td>
+
+                  <!-- Gimnasio admin -->
+                  @if (esAdmin) {
+                    <td class="hidden xl:table-cell py-0.5 sm:py-1 xl:py-3 px-1.5 sm:px-2 xl:px-4 text-center">
+                      <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
+                        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+                        </svg>
+                        {{ gymNombre(m.paquete.gimnasio || m.socio.gimnasio || m.gimnasio) }}
+                      </span>
+                    </td>
+
+                    <td class="hidden lg:table-cell xl:hidden py-0.5 sm:py-1 xl:py-3 px-1.5 sm:px-2 xl:px-4 text-center">
+                      <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
+                        <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+                        </svg>
+                        {{ gymNombre(m.paquete.gimnasio || m.socio.gimnasio || m.gimnasio) }}
+                      </span>
+                    </td>
+                  }
+
+                  <!-- Acciones -->
+                  <td class="py-0.5 sm:py-1 xl:py-2 px-1.5 sm:px-2 xl:px-0">
+                    <div class="flex items-center justify-center gap-1">
+                      @if (!esRecep) {
+                        <button (click)="editar(m)" class="p-0.5 sm:p-1 xl:p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
+                          <img src="iconos/editar.svg" alt="Editar" class="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 xl:w-8 xl:h-8" />
+                        </button>
+                      }
+
+                      <button
+                        (click)="reimprimir(m)"
+                        class="p-0.5 sm:p-1 xl:p-2 rounded hover:bg-ra-grayLight/40 disabled:opacity-50"
+                        [disabled]="reimprimiendo"
+                        title="Reimprimir ticket"
+                      >
+                        <img src="iconos/impresora.svg" alt="Reimprimir" class="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 xl:w-8 xl:h-8" />
+                      </button>
+
+                      @if (!esRecep) {
+                        <button (click)="eliminar(m)" class="p-0.5 sm:p-1 xl:p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar">
+                          <img src="iconos/eliminar.svg" alt="Eliminar" class="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 xl:w-8 xl:h-8" />
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       ORDEN ABAJO
+       - <2xl: SIEMPRE abajo (no importa menú)
+  ========================= -->
+  <div class="mx-4 md:mx-10 mt-2 mb-1 flex flex-wrap items-center justify-end gap-2 text-[11px] 2xl:hidden">
+    <span class="text-ra-slate/80 whitespace-nowrap">Ordenar por</span>
+
+    <select
+      class="h-8 w-[120px] rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-1.5 shadow-inner text-[11px]"
+      [(ngModel)]="sortCampo"
+      (change)="go(1)"
+    >
       <option [ngValue]="'fechaInicio'">F. inicio</option>
       <option [ngValue]="'fechaFin'">F. fin</option>
-      <option [ngValue]="'idMembresia'">ID</option>
+      <option [ngValue]="'folio'">Folio</option>
+      <option [ngValue]="'idMembresia'">ID interno</option>
       <option [ngValue]="'total'">Total</option>
     </select>
 
-    <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-            [(ngModel)]="sortDir" (change)="go(1)">
+    <select
+      class="h-8 w-[90px] rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-1.5 shadow-inner text-[11px]"
+      [(ngModel)]="sortDir"
+      (change)="go(1)"
+    >
       <option [ngValue]="'desc'">Desc</option>
       <option [ngValue]="'asc'">Asc</option>
     </select>
 
-    <!-- Size -->
-    <label class="text-sm text-ra-slate/80 ml-2">Por página</label>
-    <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-            [(ngModel)]="sizeSel" (change)="go(1)">
+    <span class="text-ra-slate/80 whitespace-nowrap">Por página</span>
+    <select
+      class="h-8 w-[80px] rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-1.5 shadow-inner text-[11px]"
+      [(ngModel)]="sizeSel"
+      (change)="go(1)"
+    >
       <option [ngValue]="10">10</option>
       <option [ngValue]="25">25</option>
       <option [ngValue]="50">50</option>
     </select>
-
-    <button type="button"
-            class="px-4 py-2 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-sm"
-            (click)="go(1)">
-      Actualizar
-    </button>
   </div>
-</div>
 
-<!-- Tabla / Card -->
-<div class="shadow-card rounded-xl2 overflow-hidden mx-4 md:mx-10 bg-ra-white ring-1 ring-black/10">
-  <table class="w-full table-fixed text-[13px]">
-    <colgroup>
-      <col class="w-[7%]">
-      <col class="w-[18%]">
-      <col class="w-[16%]">
-      <col class="w-[10%]">
-      <col class="w-[10%]">
-      <col class="w-[10%]">
-      <col class="w-[18%]">
-      <col class="w-[7%]">
-      <col class="w-[10%]">
-      <col class="w-[12%]">
-      @if (esAdmin) { <col class="w-[16%]"> }
-      <col class="w-[10%] min-w-[120px]">
-    </colgroup>
+  <!-- =========================
+       ORDEN ABAJO (2xl+ SOLO si el menú está abierto)
+       - 2xl+: se baja cuando moverOrdenYSize() = true
+  ========================= -->
+  @if (moverOrdenYSize()) {
+    <div class="mx-4 md:mx-10 mt-2 mb-1 hidden 2xl:flex flex-wrap items-center justify-end gap-2 text-[12px]">
+      <span class="text-ra-slate/80 whitespace-nowrap">Ordenar por</span>
 
-    <thead>
-      <tr class="bg-ra-grayLight/40">
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">ID</th>
-        <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Socio</th>
-        <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Paquete</th>
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">F. inicio</th>
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">F. fin</th>
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Movimiento</th>
-        <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Pagos</th>
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Desc.</th>
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Total</th>
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Usuario</th>
-        @if (esAdmin) {
-          <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Gimnasio</th>
-        }
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Acciones</th>
-      </tr>
-    </thead>
+      <select
+        class="h-9 w-[120px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-[12px]"
+        [(ngModel)]="sortCampo"
+        (change)="go(1)"
+      >
+        <option [ngValue]="'fechaInicio'">F. inicio</option>
+        <option [ngValue]="'fechaFin'">F. fin</option>
+        <option [ngValue]="'folio'">Folio</option>
+        <option [ngValue]="'idMembresia'">ID interno</option>
+        <option [ngValue]="'total'">Total</option>
+      </select>
 
-    <tbody>
-      @if (cargando) {
-        <tr><td [attr.colspan]="esAdmin ? 12 : 11" class="py-6 px-6 text-center text-ra-slate">Cargando…</td></tr>
-      } @else if (error) {
-        <tr><td [attr.colspan]="esAdmin ? 12 : 11" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
-      } @else if (!rows.length) {
-        <tr><td [attr.colspan]="esAdmin ? 12 : 11" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td></tr>
-      } @else {
-        @for (m of rows; track trackById($index, m)) {
-          <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
-            <td class="py-3 px-4 text-center font-medium">#{{ m.idMembresia }}</td>
-            <td class="py-3 px-4">
-              <div class="font-medium truncate">
-                {{ m.socio.nombre }} {{ m.socio.apellido }}
-              </div>
-              <div class="text-xs text-ra-slate/70 truncate">
-                ID: {{ m.socio.idSocio }} · {{ m.socio.telefono || '—' }}
-              </div>
-            </td>
-            <td class="py-3 px-4">
-              <div class="truncate font-medium">{{ m.paquete.nombre }}</div>
-              <div class="text-xs text-ra-slate/70">{{ m.paquete.tiempo || '—' }}</div>
-            </td>
-            <td class="py-3 px-4 text-center">{{ m.fechaInicio | date:'dd/MM/yyyy' }}</td>
-            <td class="py-3 px-4 text-center">{{ m.fechaFin    | date:'dd/MM/yyyy' }}</td>
-            <td class="py-3 px-4 text-center">
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
-                    [ngClass]="{
-                      'bg-emerald-100 text-emerald-700': m.movimiento === 'INSCRIPCION',
-                      'bg-indigo-100 text-indigo-700':  m.movimiento === 'REINSCRIPCION',
-                      'bg-gray-100 text-gray-700':      m.movimiento !== 'INSCRIPCION' && m.movimiento !== 'REINSCRIPCION'
-                    }">
-                {{ m.movimiento }}
-              </span>
-            </td>
-            <td class="py-3 px-4"><div class="truncate">{{ pagosChip(m) }}</div></td>
-            <td class="py-3 px-4 text-center">
-              {{ (m.descuento || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-            </td>
-            <td class="py-3 px-4 text-center font-semibold">
-              {{ (m.total || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-            </td>
-            <td class="py-3 px-4 text-center">{{ m.usuario?.nombreUsuario || '—' }}</td>
-            @if (esAdmin) {
-              <td class="py-3 px-4 text-center">
-                <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
-                  <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
-                  </svg>
-                  {{ gymNombre(m.paquete.gimnasio || m.socio.gimnasio) }}
-                </span>
-              </td>
-            }
-            <td class="py-2 px-3">
-              <div class="flex items-center justify-center gap-2">
-                <button (click)="editar(m)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
-                  <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5" />
-                </button>
-                <button (click)="eliminar(m)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar">
-                  <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        }
+      <select
+        class="h-9 w-[90px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-[12px]"
+        [(ngModel)]="sortDir"
+        (change)="go(1)"
+      >
+        <option [ngValue]="'desc'">Desc</option>
+        <option [ngValue]="'asc'">Asc</option>
+      </select>
+
+      <span class="text-ra-slate/80 whitespace-nowrap">Por página</span>
+      <select
+        class="h-9 w-[80px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-[12px]"
+        [(ngModel)]="sizeSel"
+        (change)="go(1)"
+      >
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="25">25</option>
+        <option [ngValue]="50">50</option>
+      </select>
+    </div>
+  }
+
+  <!-- =========================
+       PAGINACIÓN
+  ========================= -->
+  <div class="mx-4 md:mx-10 mt-3 mb-2 flex items-center justify-between text-[11px] sm:text-xs xl:text-sm">
+    <div>
+      Página <strong>{{ pageUI }}</strong> de <strong>{{ page.totalPages || 1 }}</strong>
+      <span class="ml-2 text-ra-slate/70">({{ page.totalElements || 0 }} registros)</span>
+
+      @if (filtroFechasActivo && fechaDesde && fechaHasta) {
+        <span class="ml-3 inline-flex items-center gap-1 text-[10px] xl:text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+          Rango: {{ fechaDesde }} — {{ fechaHasta }}
+        </span>
       }
-    </tbody>
-  </table>
-</div>
+    </div>
 
-<!-- Paginación -->
-<div class="mx-4 md:mx-10 mt-3 mb-2 flex items-center justify-between text-sm">
-  <div>
-    Página <strong>{{ pageUI }}</strong> de <strong>{{ page.totalPages || 1 }}</strong>
-    <span class="ml-2 text-ra-slate/70">({{ page.totalElements || 0 }} registros)</span>
-  </div>
-  <div class="flex items-center gap-2">
-    <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50"
-            [disabled]="!puedePrev" (click)="prev()">Anterior</button>
-    <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50"
-            [disabled]="!puedeNext" (click)="next()">Siguiente</button>
-  </div>
-</div>
-
-<!-- Modal -->
-@if (mostrarModal() && idEditando !== null) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModal()"></div>
-    <div class="relative z-10 w-full max-w-[820px] mx-4">
-      <div class="bg-ra-white rounded-2xl shadow-2xl ring-1 ring-black/5">
-        <app-membresia-modal
-          [idMembresia]="idEditando"
-          (cancelar)="cerrarModal()"
-          (guardado)="onGuardado()">
-        </app-membresia-modal>
-      </div>
+    <div class="flex items-center gap-2">
+      <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50" [disabled]="!puedePrev" (click)="prev()">
+        Anterior
+      </button>
+      <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50" [disabled]="!puedeNext" (click)="next()">
+        Siguiente
+      </button>
     </div>
   </div>
-}
+
+  <!-- =========================
+       MODAL
+  ========================= -->
+  @if (mostrarModal() && idEditando !== null) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModal()"></div>
+
+      <div class="relative z-10 w-full max-w-[820px] mx-4">
+        <div class="bg-ra-white rounded-2xl shadow-2xl ring-1 ring-black/5">
+          <app-membresia-modal
+            [idMembresia]="idEditando"
+            (cancelar)="cerrarModal()"
+            (guardado)="onGuardado()"
+          ></app-membresia-modal>
+        </div>
+      </div>
+    </div>
+  }
+</div>

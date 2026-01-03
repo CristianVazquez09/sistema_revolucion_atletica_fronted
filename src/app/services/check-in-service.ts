@@ -1,0 +1,98 @@
+// src/app/services/check-in-service.ts
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+
+import { environment } from '../../environments/environment';
+import { MembresiaData } from '../model/membresia-data';
+import { SocioData } from '../model/socio-data';
+import { AsistenciaHistorialData } from '../model/asistencia-historial-data';
+import { PagedResponse, toPagedResponse } from '../model/paged-response';
+
+export interface CheckInRequest {
+  idSocio?: number | null;
+  idMembresia?: number | null;
+}
+
+export interface CheckInResponse {
+  autorizado: boolean;
+  motivo?: string;
+  fecha: string;
+  membresia: MembresiaData;
+  registroId?: number;
+}
+
+export interface CheckInHuellaRequest {
+  huellaDigital: string;
+}
+
+@Injectable({ providedIn: 'root' })
+export class CheckInService {
+  private readonly http = inject(HttpClient);
+  // environment.HOST ya incluye /v1, así que esto pega a /v1/asistencias
+  private readonly base = `${environment.HOST}/asistencias`;
+
+  // ─────────── Check-in existentes ───────────
+
+  registrarEntradaPorMembresia(idMembresia: number): Observable<CheckInResponse> {
+    const body: CheckInRequest = { idMembresia };
+    return this.http.post<CheckInResponse>(`${this.base}/checkin`, body);
+  }
+
+  registrarEntradaPorSocio(idSocio: number): Observable<CheckInResponse> {
+    const body: CheckInRequest = { idSocio };
+    return this.http.post<CheckInResponse>(`${this.base}/checkin`, body);
+  }
+
+  registrarEntradaPorHuella(huellaDigital: string): Observable<SocioData> {
+    const body: CheckInHuellaRequest = { huellaDigital };
+    return this.http.post<SocioData>(`${this.base}/checkin/huella`, body);
+  }
+
+  // ─────────── Historial global (sin filtros) ───────────
+
+  listarHistorial(
+    pagina: number,
+    tamanio: number,
+    termino?: string | null,
+    origen?: 'HUELLA' | 'MANUAL' | null
+  ): Observable<PagedResponse<AsistenciaHistorialData>> {
+
+    let params = new HttpParams()
+      .set('page', pagina.toString())
+      .set('size', tamanio.toString());
+
+    const q = (termino ?? '').trim();
+    if (q.length > 0) params = params.set('q', q);
+    if (origen) params = params.set('origen', origen);
+
+    return this.http
+      .get<any>(this.base, { params })
+      .pipe(map(raw => toPagedResponse<AsistenciaHistorialData>(raw)));
+  }
+
+  // ─────────── 🔎 NUEVO: historial por rango (y opcional socio) ───────────
+
+  listarHistorialRango(
+    pagina: number,
+    tamanio: number,
+    desde: string,       // 'YYYY-MM-DD'
+    hasta: string,       // 'YYYY-MM-DD'
+    idSocio?: number | null
+  ): Observable<PagedResponse<AsistenciaHistorialData>> {
+
+    let params = new HttpParams()
+      .set('page', pagina.toString())
+      .set('size', tamanio.toString())
+      .set('desde', desde)
+      .set('hasta', hasta);
+
+    if (idSocio && idSocio > 0) {
+      params = params.set('idSocio', String(idSocio));
+    }
+
+    return this.http
+      .get<any>(`${this.base}/rango`, { params })
+      .pipe(map(raw => toPagedResponse<AsistenciaHistorialData>(raw)));
+  }
+}

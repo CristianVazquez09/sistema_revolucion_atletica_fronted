@@ -1,165 +1,440 @@
-<!-- Barra superior (estilo Membresías) -->
-<div class="mx-4 md:mx-10 mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-  <div class="text-xl font-semibold text-ra-slate">Ventas</div>
+<!-- =========================================================
+     WRAPPER: desde <xl aplica “compactado” SIN dejar hueco abajo
+     (usa zoom para que NO reserve el alto original como pasa con scale)
+========================================================= -->
+<div
+  class="
+    [@media(max-width:1279px)]:[zoom:0.92]
+    [@media(max-width:1100px)]:[zoom:0.88]
+    [@media(max-width:980px)]:[zoom:0.84]
+    [@media(max-width:860px)]:[zoom:0.80]
+  "
+>
+  <!-- =========================
+       BARRA SUPERIOR (Ventas)
+  ========================= -->
+  <div class="mx-3 sm:mx-4 md:mx-10 mb-2 xl:mb-4 flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between gap-2 xl:gap-3">
+    <div class="text-base sm:text-lg xl:text-xl font-semibold text-ra-slate shrink-0">Ventas</div>
 
-  <div class="flex flex-wrap items-center gap-2">
-    <!-- Buscador por ID -->
-    <div class="flex items-center gap-2">
-      <label class="hidden md:inline text-sm text-ra-slate/80">Venta ID</label>
-      <input type="number" min="1"
-             class="w-[150px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-             placeholder="#"
-             [(ngModel)]="buscarId"
-             (keyup.enter)="buscar()">
-      <button type="button"
-              class="px-3 py-2 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-sm"
-              (click)="buscar()">Buscar</button>
-      <button type="button"
-              class="px-3 py-2 rounded-md border text-sm"
-              [disabled]="!buscandoPorId && !buscarId"
-              (click)="limpiarBusqueda()">Limpiar</button>
+    <!-- No se descompone en <xl: se mantiene “en una línea” y si falta ancho, scrollea -->
+    <div class="w-full 2xl:w-auto flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-end gap-2 xl:gap-3 text-[11px] xl:text-[12px] leading-none min-w-0">
+      <div class="flex flex-nowrap items-center gap-2 xl:gap-3 overflow-x-auto [-webkit-overflow-scrolling:touch]">
+        <!-- Folio -->
+        <div class="flex items-center gap-2 shrink-0">
+          <label class="hidden md:inline text-[11px] xl:text-[12px] text-ra-slate/80">Folio</label>
+
+          <input
+            type="number"
+            min="1"
+            class="w-[105px] sm:w-[120px] xl:w-[140px] h-8 xl:h-9 rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2 xl:px-2.5 py-1 shadow-inner text-[11px] xl:text-[12px]"
+            placeholder="#"
+            [(ngModel)]="folioBuscar"
+            (keyup.enter)="buscarPorFolio()"
+          />
+
+          <button
+            type="button"
+            class="h-8 xl:h-9 px-2.5 xl:px-3 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-[11px] xl:text-[12px]"
+            (click)="buscarPorFolio()"
+          >
+            Buscar
+          </button>
+        </div>
+
+        <div class="w-px h-5 xl:h-6 mx-2 bg-gray-200 hidden md:block shrink-0"></div>
+
+        <!-- Rango -->
+        <div class="flex flex-nowrap items-center gap-2 shrink-0">
+          <label class="text-[11px] xl:text-[12px] text-ra-slate/80">Desde</label>
+          <input
+            type="date"
+            class="h-8 xl:h-9 w-[150px] sm:w-[170px] xl:w-auto rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2 xl:px-2.5 py-1 shadow-inner text-[11px] xl:text-[12px]"
+            [(ngModel)]="fechaDesde"
+          />
+
+          <label class="text-[11px] xl:text-[12px] text-ra-slate/80">Hasta</label>
+          <input
+            type="date"
+            class="h-8 xl:h-9 w-[150px] sm:w-[170px] xl:w-auto rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2 xl:px-2.5 py-1 shadow-inner text-[11px] xl:text-[12px]"
+            [(ngModel)]="fechaHasta"
+          />
+
+          <button
+            type="button"
+            class="h-8 xl:h-9 px-2.5 xl:px-3 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-[11px] xl:text-[12px]"
+            (click)="buscarPorRango()"
+          >
+            Filtrar
+          </button>
+
+          <button
+            type="button"
+            class="h-8 xl:h-9 px-2.5 xl:px-3 rounded-md border text-[11px] xl:text-[12px]"
+            (click)="limpiarBusqueda()"
+          >
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <!-- ORDEN ARRIBA: SOLO 2XL+ -->
+      <div class="hidden 2xl:flex items-center gap-2 shrink-0">
+        <span class="text-[12px] text-ra-slate/80 whitespace-nowrap">Ordenar por</span>
+
+        <select
+          class="h-9 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-[12px]"
+          [(ngModel)]="sortCampo"
+          (change)="go(1)"
+          [disabled]="buscandoPorFolio"
+        >
+          <option [ngValue]="'fecha'">Fecha</option>
+          <option [ngValue]="'folio'">Folio</option>
+          <option [ngValue]="'idVenta'">ID</option>
+          <option [ngValue]="'total'">Total</option>
+        </select>
+
+        <select
+          class="h-9 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-[12px]"
+          [(ngModel)]="sortDir"
+          (change)="go(1)"
+          [disabled]="buscandoPorFolio"
+        >
+          <option [ngValue]="'desc'">Desc</option>
+          <option [ngValue]="'asc'">Asc</option>
+        </select>
+
+        <span class="text-[12px] text-ra-slate/80 whitespace-nowrap">Por página</span>
+        <select
+          class="h-9 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-[12px]"
+          [(ngModel)]="sizeSel"
+          (change)="go(1)"
+          [disabled]="buscandoPorFolio"
+        >
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="25">25</option>
+          <option [ngValue]="50">50</option>
+        </select>
+
+        <button
+          type="button"
+          class="h-9 px-4 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-[12px]"
+          (click)="go(1)"
+          [disabled]="buscandoPorFolio"
+        >
+          Actualizar
+        </button>
+      </div>
     </div>
+  </div>
 
-    <div class="w-px h-6 mx-2 bg-gray-200 hidden md:block"></div>
+  <!-- =========================
+       TABLA (compacta en <xl + más alto para ver más filas)
+       - reduce tipografía y paddings SOLO <xl
+       - mantiene xl+ como lo tenías
+  ========================= -->
+  <div class="shadow-card rounded-xl2 mx-3 sm:mx-4 md:mx-10 bg-ra-white">
+    <div class="overflow-x-auto">
+      <div
+        #ventasScroller
+        class="
+          overflow-x-auto overflow-y-auto
+          max-h-[calc(100dvh-250px)]
+          sm:max-h-[calc(100dvh-240px)]
+          md:max-h-[calc(100dvh-230px)]
+          lg:max-h-[calc(100dvh-230px)]
+          xl:max-h-[calc(100dvh-360px)]
+          2xl:max-h-[calc(100dvh-340px)]
+          [@media(max-height:900px)]:max-h-[calc(100dvh-300px)]
+          [@media(max-height:820px)]:max-h-[calc(100dvh-330px)]
+        "
+      >
+        <table
+          class="
+            w-full table-fixed
+            text-[9px] sm:text-[10px]
+            xl:text-[12px]
+          "
+          [class.min-w-[820px]]="menuAbierto()"
+          [class.min-w-[980px]]="!menuAbierto()"
+        >
+          <colgroup>
+            <col class="w-[12%]" />  <!-- Folio -->
+            <col class="w-[20%]" />  <!-- Fecha -->
+            <col class="w-[18%]" />  <!-- Usuario -->
+            @if (esAdmin) { <col class="w-[18%]" /> }  <!-- Gimnasio -->
+            @if (!menuAbierto()) {  <col class="w-[22%] hidden lg:table-column" />> }  <!-- Pagos -->
+            <col class="w-[12%]" />  <!-- Total -->
+            <col class="w-[12%]" />  <!-- Acciones -->
+          </colgroup>
 
-    <!-- Orden/size -->
-    <span class="hidden md:inline text-sm text-ra-slate/80">Ordenar por</span>
-    <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-            [(ngModel)]="sortCampo" (change)="go(1)" [disabled]="buscandoPorId">
+          <!-- ✅ Header más compacto en <xl -->
+          <thead class="sticky top-0 bg-ra-grayLight/40 z-10">
+            <tr>
+              <th class="text-center text-ra-slate font-semibold uppercase
+                         py-1 xl:py-3 px-2 xl:px-4 2xl:px-6
+                         text-[10px] sm:text-[11px] xl:text-[12px]">
+                Folio
+              </th>
+
+              <th class="text-center text-ra-slate font-semibold uppercase
+                         py-1 xl:py-3 px-2 xl:px-4 2xl:px-6
+                         text-[10px] sm:text-[11px] xl:text-[12px]">
+                Fecha
+              </th>
+
+              <th class="text-center text-ra-slate font-semibold uppercase
+                         py-1 xl:py-3 px-2 xl:px-4 2xl:px-6
+                         text-[10px] sm:text-[11px] xl:text-[12px]">
+                Usuario
+              </th>
+
+              @if (esAdmin) {
+                <th class="text-center text-ra-slate font-semibold uppercase
+                           py-1 xl:py-3 px-2 xl:px-4 2xl:px-6
+                           text-[10px] sm:text-[11px] xl:text-[12px]">
+                  Gimnasio
+                </th>
+              }
+
+              @if (!menuAbierto()) {
+                <th class="py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-center text-ra-slate font-semibold uppercase hidden lg:table-cell">
+    Pagos
+  </th>
+              }
+
+              <th class="text-center text-ra-slate font-semibold uppercase
+                         py-1 xl:py-3 px-2 xl:px-4 2xl:px-6
+                         text-[10px] sm:text-[11px] xl:text-[12px]">
+                Total
+              </th>
+
+              <th class="text-center text-ra-slate font-semibold uppercase
+                         py-1 xl:py-3 px-2 xl:px-4 2xl:px-6
+                         text-[10px] sm:text-[11px] xl:text-[12px]">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @if (cargando) {
+              <tr>
+                <td
+                  [attr.colspan]="(esAdmin ? 7 : 6) - (menuAbierto() ? 1 : 0)"
+                  class="py-4 px-4 text-center text-ra-slate"
+                >
+                  Cargando…
+                </td>
+              </tr>
+            } @else if (error) {
+              <tr>
+                <td
+                  [attr.colspan]="(esAdmin ? 7 : 6) - (menuAbierto() ? 1 : 0)"
+                  class="py-4 px-4 text-center text-red-600"
+                >
+                  {{ error }}
+                </td>
+              </tr>
+            } @else if (!rows.length) {
+              <tr>
+                <td
+                  [attr.colspan]="(esAdmin ? 7 : 6) - (menuAbierto() ? 1 : 0)"
+                  class="py-4 px-4 text-center text-ra-slate"
+                >
+                  Sin resultados.
+                </td>
+              </tr>
+            } @else {
+              @for (v of rows; track trackById($index, v)) {
+                <!-- ✅ Row height compacta en <xl: py-1 / xl:py-2.5 -->
+                <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg text-center">
+                  <!-- Folio -->
+                  <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 font-medium">
+                    <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100
+                                 px-1.5 xl:px-2 py-0.5
+                                 text-[9px] sm:text-[10px] xl:text-xs font-mono text-gray-700">
+                      {{ v.folio || '—' }}
+                    </span>
+                  </td>
+
+                  <!-- Fecha -->
+                  <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6
+                             text-[9.5px] sm:text-[10.5px] xl:text-[12px]">
+                    {{ v.fecha | date:'dd/MM/yyyy HH:mm:ss' }}
+                  </td>
+
+                  <!-- Usuario -->
+                  <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 truncate
+                             text-[9.5px] sm:text-[10.5px] xl:text-[12px]">
+                    {{ v.usuario?.nombreUsuario || '—' }}
+                  </td>
+
+                  <!-- Gimnasio -->
+                  @if (esAdmin) {
+                    <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6">
+                      <span class="inline-flex items-center gap-1 rounded-full
+                                   bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)]
+                                   px-1.5 xl:px-2 py-0.5
+                                   text-[9px] sm:text-[10px] xl:text-xs">
+                        <svg viewBox="0 0 24 24" class="w-3 h-3 xl:w-4 xl:h-4" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+                        </svg>
+                        {{ gymDeVenta(v) }}
+                      </span>
+                    </td>
+                  }
+
+                  <!-- Pagos -->
+                  @if (!menuAbierto()) {
+                    <td
+    class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 truncate hidden lg:table-cell"
+    [title]="pagosChip(v)"
+  >
+    {{ pagosChip(v) }}
+  </td>
+                  }
+
+                  <!-- Total -->
+                  <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 font-semibold
+                             text-[9.5px] sm:text-[10.5px] xl:text-[12px]">
+                    {{ v.total | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                  </td>
+
+                  <!-- Acciones (iconos más chicos en <xl) -->
+                  <td class="py-0.5 xl:py-2 px-2 xl:px-4 2xl:px-6">
+                    <div class="flex items-center justify-center gap-1">
+                      @if (!esRecep) {
+                        <button (click)="ver(v)" class="p-1 xl:p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
+                          <img src="iconos/editar.svg" alt="Editar" class="w-3.5 h-3.5 xl:w-5 xl:h-5" />
+                        </button>
+                      }
+
+                      <button
+                        (click)="reimprimir(v)"
+                        class="p-1 xl:p-2 rounded hover:bg-ra-grayLight/40 disabled:opacity-50"
+                        [disabled]="reimprimiendo"
+                        title="Reimprimir ticket"
+                      >
+                        <img src="iconos/impresora.svg" alt="Reimprimir" class="w-3.5 h-3.5 xl:w-5 xl:h-5" />
+                      </button>
+
+                      @if (!esRecep) {
+                        <button (click)="eliminar(v)" class="p-1 xl:p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar">
+                          <img src="iconos/eliminar.svg" alt="Eliminar" class="w-3.5 h-3.5 xl:w-5 xl:h-5" />
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       ORDEN ABAJO (solo <2xl)
+  ========================= -->
+  <div class="mx-3 sm:mx-4 md:mx-10 mt-1 xl:mt-2 mb-0.5 flex flex-wrap items-center justify-end gap-2 text-[11px] xl:text-[12px] 2xl:hidden">
+    <span class="text-ra-slate/80 whitespace-nowrap">Ordenar por</span>
+
+    <select
+      class="h-8 xl:h-9 w-[110px] xl:w-[120px] rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+      [(ngModel)]="sortCampo"
+      (change)="go(1)"
+      [disabled]="buscandoPorFolio"
+    >
       <option [ngValue]="'fecha'">Fecha</option>
+      <option [ngValue]="'folio'">Folio</option>
       <option [ngValue]="'idVenta'">ID</option>
       <option [ngValue]="'total'">Total</option>
     </select>
 
-    <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-            [(ngModel)]="sortDir" (change)="go(1)" [disabled]="buscandoPorId">
+    <select
+      class="h-8 xl:h-9 w-[80px] xl:w-[90px] rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+      [(ngModel)]="sortDir"
+      (change)="go(1)"
+      [disabled]="buscandoPorFolio"
+    >
       <option [ngValue]="'desc'">Desc</option>
       <option [ngValue]="'asc'">Asc</option>
     </select>
 
-    <label class="text-sm text-ra-slate/80 ml-2">Por página</label>
-    <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-            [(ngModel)]="sizeSel" (change)="go(1)" [disabled]="buscandoPorId">
+    <span class="text-ra-slate/80 whitespace-nowrap">Por página</span>
+    <select
+      class="h-8 xl:h-9 w-[70px] xl:w-[80px] rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+      [(ngModel)]="sizeSel"
+      (change)="go(1)"
+      [disabled]="buscandoPorFolio"
+    >
       <option [ngValue]="10">10</option>
       <option [ngValue]="25">25</option>
       <option [ngValue]="50">50</option>
     </select>
 
-    <button type="button"
-            class="px-4 py-2 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-sm"
-            (click)="go(1)" [disabled]="buscandoPorId">
+    <button
+      type="button"
+      class="h-8 xl:h-9 px-3 xl:px-4 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-[11px] xl:text-[12px]"
+      (click)="go(1)"
+      [disabled]="buscandoPorFolio"
+    >
       Actualizar
     </button>
   </div>
-</div>
 
-<!-- Tabla -->
-<div class="shadow-card rounded-xl2 overflow-hidden mx-4 md:mx-10 bg-ra-white">
-  <table class="w-full table-fixed text-sm">
-    <colgroup>
-      <col class="w-[8%]">
-      <col class="w-[18%]">
-      <col class="w-[20%]">
-      @if (esAdmin) { <col class="w-[18%]"> }
-      <col class="w-[24%]">
-      <col class="w-[12%]">
-      <col class="w-[10%]">
-    </colgroup>
+  <!-- =========================
+       PAGINACIÓN
+  ========================= -->
+  <div class="mx-3 sm:mx-4 md:mx-10 mt-1 xl:mt-2 mb-2 flex items-center justify-between text-[11px] sm:text-xs xl:text-sm">
+    <div class="min-w-0">
+      Página <strong>{{ pageUI }}</strong> de <strong>{{ page.totalPages || 1 }}</strong>
+      <span class="ml-2 text-ra-slate/70">({{ page.totalElements || 0 }} registros)</span>
 
-    <thead>
-      <tr class="bg-ra-grayLight/40">
-        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">ID</th>
-        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Fecha</th>
-        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Usuario</th>
-        @if (esAdmin) {
-          <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Gimnasio</th>
-        }
-        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Pagos</th>
-        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Total</th>
-        <th class="py-4 px-6 text-center text-ra-slate font-semibold uppercase">Acciones</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      @if (cargando) {
-        <tr><td [attr.colspan]="esAdmin ? 7 : 6" class="py-6 px-6 text-center text-ra-slate">Cargando…</td></tr>
-      } @else if (error) {
-        <tr><td [attr.colspan]="esAdmin ? 7 : 6" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
-      } @else if (!rows.length) {
-        <tr><td [attr.colspan]="esAdmin ? 7 : 6" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td></tr>
-      } @else {
-        @for (v of rows; track trackById($index, v)) {
-          <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg text-center">
-            <td class="py-3 px-6 font-medium">
-              <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700">
-                {{ v.idVenta }}
-              </span>
-            </td>
-            <td class="py-3 px-6 text-xs md:text-sm">
-              {{ v.fecha | date:'dd/MM/yyyy HH:mm:ss' }}
-            </td>
-            <td class="py-3 px-6 truncate">{{ v.usuario?.nombreUsuario || '—' }}</td>
-
-            @if (esAdmin) {
-              <td class="py-3 px-6">
-                <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
-                  <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
-                  </svg>
-                  {{ gymDeVenta(v) }}
-                </span>
-              </td>
-            }
-
-            <td class="py-3 px-6 text-xs md:text-sm truncate" [title]="pagosChip(v)">{{ pagosChip(v) }}</td>
-            <td class="py-3 px-6 font-semibold">{{ v.total | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
-
-            <td class="py-2 px-3">
-              <div class="flex items-center justify-center gap-1">
-                <button (click)="ver(v)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Ver">
-                  <img src="iconos/historial.svg" alt="Ver" class="w-5 h-5" />
-                </button>
-                <button (click)="eliminar(v)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar">
-                  <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
-                </button>
-              </div>
-            </td>
-          </tr>
-        }
+      @if (buscandoPorFolio) {
+        <span class="ml-3 inline-flex items-center gap-1 text-[10px] xl:text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+          Modo búsqueda por folio
+        </span>
       }
-    </tbody>
-  </table>
-</div>
+      @if (buscandoPorRango) {
+        <span class="ml-2 inline-flex items-center gap-1 text-[10px] xl:text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+          Filtro por rango de fechas
+        </span>
+      }
+    </div>
 
-<!-- Paginación -->
-<div class="mx-4 md:mx-10 mt-3 mb-2 flex items-center justify-between text-sm">
-  <div>
-    Página <strong>{{ pageUI }}</strong> de <strong>{{ page.totalPages || 1 }}</strong>
-    <span class="ml-2 text-ra-slate/70">({{ page.totalElements || 0 }} registros)</span>
-    @if (buscandoPorId) {
-      <span class="ml-3 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
-        Modo búsqueda por ID
-      </span>
-    }
-  </div>
-  <div class="flex items-center gap-2">
-    <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50"
-            [disabled]="!puedePrev || buscandoPorId" (click)="prev()">Anterior</button>
-    <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50"
-            [disabled]="!puedeNext || buscandoPorId" (click)="next()">Siguiente</button>
-  </div>
-</div>
-
-<!-- Modal -->
-@if (mostrarModal() && idVer !== null) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModal()"></div>
-    <div class="relative z-10 w-full max-w-[900px] mx-4">
-      <app-ventas-admin-modal
-        [idVenta]="idVer!"
-        (cancelar)="cerrarModal()"
-        (guardado)="onGuardado($event)">
-      </app-ventas-admin-modal>
+    <div class="flex items-center gap-2">
+      <button
+        class="rounded-md border px-2.5 xl:px-3 py-1 xl:py-1.5 bg-white disabled:opacity-50 text-[11px] xl:text-[12px]"
+        [disabled]="!puedePrev || buscandoPorFolio"
+        (click)="prev()"
+      >
+        Anterior
+      </button>
+      <button
+        class="rounded-md border px-2.5 xl:px-3 py-1 xl:py-1.5 bg-white disabled:opacity-50 text-[11px] xl:text-[12px]"
+        [disabled]="!puedeNext || buscandoPorFolio"
+        (click)="next()"
+      >
+        Siguiente
+      </button>
     </div>
   </div>
-}
+
+  <!-- =========================
+       MODAL
+  ========================= -->
+  @if (mostrarModal() && idVer !== null) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModal()"></div>
+      <div class="relative z-10 w-full max-w-[900px] mx-4">
+        <app-ventas-admin-modal
+          [idVenta]="idVer!"
+          (cancelar)="cerrarModal()"
+          (guardado)="onGuardado($event)">
+        </app-ventas-admin-modal>
+      </div>
+    </div>
+  }
+</div>

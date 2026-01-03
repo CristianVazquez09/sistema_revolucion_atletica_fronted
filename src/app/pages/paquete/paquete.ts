@@ -10,6 +10,8 @@ import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
+import { TipoPaquete } from '../../util/enums/tipo-paquete';
+import { MenuService } from 'src/app/services/menu-service';
 
 @Component({
   selector: 'app-paquete-componet',
@@ -23,6 +25,9 @@ export class Paquete implements OnInit {
   private notificacion = inject(NotificacionService);
   private servicioPaquetes = inject(PaqueteService);
   private jwt = inject(JwtHelperService);
+  private menuSrv = inject(MenuService);
+    menuAbierto = this.menuSrv.menuAbierto;
+    
 
   // Rol
   isAdmin = false;
@@ -51,8 +56,8 @@ export class Paquete implements OnInit {
         ...(Array.isArray(decoded?.authorities) ? decoded.authorities : []),
         ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
       ]
-      .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
-      .map(r => String(r).toUpperCase());
+        .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
+        .map(r => String(r).toUpperCase());
       return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     } catch {
       return false;
@@ -61,21 +66,25 @@ export class Paquete implements OnInit {
 
   // Acciones
   cargarPaquetes(): void {
-  this.estaCargando = true;
-  this.mensajeError = null;
+    this.estaCargando = true;
+    this.mensajeError = null;
 
-  this.servicioPaquetes
-    .buscarTodos()
-    .pipe(finalize(() => (this.estaCargando = false)))
-    .subscribe({
-      next: (data) => {
-        // Muestra solo los activos (si alguno viene sin campo, lo tratamos como activo)
-        this.listaPaquetes = (data ?? []).filter(p => p?.activo !== false);
-      },
-      error: () => { this.mensajeError = 'No se pudo cargar la lista de paquetes.'; },
-    });
-}
-
+    this.servicioPaquetes
+      .buscarTodos()
+      .pipe(finalize(() => (this.estaCargando = false)))
+      .subscribe({
+        next: (data) => {
+          // Solo activos, y aseguramos tipoPaquete (default: GIMNASIO)
+          this.listaPaquetes = (data ?? [])
+            .filter(p => p?.activo !== false)
+            .map(p => ({
+              ...p,
+              tipoPaquete: p.tipoPaquete ?? TipoPaquete.GIMNASIO,
+            }));
+        },
+        error: () => { this.mensajeError = 'No se pudo cargar la lista de paquetes.'; },
+      });
+  }
 
   abrirModalParaCrear(): void {
     this.paqueteEnEdicion = null;
@@ -96,38 +105,44 @@ export class Paquete implements OnInit {
     this.cargarPaquetes();
   }
 
-  // src/app/pages/paquete/paquete.ts (tu componente)
-// src/app/pages/paquete/paquete.ts
-desactivarPaquete(paquete: PaqueteData): void {
-  if (!paquete?.idPaquete) return;
-  if (!confirm(`¿Desactivar paquete "${paquete.nombre}"?`)) return;
+  desactivarPaquete(paquete: PaqueteData): void {
+    if (!paquete?.idPaquete) return;
+    if (!confirm(`¿Desactivar paquete "${paquete.nombre}"?`)) return;
 
-  // Clonamos y marcamos inactivo
-  const actualizado: PaqueteData = {
-    ...paquete,
-    activo: false
-  };
+    const actualizado: PaqueteData = {
+      ...paquete,
+      activo: false
+    };
 
-  this.servicioPaquetes.actualizar(paquete.idPaquete, actualizado).subscribe({
-    next: () => {
-      this.notificacion.exito('Paquete desactivado.');
-      this.cargarPaquetes();
-    },
-    error: () => this.notificacion.error('No se pudo desactivar el paquete.'),
-  });
-}
+    this.servicioPaquetes.actualizar(paquete.idPaquete, actualizado).subscribe({
+      next: () => {
+        this.notificacion.exito('Paquete desactivado.');
+        this.cargarPaquetes();
+      },
+      error: () => this.notificacion.error('No se pudo desactivar el paquete.'),
+    });
+  }
 
+  displayGimnasio(p: PaqueteData): string {
+    const g: any = p?.gimnasio ?? {};
+    const nombre = g?.nombre as string | undefined;
+    const id = (g?.idGimnasio ?? g?.id) as number | undefined; // backend a veces manda id, a veces idGimnasio
+    if (nombre && nombre.trim().length) return nombre;
+    if (id != null) return `#${id}`;
+    return '—';
+  }
 
-
-  // Dentro de tu clase Paquete
-displayGimnasio(p: PaqueteData): string {
-  const g: any = p?.gimnasio ?? {};
-  const nombre = g?.nombre as string | undefined;
-  const id = (g?.idGimnasio ?? g?.id) as number | undefined; // backend a veces manda id, a veces idGimnasio
-  if (nombre && nombre.trim().length) return nombre;
-  if (id != null) return `#${id}`;
-  return '—';
-}
-
+  displayTipoPaquete(p: PaqueteData): string {
+    const tipo = p?.tipoPaquete ?? TipoPaquete.GIMNASIO;
+    switch (tipo) {
+      case TipoPaquete.ZONA_COMBATE:
+        return 'Zona de combate';
+      case TipoPaquete.MIXTO:
+        return 'Mixto';
+      case TipoPaquete.GIMNASIO:
+      default:
+        return 'Gimnasio';
+    }
+  }
 
 }

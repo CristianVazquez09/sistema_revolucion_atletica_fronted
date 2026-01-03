@@ -1,3 +1,4 @@
+// src/app/pages/entrenador/entrenador.ts
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, computed } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -9,14 +10,17 @@ import { NotificacionService } from '../../services/notificacion-service';
 
 import { EntrenadorData } from '../../model/entrenador-data';
 import { GimnasioData } from '../../model/gimnasio-data';
+import { AsesoriaContratoData } from '../../model/asesoria-contrato-data';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
+import { EntrenadorModal } from './entrenador-modal/entrenador-modal';
+
 
 @Component({
   selector: 'app-entrenador',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, EntrenadorModal],
   templateUrl: './entrenador.html',
   styleUrl: './entrenador.css',
 })
@@ -47,7 +51,6 @@ export class Entrenador implements OnInit {
   form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(100)]],
     apellido: ['', [Validators.required, Validators.maxLength(120)]],
-    // Nace deshabilitado para evitar warnings; se habilita cuando se cargan gimnasios
     gimnasioId: [{ value: null as number | null, disabled: true }],
   });
 
@@ -57,24 +60,27 @@ export class Entrenador implements OnInit {
     this.entrenadorEditando ? 'Editar entrenador' : 'Agregar entrenador'
   );
 
+  // ===== Modal asesorías por entrenador =====
+  mostrarModal = false;
+  entrenadorSeleccionado: EntrenadorData | null = null;
+  asesoriasModal: AsesoriaContratoData[] = [];
+  cargandoModal = false;
+  errorModal: string | null = null;
+
   ngOnInit(): void {
     // Resolver rol
     this.isAdmin = this.deducirEsAdminDesdeToken();
 
     if (this.isAdmin) {
-      // Validar gimnasio obligatorio para admin
       this.form.controls.gimnasioId.addValidators([Validators.required]);
 
-      // Cargar gimnasios y habilitar select
       this.cargandoGimnasios = true;
       this.gimnasioSrv.buscarTodos().subscribe({
         next: (lista) => {
-          // ⬇️ Solo gimnasios activos (si no existe el campo, se considera activo)
           const soloActivos = (lista ?? []).filter(
             (g: any) => g?.activo !== false
           );
 
-          // Normaliza por si el backend usa "id" en lugar de "idGimnasio"
           this.gimnasios = soloActivos.map((g) => ({
             idGimnasio: (g as any).idGimnasio ?? (g as any).id,
             nombre: g.nombre,
@@ -82,7 +88,6 @@ export class Entrenador implements OnInit {
             telefono: g.telefono,
           }));
 
-          // Preselecciona el primero si estamos creando
           if (!this.entrenadorEditando && this.gimnasios.length) {
             this.form.controls.gimnasioId.setValue(
               this.gimnasios[0].idGimnasio,
@@ -96,7 +101,7 @@ export class Entrenador implements OnInit {
         },
         error: () => {
           this.cargandoGimnasios = false;
-          this.cargar(); // igual carga la lista
+          this.cargar();
         },
       });
     } else {
@@ -104,7 +109,8 @@ export class Entrenador implements OnInit {
     }
   }
 
-  // --- helpers ---
+  /* =================== Helpers =================== */
+
   private deducirEsAdminDesdeToken(): boolean {
     const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
     if (!raw) return false;
@@ -134,24 +140,23 @@ export class Entrenador implements OnInit {
     }
   }
 
-  // --- CRUD ---
-  cargar(): void {
-  this.loading = true;
-  this.error = null;
-  this.entrenadorSrv.buscarTodos().subscribe({
-    next: (data) => {
-      // ⬇️ Solo entrenadores activos (si no existe el campo, se considera activo)
-      this.entrenadores = (data ?? []).filter((e: any) => e?.activo !== false);
-      this.loading = false;
-    },
-    error: (err) => {
-      console.error(err);
-      this.loading = false;
-      this.error = 'No se pudieron cargar los entrenadores.';
-    },
-  });
-}
+  /* =================== CRUD =================== */
 
+  cargar(): void {
+    this.loading = true;
+    this.error = null;
+    this.entrenadorSrv.buscarTodos().subscribe({
+      next: (data) => {
+        this.entrenadores = (data ?? []).filter((e: any) => e?.activo !== false);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.loading = false;
+        this.error = 'No se pudieron cargar los entrenadores.';
+      },
+    });
+  }
 
   guardar(): void {
     if (this.form.invalid) {
@@ -163,10 +168,8 @@ export class Entrenador implements OnInit {
     const nombre = String(this.form.controls.nombre.value ?? '').trim();
     const apellido = String(this.form.controls.apellido.value ?? '').trim();
 
-    // payload base
     let payload: any = { nombre, apellido };
 
-    // Si admin: adjunta gimnasio como { id: X } (requisito backend)
     if (this.isAdmin) {
       const gymId = this.form.controls.gimnasioId.value;
       if (gymId) {
@@ -211,7 +214,6 @@ export class Entrenador implements OnInit {
         : null,
     });
 
-    // Asegura que el control esté habilitado si admin y ya cargamos gimnasios
     if (
       this.isAdmin &&
       !this.cargandoGimnasios &&
@@ -240,7 +242,39 @@ export class Entrenador implements OnInit {
     });
   }
 
-  // Helpers template
+  /* =================== Modal asesorías =================== */
+
+  verAsesorias(e: EntrenadorData): void {
+    if (!e.idEntrenador) return;
+
+    this.entrenadorSeleccionado = e;
+    this.mostrarModal = true;
+    this.cargandoModal = true;
+    this.errorModal = null;
+    this.asesoriasModal = [];
+
+    this.entrenadorSrv.listarAsesoriasActivas(e.idEntrenador).subscribe({
+      next: (data) => {
+        this.asesoriasModal = data ?? [];
+        this.cargandoModal = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.errorModal = 'No se pudieron cargar las asesorías de este entrenador.';
+        this.cargandoModal = false;
+      },
+    });
+  }
+
+  cerrarModal(): void {
+    this.mostrarModal = false;
+    this.entrenadorSeleccionado = null;
+    this.asesoriasModal = [];
+    this.errorModal = null;
+  }
+
+  /* =================== Helpers template =================== */
+
   get esEdicion(): boolean {
     return !!this.entrenadorEditando;
   }
@@ -248,7 +282,6 @@ export class Entrenador implements OnInit {
     return this.entrenadorEditando?.idEntrenador ?? null;
   }
 
-  // Muestra nombre del gimnasio; si no hay, muestra #id (acepta id o idGimnasio)
   gymLabel(
     g?: { nombre?: string; id?: number; idGimnasio?: number } | null
   ): string {

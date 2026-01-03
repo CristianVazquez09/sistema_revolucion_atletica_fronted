@@ -1,0 +1,36 @@
+/* Contenedor de campo con prefijo (icono / símbolo) */
+.field {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+}
+
+/* Burbujita a la izquierda ($, icono, etc.) */
+.field .prefix {
+  position: absolute;
+  inset-block: 0;
+  left: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  color: rgb(100 116 139); /* slate-500 aprox */
+  pointer-events: none;
+}
+
+/* Si ya tienes .input-filled global, solo aseguramos padding para el prefijo */
+.input-filled {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;          /* gray-200 */
+  background: #f3f4f6;                 /* gray-100 */
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  outline: none;
+}
+.input-filled:focus {
+  background: #fff;
+  border-color: #d1d5db;               /* gray-300 */
+  box-shadow: inset 0 0 0 1px #d1d5db;
+}
+
+/* Cuando usamos prefijo, aumentamos padding-left desde el HTML con .pl-7 / .pl-9 */

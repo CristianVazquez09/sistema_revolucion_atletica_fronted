@@ -19,7 +19,6 @@ export class MembresiaService extends GenericService<MembresiaData> {
   constructor(protected override http: HttpClient){
     super(http, `${environment.HOST}/membresias`)
   }
-  
 
   buscarMembresiasPorSocio(idSocio: number, pagina: number, tamanio: number): Observable<PagedResponse<MembresiaData>>{
     return this.http
@@ -31,7 +30,7 @@ export class MembresiaService extends GenericService<MembresiaData> {
     return this.http.get<MembresiaData[]>(`${this.url}/por-socio/${idSocio}/vigentes`);
   }
 
- /** GET /v1/membresias?page&size&sort=campo,dir */
+  /** GET /v1/membresias?page&size&sort=campo,dir */
   listar(opts: { page?: number; size?: number; sort?: string }): Observable<MembresiaPageResponse> {
     const page0 = Math.max(0, (opts.page ?? 1) - 1);
     const params = new HttpParams()
@@ -44,6 +43,47 @@ export class MembresiaService extends GenericService<MembresiaData> {
   patch(id: number, body: MembresiaPatchRequest): Observable<MembresiaData> {
     return this.http.patch<MembresiaData>(`${this.url}/${id}`, body);
   }
-  
-  
+
+  // ===================== NUEVO: buscar por folio =====================
+
+  buscarPorFolio(folio: number): Observable<MembresiaData> {
+    return this.http.get<MembresiaData>(`${this.url}/folio/${folio}`);
+  }
+
+  // ========== NUEVO: buscar por nombre de socio (paginado) ==========
+
+  buscarPorNombreSocio(q: string, opts: { page?: number; size?: number; sort?: string }): Observable<MembresiaPageResponse> {
+    const page0 = Math.max(0, (opts.page ?? 1) - 1);
+    let params = new HttpParams()
+      .set('q', q)
+      .set('page', String(page0))
+      .set('size', String(opts.size ?? 10))
+      .set('sort', String(opts.sort ?? 'fechaInicio,desc'));
+
+    return this.http.get<MembresiaPageResponse>(`${this.url}/buscar/socio-nombre`, { params });
+  }
+
+  // ========== NUEVO: listar por rango de fechas ==========
+
+  /** GET /v1/membresias/rango?desde=YYYY-MM-DD&hasta=YYYY-MM-DD&page&size&sort */
+  listarPorRango(desde: string, hasta: string, opts: { page?: number; size?: number; sort?: string }): Observable<MembresiaPageResponse> {
+    const page0 = Math.max(0, (opts.page ?? 1) - 1);
+
+    const paramsObj: Record<string, string> = {
+      desde,
+      hasta,
+      page: String(page0),
+      size: String(opts.size ?? 10),
+    };
+    if (opts.sort) paramsObj['sort'] = opts.sort;
+
+    const params = new HttpParams({ fromObject: paramsObj });
+    return this.http.get<MembresiaPageResponse>(`${this.url}/rango`, { params });
+  }
+    // ========== NUEVO: reinscripción anticipada ==========
+  /** POST /v1/membresias/reinscripcion/anticipada */
+  reinscripcionAnticipada(payload: Partial<MembresiaData>): Observable<MembresiaData> {
+    return this.http.post<MembresiaData>(`${this.url}/reinscripcion/anticipada`, payload);
+  }
+
 }

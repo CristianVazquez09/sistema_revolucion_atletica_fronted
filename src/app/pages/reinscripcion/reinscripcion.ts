@@ -259,10 +259,10 @@ export class Reinscripcion implements OnInit {
             }).format(m)}`;
           })
           .join(' · ');
-
-        this.ticket.verMembresiaDesdeContexto({
+        const folioTicket = resp?.folio 
+        this.ticket.imprimirMembresiaDesdeContexto({
           ctx,
-          folio: resp?.idMembresia ?? resp?.id ?? '',
+          folio: folioTicket,
           fecha: new Date(), // o resp?.fechaInicio
           socioNombre,
           paqueteNombre: paquete?.nombre ?? null,

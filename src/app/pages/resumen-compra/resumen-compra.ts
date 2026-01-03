@@ -44,11 +44,22 @@ export class ResumenCompra {
   get sumaPagos(): number {
     return +(this.efectivo + this.tarjeta + this.transferencia).toFixed(2);
   }
+
   get diferencia(): number {
     return +((this.total ?? 0) - this.sumaPagos).toFixed(2);
   }
+
   get pagosValidos(): boolean {
-    // tolerancia centavos
+    const total = +(this.total ?? 0);
+
+    // Caso especial: total 0 (por descuento 100% o algo similar)
+    // Debe cuadrar (0 vs sumaPagos) y podemos permitir que sumaPagos sea 0.
+    if (Math.abs(total) <= 0.01) {
+      // Aquí exigimos que no haya diferencia para evitar errores de captura.
+      return Math.abs(this.diferencia) <= 0.01;
+    }
+
+    // Caso normal: debe cuadrar y haber al menos un pago > 0
     return Math.abs(this.diferencia) <= 0.01 && this.sumaPagos > 0;
   }
 
@@ -63,17 +74,33 @@ export class ResumenCompra {
       this.efectivoStr = ''; this.tarjetaStr = ''; this.transferenciaStr = t;
     }
   }
+
   vaciar(): void {
     this.efectivoStr = this.tarjetaStr = this.transferenciaStr = '';
   }
 
   confirmarPago(): void {
+    const total = +(this.total ?? 0);
+
     if (!this.pagosValidos) return;
 
     const pagos: PagoData[] = [];
-    if (this.efectivo > 0)      pagos.push({ tipoPago: 'EFECTIVO',      monto: this.efectivo });
-    if (this.tarjeta  > 0)      pagos.push({ tipoPago: 'TARJETA',       monto: this.tarjeta });
-    if (this.transferencia > 0) pagos.push({ tipoPago: 'TRANSFERENCIA', monto: this.transferencia });
+
+    // Si el total es 0 (descuento 100%), confirmamos sin pagos.
+    if (Math.abs(total) <= 0.01) {
+      this.confirmar.emit(pagos);
+      return;
+    }
+
+    if (this.efectivo > 0) {
+      pagos.push({ tipoPago: 'EFECTIVO', monto: this.efectivo });
+    }
+    if (this.tarjeta > 0) {
+      pagos.push({ tipoPago: 'TARJETA', monto: this.tarjeta });
+    }
+    if (this.transferencia > 0) {
+      pagos.push({ tipoPago: 'TRANSFERENCIA', monto: this.transferencia });
+    }
 
     this.confirmar.emit(pagos);
   }

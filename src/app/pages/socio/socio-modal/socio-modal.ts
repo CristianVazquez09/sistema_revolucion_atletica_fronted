@@ -1,4 +1,14 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, computed, inject } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  computed,
+  inject,
+  signal
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 
@@ -9,11 +19,12 @@ import { GimnasioService } from '../../../services/gimnasio-service';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../environments/environment';
+import { HuellaModal, HuellaResultado } from '../../huella-modal/huella-modal';
 
 @Component({
   selector: 'app-socio-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, HuellaModal],
   templateUrl: './socio-modal.html',
   styleUrl: './socio-modal.css'
 })
@@ -40,7 +51,7 @@ export class SocioModal implements OnInit, OnDestroy {
     telefono:        new FormControl('', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]),
     email:           new FormControl('', [Validators.email, Validators.maxLength(120)]),
     direccion:       new FormControl('', [Validators.maxLength(200)]),
-    genero:          new FormControl(null as 'MASCULINO' | 'FEMENINO'  | null, [Validators.required]),
+    genero:          new FormControl(null as 'MASCULINO' | 'FEMENINO' | 'OTRO' | null, [Validators.required]),
     fechaNacimiento: new FormControl(null as string | null, [Validators.required]),
     comentarios:     new FormControl(''),
 
@@ -48,9 +59,16 @@ export class SocioModal implements OnInit, OnDestroy {
     gimnasioId:      new FormControl<number | null>({ value: null, disabled: true })
   });
 
-  titulo = computed(() => this.socio ? 'Editar socio' : 'Agregar socio');
-  guardando = false;
+  titulo     = computed(() => this.socio ? 'Editar socio' : 'Agregar socio');
+  guardando  = false;
   error: string | null = null;
+
+  // ===== Huella digital (para captura desde modal de huella) =====
+  mostrarModalHuella = signal(false);
+  huellaProceso      = signal(false);
+  huellaMensaje      = signal<string | null>(null);
+  huellaError        = signal<string | null>(null);
+  huellaDigitalBase64: string | null = null; // usada en creación; en edición se envía directo al backend
 
   ngOnInit(): void {
     // 1) Rol admin
@@ -154,6 +172,71 @@ export class SocioModal implements OnInit, OnDestroy {
     }
   }
 
+  // ===== HUELLAS =====
+
+  abrirModalHuella(): void {
+    this.huellaError.set(null);
+    this.huellaMensaje.set(null);
+    this.mostrarModalHuella.set(true);
+  }
+
+  onHuellaCancel(): void {
+    this.mostrarModalHuella.set(false);
+  }
+
+  onHuellaOk(res: HuellaResultado): void {
+    this.mostrarModalHuella.set(false);
+
+    const idx = this.elegirMejorIndice(res.calidades, res.muestras.length);
+    const base = res.muestras[idx] ?? null;
+
+    if (!base) {
+      this.huellaError.set('No se recibió una muestra de huella válida.');
+      return;
+    }
+
+    this.huellaDigitalBase64 = base;
+    this.huellaError.set(null);
+
+    // Si es edición → actualizar directo al backend
+    if (this.socio?.idSocio) {
+      this.huellaProceso.set(true);
+      this.huellaMensaje.set('Actualizando huella del socio...');
+
+      this.socioService.actualizarHuella(this.socio.idSocio, base).subscribe({
+        next: () => {
+          this.huellaProceso.set(false);
+          this.huellaMensaje.set('Huella actualizada correctamente.');
+        },
+        error: (err) => {
+          console.error('[SocioModal] error actualizando huella', err);
+          this.huellaProceso.set(false);
+          this.huellaError.set('No se pudo actualizar la huella. Intenta de nuevo.');
+        }
+      });
+    } else {
+      // Creación → se manda junto con el payload del socio
+      this.huellaMensaje.set('Huella capturada. Se guardará al crear el socio.');
+    }
+  }
+
+  private elegirMejorIndice(calidades: number[], total: number): number {
+    if (!Array.isArray(calidades) || calidades.length !== total || total === 0) {
+      return 0;
+    }
+    let bestIdx = 0;
+    let bestVal = Number.POSITIVE_INFINITY;
+    calidades.forEach((q, i) => {
+      if (q < bestVal) {
+        bestVal = q;
+        bestIdx = i;
+      }
+    });
+    return bestIdx;
+  }
+
+  // ===== GUARDAR SOCIO =====
+
   guardar(): void {
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
@@ -196,6 +279,11 @@ export class SocioModal implements OnInit, OnDestroy {
       activo // <-- clave para NO perder el estado
     } as SocioData;
 
+    // Si es creación y ya capturaste huella aquí, se manda junto al socio
+    if (!this.socio && this.huellaDigitalBase64) {
+      (basePayload as any).huellaDigital = this.huellaDigitalBase64;
+    }
+
     const payload: any = gymObj ? { ...basePayload, gimnasio: gymObj } : basePayload;
 
     const obs = this.socio
@@ -203,8 +291,15 @@ export class SocioModal implements OnInit, OnDestroy {
       : this.socioService.guardar(payload as SocioData);
 
     obs.subscribe({
-      next: () => { this.guardando = false; this.guardado.emit(); },
-      error: (err: any) => { console.error(err); this.guardando = false; this.error = 'No se pudo guardar el socio.'; }
+      next: () => {
+        this.guardando = false;
+        this.guardado.emit();
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.guardando = false;
+        this.error = 'No se pudo guardar el socio.';
+      }
     });
   }
 }

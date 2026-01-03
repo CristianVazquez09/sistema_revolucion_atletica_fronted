@@ -24,6 +24,8 @@ import { PagedResponse } from '../../model/paged-response';
 // Admin: detectar desde token
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
+import { TipoPaquete } from '../../util/enums/tipo-paquete'; // 👈 enum de tipo de paquete
+import { MenuService } from 'src/app/services/menu-service';
 
 @Component({
   selector: 'app-socio',
@@ -37,6 +39,9 @@ export class Socio implements OnInit, OnDestroy {
   listaSocios: SocioData[] = [];
   cargando = true;
   mensajeError: string | null = null;
+
+  private menuSrv = inject(MenuService);
+menuAbierto = this.menuSrv.menuAbierto;
 
   // Admin
   private jwt = inject(JwtHelperService);
@@ -60,6 +65,15 @@ export class Socio implements OnInit, OnDestroy {
   private subsBusqueda?: Subscription;
   private destroyRef = inject(DestroyRef);
 
+  // ─────────── Filtro por tipo de paquete vigente ───────────
+  // Se maneja como string para que el template esté sencillo: '', 'GIMNASIO', 'ZONA_COMBATE', 'MIXTO'
+  filtroTipoPaquete = ''; // '' => todos
+  readonly TipoPaquete = TipoPaquete;
+
+  // ─────────── Filtro por estado (activo / inactivo / todos) ───────────
+  // Valores: 'ACTIVOS' | 'INACTIVOS' | 'TODOS'
+  filtroEstado: 'ACTIVOS' | 'INACTIVOS' | 'TODOS' = 'ACTIVOS';
+
   constructor(
     private socioService: SocioService,
     private router: Router,
@@ -78,6 +92,7 @@ export class Socio implements OnInit, OnDestroy {
         distinctUntilChanged(),
         tap((texto) => {
           if (texto.length === 0) {
+            // limpiar búsqueda -> recargar con filtros normales
             this.paginaActual = 0;
             this.cargarSocios();
           }
@@ -87,15 +102,33 @@ export class Socio implements OnInit, OnDestroy {
           this.cargando = true;
           this.mensajeError = null;
           this.paginaActual = 0;
+
+          const activo = this.mapFiltroEstadoToBoolean();
+          const tipoEnum = this.filtroTipoPaquete
+            ? (this.filtroTipoPaquete as TipoPaquete)
+            : undefined;
+          // Si hay tipoPaquete, asumimos que queremos solo socios con membresía vigente de ese tipo
+          const soloVigentes: boolean | undefined = tipoEnum ? true : undefined;
+
+          // 🔍 Búsqueda por nombre + filtros combinados
           return this.socioService
-            .buscarSociosPorNombre(texto, this.paginaActual, this.tamanioPagina)
+            .buscarSociosPorNombre(
+              texto,
+              this.paginaActual,
+              this.tamanioPagina,
+              activo,
+              tipoEnum,
+              soloVigentes
+            )
             .pipe(finalize(() => (this.cargando = false)));
         }),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: (resp: PagedResponse<SocioData>) => this.aplicarRespuesta(resp),
-        error: () => { this.mensajeError = 'No se pudo ejecutar la búsqueda.'; },
+        error: () => {
+          this.mensajeError = 'No se pudo ejecutar la búsqueda.';
+        },
       });
   }
 
@@ -115,7 +148,7 @@ export class Socio implements OnInit, OnDestroy {
         ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
       ]
         .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
-        .map(r => String(r).toUpperCase());
+        .map((r) => String(r).toUpperCase());
 
       return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('GERENTE');
     } catch {
@@ -128,44 +161,77 @@ export class Socio implements OnInit, OnDestroy {
     if (this.totalElementos === 0) return 0;
     return this.paginaActual * this.tamanioPagina + 1;
   }
+
   get rangoHasta(): number {
     const hasta = (this.paginaActual + 1) * this.tamanioPagina;
     return Math.min(hasta, this.totalElementos);
   }
 
+  // ─────────── Mapear filtroEstado → boolean para el backend ───────────
+  private mapFiltroEstadoToBoolean(): boolean | undefined {
+    switch (this.filtroEstado) {
+      case 'ACTIVOS':
+        return true;
+      case 'INACTIVOS':
+        return false;
+      default:
+        return undefined; // 'TODOS'
+    }
+  }
+
   // ─────────── Carga y manejo de respuestas ───────────
   private aplicarRespuesta(resp: PagedResponse<SocioData>): void {
-  // ⬇️ Filtra solo activos para mostrar
-  this.listaSocios = this.soloActivos(resp.contenido);
+    this.listaSocios = resp.contenido ?? [];
 
-  // Mantén la paginación que te manda el backend
-  this.totalPaginas   = resp.pagina?.totalPaginas   ?? 0;
-  this.totalElementos = resp.pagina?.totalElementos ?? 0;
-  this.tamanioPagina  = resp.pagina?.tamanio        ?? this.tamanioPagina;
-  this.paginaActual   = resp.pagina?.numero         ?? this.paginaActual;
+    this.totalPaginas = resp.pagina?.totalPaginas ?? 0;
+    this.totalElementos = resp.pagina?.totalElementos ?? 0;
+    this.tamanioPagina = resp.pagina?.tamanio ?? this.tamanioPagina;
+    this.paginaActual = resp.pagina?.numero ?? this.paginaActual;
 
-  // Si la página viene vacía (después del filtro podrían quedar 0),
-  // intenta retroceder una página para no dejar la UI en blanco.
-  if (this.listaSocios.length === 0 && this.paginaActual > 0) {
-    this.paginaActual = this.paginaActual - 1;
-    this.cargarSocios();
+    // Si la página viene vacía,
+    // intenta retroceder una página para no dejar la UI en blanco.
+    if (this.listaSocios.length === 0 && this.paginaActual > 0) {
+      this.paginaActual = this.paginaActual - 1;
+      this.cargarSocios();
+    }
   }
-}
-
 
   cargarSocios(): void {
     this.cargando = true;
     this.mensajeError = null;
 
     const texto = this.terminoBusqueda.trim();
+
+    const tipoEnum = this.filtroTipoPaquete
+      ? (this.filtroTipoPaquete as TipoPaquete)
+      : undefined;
+    const activo = this.mapFiltroEstadoToBoolean();
+    const soloVigentes: boolean | undefined = tipoEnum ? true : undefined;
+
     const fuente$ =
       texto.length >= this.minCaracteresBusqueda
-        ? this.socioService.buscarSociosPorNombre(texto, this.paginaActual, this.tamanioPagina)
-        : this.socioService.buscarSocios(this.paginaActual, this.tamanioPagina);
+        ? // Si hay texto de búsqueda, usamos el mismo endpoint de búsqueda por nombre
+          this.socioService.buscarSociosPorNombre(
+            texto,
+            this.paginaActual,
+            this.tamanioPagina,
+            activo,
+            tipoEnum,
+            soloVigentes
+          )
+        : // Listado general con filtros de tipoPaquete + activo
+          this.socioService.buscarSocios(
+            this.paginaActual,
+            this.tamanioPagina,
+            tipoEnum,
+            activo
+          );
 
     fuente$.pipe(finalize(() => (this.cargando = false))).subscribe({
       next: (resp: PagedResponse<SocioData>) => this.aplicarRespuesta(resp),
-      error: () => { this.mensajeError = 'No se pudo cargar la lista de socios.'; },
+      error: () => {
+        this.mensajeError = 'No se pudo cargar la lista de socios.';
+      },
     });
   }
 
@@ -174,8 +240,25 @@ export class Socio implements OnInit, OnDestroy {
     this.terminoBusqueda = valor;
     this.busqueda$.next(valor);
   }
+
   limpiarBusqueda(): void {
     this.onBuscarChange('');
+  }
+
+  // ─────────── Filtro de tipo de paquete ───────────
+  cambiarFiltroTipo(valor: string): void {
+    if (this.filtroTipoPaquete === valor) return;
+    this.filtroTipoPaquete = valor; // '', 'GIMNASIO', 'ZONA_COMBATE', 'MIXTO'
+    this.paginaActual = 0;
+    this.cargarSocios();
+  }
+
+  // ─────────── Filtro de estado (activo / inactivo / todos) ───────────
+  cambiarFiltroEstado(valor: string): void {
+    if (this.filtroEstado === valor) return;
+    this.filtroEstado = valor as any; // 'ACTIVOS' | 'INACTIVOS' | 'TODOS'
+    this.paginaActual = 0;
+    this.cargarSocios();
   }
 
   // ─────────── Paginación ───────────
@@ -184,21 +267,25 @@ export class Socio implements OnInit, OnDestroy {
     this.paginaActual = 0;
     this.cargarSocios();
   }
+
   irPrimera(): void {
     if (this.paginaActual === 0) return;
     this.paginaActual = 0;
     this.cargarSocios();
   }
+
   irAnterior(): void {
     if (this.paginaActual === 0) return;
     this.paginaActual--;
     this.cargarSocios();
   }
+
   irSiguiente(): void {
     if (this.paginaActual + 1 >= this.totalPaginas) return;
     this.paginaActual++;
     this.cargarSocios();
   }
+
   irUltima(): void {
     if (this.totalPaginas === 0) return;
     if (this.paginaActual === this.totalPaginas - 1) return;
@@ -211,33 +298,39 @@ export class Socio implements OnInit, OnDestroy {
     this.socioActual = s;
     this.modalSocioVisible.set(true);
   }
+
   cerrarModalSocio(): void {
     this.modalSocioVisible.set(false);
   }
+
   despuesDeGuardarSocio(): void {
     this.cerrarModalSocio();
     this.cargarSocios();
   }
+
   eliminarSocio(s: SocioData): void {
-  if (!s?.idSocio) return;
-  if (!confirm(`¿Desactivar al socio "${s.nombre} ${s.apellido}"?`)) return;
+    if (!s?.idSocio) return;
+    if (!confirm(`¿Desactivar al socio "${s.nombre} ${s.apellido}"?`)) return;
 
-  const actualizado: SocioData = { ...s, activo: false };
+    const actualizado: SocioData = { ...s, activo: false };
 
-  // Usamos actualizar en lugar de eliminar:
-  this.socioService.actualizar(s.idSocio, actualizado).subscribe({
-    next: () => {
-      this.notificacion.exito('Socio desactivado.');
-      this.cargarSocios();
-    },
-    error: () => this.notificacion.error('No se pudo desactivar al socio.'),
-  });
-}
-
+    this.socioService.actualizar(s.idSocio, actualizado).subscribe({
+      next: () => {
+        this.notificacion.exito('Socio desactivado.');
+        this.cargarSocios();
+      },
+      error: () => this.notificacion.error('No se pudo desactivar al socio.'),
+    });
+  }
 
   verHistorial(s: SocioData): void {
     if (!s?.idSocio) return;
     this.router.navigate(['/pages/socio', s.idSocio, 'historial']);
+  }
+
+  verAsesorias(s: SocioData): void {
+    if (!s?.idSocio) return;
+    this.router.navigate(['/pages/socio', s.idSocio, 'asesorias']);
   }
 
   // Mostrar gym con tolerancia a id ó idGimnasio
@@ -249,17 +342,4 @@ export class Socio implements OnInit, OnDestroy {
     if (id != null) return `#${id}`;
     return '—';
   }
-  verAsesorias(s: SocioData): void {
-  if (!s?.idSocio) return;
-  this.router.
-  
-  navigate(['/pages/socio', s.idSocio, 'asesorias']);
-}
-
-/** Devuelve solo elementos cuyo atributo `activo` NO sea false.
- *  Si no viene el campo, se consideran activos. */
-private soloActivos<T>(arr: T[] | null | undefined): T[] {
-  return (arr ?? []).filter((x: any) => x?.activo !== false);
-}
-
 }

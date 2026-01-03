@@ -139,6 +139,45 @@
                     class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green"
                     placeholder="Notas del socio"></textarea>
         </div>
+
+        <!-- HUELLAS -->
+        <div class="mt-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 flex items-center justify-between gap-3">
+          <div>
+            <div class="text-sm font-semibold text-ra-slate">Huella digital</div>
+            <div class="text-xs text-gray-600">
+              @if (socio?.idSocio) {
+                Puedes registrar o actualizar la huella de este socio.
+              } @else {
+                (Opcional) Captura la huella; se guardará al crear el socio.
+              }
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            @if (huellaProceso()) {
+              <span class="text-xs text-ra-slate">Guardando…</span>
+            }
+            <button
+              type="button"
+              class="px-4 py-2 rounded-full bg-red-600 text-white text-sm hover:bg-red-700 disabled:opacity-60"
+              [disabled]="huellaProceso()"
+              (click)="abrirModalHuella()">
+              Capturar huella
+            </button>
+          </div>
+        </div>
+
+        @if (huellaMensaje()) {
+          <div class="text-xs text-green-700 mt-1">
+            {{ huellaMensaje() }}
+          </div>
+        }
+
+        @if (huellaError()) {
+          <div class="text-xs text-red-600 mt-1">
+            {{ huellaError() }}
+          </div>
+        }
+
       </div>
     </div>
 
@@ -159,3 +198,15 @@
     </div>
   </form>
 </div>
+
+<!-- Modal de huella -->
+@if (mostrarModalHuella()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
+    <app-huella-modal
+      [maxMuestras]="1"
+      [timeoutMs]="30000"
+      (cancelar)="onHuellaCancel()"
+      (confirmar)="onHuellaOk($event)">
+    </app-huella-modal>
+  </div>
+}

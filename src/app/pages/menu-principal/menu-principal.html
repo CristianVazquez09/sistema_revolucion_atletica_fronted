@@ -1,55 +1,136 @@
-<div class="h-screen w-full flex bg-neutral-100">
-  <!-- Sidebar que EMPUJA header + contenido -->
+<!-- Layout raíz (bloquea scroll global; el scroll queda dentro del contenido) -->
+<div class="h-[100dvh] w-full flex bg-neutral-100 overflow-hidden">
+  <!-- Backdrop (solo móvil) -->
+  @if (menuAbierto()) {
+    <div
+      class="fixed inset-0 z-40 bg-black/50 md:hidden"
+      (click)="toggleMenu()"
+      aria-hidden="true"
+    ></div>
+  }
+
+  <!-- Sidebar -->
   <aside
-    class="bg-ra-rojo-fuerte text-white transition-all duration-300 ease-in-out overflow-hidden border-r"
-    [ngClass]="{
-      'w-80 border-red-600/60': menuAbierto(),  
-      'w-0 border-transparent': !menuAbierto()
-    }"
+    id="ra-sidebar"
+    class="
+      bg-ra-rojo-fuerte text-white overflow-hidden
+      border-r border-red-600/60
+      fixed md:static inset-y-0 left-0 z-50
+      h-[100dvh]
+      transition-[transform,width] duration-300 ease-in-out
+      w-0 md:w-0
+    "
+    [ngClass]="menuAbierto()
+      ? 'translate-x-0 pointer-events-auto w-14 md:w-14 lg:w-64 xl:w-72'
+      : '-translate-x-full pointer-events-none md:translate-x-0 md:w-0'"
     role="navigation"
     aria-label="Menú principal"
   >
-    <!-- Logo MÁS GRANDE -->
-    <div class="h-32 flex items-center justify-center border-b border-red-600/70">
-      <img
-        src="imagenes/logo-revolucion-atletica.png"
-        alt="Logo Revolución Atlética"
-        class="h-52 object-contain"  
-      />
-    </div>
+    <!-- Wrapper: compacta por ALTURA + por ANCHO < 1280 -->
+    <div
+      class="
+        h-full flex flex-col origin-top-left
 
-    <!-- Opciones MÁS GRANDES -->
-    <nav class="flex-1 overflow-y-auto py-3">
-      @for (m of menus; track $index) {
-        <a
-          routerLink="{{ m.url }}"
-          routerLinkActive="bg-ra-rojo-oscuro"
-          class="flex items-center gap-4 px-5 py-4 text-lg mx-2 my-1 rounded-md border border-white/10 hover:bg-ra-rojo-oscuro transition"
-          [title]="m.nombre"
-          [attr.aria-label]="m.nombre"
-        >
-          <img [src]="m.icono" alt="" class="w-8 h-8 shrink-0" />  <!-- icono más grande -->
-          <span class="truncate">{{ m.nombre }}</span>
-        </a>
-      }
-    </nav>
+        [@media(max-height:880px)]:scale-[0.96] [@media(max-height:880px)]:h-[calc(100%/0.96)]
+        [@media(max-height:820px)]:scale-[0.92] [@media(max-height:820px)]:h-[calc(100%/0.92)]
+        [@media(max-height:760px)]:scale-[0.88] [@media(max-height:760px)]:h-[calc(100%/0.88)]
 
-    <div class="px-4 py-3 text-xs text-white/80 border-t border-red-600/70">
-      © Revolución Atlética
+        [@media(max-width:1279px)]:scale-[0.94] [@media(max-width:1279px)]:h-[calc(100%/0.94)]
+        [@media(max-width:1120px)]:scale-[0.90] [@media(max-width:1120px)]:h-[calc(100%/0.90)]
+        [@media(max-width:1024px)]:scale-[0.86] [@media(max-width:1024px)]:h-[calc(100%/0.86)]
+      "
+    >
+      <!-- Logo: solo en lg+ (en <lg se oculta) -->
+      <div class="hidden lg:flex h-24 xl:h-40 items-center justify-center border-b border-red-600/70 px-4">
+        <img
+          src="imagenes/logo-revolucion-atletica.png"
+          alt="Logo Revolución Atlética"
+          class="max-h-full w-full object-contain"
+        />
+      </div>
+
+      <!-- Opciones -->
+      <nav
+        class="
+          flex-1 min-h-0
+          overflow-y-hidden xl:overflow-y-auto
+          py-1.5 xl:py-2
+          [scrollbar-width:none] [-ms-overflow-style:none]
+          [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar]:h-0
+
+          /* <lg: barra fina, sin padding lateral */
+          [@media(max-width:1023px)]:py-2
+          [@media(max-width:1023px)]:px-0
+        "
+      >
+        @for (m of menus; track $index) {
+          <a
+            [routerLink]="m.url"
+            routerLinkActive="bg-ra-rojo-oscuro bg-red-800"
+            class="
+              flex items-center
+              mx-2 my-0.5 rounded-md
+              border border-white/10
+              hover:bg-ra-rojo-oscuro
+              transition
+
+              /* XL+ normal */
+              xl:gap-3 xl:px-4 xl:py-3 xl:text-lg
+
+              /* < XL: compacto (aún con texto en lg) */
+              [@media(max-width:1279px)]:gap-2.5 [@media(max-width:1279px)]:px-3 [@media(max-width:1279px)]:py-2.5 [@media(max-width:1279px)]:text-[15px]
+
+              /* < LG: SOLO ICONOS, alineados al borde izquierdo */
+              [@media(max-width:1023px)]:mx-0
+              [@media(max-width:1023px)]:my-0
+              [@media(max-width:1023px)]:rounded-none
+              [@media(max-width:1023px)]:border-transparent
+              [@media(max-width:1023px)]:w-full
+              [@media(max-width:1023px)]:justify-start
+              [@media(max-width:1023px)]:gap-0
+              [@media(max-width:1023px)]:px-2
+              [@media(max-width:1023px)]:py-2
+            "
+            [title]="m.nombre"
+            [attr.aria-label]="m.nombre"
+          >
+            <img
+  [src]="m.icono"
+  alt=""
+  class="
+    shrink-0
+    xl:w-8 xl:h-8
+    [@media(max-width:1279px)]:w-6 [@media(max-width:1279px)]:h-6
+    [@media(max-width:1023px)]:w-5 [@media(max-width:1023px)]:h-5
+  "
+/>
+
+
+            <!-- Texto: solo en lg+ -->
+            <span class="truncate hidden lg:inline">{{ m.nombre }}</span>
+          </a>
+        }
+      </nav>
+
+      <!-- Footer: solo en lg+ -->
+      <div class="hidden lg:block px-4 py-2 text-[10px] sm:text-[11px] text-white/80 border-t border-red-600/70">
+        © Revolución Atlética
+      </div>
     </div>
   </aside>
 
-  <!-- Columna derecha: HEADER + CONTENIDO (ambos se empujan por el sidebar) -->
-  <div class="flex-1 flex flex-col min-w-0 transition-[width] duration-300">
-    <!-- Top bar (también se desplaza) -->
+  <!-- Columna derecha -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- Top bar -->
     <header class="h-14 bg-white border-b border-neutral-200 flex items-center justify-between px-3 sm:px-4">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 min-w-0">
         <!-- Botón hamburguesa -->
         <button
           type="button"
           class="inline-flex items-center justify-center rounded-md border border-neutral-300 bg-white hover:bg-neutral-50 active:bg-neutral-100 w-9 h-9"
           (click)="toggleMenu()"
           [attr.aria-expanded]="menuAbierto()"
+          aria-controls="ra-sidebar"
           aria-label="Alternar menú"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
@@ -59,7 +140,7 @@
         </button>
 
         <!-- Título -->
-        <div class="text-base sm:text-lg font-medium text-neutral-800">
+        <div class="text-base sm:text-lg font-medium text-neutral-800 truncate">
           Revolución Atlética
         </div>
 
@@ -88,14 +169,14 @@
                fill="none" stroke="#fff" stroke-width="1.8" class="w-5 h-5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m5.657-3.657a8 8 0 11-11.314 0"/>
           </svg>
-          <span class="hidden sm:inline text-ra-bg">Salir</span>
+          <span class="hidden sm:inline">Salir</span>
         </button>
       </div>
     </header>
 
     <!-- Contenido -->
-    <main class="flex-1 overflow-hidden">
-      <section class="py-4 px-2 sm:px-4 overflow-auto">
+    <main class="flex-1 min-h-0 overflow-hidden">
+      <section class="h-full overflow-auto py-3 sm:py-4 px-2 sm:px-4 lg:px-6">
         <router-outlet />
       </section>
     </main>

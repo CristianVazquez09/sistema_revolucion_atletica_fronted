@@ -141,42 +141,49 @@ export class Categoria implements OnInit {
 
 
   // --- Guardar (crear/actualizar) ---
-  guardar(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+guardar(): void {
+  if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
-    this.guardando = true;
+  this.guardando = true;
 
-    const nombre = String(this.form.controls.nombre.value ?? '').trim();
-    const payload: any = { nombre };
+  const nombre = String(this.form.controls.nombre.value ?? '').trim();
 
-    // ⬅️ IMPORTANTE: enviar gimnasio como { id } cuando eres admin
-    if (this.isAdmin) {
-      if (this.form.controls.gimnasioId.disabled) {
-        this.form.controls.gimnasioId.enable({ emitEvent: false });
-      }
-      const idG = this.form.controls.gimnasioId.value;
-      if (idG != null) payload.gimnasio = { id: Number(idG) };
+  // si estás editando, respeta el valor actual de 'activo';
+  // si es alta, envíalo como true por defecto
+  const activo = this.categoriaEditando?.activo ?? true;
+
+  // arma el payload con 'activo' SIEMPRE presente
+  const payload: any = { nombre, activo };
+
+  // si eres admin, incluye el gimnasio como { id }
+  if (this.isAdmin) {
+    if (this.form.controls.gimnasioId.disabled) {
+      this.form.controls.gimnasioId.enable({ emitEvent: false });
     }
-
-    const esEdicion = !!this.categoriaEditando?.idCategoria;
-    const obs = esEdicion
-      ? this.categoriaSrv.actualizar(this.categoriaEditando!.idCategoria!, payload)
-      : this.categoriaSrv.guardar(payload);
-
-    obs.subscribe({
-      next: () => {
-        this.guardando = false;
-        this.cancelarEdicion();
-        this.cargarCategorias();
-        this.notificacion.exito('Categoría guardada.');
-      },
-      error: err => {
-        console.error(err);
-        this.guardando = false;
-        this.notificacion.error('No se pudo guardar la categoría.');
-      }
-    });
+    const idG = this.form.controls.gimnasioId.value;
+    if (idG != null) payload.gimnasio = { id: Number(idG) };
   }
+
+  const esEdicion = !!this.categoriaEditando?.idCategoria;
+  const obs = esEdicion
+    ? this.categoriaSrv.actualizar(this.categoriaEditando!.idCategoria!, payload)
+    : this.categoriaSrv.guardar(payload);
+
+  obs.subscribe({
+    next: () => {
+      this.guardando = false;
+      this.cancelarEdicion();
+      this.cargarCategorias();
+      this.notificacion.exito('Categoría guardada.');
+    },
+    error: err => {
+      console.error(err);
+      this.guardando = false;
+      this.notificacion.error('No se pudo guardar la categoría.');
+    }
+  });
+}
+
 
   // --- Edición ---
   editar(c: CategoriaData): void {

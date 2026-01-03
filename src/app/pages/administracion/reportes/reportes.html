@@ -1,0 +1,102 @@
+<!-- src/app/pages/administracion/reportes/reportes.html -->
+
+<div class="w-full flex justify-center">
+  <div class="w-full max-w-3xl bg-white shadow-sm rounded-xl p-6 md:p-8 mt-4 md:mt-8">
+
+    <!-- Título -->
+    <div class="mb-6 border-b pb-4">
+      <h2 class="text-xl md:text-2xl font-semibold text-slate-800">
+        Reportes de movimientos
+      </h2>
+      <p class="text-sm text-slate-500 mt-1">
+        Selecciona el rango de fechas y  el gimnasio
+        para descargar el Excel con
+        <span class="font-medium">membresías, ventas y asesorías</span>.
+      </p>
+    </div>
+
+    <!-- Mensaje de error general -->
+    <div *ngIf="errorMsg" class="mb-4 rounded-md bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+      {{ errorMsg }}
+    </div>
+
+    <!-- Formulario -->
+    <form [formGroup]="form" (ngSubmit)="descargar()" class="space-y-4">
+
+      <!-- Gimnasio (solo admin) -->
+      <div *ngIf="isAdmin">
+        <label class="block text-sm font-medium text-slate-700 mb-1">
+          Gimnasio
+        </label>
+
+        <div class="relative">
+          <select
+            formControlName="idGimnasio"
+            class="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          >
+            <option [ngValue]="null">Todos los gimnasios</option>
+            <option *ngFor="let g of gimnasios" [ngValue]="gymId(g)">
+              {{ displayGimnasio(g) }}
+            </option>
+          </select>
+
+          <div *ngIf="loadingGimnasios" class="absolute right-3 top-2.5 text-xs text-slate-400">
+            Cargando...
+          </div>
+        </div>
+      </div>
+
+      <!-- Fechas -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="desde" class="block text-sm font-medium text-slate-700 mb-1">
+            Desde
+          </label>
+          <input
+            id="desde"
+            type="date"
+            formControlName="desde"
+            class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          />
+        </div>
+
+        <div>
+          <label for="hasta" class="block text-sm font-medium text-slate-700 mb-1">
+            Hasta
+          </label>
+          <input
+            id="hasta"
+            type="date"
+            formControlName="hasta"
+            class="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+          />
+        </div>
+      </div>
+
+      <!-- Botón -->
+      <div class="pt-2 flex justify-end">
+        <button
+          type="submit"
+          [disabled]="loadingExcel"
+          class="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"
+        >
+          <svg
+            *ngIf="loadingExcel"
+            class="mr-2 h-4 w-4 animate-spin"
+            viewBox="0 0 24 24"
+          >
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path
+              class="opacity-75"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              fill="currentColor"
+            ></path>
+          </svg>
+          <span>
+            {{ loadingExcel ? 'Generando Excel...' : 'Descargar Excel' }}
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

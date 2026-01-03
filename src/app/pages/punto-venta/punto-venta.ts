@@ -1,7 +1,14 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, debounceTime, distinctUntilChanged, switchMap, of, finalize } from 'rxjs';
+import {
+  Subject,
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  of,
+  finalize,
+} from 'rxjs';
 
 import { CategoriaService } from '../../services/categoria-service';
 import { ProductoService } from '../../services/producto-service';
@@ -19,7 +26,7 @@ import { GimnasioData } from '../../model/gimnasio-data';
 import { environment } from '../../../environments/environment';
 import { CarritoItem, CarritoService } from '../../services/carrito-service';
 import { crearContextoTicket } from '../../util/ticket-contexto';
-import { PagoData } from '../../model/membresia-data';   // 👈 reutilizamos PagoData
+import { PagoData } from '../../model/membresia-data'; // 👈 reutilizamos PagoData
 
 @Component({
   selector: 'app-punto-venta',
@@ -54,7 +61,10 @@ export class PuntoVenta implements OnInit {
   categoriaHoverId: number | null = null;
 
   get totalPagCats(): number {
-    return Math.max(1, Math.ceil(this.categorias.length / this.tamanoPaginaCategorias));
+    return Math.max(
+      1,
+      Math.ceil(this.categorias.length / this.tamanoPaginaCategorias)
+    );
   }
   get categoriasVisibles(): CategoriaData[] {
     const ini = this.paginaCategorias * this.tamanoPaginaCategorias;
@@ -98,7 +108,9 @@ export class PuntoVenta implements OnInit {
             this.categoriaActivaId = null;
             this.cargandoProductos = true;
             this.productoSeleccionado = null;
-            return this.productoSrv.buscarPorNombre(t).pipe(finalize(() => (this.cargandoProductos = false)));
+            return this.productoSrv
+              .buscarPorNombre(t)
+              .pipe(finalize(() => (this.cargandoProductos = false)));
           }
           if (t.length === 0) {
             if (this.categoriaActivaId == null) {
@@ -135,37 +147,46 @@ export class PuntoVenta implements OnInit {
       const decoded: any = this.jwt.decodeToken(token);
       this.cajero = decoded?.preferred_username ?? decoded?.sub ?? this.cajero;
 
-      const idGym = decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
+      const idGym =
+        decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
       if (idGym) {
         this.gimnasioSrv.buscarPorId(Number(idGym)).subscribe({
-          next: (g) => { this.gym = g; },
-          error: () => { this.gym = null; },
+          next: (g) => {
+            this.gym = g;
+          },
+          error: () => {
+            this.gym = null;
+          },
         });
       }
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
   }
 
   // === Categorías / Productos ===
   private cargarCategorias(): void {
-  this.cargandoCategorias = true;
-  this.error = null;
+    this.cargandoCategorias = true;
+    this.error = null;
 
-  this.categoriaSrv.buscarTodos().subscribe({
-    next: (lista) => {
-      // 👇 Solo activas (si no trae 'activo', lo asumimos como true)
-      this.categorias = (lista ?? []).filter(c => c?.activo !== false);
-      this.cargandoCategorias = false;
-      this.modo = 'categorias';
-      // reset de paginación si la página actual queda fuera
-      this.paginaCategorias = Math.min(this.paginaCategorias, Math.max(0, this.totalPagCats - 1));
-    },
-    error: () => {
-      this.cargandoCategorias = false;
-      this.error = 'No se pudieron cargar las categorías.';
-    },
-  });
-}
-
+    this.categoriaSrv.buscarTodos().subscribe({
+      next: (lista) => {
+        // Solo activas (si no trae 'activo', lo asumimos como true)
+        this.categorias = (lista ?? []).filter((c) => c?.activo !== false);
+        this.cargandoCategorias = false;
+        this.modo = 'categorias';
+        // reset de paginación si la página actual queda fuera
+        this.paginaCategorias = Math.min(
+          this.paginaCategorias,
+          Math.max(0, this.totalPagCats - 1)
+        );
+      },
+      error: () => {
+        this.cargandoCategorias = false;
+        this.error = 'No se pudieron cargar las categorías.';
+      },
+    });
+  }
 
   seleccionarCategoria(c: CategoriaData): void {
     if (!c?.idCategoria) return;
@@ -175,9 +196,18 @@ export class PuntoVenta implements OnInit {
     this.cargarProductosPorCategoria(this.categoriaActivaId);
     this.modo = 'productos';
   }
-  onCategoriaHover(c?: CategoriaData): void { this.categoriaHoverId = c?.idCategoria ?? null; }
-  anteriorPaginaCategorias(): void { if (this.paginaCategorias > 0) this.paginaCategorias--; }
-  siguientePaginaCategorias(): void { if (this.paginaCategorias + 1 < this.totalPagCats) this.paginaCategorias++; }
+
+  onCategoriaHover(c?: CategoriaData): void {
+    this.categoriaHoverId = c?.idCategoria ?? null;
+  }
+
+  anteriorPaginaCategorias(): void {
+    if (this.paginaCategorias > 0) this.paginaCategorias--;
+  }
+
+  siguientePaginaCategorias(): void {
+    if (this.paginaCategorias + 1 < this.totalPagCats) this.paginaCategorias++;
+  }
 
   volverACategorias(): void {
     this.modo = 'categorias';
@@ -218,17 +248,31 @@ export class PuntoVenta implements OnInit {
   }
 
   // === Stock helpers ===
-  stockOriginal(p: ProductoData): number { return this.toNumber(p.cantidad); }
-  private stockYaEnCarrito(idProd: number): number { return this.carritoSrv.cantidadEnCarrito(idProd); }
+  stockOriginal(p: ProductoData): number {
+    return this.toNumber(p.cantidad);
+  }
+
+  private stockYaEnCarrito(idProd: number): number {
+    return this.carritoSrv.cantidadEnCarrito(idProd);
+  }
+
   stockDisponible(p: ProductoData): number {
     const id = Number((p.idProducto as unknown) ?? 0);
     return Math.max(0, this.stockOriginal(p) - this.stockYaEnCarrito(id));
   }
 
   // === Carrito (servicio) ===
-  get carrito(): CarritoItem[] { return this.carritoSrv.obtenerItems(); }
-  get indiceCarritoSeleccionado(): number | null { return this.carritoSrv.obtenerIndiceSeleccionado(); }
-  get total(): number { return this.carritoSrv.obtenerTotal(); }
+  get carrito(): CarritoItem[] {
+    return this.carritoSrv.obtenerItems();
+  }
+
+  get indiceCarritoSeleccionado(): number | null {
+    return this.carritoSrv.obtenerIndiceSeleccionado();
+  }
+
+  get total(): number {
+    return this.carritoSrv.obtenerTotal();
+  }
 
   agregarAlCarrito(): void {
     const p = this.productoSeleccionado;
@@ -236,39 +280,68 @@ export class PuntoVenta implements OnInit {
 
     const disponible = this.stockDisponible(p);
     if (this.cantidadParaAgregar > disponible) {
-      this.notificacion.aviso(`Solo hay ${disponible} en stock para "${String(p.nombre ?? '')}".`);
+      this.notificacion.aviso(
+        `Solo hay ${disponible} en stock para "${String(p.nombre ?? '')}".`
+      );
       return;
     }
 
     const id = Number((p.idProducto as unknown) ?? 0);
     const precio = this.toNumber(p.precioVenta);
-    this.carritoSrv.agregar(id, String(p.nombre ?? ''), precio, this.cantidadParaAgregar);
+    this.carritoSrv.agregar(
+      id,
+      String(p.nombre ?? ''),
+      precio,
+      this.cantidadParaAgregar
+    );
     this.cantidadParaAgregar = 1;
   }
 
-  seleccionarLineaCarrito(idx: number): void { this.carritoSrv.seleccionarIndice(idx); }
-  sumar(): void { this.carritoSrv.sumarSeleccionado(); }
-  restar(): void { this.carritoSrv.restarSeleccionado(); }
-  eliminarSeleccionado(): void { this.carritoSrv.eliminarSeleccionado(); }
+  seleccionarLineaCarrito(idx: number): void {
+    this.carritoSrv.seleccionarIndice(idx);
+  }
+
+  sumar(): void {
+    this.carritoSrv.sumarSeleccionado();
+  }
+
+  restar(): void {
+    this.carritoSrv.restarSeleccionado();
+  }
+
+  eliminarSeleccionado(): void {
+    this.carritoSrv.eliminarSeleccionado();
+  }
 
   cancelar(): void {
     this.carritoSrv.limpiar();
     this.productoSeleccionado = null;
     this.cantidadParaAgregar = 1;
-    if (!this.categoriaActivaId && this.terminoBusqueda.length < 2) this.modo = 'categorias';
+    if (!this.categoriaActivaId && this.terminoBusqueda.length < 2) {
+      this.modo = 'categorias';
+    }
   }
 
   // === Modal Resumen / Pago ===
   abrirModalResumen(): void {
-    if (this.carrito.length === 0) { this.notificacion.aviso('Tu carrito está vacío.'); return; }
+    if (this.carrito.length === 0) {
+      this.notificacion.aviso('Tu carrito está vacío.');
+      return;
+    }
     this.mostrarModalResumen = true;
   }
-  cerrarModalResumen(): void { this.mostrarModalResumen = false; }
+
+  cerrarModalResumen(): void {
+    this.mostrarModalResumen = false;
+  }
 
   /** Ahora recibimos pagos[] desde el modal */
   confirmarVentaDesdeModal(pagos: PagoData[]): void {
     if (this.realizandoPago) return;
-    if (this.carrito.length === 0) { this.notificacion.aviso('Tu carrito está vacío.'); return; }
+    if (this.carrito.length === 0) {
+      this.notificacion.aviso('Tu carrito está vacío.');
+      return;
+    }
 
     // Validación de suma
     const suma = (pagos ?? []).reduce((a, p) => a + (Number(p.monto) || 0), 0);
@@ -278,8 +351,11 @@ export class PuntoVenta implements OnInit {
     }
 
     const payload: VentaCreateRequest = {
-      pagos,                                                   // 👈 múltiples métodos
-      detalles: this.carrito.map((it: CarritoItem) => ({ idProducto: it.idProducto, cantidad: it.cantidad }))
+      pagos,
+      detalles: this.carrito.map((it: CarritoItem) => ({
+        idProducto: it.idProducto,
+        cantidad: it.cantidad,
+      })),
     };
 
     this.realizandoPago = true;
@@ -295,35 +371,90 @@ export class PuntoVenta implements OnInit {
         // ==== Ticket ====
         const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
 
-        // Texto resumido de pagos: "Efectivo: $X · Tarjeta: $Y · Transferencia: $Z"
-        const money = (n: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2 }).format(n);
-        const labelPagos =
-          (venta?.pagos ?? pagos ?? [])
-            .filter((p: PagoData) => (p?.monto ?? 0) > 0)
-            .map((p: PagoData) => {
-              const label = p.tipoPago === 'EFECTIVO' ? 'Efectivo' : p.tipoPago === 'TARJETA' ? 'Tarjeta' : 'Transferencia';
-              return `${label}: ${money(Number(p.monto) || 0)}`;
-            })
-            .join(' · ');
+        // ✅ Normaliza pagos a TicketPagoDetalle (igual que en Inscripción)
+        const pagosDet = (venta?.pagos ?? pagos ?? [])
+          .filter((p: any) => (Number(p?.monto ?? p?.total) || 0) > 0)
+          .map((p: any) => ({
+            metodo: String(p?.tipoPago ?? p?.metodo ?? '').trim(),
+            monto: Number(p?.monto ?? p?.total) || 0,
+          }));
 
         if (venta?.detalles?.length) {
-          // si tu TicketService ya soporta breakdown, envíalo en el "tipoPago"
-          this.ticket.imprimirVentaDesdeBackend(venta, ctx, labelPagos || '—');
+          // ✅ PASA pagosDet (no un string)
+          this.ticket.imprimirVentaDesdeBackend(
+            venta,
+            ctx,
+            undefined,
+            pagosDet
+          );
         } else {
-          this.ticket.imprimirVentaDesdeCarrito(this.carrito, ctx, labelPagos || '—', venta?.idVenta, new Date());
+          // ✅ OJO: aquí estabas mandando mal los parámetros (tu 4° arg era pagos)
+          this.ticket.imprimirVentaDesdeCarrito(
+            this.carrito,
+            ctx,
+            undefined, // tipoPago (fallback) -> no lo usamos
+            pagosDet, // ✅ pagos reales
+            venta?.folio ?? '', // folio si lo tienes
+            venta?.fecha ?? new Date(),
+            venta?.idVenta ?? '' // idVenta real
+          );
         }
 
         // Limpieza
         this.cancelar();
         this.volverACategorias();
       },
-      error: () => {
+      error: (err) => {
         this.realizandoPago = false;
-        this.notificacion.error('No se pudo registrar la venta.');
-      }
+        this.manejarErrorVenta(err); // 👈 ahora mostramos el detalle real
+      },
     });
   }
 
+  // === Manejo de errores de venta (excepciones de backend) ===
+  private manejarErrorVenta(err: any): void {
+    console.error('Error al registrar la venta:', err);
+
+    // El GlobalExceptionHandler manda ProblemDetail en err.error
+    const problem = err?.error ?? err;
+
+    let mensaje: string | null = null;
+
+    if (problem && typeof problem === 'object') {
+      const titulo = typeof problem.title === 'string' ? problem.title : null;
+      const detalle =
+        typeof problem.detail === 'string' ? problem.detail : null;
+
+      if (detalle) {
+        // Si el título es útil, lo incluimos; si es genérico, solo el detalle
+        if (
+          titulo &&
+          titulo !== 'Error interno' &&
+          titulo !== 'Solicitud inválida'
+        ) {
+          mensaje = `${titulo}: ${detalle}`;
+        } else {
+          mensaje = detalle;
+        }
+      } else if (typeof problem.message === 'string') {
+        mensaje = problem.message;
+      }
+    }
+
+    // Fallback por si viene algo raro
+    if (!mensaje && typeof err?.message === 'string') {
+      mensaje = err.message;
+    }
+
+    if (!mensaje) {
+      mensaje = 'No se pudo registrar la venta. Intenta de nuevo.';
+    }
+
+    this.notificacion.error(mensaje);
+  }
+
   // Helpers
-  toNumber(v: unknown): number { return typeof v === 'number' ? v : Number((v as unknown) ?? 0); }
+  toNumber(v: unknown): number {
+    return typeof v === 'number' ? v : Number((v as unknown) ?? 0);
+  }
 }

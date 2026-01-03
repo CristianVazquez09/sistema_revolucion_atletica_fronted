@@ -8,6 +8,8 @@ import { NotificacionService } from '../../../services/notificacion-service';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../environments/environment';
 import { CorteCajaListado, PagedResponse, PageMeta } from '../../../model/corte-caja-data';
+import { TicketService } from '../../../services/ticket-service';
+import { CorteCajaInfo } from './corte-caja-info/corte-caja-info';
 
 type CampoOrden = 'apertura' | 'cierre' | 'idCorte';
 type DirOrden   = 'asc' | 'desc';
@@ -15,15 +17,16 @@ type DirOrden   = 'asc' | 'desc';
 @Component({
   selector: 'app-corte-caja-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CorteCajaInfo],
   templateUrl: './corte-caja-admin.html',
   styleUrl: './corte-caja-admin.css'
 })
 export class CorteCajaAdmin {
 
-  private srv  = inject(CorteCajaService);
-  private jwt  = inject(JwtHelperService);
-  private noti = inject(NotificacionService);
+  private srv    = inject(CorteCajaService);
+  private jwt    = inject(JwtHelperService);
+  private noti   = inject(NotificacionService);
+  private ticket = inject(TicketService);
 
   // Estado tabla
   cortes: CorteCajaListado[] = [];
@@ -35,13 +38,20 @@ export class CorteCajaAdmin {
   estadoSel: '' | 'ABIERTO' | 'CERRADO' = '';
   sizeSel = 10;
 
-  // Ordenamiento mejorado
-  sortCampo: 'apertura' | 'cierre' | 'idCorte' = 'apertura';
-sortDir: 'asc' | 'desc' = 'desc';
-get sortSel(): string { return `${this.sortCampo},${this.sortDir}`; }
+  // Ordenamiento
+  sortCampo: CampoOrden = 'apertura';
+  sortDir: DirOrden = 'desc';
+  get sortSel(): string { return `${this.sortCampo},${this.sortDir}`; }
 
-  // Admin?
+  // Admin / permisos
   esAdmin = false;
+
+  // Reimpresión
+  reimprimiendo = false;
+
+  // Modal de información
+  mostrarInfo = false;
+  corteSeleccionado: CorteCajaListado | null = null;
 
   ngOnInit(): void {
     this.esAdmin = this.detectarAdmin();
@@ -57,29 +67,34 @@ get sortSel(): string { return `${this.sortCampo},${this.sortDir}`; }
         ...(Array.isArray(d?.roles) ? d.roles : []),
         ...(Array.isArray(d?.authorities) ? d.authorities : []),
         ...(Array.isArray(d?.realm_access?.roles) ? d.realm_access.roles : []),
-      ].concat([d?.role, d?.rol, d?.perfil].filter(Boolean) as string[])
-       .map(r => String(r).toUpperCase());
+      ]
+        .concat([d?.role, d?.rol, d?.perfil].filter(Boolean) as string[])
+        .map(r => String(r).toUpperCase());
       return d?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   }
 
   private buildSort(): string {
     return `${this.sortCampo},${this.sortDir}`;
   }
 
-  // Acciones de ordenamiento (toolbar + encabezados clicables)
+  // Acciones de ordenamiento (encabezados clicables)
   setSortCampo(campo: CampoOrden): void {
     if (this.sortCampo === campo) {
-      this.toggleSortDir();       // mismo campo => invierte dirección
+      this.toggleSortDir(); // mismo campo => invierte dirección
     } else {
-      this.sortCampo = campo;     // cambia de campo, conserva dirección actual
+      this.sortCampo = campo;
       this.go(1);
     }
   }
+
   toggleSortDir(): void {
     this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
     this.go(1);
   }
+
   isCampoActivo(campo: CampoOrden): boolean {
     return this.sortCampo === campo;
   }
@@ -93,19 +108,24 @@ get sortSel(): string { return `${this.sortCampo},${this.sortDir}`; }
       estado: this.estadoSel,
       page: pageUI,
       size: this.sizeSel,
-      sort: this.buildSort()
+      sort: this.buildSort(),
     })
-    .pipe(finalize(() => (this.cargando = false)))
-    .subscribe({
-      next: (resp: PagedResponse<CorteCajaListado>) => {
-        this.cortes = resp?.content ?? [];
-        this.page   = resp?.page ?? { size: this.sizeSel, number: (pageUI - 1), totalElements: 0, totalPages: 0 };
-      },
-      error: () => {
-        this.error = 'No se pudieron cargar los cortes.';
-        this.noti.error(this.error);
-      }
-    });
+      .pipe(finalize(() => (this.cargando = false)))
+      .subscribe({
+        next: (resp: PagedResponse<CorteCajaListado>) => {
+          this.cortes = resp?.content ?? [];
+          this.page   = resp?.page ?? {
+            size: this.sizeSel,
+            number: (pageUI - 1),
+            totalElements: 0,
+            totalPages: 0,
+          };
+        },
+        error: () => {
+          this.error = 'No se pudieron cargar los cortes.';
+          this.noti.error(this.error);
+        },
+      });
   }
 
   // Paginación
@@ -116,6 +136,54 @@ get sortSel(): string { return `${this.sortCampo},${this.sortDir}`; }
   prev(): void { if (this.puedePrev) this.cargar(this.pageUI - 1); }
   next(): void { if (this.puedeNext) this.cargar(this.pageUI + 1); }
   go(n: number): void { this.cargar(n); }
+
+  // Reimprimir ticket de corte
+  reimprimir(c: CorteCajaListado): void {
+    if (!c?.idCorte || this.reimprimiendo) return;
+
+    // opcional: solo cortes cerrados
+    if (c.estado !== 'CERRADO') {
+      this.noti.aviso?.('Solo puedes reimprimir tickets de cortes cerrados.');
+      return;
+    }
+
+    this.reimprimiendo = true;
+
+    const gym: any = c.gimnasio || {};
+    const ctx = {
+      negocio: {
+        nombre: gym?.nombre || 'Gimnasio',
+        direccion: gym?.direccion,
+        telefono: gym?.telefono,
+      },
+      brandTitle: 'REVOLUCIÓN ATLÉTICA',
+    } as const;
+
+    this.srv.consultar(c.idCorte)
+      .pipe(finalize(() => (this.reimprimiendo = false)))
+      .subscribe({
+        next: (detalle) => {
+          // CorteCajaResponseDTO debe ser compatible con CorteBackend
+          this.ticket.imprimirCorteDesdeBackend(detalle as any, ctx);
+          this.noti.info(`Ticket de corte #${c.idCorte} enviado a impresión.`);
+        },
+        error: (err) => {
+          console.error('[CorteCajaAdmin] Error al consultar detalle de corte', err);
+          this.noti.error('No se pudo obtener el detalle del corte para reimprimir.');
+        },
+      });
+  }
+
+  // Abrir / cerrar modal de información
+  verInfo(c: CorteCajaListado): void {
+    this.corteSeleccionado = c;
+    this.mostrarInfo = true;
+  }
+
+  cerrarInfo(): void {
+    this.mostrarInfo = false;
+    this.corteSeleccionado = null;
+  }
 
   // track
   trackById = (_: number, it: CorteCajaListado) => it.idCorte;

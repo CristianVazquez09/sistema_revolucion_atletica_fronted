@@ -9,6 +9,7 @@ import { NotificacionService } from '../../services/notificacion-service';
 // Deducir admin
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
+import { MenuService } from 'src/app/services/menu-service';
 
 @Component({
   selector: 'app-producto',
@@ -22,6 +23,8 @@ export class Producto implements OnInit {
   private router = inject(Router);
   private notificacion = inject(NotificacionService);
   private jwt = inject(JwtHelperService);
+  private menuSrv = inject(MenuService);
+    menuAbierto = this.menuSrv.menuAbierto;
 
   // Admin?
   isAdmin = false;

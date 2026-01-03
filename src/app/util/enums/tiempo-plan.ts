@@ -1,5 +1,5 @@
 export enum TiempoPlan {
-  VISTA = 'VISITA',
+  VISITA = 'VISITA',
   DIEZ_DIAS = 'DIEZ_DIAS',
   QUINCE_DIAS = 'QUINCE_DIAS',
   UNA_SEMANA = 'UNA_SEMANA',
@@ -7,5 +7,8 @@ export enum TiempoPlan {
   MENSUAL = 'UN_MES',
   TRIMESTRAL = 'TRES_MESES',
   SEMESTRAL = 'SEIS_MESES',
-  ANUAL = 'UN_ANIO'
+  ANUAL = 'UN_ANIO',
+  // NUEVOS
+  VISITA_10 = 'VISITA_10',
+  VISITA_15 = 'VISITA_15',
 }

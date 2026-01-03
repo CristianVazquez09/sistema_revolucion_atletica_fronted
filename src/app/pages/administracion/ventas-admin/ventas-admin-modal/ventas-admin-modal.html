@@ -1,21 +1,33 @@
-<div class="mx-auto w-full rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
-  <!-- Header -->
-  <div class="flex items-start justify-between px-6 pt-5">
-    <h2 class="text-[20px] font-bold text-ra-slate leading-none">
-      Venta #{{ data?.idVenta || '—' }}
+<!-- Modal (RESPONSIVE xl / lg / md) -->
+<div
+  class="
+    mx-auto w-full
+    max-w-[980px] lg:max-w-[1100px] xl:max-w-[1200px]
+    rounded-2xl bg-white shadow-2xl ring-1 ring-black/5
+    overflow-hidden
+    flex flex-col
+    max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)]
+  "
+>
+  <!-- Header (fijo) -->
+  <div class="flex items-start justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-black/5">
+    <h2 class="text-[18px] md:text-[20px] font-bold text-ra-slate leading-none">
+      Venta #{{ data?.folio || '—' }}
     </h2>
 
     <button
-      class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+      class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 shrink-0"
       (click)="cancelar.emit()"
-      aria-label="Cerrar">
+      aria-label="Cerrar"
+    >
       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
       </svg>
     </button>
   </div>
 
-  <div class="px-6 pb-6 pt-4 space-y-5">
+  <!-- Body (scroll interno) -->
+  <div class="px-4 sm:px-6 pb-5 sm:pb-6 pt-4 space-y-5 overflow-y-auto min-h-0">
     @if (cargando) {
       <div class="text-sm text-ra-slate">Cargando…</div>
     } @else if (error) {
@@ -23,7 +35,7 @@
     } @else if (data) {
 
       <!-- Usuario / Fecha -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         <div class="text-sm">
           <div class="font-semibold text-ra-slate/90">Usuario</div>
           <div class="text-ra-slate">{{ data.usuario?.nombreUsuario || '—' }}</div>
@@ -36,127 +48,192 @@
 
       <!-- Detalles -->
       <div class="rounded-xl2 overflow-hidden bg-ra-white shadow-card ring-1 ring-black/10">
-        <table class="w-full table-fixed text-[13px]">
-          <colgroup>
-            <col class="w-[12%]"><col class="w-[36%]"><col class="w-[16%]"><col class="w-[18%]"><col class="w-[18%]">
-          </colgroup>
-          <thead>
-            <tr class="bg-ra-grayLight/40">
-              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Detalle</th>
-              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Producto</th>
-              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Precio u.</th>
-              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Cantidad</th>
-              <th class="py-3 px-4 text-center text-ra-slate font-semibold uppercase">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (d of detalles(); track d._key) {
-              <tr class="border-t border-ra-grayLight/60">
-                <td class="py-3 px-4 text-center">
-                  <span class="inline-block min-w-[4ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700">
-                    {{ d.idDetalle > 0 ? d.idDetalle : 'nuevo' }}
-                  </span>
-                  <div class="text-[11px] text-ra-slate/60" *ngIf="d.idDetalle>0">#{{ d.idDetalle }}</div>
-                </td>
+        <!-- ✅ evita desbordes en md/lg: scroll horizontal SOLO aquí -->
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[860px] table-fixed text-[12px] md:text-[13px]">
+            <colgroup>
+              <col class="w-[12%]">
+              <col class="w-[36%]">
+              <col class="w-[16%]">
+              <col class="w-[18%]">
+              <col class="w-[18%]">
+            </colgroup>
 
-                <td class="py-3 px-4">
-                  <div class="text-sm font-medium truncate" [title]="d.nombreProducto">{{ d.nombreProducto }}</div>
-                  <div class="text-xs text-ra-slate/70">#{{ d.idProducto }}</div>
-
-                  <!-- Reemplazar producto -->
-                  <div class="mt-2 flex items-center gap-2">
-                    <input type="number"
-                           class="w-[140px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-1.5 shadow-inner text-sm"
-                           placeholder="ID nuevo"
-                           [value]="d.productoNuevoId ?? ''"
-                           (input)="setProductoNuevo(d, ($any($event.target).valueAsNumber || null))">
-                    <span class="text-xs text-ra-slate/70">ID producto nuevo</span>
-                  </div>
-                </td>
-
-                <td class="py-3 px-4 text-center">
-                  {{ d.precioUnit | currency:'MXN':'symbol-narrow':'1.2-2' }}
-                </td>
-
-                <td class="py-3 px-4">
-                  <div class="flex items-center justify-center gap-2">
-                    <button type="button" class="px-2 py-1 rounded-md border hover:bg-gray-50" (click)="decCantidad(d)">−</button>
-                    <input type="number" min="1"
-                           class="w-[80px] text-center rounded-xl border border-gray-200 bg-gray-100 px-2 py-1.5 shadow-inner text-sm"
-                           [value]="d.cantidad"
-                           (input)="onCantidadDirecta(d, ($any($event.target).value))">
-                    <button type="button" class="px-2 py-1 rounded-md border hover:bg-gray-50" (click)="incCantidad(d)">+</button>
-                  </div>
-                  @if (d._changedCantidad) {
-                    <div class="text-[11px] text-amber-700 text-center mt-1">cambiar a {{ d.cantidad }}</div>
-                  }
-                </td>
-
-                <td class="py-3 px-4">
-                  <div class="flex items-center justify-center gap-2">
-                    <button type="button" class="p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar detalle"
-                            (click)="eliminarDetalle(d)">
-                      <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
-                    </button>
-                  </div>
-                </td>
+            <thead>
+              <tr class="bg-ra-grayLight/40">
+                <th class="py-2.5 md:py-3 px-3 md:px-4 text-center text-ra-slate font-semibold uppercase">Detalle</th>
+                <th class="py-2.5 md:py-3 px-3 md:px-4 text-center text-ra-slate font-semibold uppercase">Producto</th>
+                <th class="py-2.5 md:py-3 px-3 md:px-4 text-center text-ra-slate font-semibold uppercase">Precio u.</th>
+                <th class="py-2.5 md:py-3 px-3 md:px-4 text-center text-ra-slate font-semibold uppercase">Cantidad</th>
+                <th class="py-2.5 md:py-3 px-3 md:px-4 text-center text-ra-slate font-semibold uppercase">Acciones</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              @if (detallesVisibles().length === 0) {
+                <tr>
+                  <td colspan="5" class="py-6 text-center text-sm text-ra-slate/70">
+                    No hay productos en esta venta.
+                  </td>
+                </tr>
+              } @else {
+                @for (d of detallesVisibles(); track d._key) {
+                  <tr class="border-t border-ra-grayLight/60">
+                    <td class="py-2.5 md:py-3 px-3 md:px-4 text-center align-top">
+                      <span class="inline-block min-w-[4ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700">
+                        {{ d.idDetalle > 0 ? d.idDetalle : 'nuevo' }}
+                      </span>
+                      <div class="text-[11px] text-ra-slate/60" *ngIf="d.idDetalle>0">#{{ d.idDetalle }}</div>
+                    </td>
+
+                    <td class="py-2.5 md:py-3 px-3 md:px-4 align-top">
+                      <div class="text-sm font-medium truncate" [title]="d.nombreProducto">{{ d.nombreProducto }}</div>
+                      <div class="text-xs text-ra-slate/70">#{{ d.idProducto }}</div>
+
+                      <!-- Reemplazar producto (dropdown) -->
+                      <div class="mt-2 flex items-center gap-2 min-w-0">
+                        <select
+                          class="w-full md:w-[240px] min-w-[220px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                          [disabled]="productosCargando"
+                          [(ngModel)]="d.productoNuevoId"
+                          (ngModelChange)="setProductoNuevo(d, $event ? ($event) : null)"
+                        >
+                          <option [ngValue]="null">— Reemplazar por… —</option>
+                          @for (p of productos(); track (p).idProducto) {
+                            <option [ngValue]="(p).idProducto">
+                              {{ labelProducto(p) }}
+                            </option>
+                          }
+                        </select>
+
+                        <span class="hidden lg:inline text-xs text-ra-slate/70 whitespace-nowrap">
+                          {{ productosCargando ? 'Cargando…' : 'Producto nuevo' }}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td class="py-2.5 md:py-3 px-3 md:px-4 text-center align-top whitespace-nowrap">
+                      {{ d.precioUnit | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                    </td>
+
+                    <td class="py-2.5 md:py-3 px-3 md:px-4 align-top">
+                      <div class="flex items-center justify-center gap-2">
+                        <button type="button" class="px-2 py-1 rounded-md border hover:bg-gray-50" (click)="decCantidad(d)">−</button>
+                        <input
+                          type="number"
+                          min="1"
+                          class="w-[80px] text-center rounded-xl border border-gray-200 bg-gray-100 px-2 py-1.5 shadow-inner text-sm"
+                          [value]="d.cantidad"
+                          (input)="onCantidadDirecta(d, ($any($event.target).value))"
+                        >
+                        <button type="button" class="px-2 py-1 rounded-md border hover:bg-gray-50" (click)="incCantidad(d)">+</button>
+                      </div>
+                      @if (d._changedCantidad) {
+                        <div class="text-[11px] text-amber-700 text-center mt-1">cambiar a {{ d.cantidad }}</div>
+                      }
+                    </td>
+
+                    <td class="py-2.5 md:py-3 px-3 md:px-4 align-top">
+                      <div class="flex items-center justify-center">
+                        <button
+                          type="button"
+                          class="p-2 rounded hover:bg-ra-grayLight/40"
+                          title="Eliminar detalle"
+                          (click)="eliminarDetalle(d)"
+                        >
+                          <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Agregar detalle -->
-      <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3 items-end">
+      <div class="grid grid-cols-1 md:grid-cols-[1fr_180px_auto] gap-3 items-end">
         <div>
-          <label class="block text-sm font-semibold text-ra-slate mb-1.5">ID Producto</label>
-          <input type="number"
-                 class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green"
-                 [value]="nuevoIdProducto ?? ''"
-                 (input)="nuevoIdProducto = ($any($event.target).valueAsNumber || null)">
+          <label class="block text-sm font-semibold text-ra-slate mb-1.5">Producto</label>
+
+          <select
+            class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green"
+            [disabled]="productosCargando"
+            [(ngModel)]="nuevoProductoId"
+          >
+            <option [ngValue]="null">
+              {{ productosCargando ? 'Cargando productos…' : '— Selecciona un producto —' }}
+            </option>
+            @for (p of productos(); track (p).idProducto) {
+              <option [ngValue]="(p).idProducto">{{ labelProducto(p) }}</option>
+            }
+          </select>
+
+          @if (!productosCargando && (productos().length) === 0) {
+            <div class="text-xs text-amber-700 mt-1">No hay productos disponibles.</div>
+          }
         </div>
+
         <div>
           <label class="block text-sm font-semibold text-ra-slate mb-1.5">Cantidad</label>
-          <input type="number" min="1"
-                 class="w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green"
-                 [value]="nuevoCantidad"
-                 (input)="nuevoCantidad = Math.max(1, $any($event.target).valueAsNumber || 1)">
+          <input
+            type="number"
+            min="1"
+            class="w-full md:w-[180px] rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green"
+            [value]="nuevoCantidad"
+            (input)="nuevoCantidad = Math.max(1, $any($event.target).valueAsNumber || 1)"
+          >
         </div>
-        <button type="button"
-                class="h-[42px] px-4 rounded-md bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card"
-                (click)="agregarDetalle()">
+
+        <button
+          type="button"
+          class="h-[42px] w-full md:w-auto px-4 rounded-md bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card disabled:opacity-60"
+          [disabled]="productosCargando || !nuevoProductoId"
+          (click)="agregarDetalle()"
+        >
           Agregar producto
         </button>
       </div>
 
       <!-- Pagos + Resumen -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
         <div class="rounded-xl2 bg-ra-white shadow-card ring-1 ring-black/10 p-4">
           <div class="text-sm font-semibold text-ra-slate mb-2">Pagos</div>
 
           <div class="flex flex-col gap-2">
             <div class="flex items-center gap-2">
               <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-xs">EFECTIVO</span>
-              <input type="number" min="0"
-                     class="w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-                     [value]="efectivo()"
-                     (input)="efectivo.set(($any($event.target).valueAsNumber ?? 0) || 0)" />
+              <input
+                type="number"
+                min="0"
+                class="w-full sm:w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                [value]="efectivo()"
+                (input)="efectivo.set(($any($event.target).valueAsNumber ?? 0) || 0)"
+              />
             </div>
 
             <div class="flex items-center gap-2">
               <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 text-blue-800 px-2 py-0.5 text-xs">TARJETA</span>
-              <input type="number" min="0"
-                     class="w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-                     [value]="tarjeta()"
-                     (input)="tarjeta.set(($any($event.target).valueAsNumber ?? 0) || 0)" />
+              <input
+                type="number"
+                min="0"
+                class="w-full sm:w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                [value]="tarjeta()"
+                (input)="tarjeta.set(($any($event.target).valueAsNumber ?? 0) || 0)"
+              />
             </div>
 
             <div class="flex items-center gap-2">
               <span class="inline-flex items-center gap-1 rounded-full bg-violet-100 text-violet-800 px-2 py-0.5 text-xs">TRANSFERENCIA</span>
-              <input type="number" min="0"
-                     class="w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
-                     [value]="transferencia()"
-                     (input)="transferencia.set(($any($event.target).valueAsNumber ?? 0) || 0)" />
+              <input
+                type="number"
+                min="0"
+                class="w-full sm:w-[160px] rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+                [value]="transferencia()"
+                (input)="transferencia.set(($any($event.target).valueAsNumber ?? 0) || 0)"
+              />
             </div>
           </div>
         </div>
@@ -174,15 +251,15 @@
             <span class="font-semibold">{{ sumaPagos() | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
           </div>
 
-          <div class="text-sm flex justify-between"
-               [ngClass]="{ 'text-amber-700': desbalance() !== 0, 'text-emerald-700': desbalance() === 0 }">
+          <div
+            class="text-sm flex justify-between"
+            [ngClass]="{ 'text-amber-700': desbalance() !== 0, 'text-emerald-700': desbalance() === 0 }"
+          >
             <span>Diferencia</span>
             <span class="font-semibold">{{ desbalance() | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
           </div>
 
-          <button type="button"
-                  class="mt-2 px-3 py-1.5 rounded-md border text-sm"
-                  (click)="ajustarPagosAlTotal()">
+          <button type="button" class="mt-2 px-3 py-1.5 rounded-md border text-sm" (click)="ajustarPagosAlTotal()">
             Igualar pagos al total
           </button>
 
@@ -192,20 +269,32 @@
         </div>
       </div>
 
+      @if (unknownPrice()) {
+        <div class="text-sm text-amber-700">
+          Hay un producto con precio inválido o no cargado. Corrige antes de guardar.
+        </div>
+      }
+
       @if (error) {
         <div class="text-sm text-red-600">{{ error }}</div>
       }
 
       <!-- Footer -->
-      <div class="flex items-center justify-end gap-2 pt-2">
-        <button type="button" (click)="cancelar.emit()"
-                class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-2">
+        <button
+          type="button"
+          (click)="cancelar.emit()"
+          class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100"
+        >
           Cancelar
         </button>
-        <button type="button"
-                [disabled]="guardando || !canSave()"
-                class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60"
-                (click)="guardar()">
+
+        <button
+          type="button"
+          [disabled]="guardando || !canSave()"
+          class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60"
+          (click)="guardar()"
+        >
           {{ guardando ? 'Guardando…' : 'Guardar cambios' }}
         </button>
       </div>

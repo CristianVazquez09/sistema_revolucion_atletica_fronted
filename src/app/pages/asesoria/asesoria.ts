@@ -20,13 +20,20 @@ import { PagoData } from '../../model/membresia-data';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
-import { NotificacionService } from '../../services/notificacion-service';
-import { TicketService, VentaContexto } from '../../services/ticket-service';
+import {
+  TicketPagoDetalle,
+  TicketService,
+  VentaContexto,
+} from '../../services/ticket-service';
 import { ResumenVenta } from '../resumen-venta/resumen-venta';
 import { crearContextoTicket } from '../../util/ticket-contexto';
 import { AsesoriaCreateRequest } from '../../model/asesoria-data';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
 import { AsesoriaService } from '../../services/asesoria-service';
+
+// ⬇️ Modal de Huella (igual que en Asistencia)
+import { HuellaModal, HuellaResultado } from '../huella-modal/huella-modal';
+import { NotificacionService } from 'src/app/services/notificacion-service';
 
 @Component({
   selector: 'app-asesoria',
@@ -37,6 +44,7 @@ import { AsesoriaService } from '../../services/asesoria-service';
     ReactiveFormsModule,
     ResumenVenta,
     TiempoPlanLabelPipe,
+    HuellaModal, // ⬅️ se agrega el modal
   ],
   templateUrl: './asesoria.html',
   styleUrls: ['./asesoria.css'],
@@ -83,11 +91,11 @@ export class Asesoria implements OnInit {
     precio: [0, [Validators.required, Validators.min(0)]],
   });
 
-  // Modal
+  // Modales
   mostrarResumen = signal(false);
+  mostrarHuella = signal(false); // ⬅️ nuevo modal de huella
   guardando = false;
 
-  // ===== Helpers =====
   /** id tolerante a {idEntrenador} o {id} */
   private entrenadorId(e: any): number {
     return Number(e?.idEntrenador ?? e?.id ?? 0);
@@ -207,42 +215,62 @@ export class Asesoria implements OnInit {
   }
 
   private cargarEntrenadores(): void {
-  this.cargandoEntrenadores = true;
-  this.entrenadorSrv.buscarTodos()
-    .pipe(finalize(() => (this.cargandoEntrenadores = false)))
-    .subscribe({
-      next: (lista: any[]) => {
-        const vistos = new Set<number>();
+    this.cargandoEntrenadores = true;
+    // 👇 deshabilitamos el control desde TS mientras carga
+    this.form.controls.idEntrenador.disable({ emitEvent: false });
 
-        // ⬇️ solo activos
-        const activos = this.soloActivos(lista);
+    this.entrenadorSrv
+      .buscarTodos()
+      .pipe(
+        finalize(() => {
+          this.cargandoEntrenadores = false;
+          // 👇 re-habilitamos el control
+          this.form.controls.idEntrenador.enable({ emitEvent: false });
+        })
+      )
+      .subscribe({
+        next: (lista: any[]) => {
+          const vistos = new Set<number>();
 
-        this.entrenadores = activos
-          .map((e: any) => {
-            const gym = e.gimnasio ?? {};
-            const gymId = typeof gym.idGimnasio === 'number' ? gym.idGimnasio : Number(gym.id);
-            return {
-              idEntrenador: typeof e.idEntrenador === 'number' ? e.idEntrenador : Number(e.id),
-              nombre: e.nombre,
-              apellido: e.apellido,
-              gimnasio: gymId
-                ? { idGimnasio: gymId, nombre: gym.nombre, direccion: gym.direccion, telefono: gym.telefono }
-                : undefined
-            } as EntrenadorData;
-          })
-          .filter((e: EntrenadorData) => {
-            const ok = !!e.idEntrenador && !vistos.has(e.idEntrenador!);
-            if (ok) vistos.add(e.idEntrenador!);
-            return ok;
-          });
+          // ⬇️ solo activos
+          const activos = this.soloActivos(lista);
 
-        const gid = Number(this.form.controls.gimnasioId.value ?? 0);
-        this.filtrarEntrenadoresPorGym(gid);
-      },
-      error: () => this.noti.error('No se pudieron cargar los entrenadores.')
-    });
-}
+          this.entrenadores = activos
+            .map((e: any) => {
+              const gym = e.gimnasio ?? {};
+              const gymId =
+                typeof gym.idGimnasio === 'number'
+                  ? gym.idGimnasio
+                  : Number(gym.id);
+              return {
+                idEntrenador:
+                  typeof e.idEntrenador === 'number'
+                    ? e.idEntrenador
+                    : Number(e.id),
+                nombre: e.nombre,
+                apellido: e.apellido,
+                gimnasio: gymId
+                  ? {
+                      idGimnasio: gymId,
+                      nombre: gym.nombre,
+                      direccion: gym.direccion,
+                      telefono: gym.telefono,
+                    }
+                  : undefined,
+              } as EntrenadorData;
+            })
+            .filter((e: EntrenadorData) => {
+              const ok = !!e.idEntrenador && !vistos.has(e.idEntrenador!);
+              if (ok) vistos.add(e.idEntrenador!);
+              return ok;
+            });
 
+          const gid = Number(this.form.controls.gimnasioId.value ?? 0);
+          this.filtrarEntrenadoresPorGym(gid);
+        },
+        error: () => this.noti.error('No se pudieron cargar los entrenadores.'),
+      });
+  }
 
   private filtrarEntrenadoresPorGym(idGym: number): void {
     if (!this.isAdmin || !idGym) {
@@ -264,7 +292,7 @@ export class Asesoria implements OnInit {
     }
   }
 
-  // === Socio ===
+  // === Socio: por ID ===
   buscarSocio(): void {
     if (this.form.controls.idSocio.invalid) {
       this.noti.aviso('Ingresa un ID de socio válido (solo dígitos).');
@@ -274,6 +302,7 @@ export class Asesoria implements OnInit {
     const id = Number(this.form.controls.idSocio.value);
     this.cargandoSocio = true;
     this.socio = null;
+
     this.socioSrv
       .buscarPorId(id)
       .pipe(finalize(() => (this.cargandoSocio = false)))
@@ -283,6 +312,48 @@ export class Asesoria implements OnInit {
           this.socio = s;
         },
         error: () => this.noti.error('No se pudo cargar el socio.'),
+      });
+  }
+
+  // === Socio: por HUELLAs (nuevo) ===
+  abrirHuella(): void {
+    this.mostrarHuella.set(true);
+  }
+
+  cerrarHuella(): void {
+    this.mostrarHuella.set(false);
+  }
+
+  confirmarHuella(res: HuellaResultado): void {
+    this.mostrarHuella.set(false);
+    const base64 = res?.muestras?.[0] ?? '';
+    if (!base64) {
+      this.noti.aviso('No se recibió una muestra válida.');
+      return;
+    }
+    this.buscarSocioPorHuella(base64);
+  }
+
+  private buscarSocioPorHuella(huellaBase64: string): void {
+    this.cargandoSocio = true;
+    this.socio = null;
+
+    this.socioSrv
+      .buscarPorHuella(huellaBase64)
+      .pipe(finalize(() => (this.cargandoSocio = false)))
+      .subscribe({
+        next: (s) => {
+          if (!s) {
+            this.noti.error(
+              'Huella no encontrada o no pertenece a tu gimnasio.'
+            );
+            return;
+          }
+          this.socio = s;
+          this.form.controls.idSocio.setValue(String(s.idSocio));
+        },
+        error: () =>
+          this.noti.error('No se pudo buscar el socio por huella.'),
       });
   }
 
@@ -308,6 +379,7 @@ export class Asesoria implements OnInit {
     }
     this.mostrarResumen.set(true);
   }
+
   cerrarResumen(): void {
     this.mostrarResumen.set(false);
   }
@@ -316,7 +388,10 @@ export class Asesoria implements OnInit {
     if (this.guardando) return;
 
     const precio = Number(this.form.controls.precio.value ?? 0);
-    const suma = (pagos ?? []).reduce((a, p) => a + (Number(p.monto) || 0), 0);
+    const suma = (pagos ?? []).reduce(
+      (a, p) => a + (Number(p.monto) || 0),
+      0
+    );
     if (Math.abs(suma - precio) > 0.01) {
       this.noti.aviso('La suma de los pagos no coincide con el precio.');
       return;
@@ -335,7 +410,9 @@ export class Asesoria implements OnInit {
       entrenador: {
         idEntrenador: this.form.controls.idEntrenador.value!,
       } as EntrenadorData,
-      socio: { idSocio: Number(this.form.controls.idSocio.value) } as SocioData,
+      socio: {
+        idSocio: Number(this.form.controls.idSocio.value),
+      } as SocioData,
       pagos: (pagos ?? []).map((p) => ({
         ...p,
         fechaPago: new Date().toISOString(),
@@ -358,44 +435,40 @@ export class Asesoria implements OnInit {
           this.cerrarResumen();
           this.noti.exito('Accesoría registrada correctamente.');
 
-          const item = {
-            idProducto: 0,
-            nombre:
-              `Accesoría — ${this.form.controls.tiempo.value} con ${entrenadorNombre}`.trim(),
-            precioUnit: precio,
-            cantidad: 1,
-          };
-
-          const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
-          ctx.socio = `${socioNombre} • Entrenador: ${entrenadorNombre}`;
-
-          const money = (n: number) =>
-            new Intl.NumberFormat('es-MX', {
-              style: 'currency',
-              currency: 'MXN',
-              minimumFractionDigits: 2,
-            }).format(n);
-          const labelPagos = (pagos ?? [])
-            .filter((p) => (p?.monto ?? 0) > 0)
-            .map(
-              (p) =>
-                `${
-                  p.tipoPago === 'EFECTIVO'
-                    ? 'Efectivo'
-                    : p.tipoPago === 'TARJETA'
-                    ? 'Tarjeta'
-                    : 'Transferencia'
-                }: ${money(Number(p.monto) || 0)}`
-            )
-            .join(' · ');
-
-          this.ticket.verVentaDesdeCarrito(
-            [item as any],
-            ctx,
-            labelPagos || '—',
-            resp?.idAsesoriaPersonalizada ?? resp?.id ?? undefined,
-            new Date()
+          // Contexto del ticket
+          const ctx: VentaContexto = crearContextoTicket(
+            this.gym,
+            this.cajero
           );
+          ctx.socio = socioNombre;
+
+          const tiempo = String(this.form.controls.tiempo.value ?? '');
+
+          // PagoData[] -> TicketPagoDetalle[]
+          const pagosDet: TicketPagoDetalle[] = (pagos ?? [])
+            .filter((p) => (p?.monto ?? 0) > 0)
+            .map((p) => ({
+              tipoPago: p.tipoPago,
+              monto: Number(p.monto) || 0,
+            }));
+
+          // Imprime ticket de asesoría con diseño tipo membresía
+          const ref = resp?.idAsesoriaPersonalizada ?? resp?.id ?? '';
+
+          this.ticket.imprimirAccesoria({
+            negocio: ctx.negocio,
+            folio: ref,
+            fecha: new Date(),
+            cajero: this.cajero,
+            socio: socioNombre,
+            entrenador: entrenadorNombre,
+            concepto: `Asesoría ${tiempo}`,
+            tiempo,
+            importe: precio,
+            total: precio,
+            pagos: pagosDet,
+            referencia: ref,
+          });
 
           this.resetUI();
         },

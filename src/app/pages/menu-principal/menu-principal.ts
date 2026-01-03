@@ -23,13 +23,19 @@ export class MenuPrincipal {
 
   /** Estado del drawer (menú desplegable) */
   menuAbierto = signal(false);
+  
+  
 
   constructor(
     private menuService: MenuService,
     private jwt: JwtHelperService,
     private router: Router,
     private corteState: CorteCajaService
-  ) {}
+  ) {
+    this.menuAbierto = this.menuService.menuAbierto;
+  }
+
+  
 
   ngOnInit(): void {
     this.username = sessionStorage.getItem('username') ?? '';
@@ -58,8 +64,8 @@ export class MenuPrincipal {
     }
   }
 
-  toggleMenu(): void { this.menuAbierto.update(v => !v); }
-  closeMenu(): void { this.menuAbierto.set(false); }
+  toggleMenu(): void { this.menuService.toggleDrawer(); }
+  closeMenu(): void { this.menuService.cerrarDrawer(); }
 
   /** Cerrar con tecla ESC */
   @HostListener('window:keydown', ['$event'])

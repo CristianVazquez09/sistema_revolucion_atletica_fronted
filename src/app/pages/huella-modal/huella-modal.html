@@ -1,0 +1,24 @@
+<div class="fixed inset-0 z-[1000] bg-black/50 grid place-items-center">
+  <div class="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
+    <div class="text-xl font-bold mb-1">Capturar huella</div>
+    <div class="text-sm text-gray-600 mb-4">
+      Coloca el dedo en el lector. Se tomará <b>una</b> muestra.
+    </div>
+
+    <div class="space-y-3">
+      <div *ngIf="errorMsg()" class="text-red-600 text-sm">{{ errorMsg() }}</div>
+      <div class="text-sm text-gray-700">
+        Calidad: {{ calidad() == null ? '—' : calidad() === 0 ? 'OK' : calidad() }}
+      </div>
+
+      <div *ngIf="previews().length" class="flex justify-center">
+        <img [src]="previews()[0]" alt="Huella" class="w-40 h-40 object-contain rounded-md border" />
+      </div>
+    </div>
+
+    <div class="mt-5 flex justify-end gap-2">
+      <button class="px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300" (click)="cerrar()">Cancelar</button>
+      <button class="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" (click)="reintentar()">Reintentar</button>
+    </div>
+  </div>
+</div>

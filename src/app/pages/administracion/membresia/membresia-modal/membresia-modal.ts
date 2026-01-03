@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject, signal, computed } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { MembresiaService } from '../../../../services/membresia-service';
 import { PaqueteService } from '../../../../services/paquete-service';
+
 import { MembresiaData, PagoData } from '../../../../model/membresia-data';
 import { MembresiaPatchRequest } from '../../../../model/membresia-patch';
 import { PaqueteData } from '../../../../model/paquete-data';
@@ -24,13 +25,13 @@ export class MembresiaModal implements OnInit {
   private srv = inject(MembresiaService);
   private paqueteSrv = inject(PaqueteService);
 
-  // base
+  // -------- base --------
   data: MembresiaData | null = null;
   cargando = true;
   guardando = false;
   error: string | null = null;
 
-  // edición (signals)
+  // -------- edición (signals) --------
   fechaInicio = signal<string>('');  // yyyy-MM-dd
   fechaFin    = signal<string>('');  // yyyy-MM-dd
   descuento   = signal<number>(0);
@@ -40,15 +41,20 @@ export class MembresiaModal implements OnInit {
   tarjeta = signal(0);
   transferencia = signal(0);
 
-  // cambio de paquete
+  // -------- cambio de paquete --------
+  listaPaquetes: PaqueteData[] = [];
+  cargandoListaPaquetes = false;
+
   paqueteNuevoId: number | null = null;
   paqueteNuevo: PaqueteData | null = null; // si se carga, usamos sus precios
 
-  // helpers
-  protected readonly Math = Math;
-
+  // ================= Ciclo de vida =================
   ngOnInit(): void {
-    if (!this.idMembresia) { this.error = 'Falta idMembresia.'; this.cargando = false; return; }
+    if (!this.idMembresia) {
+      this.error = 'Falta idMembresia.';
+      this.cargando = false;
+      return;
+    }
 
     this.srv.buscarPorId(this.idMembresia).subscribe({
       next: (m) => {
@@ -69,57 +75,74 @@ export class MembresiaModal implements OnInit {
         this.tarjeta.set(sum('TARJETA'));
         this.transferencia.set(sum('TRANSFERENCIA'));
 
+        // cargar lista de paquetes para el <select>
+        this.cargarPaquetesActivos();
+
         this.cargando = false;
       },
       error: () => { this.error = 'No se pudo cargar la membresía.'; this.cargando = false; }
     });
   }
 
-  // ============== Cálculo local del total (vista) ==============
-
-  private precioBaseVista = computed<number>(() => {
+  // ================= Cálculos de vista (MÉTODOS) =================
+  precioBaseVista(): number {
     if (!this.data) return 0;
     return Number(this.paqueteNuevo?.precio ?? this.data.paquete?.precio ?? 0);
-  });
+  }
 
   /**
-   * ⬅️ Importante:
    * Si la membresía es de REINSCRIPCION, NO cobramos costoInscripcion,
    * aun cuando se cambie de paquete dentro del modal.
    */
-  private inscripcionVista = computed<number>(() => {
+  inscripcionVista(): number {
     if (!this.data) return 0;
     const esReinscripcion = String(this.data.movimiento) === 'REINSCRIPCION';
     if (esReinscripcion) return 0;
-
     return Number(this.paqueteNuevo?.costoInscripcion ?? this.data.paquete?.costoInscripcion ?? 0);
-  });
+  }
 
-  totalCalculadoVista = computed<number>(() => {
+  totalCalculadoVista(): number {
     return this.round2(this.precioBaseVista() + this.inscripcionVista() - Number(this.descuento() || 0));
-  });
+  }
 
-  sumaPagos = computed<number>(() => {
+  sumaPagos(): number {
     return this.round2((this.efectivo() || 0) + (this.tarjeta() || 0) + (this.transferencia() || 0));
-  });
+  }
 
-  desbalance = computed<number>(() => this.round2(this.sumaPagos() - this.totalCalculadoVista()));
+  desbalance(): number {
+    return this.round2(this.sumaPagos() - this.totalCalculadoVista());
+  }
 
-  unknownPaquete = computed<boolean>(() => {
-    // bloquea si el usuario escribió un paqueteNuevoId y aún no lo pudimos cargar (o falló)
-    if (this.paqueteNuevoId && !this.paqueteNuevo) return true;
-    return false;
-  });
+  // ================= Paquetes (lista como en Inscripción) =================
+  protected cargarPaquetesActivos(): void {
+    this.cargandoListaPaquetes = true;
+    this.paqueteSrv.buscarTodos().subscribe({
+      next: (lista) => {
+        this.listaPaquetes = (lista ?? []).filter(p => p?.activo !== false);
+        this.cargandoListaPaquetes = false;
+      },
+      error: () => {
+        this.cargandoListaPaquetes = false;
+        this.error = 'No se pudieron cargar los paquetes.';
+      }
+    });
+  }
 
-  canSave = computed<boolean>(() =>
-    !!this.data &&
-    !this.cargando &&
-    !this.guardando &&
-    !this.unknownPaquete()
-  );
+  onSeleccionPaqueteNuevo(id: number | null) {
+    this.paqueteNuevoId = (id && id > 0) ? id : null;
+    this.paqueteNuevo = null;
 
-  // ============== UI helpers ==============
+    if (!this.paqueteNuevoId) return;
 
+    const encontrado = this.listaPaquetes.find(p => Number(p.idPaquete) === Number(this.paqueteNuevoId));
+    this.paqueteNuevo = encontrado ?? null;
+
+    if (!this.paqueteNuevo) {
+      this.error = `No se encontró el paquete #${this.paqueteNuevoId}.`;
+    }
+  }
+
+  // ================= UI helpers =================
   ajustarPagosAlTotal() {
     const total = this.totalCalculadoVista();
     this.efectivo.set(total);
@@ -127,23 +150,7 @@ export class MembresiaModal implements OnInit {
     this.transferencia.set(0);
   }
 
-  setPaqueteNuevoId(raw: number | null) {
-    this.paqueteNuevoId = raw ?? null;
-    this.paqueteNuevo = null;
-
-    if (!this.paqueteNuevoId || this.paqueteNuevoId <= 0) return;
-
-    this.paqueteSrv.buscarPorId(this.paqueteNuevoId).subscribe({
-      next: (p) => { this.paqueteNuevo = p; },
-      error: () => {
-        this.paqueteNuevo = null;
-        this.error = `No se encontró el paquete #${this.paqueteNuevoId}.`;
-      }
-    });
-  }
-
-  // ============== Guardar (arma PATCH como Ventas) ==============
-
+  // ================= Guardar (arma PATCH como Ventas) =================
   guardar(): void {
     if (!this.data?.idMembresia) return;
 
@@ -196,7 +203,6 @@ export class MembresiaModal implements OnInit {
     if (tr > 0) pagos.push({ tipoPago: 'TRANSFERENCIA' as any, monto: tr });
     acciones.push({ op: 'REEMPLAZAR_PAGOS', pagos });
 
-    // si no hay cambios… igual mandamos REEMPLAZAR_PAGOS (idempotente)
     const body: MembresiaPatchRequest = { acciones };
 
     this.guardando = true;
@@ -229,18 +235,26 @@ export class MembresiaModal implements OnInit {
     });
   }
 
-  // ============== utils ==============
-
+  // ================= utils =================
   private ymd(s?: string | null): string {
     if (!s) return '';
-    // soporta "2025-10-18" o "2025-10-18T09:30:00"
-    const i = s.indexOf('T');
+    const i = s.indexOf('T'); // soporta 'YYYY-MM-DD' o 'YYYY-MM-DDTHH:mm:ss'
     return (i >= 0 ? s.slice(0, i) : s).trim();
   }
-  private round2(n: number): number { return Math.round((Number(n)||0) * 100) / 100; }
+
+  private round2(n: number): number {
+    return Math.round((Number(n) || 0) * 100) / 100;
+  }
+  // dentro de la clase MembresiaModal
+canSave(): boolean {
+  const paquetePendienteInvalido = !!this.paqueteNuevoId && !this.paqueteNuevo;
+  return !!this.data && !this.cargando && !this.guardando && !paquetePendienteInvalido;
+}
+
 }
 
 // helper local para no “this.” en una línea
 function selfRound2(n: number): number {
-  return Math.round((Number(n)||0) * 100) / 100;
+  return Math.round((Number(n) || 0) * 100) / 100;
 }
+

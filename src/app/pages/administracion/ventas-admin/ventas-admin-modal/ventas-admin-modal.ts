@@ -4,11 +4,14 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 import { VentaService } from '../../../../services/venta-service';
 import { VentaData } from '../../../../model/venta-data';
 import { PagoData } from '../../../../model/membresia-data';
 import { ProductoService } from '../../../../services/producto-service';
+import { ProductoData } from '../../../../model/producto-data';
 
 /* ----------------------------- Tipos internos ------------------------------ */
 
@@ -46,7 +49,6 @@ export class VentasAdminModal implements OnInit {
   private srv = inject(VentaService);
   private productoSrv = inject(ProductoService);
 
-  /* Para usar Math en el template si se requiere */
   protected readonly Math = Math;
 
   /* ----------------------------- Estado principal ----------------------------- */
@@ -55,18 +57,32 @@ export class VentasAdminModal implements OnInit {
   guardando = false;
   error: string | null = null;
 
+  // Catálogo de productos para combos
+  productos = signal<ProductoData[]>([]);
+  productosCargando = true;
+
+  private productosById = computed(() => {
+    const map = new Map<number, ProductoData>();
+    for (const p of (this.productos() ?? [])) {
+      const id = Number((p as any).idProducto ?? (p as any).id ?? 0);
+      if (id) map.set(id, p);
+    }
+    return map;
+  });
+
   // detalles editables
   private _detalles = signal<EditDetalle[]>([]);
-  detalles = this._detalles;               // alias para el template
-  private newCtr = 0;                      // contador para claves nuevas
+  detalles = this._detalles;
+  detallesVisibles = computed(() => (this._detalles() ?? []).filter(d => !d._deleted));
+  private newCtr = 0;
 
-  // pagos (signals para que los computed reaccionen)
+  // pagos (signals)
   efectivo = signal(0);
   tarjeta = signal(0);
   transferencia = signal(0);
 
-  // inputs para "agregar producto"
-  nuevoIdProducto: number | null = null;
+  // inputs para "agregar producto" (ahora dropdown)
+  nuevoProductoId: number | null = null;
   nuevoCantidad = 1;
 
   /* --------------------------------- Ciclo de vida --------------------------------- */
@@ -77,12 +93,22 @@ export class VentasAdminModal implements OnInit {
       return;
     }
 
+    // 1) cargar catálogo de productos (para dropdowns)
+    this.productoSrv.buscarTodos()
+      .pipe(catchError(() => of([] as ProductoData[])))
+      .subscribe({
+        next: (list) => this.productos.set(list ?? []),
+        complete: () => (this.productosCargando = false)
+      });
+
+    // 2) cargar venta
     this.srv.buscarPorId(this.idVenta).subscribe({
       next: (v) => {
         this.data = v;
         this.mapDetallesDesdeVenta(v);
         this.mapPagosDesdeVenta(v);
         this.cargando = false;
+        this.proposeIfEmpty();
       },
       error: () => {
         this.error = 'No se pudo cargar la venta.';
@@ -96,8 +122,8 @@ export class VentasAdminModal implements OnInit {
   private mapPagosDesdeVenta(v: VentaData) {
     const sum = (tipo: string) =>
       (v.pagos ?? [])
-        .filter(p => p.tipoPago === tipo)
-        .reduce((a, p) => a + Number(p.monto || 0), 0);
+        .filter(p => (p as any).tipoPago === tipo)
+        .reduce((a, p) => a + Number((p as any).monto || 0), 0);
 
     this.efectivo.set(sum('EFECTIVO'));
     this.tarjeta.set(sum('TARJETA'));
@@ -109,17 +135,19 @@ export class VentasAdminModal implements OnInit {
       const idDet = Number((det as any).idDetalleVenta ?? (det as any).idDetalle ?? 0);
       const q = Math.max(1, Number((det as any).cantidad ?? 1));
       const sub = (det as any).subTotal ?? (det as any).subtotal;
+
       const unit = sub != null
         ? Number(sub) / q
-        : Number((det.producto as any)?.precioVenta ?? (det as any).precio ?? 0);
+        : Number((det as any).precioUnit ?? (det.producto as any)?.precioVenta ?? (det as any).precio ?? 0);
 
       return {
         _key: `det-${idDet || cryptoRandomKey()}`,
         idDetalle: idDet,
-        idProducto: Number(det.producto?.idProducto ?? (det as any).idProducto ?? 0),
-        nombreProducto: String(det.producto?.nombre ?? ''),
-        precioUnit: unit,
-        cantidad: q
+        idProducto: Number((det.producto as any)?.idProducto ?? (det as any).idProducto ?? 0),
+        nombreProducto: String((det.producto as any)?.nombre ?? (det as any).nombreProducto ?? ''),
+        precioUnit: Number(unit),
+        cantidad: q,
+        productoNuevoId: null
       };
     });
 
@@ -145,11 +173,23 @@ export class VentasAdminModal implements OnInit {
     return Math.round((Number(n) || 0) * 100) / 100;
   }
 
-  // si no hay pagos capturados, sugiere igualar a total (mejor UX)
   private proposeIfEmpty() {
     if ((this.efectivo() + this.tarjeta() + this.transferencia()) === 0) {
       this.efectivo.set(this.totalCalculadoVista());
     }
+  }
+
+  // helpers producto
+  labelProducto(p: ProductoData): string {
+    const id = Number((p as any).idProducto ?? (p as any).id ?? 0);
+    const nombre = String((p as any).nombre ?? '(sin nombre)');
+    const precio = Number((p as any).precioVenta ?? (p as any).precio ?? 0);
+    const precioTxt = isFinite(precio) && precio > 0 ? ` - $${precio.toFixed(2)}` : '';
+    return `#${id} ${nombre}${precioTxt}`;
+  }
+
+  private productoCache(id: number): ProductoData | null {
+    return this.productosById().get(Number(id)) ?? null;
   }
 
   /* --------------------------- Totales y validaciones --------------------------- */
@@ -167,7 +207,9 @@ export class VentasAdminModal implements OnInit {
   desbalance = computed(() => this.sumaPagos() - this.totalCalculadoVista());
 
   unknownPrice = computed(() =>
-    this._detalles().some(d => !isFinite(Number(d.precioUnit)) || Number(d.precioUnit) <= 0)
+    this._detalles()
+      .filter(d => !d._deleted)
+      .some(d => !isFinite(Number(d.precioUnit)) || Number(d.precioUnit) <= 0)
   );
 
   canSave = computed(() =>
@@ -209,62 +251,87 @@ export class VentasAdminModal implements OnInit {
 
   eliminarDetalle(d: EditDetalle) {
     if (d.idDetalle === 0 && d._add) {
+      // nuevo -> eliminar de una vez
       this._detalles.set(this._detalles().filter(x => x._key !== d._key));
     } else {
+      // existente -> marcar borrado, PERO ya no se renderiza (detallesVisibles)
       d._deleted = true;
       this._detalles.set([...this._detalles()]);
     }
+    this.proposeIfEmpty();
   }
 
   setProductoNuevo(d: EditDetalle, idNuevo: number | null) {
     d.productoNuevoId = idNuevo ?? null;
-    if (idNuevo == null) { this._detalles.set([...this._detalles()]); return; }
 
-    this.productoSrv.buscarPorId(idNuevo).subscribe({
+    if (!idNuevo) {
+      this._detalles.set([...this._detalles()]);
+      return;
+    }
+
+    // 1) usa caché si ya cargamos productos
+    const cached = this.productoCache(Number(idNuevo));
+    if (cached) {
+      d.nombreProducto = `${(cached as any).nombre ?? '(sin nombre)'} (nuevo)`;
+      d.precioUnit = Number((cached as any).precioVenta ?? (cached as any).precio ?? 0);
+      this._detalles.set([...this._detalles()]);
+      return;
+    }
+
+    // 2) fallback: pedir al backend
+    this.productoSrv.buscarPorId(Number(idNuevo)).subscribe({
       next: (prod: any) => {
         d.nombreProducto = `${prod?.nombre ?? '(sin nombre)'} (nuevo)`;
-        d.precioUnit = Number(prod?.precioVenta ?? 0);
+        d.precioUnit = Number(prod?.precioVenta ?? prod?.precio ?? 0);
         this._detalles.set([...this._detalles()]);
       },
       error: () => {
         d.nombreProducto = '(producto no encontrado)';
-        d.precioUnit = NaN as any; // forzará unknownPrice = true
+        d.precioUnit = NaN as any;
         this._detalles.set([...this._detalles()]);
       }
     });
   }
 
   agregarDetalle() {
-    const id = Number(this.nuevoIdProducto || 0);
+    const id = Number(this.nuevoProductoId || 0);
     const qty = this.toInt(this.nuevoCantidad);
+
     if (!id || qty <= 0) return;
+
+    const cached = this.productoCache(id);
 
     const nuevo: EditDetalle = {
       _key: this.genKey(),
       idDetalle: 0,
       idProducto: id,
-      nombreProducto: '(cargando…)',
-      precioUnit: NaN as any,
+      nombreProducto: cached ? String((cached as any).nombre ?? '(sin nombre)') : '(cargando…)',
+      precioUnit: cached ? Number((cached as any).precioVenta ?? (cached as any).precio ?? 0) : (NaN as any),
       cantidad: qty,
       _add: true,
       productoNuevoId: id
     };
+
     this._detalles.set([...this._detalles(), nuevo]);
 
-    this.productoSrv.buscarPorId(id).subscribe({
-      next: (prod: any) => {
-        nuevo.nombreProducto = prod?.nombre ?? '(sin nombre)';
-        nuevo.precioUnit = Number(prod?.precioVenta ?? 0);
-        this._detalles.set([...this._detalles()]);
-      },
-      error: () => {
-        nuevo.nombreProducto = '(producto no encontrado)';
-        nuevo.precioUnit = NaN as any;
-        this._detalles.set([...this._detalles()]);
-      }
-    });
+    // si no estaba en caché, lo buscamos
+    if (!cached) {
+      this.productoSrv.buscarPorId(id).subscribe({
+        next: (prod: any) => {
+          nuevo.nombreProducto = prod?.nombre ?? '(sin nombre)';
+          nuevo.precioUnit = Number(prod?.precioVenta ?? prod?.precio ?? 0);
+          this._detalles.set([...this._detalles()]);
+        },
+        error: () => {
+          nuevo.nombreProducto = '(producto no encontrado)';
+          nuevo.precioUnit = NaN as any;
+          this._detalles.set([...this._detalles()]);
+        }
+      });
+    }
 
-    this.nuevoIdProducto = null;
+    // limpiar inputs
+    this.nuevoProductoId = null;
     this.nuevoCantidad = 1;
     this.proposeIfEmpty();
   }
@@ -300,7 +367,7 @@ export class VentasAdminModal implements OnInit {
 
     // 2) Validaciones previas
     if (this.unknownPrice()) {
-      this.error = 'Hay productos nuevos sin precio. No se puede guardar.';
+      this.error = 'Hay productos sin precio válido. No se puede guardar.';
       return;
     }
 
@@ -311,12 +378,10 @@ export class VentasAdminModal implements OnInit {
     let tr = this.round2(this.transferencia());
     let suma = this.round2(ef + tj + tr);
 
-    // Si no coincide exactamente con el total, ajusta efectivo con la diferencia
+    // Ajuste fino: si no coincide exactamente con total, ajustar efectivo
     if (Math.abs(suma - totalVista) > 0.009) {
       const diff = this.round2(totalVista - suma);
       ef = this.round2(ef + diff);
-      tj = this.round2(tj);
-      tr = this.round2(tr);
       suma = this.round2(ef + tj + tr);
     }
 
@@ -351,7 +416,7 @@ export class VentasAdminModal implements OnInit {
 
     // nuevos
     for (const d of this._detalles()) {
-      if (d.idDetalle === 0 && d._add) {
+      if (d.idDetalle === 0 && d._add && !d._deleted) {
         const idProd = d.productoNuevoId ?? d.idProducto;
         acciones.push({
           op: 'AGREGAR_DETALLE',
@@ -361,7 +426,7 @@ export class VentasAdminModal implements OnInit {
       }
     }
 
-    // 5) Acción de PAGOS (con valores ya “congelados”)
+    // 5) Acción de PAGOS
     const pagos: PagoData[] = [];
     if (ef > 0) pagos.push({ tipoPago: 'EFECTIVO' as any, monto: ef });
     if (tj > 0) pagos.push({ tipoPago: 'TARJETA' as any, monto: tj });

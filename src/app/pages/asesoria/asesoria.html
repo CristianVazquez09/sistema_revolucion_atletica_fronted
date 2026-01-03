@@ -1,162 +1,184 @@
 <div class="mx-4 md:mx-8 my-4 grid grid-cols-1 lg:grid-cols-[520px_1fr] gap-6">
 
-    <!-- IZQ: Resumen “tipo carrito” -->
-    <section class="rounded-xl2 bg-ra-white ring-1 ring-black/10 shadow-card flex flex-col">
-        <header class="px-4 py-3 border-b border-gray-200">
-            <h2 class="font-semibold text-ra-slate">Accesoría personalizada</h2>
-        </header>
+  <!-- IZQ: Resumen “tipo carrito” -->
+  <section class="rounded-xl2 bg-ra-white ring-1 ring-black/10 shadow-card flex flex-col">
+    <header class="px-4 py-3 border-b border-gray-200">
+      <h2 class="font-semibold text-ra-slate">Accesoría personalizada</h2>
+    </header>
 
-        <div class="p-4 space-y-3 text-sm">
-            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                <div class="flex items-center justify-between">
-                    <div class="text-ra-slate/90">Entrenador</div>
-                    <!-- ...encabezado/resumen... -->
-                    <div class="font-medium truncate max-w-[280px] text-right">
-                        {{ (entrenadorSel?.nombre || '—') + (entrenadorSel?.apellido ? ' ' + entrenadorSel?.apellido :
-                        '') }}
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between mt-1">
-                    <div class="text-ra-slate/90">Socio</div>
-                    <div class="font-medium truncate max-w-[280px] text-right">
-                        {{ socio ? (socio.nombre + ' ' + socio.apellido) : '—' }}
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between mt-1">
-                    <div class="text-ra-slate/90">Tiempo</div>
-                    <div class="font-medium">{{ (form.controls.tiempo.value) | tiempoPlan }}</div>
-                </div>
-
-                <div class="flex items-center justify-between mt-1">
-                    <div class="text-ra-slate/90">Fecha</div>
-                    <div class="font-medium">
-                        {{ fechaResumen | date:'EEEE, dd \'de\' MMMM \'de\' y':'es-MX' }}
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-200">
-                    <div class="font-semibold">Precio</div>
-                    <div class="font-bold">{{ (form.controls.precio.value) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-                    </div>
-                </div>
-            </div>
+    <div class="p-4 space-y-3 text-sm">
+      <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+        <div class="flex items-center justify-between">
+          <div class="text-ra-slate/90">Entrenador</div>
+          <div class="font-medium truncate max-w-[280px] text-right">
+            {{ (entrenadorSel?.nombre || '—') + (entrenadorSel?.apellido ? ' ' + entrenadorSel?.apellido : '') }}
+          </div>
         </div>
 
-        <footer class="mt-auto p-4 flex items-center gap-3">
-            <button class="btn-green flex-1" (click)="abrirResumen()">Pagar</button>
-            <button class="btn-red flex-1" (click)="resetUI()">Limpiar</button>
-        </footer>
-    </section>
-
-    <!-- DER: Formulario -->
-    <section class="rounded-xl2 bg-ra-white ring-1 ring-black/10 shadow-card p-4 flex flex-col gap-4">
-
-        <!-- Gimnasio (solo admin) -->
-        @if (isAdmin) {
-        <div>
-            <label class="block text-sm font-semibold text-ra-slate mb-1.5">Gimnasio</label>
-            <select
-                class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 pr-10 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
-                [formControl]="form.controls.gimnasioId">
-                <option [ngValue]="null" disabled>Selecciona un gimnasio</option>
-                @for (g of gimnasios; track g.idGimnasio) {
-                <option [ngValue]="g.idGimnasio">{{ g.nombre }}</option>
-                }
-            </select>
+        <div class="flex items-center justify-between mt-1">
+          <div class="text-ra-slate/90">Socio</div>
+          <div class="font-medium truncate max-w-[280px] text-right">
+            {{ socio ? (socio.nombre + ' ' + socio.apellido) : '—' }}
+          </div>
         </div>
+
+        <div class="flex items-center justify-between mt-1">
+          <div class="text-ra-slate/90">Tiempo</div>
+          <div class="font-medium">{{ (form.controls.tiempo.value) | tiempoPlan }}</div>
+        </div>
+
+        <div class="flex items-center justify-between mt-1">
+          <div class="text-ra-slate/90">Fecha</div>
+          <div class="font-medium">
+            {{ fechaResumen | date:'EEEE, dd \'de\' MMMM \'de\' y':'es-MX' }}
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-200">
+          <div class="font-semibold">Precio</div>
+          <div class="font-bold">
+            {{ (form.controls.precio.value) | currency:'MXN':'symbol-narrow':'1.2-2' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="mt-auto p-4 flex items-center gap-3">
+      <button class="btn-green flex-1" (click)="abrirResumen()">Pagar</button>
+      <button class="btn-red flex-1" (click)="resetUI()">Limpiar</button>
+    </footer>
+  </section>
+
+  <!-- DER: Formulario -->
+  <section class="rounded-xl2 bg-ra-white ring-1 ring-black/10 shadow-card p-4 flex flex-col gap-4">
+
+    <!-- Gimnasio (solo admin) -->
+    @if (isAdmin) {
+      <div>
+        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Gimnasio</label>
+        <select
+          class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 pr-10 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
+          [formControl]="form.controls.gimnasioId">
+          <option [ngValue]="null" disabled>Selecciona un gimnasio</option>
+          @for (g of gimnasios; track g.idGimnasio) {
+            <option [ngValue]="g.idGimnasio">{{ g.nombre }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      <!-- Entrenador -->
+      <div>
+        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Entrenador</label>
+        <select
+          class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 pr-10 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
+          [formControl]="form.controls.idEntrenador">
+          <option [ngValue]="null" disabled>Selecciona un entrenador</option>
+          @for (e of entrenadoresFiltrados; track e.idEntrenador) {
+            <option [ngValue]="e.idEntrenador">{{ e.nombre }} {{ e.apellido }}</option>
+          }
+        </select>
+        @if (form.controls.idEntrenador.touched && form.controls.idEntrenador.invalid) {
+          <div class="text-sm text-red-600 mt-1">Selecciona un entrenador.</div>
         }
+      </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Socio por ID o por huella -->
+      <div>
+        <label class="block text-sm font-semibold text-ra-slate mb-1.5">ID del socio</label>
+        <div class="flex gap-1">
+          <input
+            class="w-6/12 rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
+            [formControl]="form.controls.idSocio" placeholder="Ej. 123" inputmode="numeric" autocomplete="off">
 
-            <!-- Entrenador -->
-            <div>
-                <label class="block text-sm font-semibold text-ra-slate mb-1.5">Entrenador</label>
-                <select
-                    class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 pr-10 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
-                    [formControl]="form.controls.idEntrenador" [disabled]="cargandoEntrenadores">
-                    <option [ngValue]="null" disabled>Selecciona un entrenador</option>
-                    @for (e of entrenadoresFiltrados; track e.idEntrenador) {
-                    <option [ngValue]="e.idEntrenador">{{ e.nombre }} {{ e.apellido }}</option>
-                    }
-                </select>
-                @if (form.controls.idEntrenador.touched && form.controls.idEntrenador.invalid) {
-                <div class="text-sm text-red-600 mt-1">Selecciona un entrenador.</div>
-                }
-            </div>
+          <button type="button"
+                  class="px-3 rounded-xl border border-gray-300 bg-white hover:bg-gray-50"
+                  (click)="buscarSocio()">
+            Buscar
+          </button>
 
-            <!-- Socio por ID -->
-            <div>
-                <label class="block text-sm font-semibold text-ra-slate mb-1.5">ID del socio</label>
-                <div class="flex gap-2">
-                    <input
-                        class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
-                        [formControl]="form.controls.idSocio" placeholder="Ej. 123" inputmode="numeric"
-                        autocomplete="off">
-                    <button type="button" class="px-3 rounded-xl border border-gray-300 bg-white hover:bg-gray-50"
-                        (click)="buscarSocio()">Buscar</button>
-                </div>
-                @if (form.controls.idSocio.touched && form.controls.idSocio.invalid) {
-                <div class="text-sm text-red-600 mt-1">Ingresa un ID válido.</div>
-                }
-                <div class="text-xs text-gray-600 mt-1" *ngIf="socio">
-                    {{ socio.nombre }} {{ socio.apellido }} — {{ socio.telefono || 'sin teléfono' }}
-                </div>
-            </div>
+          <!-- ⬇️ Nuevo botón: buscar por huella -->
+          <button type="button"
+                  class="px-3 rounded-xl border border-gray-300 bg-white hover:bg-gray-50"
+                  (click)="abrirHuella()">
+            Por huella
+          </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Tiempo -->
-            <div>
-                <label class="block text-sm font-semibold text-ra-slate mb-1.5">Tiempo</label>
-                <div class="relative">
-                    <select
-                        class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 pr-10 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
-                        [formControl]="form.controls.tiempo">
-                        @for (t of tiempos; track t) {
-                        <option [ngValue]="t">{{ t | tiempoPlan }}</option>
-                        }
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20"
-                            fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.06l3.71-3.83a.75.75 0 1 1 1.08 1.04l-4.25 4.39a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Precio -->
-            <div>
-                <label class="block text-sm font-semibold text-ra-slate mb-1.5">Precio</label>
-                <input type="number" step="0.01"
-                    class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
-                    [formControl]="form.controls.precio" placeholder="0.00">
-                @if (form.controls.precio.touched && form.controls.precio.invalid) {
-                <div class="text-sm text-red-600 mt-1">Ingresa un precio válido.</div>
-                }
-            </div>
+        @if (form.controls.idSocio.touched && form.controls.idSocio.invalid) {
+          <div class="text-sm text-red-600 mt-1">Ingresa un ID válido.</div>
+        }
+        <div class="text-xs text-gray-600 mt-1" *ngIf="socio">
+          {{ socio.nombre }} {{ socio.apellido }} — {{ socio.telefono || 'sin teléfono' }}
         </div>
-    </section>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Tiempo -->
+      <div>
+        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Tiempo</label>
+        <div class="relative">
+          <select
+            class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 pr-10 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
+            [formControl]="form.controls.tiempo">
+            @for (t of tiempos; track t) {
+              <option [ngValue]="t">{{ t | tiempoPlan }}</option>
+            }
+          </select>
+          <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd"
+                    d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.06l3.71-3.83a.75.75 0 1 1 1.08 1.04l-4.25 4.39a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06z"
+                    clip-rule="evenodd" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Precio -->
+      <div>
+        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Precio</label>
+        <input type="number" step="0.01"
+               class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
+               [formControl]="form.controls.precio" placeholder="0.00">
+        @if (form.controls.precio.touched && form.controls.precio.invalid) {
+          <div class="text-sm text-red-600 mt-1">Ingresa un precio válido.</div>
+        }
+      </div>
+    </div>
+  </section>
 </div>
 
 <!-- Modal de resumen -->
 @if (mostrarResumen()) {
-<div class="fixed inset-0 z-50 flex items-center justify-center" (click)="cerrarResumen()">
+  <div class="fixed inset-0 z-50 flex items-center justify-center" (click)="cerrarResumen()">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
     <div class="relative z-10 w-full max-w-[560px] mx-4" (click)="$event.stopPropagation()">
-        <app-resumen-venta [fecha]="fechaResumen" [items]="[
-    {
-      nombre: 'Accesoría — ' + (form.controls.tiempo.value | tiempoPlan) + ' con ' + (entrenadorSel?.nombre || '') + ' ' + (entrenadorSel?.apellido || ''),
-      cantidad: 1,
-      precioUnit: (form.controls.precio.value || 0)
-    }
-  ]" [total]="(form.controls.precio.value || 0)" [guardando]="guardando" (cancelar)="cerrarResumen()"
-            (confirmar)="confirmarDesdeModal($event)">
-        </app-resumen-venta>
+      <app-resumen-venta
+        [fecha]="fechaResumen"
+        [items]="[
+          {
+            nombre: 'Accesoría — ' + (form.controls.tiempo.value | tiempoPlan) + ' con ' + (entrenadorSel?.nombre || '') + ' ' + (entrenadorSel?.apellido || ''),
+            cantidad: 1,
+            precioUnit: (form.controls.precio.value || 0)
+          }
+        ]"
+        [total]="(form.controls.precio.value || 0)"
+        [guardando]="guardando"
+        (cancelar)="cerrarResumen()"
+        (confirmar)="confirmarDesdeModal($event)">
+      </app-resumen-venta>
     </div>
-</div>
+  </div>
+}
+
+<!-- Modal de huella (nuevo) -->
+@if (mostrarHuella()) {
+  <app-huella-modal
+    (cancelar)="cerrarHuella()"
+    (confirmar)="confirmarHuella($event)">
+  </app-huella-modal>
 }

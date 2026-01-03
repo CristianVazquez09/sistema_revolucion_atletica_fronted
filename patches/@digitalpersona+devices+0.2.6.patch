@@ -1,0 +1,12 @@
+diff --git a/node_modules/@digitalpersona/devices/tsconfig.json b/node_modules/@digitalpersona/devices/tsconfig.json
+index b8e67e1..163329b 100644
+--- a/node_modules/@digitalpersona/devices/tsconfig.json
++++ b/node_modules/@digitalpersona/devices/tsconfig.json
+@@ -3,6 +3,7 @@
+     "target": "es5",
+     "module": "commonjs",
+     "outDir": "dist/typings",
++    "skipLibCheck": true,
+     "lib": ["dom", "es2015", "es2015.promise" ],
+     "typeRoots": [
+       "node_modules/@types",

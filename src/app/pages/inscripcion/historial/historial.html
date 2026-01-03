@@ -1,9 +1,9 @@
 <!-- src/app/pages/historial/historial.html -->
 
-<!-- Barra superior (sin cambios) -->
-<div class="ml-2 md:ml-4 mr-4 md:mr-8 mb-2 flex items-center justify-between">
+<!-- Barra superior -->
+<div class="mx-4 md:mx-10 mb-4 flex items-center justify-between">
   <div class="flex items-center gap-3">
-    <button [routerLink]="['/pages/inscripcion']" type="button" 
+    <button [routerLink]="['/pages/inscripcion']" type="button"
             class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-100">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="1.8">
@@ -16,122 +16,128 @@
   </div>
 </div>
 
-<!-- Tabla -->
-<div class="rounded-xl2 overflow-hidden ml-2 md:ml-4 mr-4 md:mr-8 bg-ra-white shadow-card ring-1 ring-black/10 text-[13px]">
-  <table class="w-full table-fixed">
-    <colgroup>
-      <col class="w-[8%]">   <!-- idMembresia -->
-      <col class="w-[18%]">  <!-- Socio -->
-      <col class="w-[18%]">  <!-- Paquete -->
-      <col class="w-[12%]">  <!-- Movimiento -->
-      <col class="w-[18%]">  <!-- Pagos (ampliado) -->
-      <col class="w-[12%]">  <!-- Inicio -->
-      <col class="w-[12%]">  <!-- Fin -->
-      <col class="w-[10%]">  <!-- Total -->
-    </colgroup>
+<!-- Tabla (scroll interno + encabezado sticky, igual que Ventas) -->
+<div class="shadow-card rounded-xl2 mx-4 md:mx-10 bg-ra-white">
+  <div class="overflow-x-auto">
+    <!-- Ajusta 260px si header/paginador ocupan más/menos alto -->
+    <div #historialScroller class="max-h-[calc(100vh-260px)] overflow-auto">
+      <table class="w-full table-fixed min-w-[1000px] text-[13px]">
+        <colgroup>
+          <col class="w-[8%]">   <!-- idMembresia -->
+          <col class="w-[18%]">  <!-- Socio -->
+          <col class="w-[18%]">  <!-- Paquete -->
+          <col class="w-[12%]">  <!-- Movimiento -->
+          <col class="w-[18%]">  <!-- Pagos -->
+          <col class="w-[12%]">  <!-- Inicio -->
+          <col class="w-[12%]">  <!-- Fin -->
+          <col class="w-[10%]">  <!-- Total -->
+        </colgroup>
 
-    <thead>
-      <tr class="bg-ra-grayLight/40">
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">ID Memb.</th>
-        <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Socio</th>
-        <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Paquete</th>
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Movimiento</th>
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Pagos</th>
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Inicio</th>
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Fin</th>
-        <th class="py-4 px-4 text-right  text-ra-slate font-semibold uppercase">Total</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      @if (cargando) {
-        <tr><td colspan="8" class="py-6 px-6 text-center text-ra-slate">Cargando…</td></tr>
-      } @else if (mensajeError) {
-        <tr><td colspan="8" class="py-6 px-6 text-center text-red-600">{{ mensajeError }}</td></tr>
-      } @else if (lista.length === 0) {
-        <tr><td colspan="8" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td></tr>
-      } @else {
-        @for (h of lista; track h.idMembresia) {
-          <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
-            <td class="py-3 px-4 text-center">
-              <span class="inline-block min-w-[4ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700">
-                {{ h.idMembresia }}
-              </span>
-            </td>
-
-            <td class="py-3 px-4 text-left truncate" [title]="h.socioNombreCompleto">
-              {{ h.socioNombreCompleto }}
-            </td>
-
-            <td class="py-3 px-4 text-left truncate" [title]="h.paqueteNombre">
-              {{ h.paqueteNombre }}
-            </td>
-
-            <td class="py-3 px-4 text-center">
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-                    [ngClass]="{
-                      'bg-blue-100 text-blue-700'  : h.movimiento === 'INSCRIPCION' || h.movimiento === 'REINSCRIPCION'
-                    }">
-                {{ h.movimiento }}
-              </span>
-            </td>
-
-            <!-- Pagos: chips por método con monto -->
-            <td class="py-3 px-4">
-              @if (pagosConMonto(h.pagos).length) {
-                <div class="flex flex-wrap gap-1.5 justify-center">
-                  @for (p of pagosConMonto(h.pagos); track p.tipoPago) {
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 border border-gray-200">
-                      <span class="font-medium">{{ labelPago(p.tipoPago) }}:</span>
-                      <span>{{ p.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
-                    </span>
-                  }
-                </div>
-              } @else {
-                <div class="text-center text-gray-500">—</div>
-              }
-            </td>
-
-            <td class="py-3 px-4 text-center">{{ h.fechaInicio | date:'dd/MM/yyyy' }}</td>
-            <td class="py-3 px-4 text-center">{{ h.fechaFin    | date:'dd/MM/yyyy' }}</td>
-
-            <td class="py-3 px-4 text-right">
-              <div class="text-xs text-gray-500" *ngIf="h.descuento && h.descuento > 0">
-                Descuento: {{ h.descuento | number:'1.0-2' }}
-              </div>
-              <div class="font-semibold">
-                {{ h.total | currency:'MXN':'symbol-narrow':'1.2-2' }}
-              </div>
-            </td>
+        <thead class="sticky top-0 bg-ra-grayLight/40 z-10">
+          <tr>
+            <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">ID Memb.</th>
+            <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Socio</th>
+            <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Paquete</th>
+            <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Movimiento</th>
+            <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Pagos</th>
+            <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Inicio</th>
+            <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Fin</th>
+            <th class="py-4 px-4 text-right  text-ra-slate font-semibold uppercase">Total</th>
           </tr>
-        }
-      }
-    </tbody>
-  </table>
+        </thead>
 
-  <!-- Paginador (igual) -->
-  <div class="pager">
-    <div class="pager-row">
-      <div class="pager-select">
-        <span class="text-sm text-[color:var(--color-ra-slate)]">Mostrar</span>
-        <select class="pager-select-el" [ngModel]="tamanioPagina" (ngModelChange)="cambiarTamanioPagina($event)">
-          @for (t of tamaniosDisponibles; track t) { <option [ngValue]="t">{{ t }}</option> }
-        </select>
-        <span class="text-sm text-[color:var(--color-ra-slate)]">por página</span>
-      </div>
+        <tbody>
+          @if (cargando) {
+            <tr><td colspan="8" class="py-6 px-6 text-center text-ra-slate">Cargando…</td></tr>
+          } @else if (mensajeError) {
+            <tr><td colspan="8" class="py-6 px-6 text-center text-red-600">{{ mensajeError }}</td></tr>
+          } @else if (lista.length === 0) {
+            <tr><td colspan="8" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td></tr>
+          } @else {
+            @for (h of lista; track h.idMembresia) {
+              <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
+                <td class="py-3 px-4 text-center">
+                  <span class="inline-block min-w-[4ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700">
+                    {{ h.idMembresia }}
+                  </span>
+                </td>
 
-      <nav class="pager-nav" aria-label="Paginación">
-        <button class="pager-btn pager-btn--ghost" (click)="irPrimera()"  [disabled]="paginaActual === 0"                 title="Primera">«</button>
-        <button class="pager-btn pager-btn--ghost" (click)="irAnterior()" [disabled]="paginaActual === 0"                 title="Anterior">‹</button>
-        <button class="pager-btn pager-btn--primary" (click)="irSiguiente()" [disabled]="paginaActual + 1 >= totalPaginas" title="Siguiente">Siguiente ›</button>
-        <button class="pager-btn pager-btn--ghost" (click)="irUltima()"   [disabled]="paginaActual + 1 >= totalPaginas"   title="Última">»</button>
-      </nav>
+                <td class="py-3 px-4 text-left truncate" [title]="h.socioNombreCompleto">
+                  {{ h.socioNombreCompleto }}
+                </td>
 
-      <div class="pager-info">
-        Mostrando <strong>{{ rangoDesde }}</strong>–<strong>{{ rangoHasta }}</strong>
-        de <strong>{{ totalElementos }}</strong>
-        @if (tamanioPagina > 0) { <span>(Página {{ paginaActual + 1 }} de {{ totalPaginas }})</span> }
-      </div>
+                <td class="py-3 px-4 text-left truncate" [title]="h.paqueteNombre">
+                  {{ h.paqueteNombre }}
+                </td>
+
+                <td class="py-3 px-4 text-center">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+                        [ngClass]="{
+                          'bg-blue-100 text-blue-700'  : h.movimiento === 'INSCRIPCION' || h.movimiento === 'REINSCRIPCION'
+                        }">
+                    {{ h.movimiento }}
+                  </span>
+                </td>
+
+                <!-- Pagos: chips por método con monto -->
+                <td class="py-3 px-4">
+                  @if (pagosConMonto(h.pagos).length) {
+                    <div class="flex flex-wrap gap-1.5 justify-center">
+                      @for (p of pagosConMonto(h.pagos); track p.tipoPago) {
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 border border-gray-200">
+                          <span class="font-medium">{{ labelPago(p.tipoPago) }}:</span>
+                          <span>{{ p.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+                        </span>
+                      }
+                    </div>
+                  } @else {
+                    <div class="text-center text-gray-500">—</div>
+                  }
+                </td>
+
+                <td class="py-3 px-4 text-center">{{ h.fechaInicio | date:'dd/MM/yyyy' }}</td>
+                <td class="py-3 px-4 text-center">{{ h.fechaFin    | date:'dd/MM/yyyy' }}</td>
+
+                <td class="py-3 px-4 text-right">
+                  <div class="text-xs text-gray-500" *ngIf="h.descuento && h.descuento > 0">
+                    Descuento: {{ h.descuento | number:'1.0-2' }}
+                  </div>
+                  <div class="font-semibold">
+                    {{ h.total | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
     </div>
+  </div>
+</div>
+
+<!-- Paginación -->
+<div class="mx-4 md:mx-10 mt-3 mb-2 flex items-center justify-between text-sm">
+  <div>
+    Mostrando <strong>{{ rangoDesde }}</strong>–<strong>{{ rangoHasta }}</strong>
+    de <strong>{{ totalElementos }}</strong>
+    @if (tamanioPagina > 0) { <span>(Página {{ paginaActual + 1 }} de {{ totalPaginas }})</span> }
+  </div>
+  <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-ra-slate/80">Mostrar</span>
+      <select class="rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+              [ngModel]="tamanioPagina" (ngModelChange)="cambiarTamanioPagina($event)">
+        @for (t of tamaniosDisponibles; track t) { <option [ngValue]="t">{{ t }}</option> }
+      </select>
+      <span class="text-sm text-ra-slate/80">por página</span>
+    </div>
+    <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50"
+            [disabled]="paginaActual === 0" (click)="irPrimera()" title="Primera">«</button>
+    <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50"
+            [disabled]="paginaActual === 0" (click)="irAnterior()" title="Anterior">‹</button>
+    <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50"
+            [disabled]="paginaActual + 1 >= totalPaginas" (click)="irSiguiente()" title="Siguiente">Siguiente ›</button>
+    <button class="rounded-md border px-3 py-1.5 bg-white disabled:opacity-50"
+            [disabled]="paginaActual + 1 >= totalPaginas" (click)="irUltima()" title="Última">»</button>
   </div>
 </div>
