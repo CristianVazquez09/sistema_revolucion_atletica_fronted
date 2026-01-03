@@ -22,9 +22,17 @@
     },
     "publish": [
     {
-      "provider": "github"
+       "provider": "github",
+        "owner": "CristianVazquez09",
+        "repo": "sistema_revolucion_atletica_fronted"
     }
-  ]
+    
+  ],
+  "repository": {
+  "type": "git",
+  "url": "https://github.com/CristianVazquez09/sistema_revolucion_atletica_fronted.git"
+}
+
   },
   "scripts": {
     "ng": "ng",
