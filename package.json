@@ -2,6 +2,11 @@
   "name": "revolucion-atletica-frontend",
   "version": "0.0.3",
   "main": "electron/main.js",
+
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CristianVazquez09/sistema_revolucion_atletica_fronted.git"
+},
   "build": {
     "appId": "com.revolucion.atletica",
     "productName": "Revolucion Atletica",
@@ -27,11 +32,8 @@
         "repo": "sistema_revolucion_atletica_fronted"
     }
     
-  ],
-  "repository": {
-  "type": "git",
-  "url": "https://github.com/CristianVazquez09/sistema_revolucion_atletica_fronted.git"
-}
+  ]
+  
 
   },
   "scripts": {
