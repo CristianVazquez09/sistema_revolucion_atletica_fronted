@@ -48,3 +48,7 @@ dist.zip
 *.blockmap
 latest.yml
 *.yml
+
+# Angular environments (no subir secretos)
+/src/environments/*.ts
+!src/environments/environment.example.ts
