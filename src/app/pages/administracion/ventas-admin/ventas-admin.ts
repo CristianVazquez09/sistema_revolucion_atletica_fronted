@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -66,6 +66,20 @@ export class VentasAdmin {
     this.esRecep = roles.includes('RECEPCIONISTA') || roles.includes('ROLE_RECEPCIONISTA');
     this.cargar(1);
   }
+  ngAfterViewInit(): void {
+  this.applyLayout();
+
+  this.ro = new ResizeObserver(() => this.applyLayout());
+  this.ro.observe(this.zoomOuter.nativeElement);
+
+  window.addEventListener('resize', this.applyLayout);
+}
+
+ngOnDestroy(): void {
+  this.ro?.disconnect();
+  window.removeEventListener('resize', this.applyLayout);
+}
+
 
   // ============= Helpers roles =============
   private rolesDesdeToken(): string[] {
@@ -366,4 +380,62 @@ export class VentasAdmin {
   }
 
   trackById = (_: number, it: VentaData) => it.idVenta!;
+
+  @ViewChild('zoomOuter', { static: true }) zoomOuter!: ElementRef<HTMLElement>;
+
+uiZoom = 1;
+ventasMaxH = 650;
+
+private ro?: ResizeObserver;
+
+private readonly MIN_ZOOM = 0.67;
+private readonly MAX_ZOOM = 1.0;
+
+private clamp(n: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, n));
+}
+
+private round2(n: number) {
+  return Math.round(n * 100) / 100;
+}
+
+private getDesignWidth(): number {
+  const menu = this.menuAbierto(); // signal
+
+  // Ajusta estos números a tu gusto (depende de cuántas columnas se vean)
+  if (this.esAdmin) {
+    return menu ? 1550 : 1800;   // con menú abierto normalmente ocultas "Pagos"
+  }
+  return menu ? 1450 : 1700;
+}
+
+private applyLayout = () => {
+  if (window.matchMedia('(min-width: 1024px)').matches) {
+  this.uiZoom = 1;
+  // igual calcula altura para scroller:
+  const top = this.zoomOuter.nativeElement.getBoundingClientRect().top;
+  const bottomReserve = 140;
+  const available = window.innerHeight - top - bottomReserve;
+  this.ventasMaxH = Math.max(420, Math.floor(available));
+  return;
+}
+
+  const w = this.zoomOuter?.nativeElement?.clientWidth || window.innerWidth;
+  const design = this.getDesignWidth();
+
+  const z = this.clamp(w / design, this.MIN_ZOOM, this.MAX_ZOOM);
+  this.uiZoom = this.round2(z);
+
+  // Alto disponible real desde donde empieza este componente
+  const top = this.zoomOuter.nativeElement.getBoundingClientRect().top;
+
+  // “espacio” para paginación + márgenes + cualquier barra abajo
+  const bottomReserve = 140;
+
+  const available = window.innerHeight - top - bottomReserve;
+
+  // Compensación por zoom: si baja el zoom, sube el maxHeight para que se vea “alto normal”
+  this.ventasMaxH = Math.max(420, Math.floor(available / this.uiZoom));
+};
+
 }

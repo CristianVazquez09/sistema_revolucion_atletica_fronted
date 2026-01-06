@@ -1,28 +1,39 @@
 import {
-  Component, DestroyRef, ElementRef, inject, NgZone,
-  signal, ViewChild
+  Component,
+  DestroyRef,
+  ElementRef,
+  NgZone,
+  ViewChild,
+  inject,
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { MembresiaData } from '../../../model/membresia-data';
-import { NotificacionService } from '../../../services/notificacion-service';
-
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../environments/environment';
-import { MembresiaModal } from './membresia-modal/membresia-modal';
+
+import { MembresiaData } from '../../../model/membresia-data';
 import { MembresiaPageResponse, MembresiaService } from '../../../services/membresia-service';
+import { NotificacionService } from '../../../services/notificacion-service';
+
+import { MembresiaModal } from './membresia-modal/membresia-modal';
 import { TiempoPlanLabelPipe } from 'src/app/util/tiempo-plan-label';
 import { TicketMembresia, TicketPagoDetalle, TicketService } from 'src/app/services/ticket-service';
 
-type PageMeta = { size: number; number: number; totalElements: number; totalPages: number; };
+type PageMeta = {
+  size: number;
+  number: number;
+  totalElements: number;
+  totalPages: number;
+};
 
 @Component({
   selector: 'app-membresia',
   standalone: true,
   imports: [CommonModule, FormsModule, MembresiaModal, TiempoPlanLabelPipe],
   templateUrl: './membresia.html',
-  styleUrl: './membresia.css'
+  styleUrl: './membresia.css',
 })
 export class Membresia {
   private srv = inject(MembresiaService);
@@ -32,132 +43,54 @@ export class Membresia {
   private destroyRef = inject(DestroyRef);
   private zone = inject(NgZone);
 
-  // UI signals
+  @ViewChild('tablaWrap') tablaWrap?: ElementRef<HTMLElement>;
+  @ViewChild('zoomOuter', { static: true }) zoomOuter!: ElementRef<HTMLElement>;
+
   mostrarPagos = signal(true);
   moverOrdenYSize = signal(false);
   ocultarFechas = signal(false);
   ocultarDescuento = signal(false);
 
-  // ✅ Consideramos “pantalla grande” desde XL (>=1280px)
-  esXlUp = signal(typeof window !== 'undefined'
-    ? window.matchMedia('(min-width: 1280px)').matches
-    : false
+  esXlUp = signal(
+    typeof window !== 'undefined'
+      ? window.matchMedia('(min-width: 1280px)').matches
+      : false
   );
 
-  private baseWidth = 0;
-
-  @ViewChild('tablaWrap') tablaWrap?: ElementRef<HTMLElement>;
-
-  // estado
   rows: MembresiaData[] = [];
   page: PageMeta = { size: 10, number: 0, totalElements: 0, totalPages: 0 };
   cargando = false;
   error: string | null = null;
 
-  // filtros/orden
   sizeSel = 10;
   sortCampo: 'fechaInicio' | 'fechaFin' | 'idMembresia' | 'folio' | 'total' = 'fechaInicio';
   sortDir: 'asc' | 'desc' = 'desc';
 
-  // búsqueda por folio
   folioBuscar: number | null = null;
   buscandoFolio = false;
 
-  // búsqueda por nombre de socio
-  nombreBuscar: string = '';
+  nombreBuscar = '';
   modoBusquedaNombre = false;
   ultimoTerminoNombre = '';
 
-  // filtro por rango de fechas
-  fechaDesde: string = ''; // 'YYYY-MM-DD'
-  fechaHasta: string = '';
+  fechaDesde = '';
+  fechaHasta = '';
   filtroFechasActivo = false;
 
-  // roles
   esAdmin = false;
   esRecep = false;
 
-  // acciones
   reimprimiendo = false;
 
-  // modal
   mostrarModal = signal(false);
   idEditando: number | null = null;
 
-  ngAfterViewInit(): void {
-    const el = this.tablaWrap?.nativeElement;
-    if (!el || typeof window === 'undefined') return;
+  uiZoom = 1;
+  membresiasMaxH = 650;
 
-    const mq = window.matchMedia('(min-width: 1280px)');
-
-    const UMBRAL_OCULTAR_PAGOS = 1180;
-    const DELTA_MENU_ABIERTO = 80;
-    const RATIO_MENU_ABIERTO = 0.80;
-
-    const recalcular = (w: number) => {
-      if (this.baseWidth === 0 || w > this.baseWidth) this.baseWidth = w;
-
-      const viewportW = Math.max(1, window.innerWidth || 1);
-      const ratio = w / viewportW;
-
-      const menuComprime =
-        (this.baseWidth - w) > DELTA_MENU_ABIERTO ||
-        ratio < RATIO_MENU_ABIERTO;
-
-      // Pagos por ancho real
-      this.mostrarPagos.set(w >= UMBRAL_OCULTAR_PAGOS);
-
-      // ✅ Orden:
-      // - <xl: SIEMPRE abajo (independiente del menú)
-      // - >=xl: abajo SOLO si el menú comprime
-      if (!this.esXlUp()) this.moverOrdenYSize.set(true);
-      else this.moverOrdenYSize.set(menuComprime);
-
-      // Fechas y descuento: solo ocultar en <xl cuando el menú comprime
-      this.ocultarFechas.set(!this.esXlUp() && menuComprime);
-      this.ocultarDescuento.set(!this.esXlUp() && menuComprime);
-    };
-
-    const syncXl = () => {
-      this.esXlUp.set(mq.matches);
-      this.baseWidth = 0;
-      recalcular(el.getBoundingClientRect().width);
-    };
-
-    // inicial
-    this.zone.run(syncXl);
-
-    // cambios breakpoint
-    const onMqChange = () => this.zone.run(syncXl);
-    if ('addEventListener' in mq) mq.addEventListener('change', onMqChange);
-    else (mq as any).addListener(onMqChange);
-
-    this.destroyRef.onDestroy(() => {
-      if ('removeEventListener' in mq) mq.removeEventListener('change', onMqChange);
-      else (mq as any).removeListener(onMqChange);
-    });
-
-    // cambios de tamaño del contenedor (abrir/cerrar menú)
-    const ro = new ResizeObserver((entries) => {
-      const w = entries[0]?.contentRect?.width ?? 0;
-      this.zone.run(() => recalcular(w));
-    });
-    ro.observe(el);
-
-    // resize ventana
-    const onWinResize = () => {
-      this.zone.run(() => {
-        this.baseWidth = 0;
-        recalcular(el.getBoundingClientRect().width);
-      });
-    };
-    window.addEventListener('resize', onWinResize);
-
-    this.destroyRef.onDestroy(() => {
-      ro.disconnect();
-      window.removeEventListener('resize', onWinResize);
-    });
-  }
+  private ro?: ResizeObserver;
+  private readonly MIN_ZOOM = 0.67;
+  private readonly MAX_ZOOM = 1.0;
 
   ngOnInit(): void {
     const roles = this.rolesDesdeToken();
@@ -166,16 +99,33 @@ export class Membresia {
     this.cargar(1);
   }
 
+  ngAfterViewInit(): void {
+    this.applyLayout();
+
+    this.ro = new ResizeObserver(() => this.applyLayout());
+    this.ro.observe(this.zoomOuter.nativeElement);
+
+    window.addEventListener('resize', this.applyLayout);
+  }
+
+  ngOnDestroy(): void {
+    this.ro?.disconnect();
+    window.removeEventListener('resize', this.applyLayout);
+  }
+
   private rolesDesdeToken(): string[] {
     const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
     if (!raw) return [];
+
     try {
       const d: any = this.jwt.decodeToken(raw);
       return [
         ...(Array.isArray(d?.roles) ? d.roles : []),
         ...(Array.isArray(d?.authorities) ? d.authorities : []),
         ...(Array.isArray(d?.realm_access?.roles) ? d.realm_access.roles : []),
-        d?.role, d?.rol, d?.perfil
+        d?.role,
+        d?.rol,
+        d?.perfil,
       ]
         .filter(Boolean)
         .map((r: string) => String(r).toUpperCase());
@@ -184,9 +134,9 @@ export class Membresia {
     }
   }
 
-  get sortSel(): string { return `${this.sortCampo},${this.sortDir}`; }
-
-  // ========================= Carga general =========================
+  get sortSel(): string {
+    return `${this.sortCampo},${this.sortDir}`;
+  }
 
   cargar(pageUI: number): void {
     this.error = null;
@@ -207,18 +157,17 @@ export class Membresia {
     obs.subscribe({
       next: (resp: MembresiaPageResponse) => {
         this.rows = resp?.content ?? [];
-        this.page = resp?.page ?? { size: this.sizeSel, number: (pageUI - 1), totalElements: 0, totalPages: 0 };
+        this.page =
+          resp?.page ?? { size: this.sizeSel, number: pageUI - 1, totalElements: 0, totalPages: 0 };
         this.cargando = false;
       },
       error: () => {
         this.error = 'No se pudieron cargar las membresías.';
         this.noti.error(this.error);
         this.cargando = false;
-      }
+      },
     });
   }
-
-  /* ========================== Búsqueda por folio ========================== */
 
   buscarPorFolio(): void {
     const folio = Number(this.folioBuscar || 0);
@@ -253,11 +202,9 @@ export class Membresia {
         this.noti.error(this.error);
         this.cargando = false;
         this.buscandoFolio = false;
-      }
+      },
     });
   }
-
-  /* ====================== Búsqueda por nombre socio ====================== */
 
   onNombreInputChange(value: string): void {
     this.nombreBuscar = value;
@@ -272,16 +219,15 @@ export class Membresia {
       this.fechaHasta = '';
 
       this.cargar(1);
-    } else {
-      if (this.modoBusquedaNombre) {
-        this.modoBusquedaNombre = false;
-        this.ultimoTerminoNombre = '';
-        this.cargar(1);
-      }
+      return;
+    }
+
+    if (this.modoBusquedaNombre) {
+      this.modoBusquedaNombre = false;
+      this.ultimoTerminoNombre = '';
+      this.cargar(1);
     }
   }
-
-  /* ====================== Filtro por rango de fechas ====================== */
 
   aplicarRangoFechas(): void {
     const d = (this.fechaDesde || '').trim();
@@ -314,8 +260,6 @@ export class Membresia {
     this.cargar(1);
   }
 
-  /* ====================== Limpiar búsquedas ====================== */
-
   limpiarBusqueda(): void {
     this.folioBuscar = null;
     this.nombreBuscar = '';
@@ -329,16 +273,27 @@ export class Membresia {
     this.cargar(1);
   }
 
-  /* ============================ Paginación ============================ */
+  get pageUI(): number {
+    return (this.page?.number ?? 0) + 1;
+  }
+  get puedePrev(): boolean {
+    return this.pageUI > 1;
+  }
+  get puedeNext(): boolean {
+    return this.pageUI < (this.page?.totalPages ?? 1);
+  }
 
-  get pageUI(): number { return (this.page?.number ?? 0) + 1; }
-  get puedePrev(): boolean { return this.pageUI > 1; }
-  get puedeNext(): boolean { return this.pageUI < (this.page?.totalPages ?? 1); }
-  prev(): void { if (this.puedePrev) this.cargar(this.pageUI - 1); }
-  next(): void { if (this.puedeNext) this.cargar(this.pageUI + 1); }
-  go(n: number): void { this.cargar(n); }
+  prev(): void {
+    if (this.puedePrev) this.cargar(this.pageUI - 1);
+  }
 
-  /* ============================= Acciones ============================= */
+  next(): void {
+    if (this.puedeNext) this.cargar(this.pageUI + 1);
+  }
+
+  go(n: number): void {
+    this.cargar(n);
+  }
 
   editar(m: MembresiaData): void {
     this.idEditando = m.idMembresia ?? null;
@@ -362,7 +317,7 @@ export class Membresia {
 
     this.srv.eliminar(m.idMembresia).subscribe({
       next: () => this.cargar(this.pageUI),
-      error: () => this.noti.error('No se pudo eliminar la membresía.')
+      error: () => this.noti.error('No se pudo eliminar la membresía.'),
     });
   }
 
@@ -386,11 +341,11 @@ export class Membresia {
     const importe = total + desc;
 
     const pagos: TicketPagoDetalle[] | undefined =
-      (m.pagos && m.pagos.length)
-        ? m.pagos.map(p => ({
-          metodo: p.tipoPago,
-          monto: Number(p.monto) || 0,
-        }))
+      m.pagos && m.pagos.length
+        ? m.pagos.map((p) => ({
+            metodo: p.tipoPago,
+            monto: Number(p.monto) || 0,
+          }))
         : undefined;
 
     const data: TicketMembresia = {
@@ -419,20 +374,26 @@ export class Membresia {
     }
   }
 
-  /* ============================ Helpers UI ============================ */
-
   pagosChip(m: MembresiaData): string {
     const tot = (tipo: string) =>
-      (m.pagos ?? []).filter(p => p.tipoPago === tipo)
+      (m.pagos ?? [])
+        .filter((p) => p.tipoPago === tipo)
         .reduce((a, p) => a + (Number(p.monto) || 0), 0);
 
     const fmt = (n: number) =>
-      new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2 }).format(n);
+      new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: 'MXN',
+        minimumFractionDigits: 2,
+      }).format(n);
 
     const chips: string[] = [];
-    const e = tot('EFECTIVO'); if (e > 0) chips.push(`Efectivo ${fmt(e)}`);
-    const t = tot('TARJETA'); if (t > 0) chips.push(`Tarjeta ${fmt(t)}`);
-    const tr = tot('TRANSFERENCIA'); if (tr > 0) chips.push(`Transf. ${fmt(tr)}`);
+    const e = tot('EFECTIVO');
+    if (e > 0) chips.push(`Efectivo ${fmt(e)}`);
+    const t = tot('TARJETA');
+    if (t > 0) chips.push(`Tarjeta ${fmt(t)}`);
+    const tr = tot('TRANSFERENCIA');
+    if (tr > 0) chips.push(`Transf. ${fmt(tr)}`);
     return chips.join(' · ') || '—';
   }
 
@@ -443,11 +404,35 @@ export class Membresia {
   trackById = (_: number, it: MembresiaData) => it.idMembresia!;
 
   get colSpanTabla(): number {
-    // Folio, Socio, Paquete, F. inicio, F. fin, Movimiento, Total, Usuario, Acciones = 9
     let cols = 9;
     if (this.mostrarPagos()) cols += 1;
     if (!this.ocultarDescuento()) cols += 1;
     if (this.esAdmin) cols += 1;
     return cols;
   }
+
+  private clamp(n: number, min: number, max: number): number {
+    return Math.min(max, Math.max(min, n));
+  }
+
+  private round2(n: number): number {
+    return Math.round(n * 100) / 100;
+  }
+
+  private getDesignWidth(): number {
+    return this.esAdmin ? 1850 : 1650;
+  }
+
+  private applyLayout = (): void => {
+    const w = this.zoomOuter.nativeElement.clientWidth;
+
+    const design = this.getDesignWidth();
+    const z = this.clamp(w / design, this.MIN_ZOOM, this.MAX_ZOOM);
+    this.uiZoom = this.round2(z);
+
+    const offset = this.esAdmin ? 330 : 310;
+    const available = window.innerHeight - offset;
+
+    this.membresiasMaxH = Math.max(420, Math.floor(available / this.uiZoom));
+  };
 }
