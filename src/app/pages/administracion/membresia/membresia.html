@@ -1,34 +1,16 @@
-<!-- membresia.html
-=========================================================
-ZOOM DINÁMICO (XL también):
-- #zoomOuter mide el ancho real disponible
-- #zoomInner aplica [style.zoom]="uiZoom"
-
-TABLA:
-- Mismas columnas que 2XL en TODOS los tamaños (sin ocultar/compactar)
-- Alto del scroller compensado por zoom: [style.maxHeight.px]="membresiasMaxH"
-========================================================= -->
-
 <div #zoomOuter class="overflow-x-hidden">
   <div
     #zoomInner
     class="origin-top-left overflow-x-hidden"
     [style.zoom]="uiZoom"
   >
-    <!-- =========================
-         BARRA SUPERIOR
-         - wrap en pantallas chicas
-         - ORDEN ARRIBA: SOLO 2XL+ y SOLO si el menú NO está abierto
-    ========================= -->
     <div class="mx-4 md:mx-10 mb-2 xl:mb-4 flex flex-col 2xl:flex-row 2xl:items-start 2xl:justify-between gap-2 xl:gap-3">
       <div class="text-base sm:text-lg xl:text-xl font-semibold text-ra-slate shrink-0">
         Membresías
       </div>
 
       <div class="w-full 2xl:w-auto flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-end gap-2 xl:gap-3 text-[11px] xl:text-[12px] leading-none min-w-0">
-        <!-- Controles -->
         <div class="w-full flex flex-wrap 2xl:flex-nowrap items-center gap-2 xl:gap-3 min-w-0">
-          <!-- Folio -->
           <div class="w-full sm:w-auto flex items-center gap-2 min-w-0">
             <label class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">Folio</label>
 
@@ -50,7 +32,6 @@ TABLA:
             </button>
           </div>
 
-          <!-- Socio -->
           <div class="w-full sm:w-auto flex items-center gap-2 min-w-0">
             <label class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">Socio</label>
 
@@ -70,10 +51,8 @@ TABLA:
             </button>
           </div>
 
-          <!-- divisor (solo 2xl+) -->
           <div class="w-px h-6 mx-1 bg-gray-200 hidden 2xl:block shrink-0"></div>
 
-          <!-- Rango de fechas -->
           @if (!ocultarFechas()) {
             <div class="w-full 2xl:w-auto flex flex-wrap 2xl:flex-nowrap items-center gap-2 min-w-0">
               <label class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">Desde</label>
@@ -110,7 +89,6 @@ TABLA:
           }
         </div>
 
-        <!-- ORDEN ARRIBA: SOLO 2XL+ Y SOLO si el menú NO está abierto -->
         @if (!moverOrdenYSize()) {
           <div class="hidden 2xl:flex items-center gap-2 shrink-0">
             <span class="text-[11px] text-ra-slate/80 whitespace-nowrap">Ordenar por</span>
@@ -151,11 +129,6 @@ TABLA:
       </div>
     </div>
 
-    <!-- =========================
-         TABLA
-         - MISMAS COLUMNAS QUE 2XL SIEMPRE
-         - Alto del scroller compensado por zoom
-    ========================= -->
     <div #tablaWrap class="shadow-card rounded-xl2 mx-4 md:mx-10 bg-ra-white">
       <div class="overflow-x-hidden">
         <div
@@ -203,7 +176,7 @@ TABLA:
                   Usuario
                 </th>
 
-                @if (esAdmin) {
+                @if (mostrarGimnasioCol()) {
                   <th class="py-1.5 xl:py-4 px-2 xl:px-4 text-center text-ra-slate font-semibold uppercase w-[13%]">
                     Gimnasio
                   </th>
@@ -231,12 +204,10 @@ TABLA:
               } @else {
                 @for (m of rows; track trackById($index, m)) {
                   <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
-                    <!-- Folio -->
                     <td class="py-2 xl:py-3 px-2 xl:px-4 text-center font-medium">
                       <div class="truncate">#{{ m.folio ?? '—' }}</div>
                     </td>
 
-                    <!-- Socio -->
                     <td class="py-2 xl:py-3 px-2 xl:px-4 min-w-0">
                       <div class="font-medium truncate min-w-0">
                         {{ m.socio.nombre }} {{ m.socio.apellido }}
@@ -246,14 +217,11 @@ TABLA:
                       </div>
                     </td>
 
-                    <!-- Paquete -->
                     <td class="py-2 xl:py-3 px-2 xl:px-4 min-w-0">
                       <div class="font-medium truncate">{{ m.paquete.nombre }}</div>
 
                       <div class="mt-1">
-                        <span
-                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-semibold"
-                        >
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-semibold">
                           <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="9"></circle>
                             <path d="M12 7v5l3 2"></path>
@@ -263,7 +231,6 @@ TABLA:
                       </div>
                     </td>
 
-                    <!-- Fechas -->
                     <td class="py-2 xl:py-3 px-2 xl:px-4 text-center whitespace-nowrap">
                       {{ m.fechaInicio | date:'dd/MM/yyyy' }}
                     </td>
@@ -271,7 +238,6 @@ TABLA:
                       {{ m.fechaFin | date:'dd/MM/yyyy' }}
                     </td>
 
-                    <!-- Movimiento -->
                     <td class="py-2 xl:py-3 px-2 xl:px-4 text-center">
                       <span
                         class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold"
@@ -285,18 +251,15 @@ TABLA:
                       </span>
                     </td>
 
-                    <!-- Total -->
                     <td class="py-2 xl:py-3 px-2 xl:px-4 text-center font-semibold whitespace-nowrap">
                       {{ (m.total || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
                     </td>
 
-                    <!-- Usuario -->
                     <td class="py-2 xl:py-3 px-2 xl:px-4 text-center truncate">
                       {{ m.usuario?.nombreUsuario || '—' }}
                     </td>
 
-                    <!-- Gimnasio (admin) -->
-                    @if (esAdmin) {
+                    @if (mostrarGimnasioCol()) {
                       <td class="py-2 xl:py-3 px-2 xl:px-4 text-center">
                         <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
                           <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
@@ -309,7 +272,6 @@ TABLA:
                       </td>
                     }
 
-                    <!-- Acciones -->
                     <td class="py-2 xl:py-2 px-2 xl:px-0">
                       <div class="flex items-center justify-center gap-1">
                         @if (!esRecep) {
@@ -343,10 +305,6 @@ TABLA:
       </div>
     </div>
 
-    <!-- =========================
-         ORDEN ABAJO
-         - <2xl: SIEMPRE abajo (no importa menú)
-    ========================= -->
     <div class="mx-4 md:mx-10 mt-2 mb-1 flex flex-wrap items-center justify-end gap-2 text-[11px] 2xl:hidden">
       <span class="text-ra-slate/80 whitespace-nowrap">Ordenar por</span>
 
@@ -383,9 +341,6 @@ TABLA:
       </select>
     </div>
 
-    <!-- =========================
-         ORDEN ABAJO (2xl+ SOLO si el menú está abierto)
-    ========================= -->
     @if (moverOrdenYSize()) {
       <div class="mx-4 md:mx-10 mt-2 mb-1 hidden 2xl:flex flex-wrap items-center justify-end gap-2 text-[12px]">
         <span class="text-ra-slate/80 whitespace-nowrap">Ordenar por</span>
@@ -424,9 +379,6 @@ TABLA:
       </div>
     }
 
-    <!-- =========================
-         PAGINACIÓN
-    ========================= -->
     <div class="mx-4 md:mx-10 mt-3 mb-2 flex items-center justify-between text-[11px] sm:text-xs xl:text-sm">
       <div>
         Página <strong>{{ pageUI }}</strong> de <strong>{{ page.totalPages || 1 }}</strong>
@@ -449,9 +401,6 @@ TABLA:
       </div>
     </div>
 
-    <!-- =========================
-         MODAL
-    ========================= -->
     @if (mostrarModal() && idEditando !== null) {
       <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModal()"></div>

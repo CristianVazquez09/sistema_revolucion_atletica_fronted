@@ -3,14 +3,18 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 /**
  * API expuesta al renderer (window.electron)
- * - printTicket(payload)  -> payload: { html, deviceName?, pageWidthMicrons?, dpi?, waitMs? }
- * - printTicket(html, deviceName?, options?) -> compatibilidad con firma corta
+ *
+ * TICKETS:
+ * - printTicket(payload) o printTicket(html, deviceName?, options?)
  * - listPrinters()
  *
- * UPDATES (Windows):
- * - checkForUpdates() -> fuerza chequeo manual (opcional)
- * - installUpdate()   -> reinicia e instala (cuando ya esté descargada)
- * - onUpdate(...)     -> escucha eventos del updater
+ * UPDATES:
+ * - checkForUpdates() -> dispara chequeo (y en main salen popups nativos)
+ * - installUpdate()   -> instala/reinicia si ya está descargada
+ * - onUpdate(cb)      -> escucha eventos 'update:*'
+ *
+ * OTROS:
+ * - getVersion() -> versión actual de la app (útil para mostrar en UI)
  */
 contextBridge.exposeInMainWorld('electron', {
   // ----------------- TICKETS -----------------
@@ -27,9 +31,13 @@ contextBridge.exposeInMainWorld('electron', {
   checkForUpdates: () => ipcRenderer.invoke('app:update-check'),
   installUpdate: () => ipcRenderer.invoke('app:update-install'),
 
+  // ----------------- VERSION -----------------
+  getVersion: () => ipcRenderer.invoke('app:version'),
+
   /**
    * Suscripción a eventos del updater.
-   * event: 'checking' | 'available' | 'not-available' | 'progress' | 'downloaded' | 'error'
+   * ch: 'update:checking' | 'update:available' | 'update:not-available'
+   *     | 'update:progress' | 'update:downloaded' | 'update:error'
    */
   onUpdate: (callback) => {
     if (typeof callback !== 'function') return;
@@ -47,7 +55,7 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.on(ch, (_event, payload) => callback(ch, payload));
     });
 
-    // Devuelve función para desuscribirse (buena práctica)
+    // Devuelve función para desuscribirse
     return () => {
       channels.forEach((ch) => ipcRenderer.removeAllListeners(ch));
     };

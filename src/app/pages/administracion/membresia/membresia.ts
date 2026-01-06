@@ -1,11 +1,10 @@
 import {
   Component,
-  DestroyRef,
   ElementRef,
-  NgZone,
   ViewChild,
   inject,
   signal,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -20,6 +19,7 @@ import { NotificacionService } from '../../../services/notificacion-service';
 import { MembresiaModal } from './membresia-modal/membresia-modal';
 import { TiempoPlanLabelPipe } from 'src/app/util/tiempo-plan-label';
 import { TicketMembresia, TicketPagoDetalle, TicketService } from 'src/app/services/ticket-service';
+import { MenuService } from 'src/app/services/menu-service';
 
 type PageMeta = {
   size: number;
@@ -40,8 +40,9 @@ export class Membresia {
   private noti = inject(NotificacionService);
   private jwt = inject(JwtHelperService);
   private ticket = inject(TicketService);
-  private destroyRef = inject(DestroyRef);
-  private zone = inject(NgZone);
+  private menuSrv = inject(MenuService);
+
+  menuAbierto = this.menuSrv.menuAbierto;
 
   @ViewChild('tablaWrap') tablaWrap?: ElementRef<HTMLElement>;
   @ViewChild('zoomOuter', { static: true }) zoomOuter!: ElementRef<HTMLElement>;
@@ -54,6 +55,12 @@ export class Membresia {
   esXlUp = signal(
     typeof window !== 'undefined'
       ? window.matchMedia('(min-width: 1280px)').matches
+      : false
+  );
+
+  es2xlUp = signal(
+    typeof window !== 'undefined'
+      ? window.matchMedia('(min-width: 1536px)').matches
       : false
   );
 
@@ -89,8 +96,18 @@ export class Membresia {
   membresiasMaxH = 650;
 
   private ro?: ResizeObserver;
-  private readonly MIN_ZOOM = 0.67;
+
+  // ✅ Zoom menos agresivo (más grande)
+  private readonly MIN_ZOOM = 0.72;
   private readonly MAX_ZOOM = 1.0;
+
+  // ✅ Mostrar gimnasio solo si:
+  // - es admin
+  // - y (2XL+ OR menú cerrado)
+  mostrarGimnasioCol = computed(() => {
+    if (!this.esAdmin) return false;
+    return this.es2xlUp() || !this.menuAbierto();
+  });
 
   ngOnInit(): void {
     const roles = this.rolesDesdeToken();
@@ -407,7 +424,7 @@ export class Membresia {
     let cols = 9;
     if (this.mostrarPagos()) cols += 1;
     if (!this.ocultarDescuento()) cols += 1;
-    if (this.esAdmin) cols += 1;
+    if (this.mostrarGimnasioCol()) cols += 1;
     return cols;
   }
 
@@ -419,11 +436,17 @@ export class Membresia {
     return Math.round(n * 100) / 100;
   }
 
+  // ✅ Design widths ajustados para que el zoom NO se vaya tan bajo en XL
   private getDesignWidth(): number {
-    return this.esAdmin ? 1850 : 1650;
+    // Si gimnasio NO se muestra (menú abierto en <2XL), requiere menos ancho
+    return this.mostrarGimnasioCol() ? 1800 : 1600;
   }
 
   private applyLayout = (): void => {
+    // breakpoints reactivos
+    this.esXlUp.set(window.matchMedia('(min-width: 1280px)').matches);
+    this.es2xlUp.set(window.matchMedia('(min-width: 1536px)').matches);
+
     const w = this.zoomOuter.nativeElement.clientWidth;
 
     const design = this.getDesignWidth();

@@ -1,11 +1,11 @@
 // electron/main.js
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 
 const { autoUpdater } = require('electron-updater');
 const log = require('electron-log');
 
-let mainWin;
+let mainWin = null;
 
 // =======================
 // PRINT (TU CÓDIGO)
@@ -82,12 +82,11 @@ function createWindow() {
     );
   }
 
-  // Si cierran la ventana, evita referencias colgantes
   mainWin.on('closed', () => { mainWin = null; });
 }
 
 // =======================
-// UPDATER (NUEVO)
+// UPDATER (CON POPUPS)
 // =======================
 function sendUpdate(channel, payload) {
   if (mainWin && mainWin.webContents) {
@@ -95,18 +94,64 @@ function sendUpdate(channel, payload) {
   }
 }
 
+function getDialogParent() {
+  if (mainWin && !mainWin.isDestroyed()) return mainWin;
+  return null;
+}
+
+async function showMessageBoxSafe(options) {
+  const parent = getDialogParent();
+  if (parent) return dialog.showMessageBox(parent, options);
+  return dialog.showMessageBox(options);
+}
+
+let updatePromptShown = false;
+
 function initAutoUpdater() {
-  // Logging recomendado para debug
+  // Logging para debug
   autoUpdater.logger = log;
   autoUpdater.logger.transports.file.level = 'info';
 
-  // Recomendación: en NSIS normalmente puedes auto-download.
-  // Si quieres “preguntar antes de descargar”, ponlo en false y maneja downloadUpdate().
-  autoUpdater.autoDownload = true;
+  // IMPORTANTE: para preguntar antes de descargar
+  autoUpdater.autoDownload = false;
 
-  autoUpdater.on('checking-for-update', () => sendUpdate('update:checking'));
-  autoUpdater.on('update-available', (info) => sendUpdate('update:available', info));
-  autoUpdater.on('update-not-available', (info) => sendUpdate('update:not-available', info));
+  autoUpdater.on('checking-for-update', () => {
+    sendUpdate('update:checking');
+  });
+
+  autoUpdater.on('update-not-available', (info) => {
+    sendUpdate('update:not-available', info);
+    updatePromptShown = false; // permite preguntar de nuevo en siguientes checks
+  });
+
+  autoUpdater.on('update-available', async (info) => {
+    sendUpdate('update:available', info);
+
+    // Evita spam de popups si hay checks periódicos
+    if (updatePromptShown) return;
+    updatePromptShown = true;
+
+    try {
+      const { response } = await showMessageBoxSafe({
+        type: 'info',
+        title: 'Actualización disponible',
+        message: `Hay una nueva versión (${info.version}).`,
+        detail: '¿Deseas descargarla ahora?',
+        buttons: ['Descargar', 'Más tarde'],
+        defaultId: 0,
+        cancelId: 1,
+        noLink: true,
+      });
+
+      if (response === 0) {
+        await autoUpdater.downloadUpdate();
+      }
+    } catch (e) {
+      updatePromptShown = false;
+      sendUpdate('update:error', { message: e?.message || String(e) });
+    }
+  });
+
   autoUpdater.on('download-progress', (p) => {
     sendUpdate('update:progress', {
       percent: p.percent,
@@ -115,13 +160,50 @@ function initAutoUpdater() {
       bytesPerSecond: p.bytesPerSecond,
     });
   });
-  autoUpdater.on('update-downloaded', (info) => sendUpdate('update:downloaded', info));
-  autoUpdater.on('error', (err) => sendUpdate('update:error', { message: err?.message || String(err) }));
+
+  autoUpdater.on('update-downloaded', async (info) => {
+    sendUpdate('update:downloaded', info);
+
+    try {
+      const { response } = await showMessageBoxSafe({
+        type: 'question',
+        title: 'Actualización lista',
+        message: `Se descargó la versión ${info.version}.`,
+        detail: '¿Deseas instalar y reiniciar ahora?',
+        buttons: ['Instalar y reiniciar', 'Después'],
+        defaultId: 0,
+        cancelId: 1,
+        noLink: true,
+      });
+
+      if (response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    } catch (e) {
+      sendUpdate('update:error', { message: e?.message || String(e) });
+    }
+  });
+
+  autoUpdater.on('error', async (err) => {
+    const msg = err?.message || String(err);
+    sendUpdate('update:error', { message: msg });
+
+    // (Opcional) popup de error
+    try {
+      await showMessageBoxSafe({
+        type: 'error',
+        title: 'Error de actualización',
+        message: 'No se pudo buscar/descargar la actualización.',
+        detail: msg,
+        buttons: ['OK'],
+        noLink: true,
+      });
+    } catch {}
+  });
 }
 
 async function safeCheckForUpdates() {
-  // En Windows: evitar checar update de inmediato si es primer run tipo squirrel.
-  // (Con NSIS usualmente no pasa como squirrel, pero este guard te evita “cosas raras”.)
+  // Evitar comportamiento raro en el primer run de instaladores tipo squirrel
   if (process.platform === 'win32' && process.argv.some(a => a.includes('--squirrel-firstrun'))) {
     return;
   }
@@ -130,24 +212,37 @@ async function safeCheckForUpdates() {
   await new Promise((r) => setTimeout(r, 10_000));
 
   try {
-    await autoUpdater.checkForUpdatesAndNotify();
+    // IMPORTANTE: checkForUpdates (no regreses objetos raros al renderer)
+    await autoUpdater.checkForUpdates();
   } catch (e) {
     sendUpdate('update:error', { message: e?.message || String(e) });
   }
 }
 
-// IPC para Angular
+// IPC UPDATER (DEVUELVE OBJETO CLONABLE)
 ipcMain.handle('app:update-check', async () => {
   try {
-    return await autoUpdater.checkForUpdates();
+    const result = await autoUpdater.checkForUpdates();
+
+    // NO regreses result completo (trae cancellationToken y cosas no clonables)
+    const info = result?.updateInfo;
+
+    return {
+      isUpdateAvailable: !!info,
+      updateInfo: info ? {
+        version: info.version,
+        tag: info.tag,
+        releaseName: info.releaseName,
+        files: info.files?.map(f => ({ url: f.url, name: f.name, size: f.size })) ?? [],
+      } : null,
+    };
   } catch (e) {
     sendUpdate('update:error', { message: e?.message || String(e) });
-    return null;
+    return { isUpdateAvailable: false, updateInfo: null, error: e?.message || String(e) };
   }
 });
 
 ipcMain.handle('app:update-install', async () => {
-  // Esto cierra la app y corre el instalador descargado
   try {
     autoUpdater.quitAndInstall();
     return true;
@@ -155,6 +250,11 @@ ipcMain.handle('app:update-install', async () => {
     sendUpdate('update:error', { message: e?.message || String(e) });
     return false;
   }
+});
+
+// (Opcional pero útil) versión actual para mostrarla en tu UI
+ipcMain.handle('app:version', async () => {
+  return app.getVersion();
 });
 
 // =======================
@@ -180,10 +280,10 @@ app.whenReady().then(() => {
   createWindow();
   initAutoUpdater();
 
-  // chequeo automático al iniciar (con delay)
+  // Chequeo automático al iniciar
   safeCheckForUpdates();
 
-  // chequeo periódico (opcional): cada 6 horas
+  // Chequeo periódico cada 6 horas
   setInterval(() => safeCheckForUpdates(), 6 * 60 * 60 * 1000);
 
   app.on('activate', () => {
