@@ -63,4 +63,15 @@ export class EntrenadorModal {
     const s = a.socio;
     return s?.email || '—';
   }
+
+  /* ===== NUEVO: Vigente por vigenteHasta ===== */
+
+  esVigente(vigenteHasta?: string | null): boolean {
+    if (!vigenteHasta) return false;
+
+    const d = new Date(vigenteHasta);
+    if (Number.isNaN(d.getTime())) return false;
+
+    return d.getTime() > Date.now();
+  }
 }

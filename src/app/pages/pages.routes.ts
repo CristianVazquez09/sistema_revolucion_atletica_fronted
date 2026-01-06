@@ -17,9 +17,10 @@ import { Entrenador } from "./entrenador/entrenador";
 import { Asesoria } from "./asesoria/asesoria";
 import { gerenteGuard } from "../guards/gerente-guards";
 import { adminGuard } from "../guards/admin-guards";
-import { SocioInfoAsesoria } from "./socio/socio-info-asesoria/socio-info-asesoria";
 import { AsistenciaHistorial } from "./inscripcion/asistencia-historial/asistencia-historial";
 import { ReinscripcionAdelantada } from "./inscripcion/reinscripcion-adelantada/reinscripcion-adelantada";
+import { SocioInfoAsesoria } from "./socio/socio-info-asesoria/socio-info-asesoria";
+import { EntrenadorInfoAsesoria } from "./entrenador/entrenador-info-asesoria/entrenador-info-asesoria";
 
 export const pagesRoutes: Routes = [
   {path: 'paquete', component: Paquete},
@@ -39,6 +40,8 @@ export const pagesRoutes: Routes = [
   { path: 'entrenador', component: Entrenador },
   { path: 'asesoria', component: Asesoria },
    { path: 'socio/:idSocio/asesorias', component: SocioInfoAsesoria },
+   { path: 'entrenador/:idEntrenador/asesorias', component: EntrenadorInfoAsesoria },
+
    {
     path: 'huella',
     loadComponent: () =>

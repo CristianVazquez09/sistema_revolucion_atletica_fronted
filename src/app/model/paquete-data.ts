@@ -19,5 +19,6 @@ export interface PaqueteData {
 
   // NUEVO: tipo de paquete (gimnasio, zona de combate, mixto)
   tipoPaquete?: TipoPaquete;
+  
 }
 

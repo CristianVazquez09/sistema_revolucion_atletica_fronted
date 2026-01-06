@@ -2,7 +2,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, computed } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { EntrenadorService } from '../../services/entrenador-service';
 import { GimnasioService } from '../../services/gimnasio-service';
@@ -10,17 +10,14 @@ import { NotificacionService } from '../../services/notificacion-service';
 
 import { EntrenadorData } from '../../model/entrenador-data';
 import { GimnasioData } from '../../model/gimnasio-data';
-import { AsesoriaContratoData } from '../../model/asesoria-contrato-data';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
-import { EntrenadorModal } from './entrenador-modal/entrenador-modal';
-
 
 @Component({
   selector: 'app-entrenador',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, EntrenadorModal],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './entrenador.html',
   styleUrl: './entrenador.css',
 })
@@ -31,6 +28,7 @@ export class Entrenador implements OnInit {
   private gimnasioSrv = inject(GimnasioService);
   private noti = inject(NotificacionService);
   private jwt = inject(JwtHelperService);
+  private router = inject(Router);
 
   // Admin
   isAdmin = false;
@@ -60,15 +58,7 @@ export class Entrenador implements OnInit {
     this.entrenadorEditando ? 'Editar entrenador' : 'Agregar entrenador'
   );
 
-  // ===== Modal asesorías por entrenador =====
-  mostrarModal = false;
-  entrenadorSeleccionado: EntrenadorData | null = null;
-  asesoriasModal: AsesoriaContratoData[] = [];
-  cargandoModal = false;
-  errorModal: string | null = null;
-
   ngOnInit(): void {
-    // Resolver rol
     this.isAdmin = this.deducirEsAdminDesdeToken();
 
     if (this.isAdmin) {
@@ -77,9 +67,7 @@ export class Entrenador implements OnInit {
       this.cargandoGimnasios = true;
       this.gimnasioSrv.buscarTodos().subscribe({
         next: (lista) => {
-          const soloActivos = (lista ?? []).filter(
-            (g: any) => g?.activo !== false
-          );
+          const soloActivos = (lista ?? []).filter((g: any) => g?.activo !== false);
 
           this.gimnasios = soloActivos.map((g) => ({
             idGimnasio: (g as any).idGimnasio ?? (g as any).id,
@@ -89,10 +77,7 @@ export class Entrenador implements OnInit {
           }));
 
           if (!this.entrenadorEditando && this.gimnasios.length) {
-            this.form.controls.gimnasioId.setValue(
-              this.gimnasios[0].idGimnasio,
-              { emitEvent: false }
-            );
+            this.form.controls.gimnasioId.setValue(this.gimnasios[0].idGimnasio, { emitEvent: false });
           }
 
           this.form.controls.gimnasioId.enable({ emitEvent: false });
@@ -114,20 +99,15 @@ export class Entrenador implements OnInit {
   private deducirEsAdminDesdeToken(): boolean {
     const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
     if (!raw) return false;
+
     try {
       const decoded: any = this.jwt.decodeToken(raw);
       const roles: string[] = [
         ...(Array.isArray(decoded?.roles) ? decoded.roles : []),
         ...(Array.isArray(decoded?.authorities) ? decoded.authorities : []),
-        ...(Array.isArray(decoded?.realm_access?.roles)
-          ? decoded.realm_access.roles
-          : []),
+        ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
       ]
-        .concat(
-          [decoded?.role, decoded?.rol, decoded?.perfil].filter(
-            Boolean
-          ) as string[]
-        )
+        .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
         .map((r) => String(r).toUpperCase());
 
       return (
@@ -145,6 +125,7 @@ export class Entrenador implements OnInit {
   cargar(): void {
     this.loading = true;
     this.error = null;
+
     this.entrenadorSrv.buscarTodos().subscribe({
       next: (data) => {
         this.entrenadores = (data ?? []).filter((e: any) => e?.activo !== false);
@@ -168,20 +149,15 @@ export class Entrenador implements OnInit {
     const nombre = String(this.form.controls.nombre.value ?? '').trim();
     const apellido = String(this.form.controls.apellido.value ?? '').trim();
 
-    let payload: any = { nombre, apellido };
+    const payload: any = { nombre, apellido };
 
     if (this.isAdmin) {
       const gymId = this.form.controls.gimnasioId.value;
-      if (gymId) {
-        payload.gimnasio = { id: Number(gymId) };
-      }
+      if (gymId) payload.gimnasio = { id: Number(gymId) };
     }
 
     const obs = this.entrenadorEditando?.idEntrenador
-      ? this.entrenadorSrv.actualizar(
-          this.entrenadorEditando.idEntrenador,
-          payload
-        )
+      ? this.entrenadorSrv.actualizar(this.entrenadorEditando.idEntrenador, payload)
       : this.entrenadorSrv.guardar(payload);
 
     obs.subscribe({
@@ -201,8 +177,8 @@ export class Entrenador implements OnInit {
 
   editar(e: EntrenadorData): void {
     this.entrenadorEditando = e;
-    const gymId =
-      (e.gimnasio as any)?.idGimnasio ?? (e.gimnasio as any)?.id ?? null;
+
+    const gymId = (e.gimnasio as any)?.idGimnasio ?? (e.gimnasio as any)?.id ?? null;
 
     this.form.reset({
       nombre: String(e.nombre ?? ''),
@@ -214,11 +190,7 @@ export class Entrenador implements OnInit {
         : null,
     });
 
-    if (
-      this.isAdmin &&
-      !this.cargandoGimnasios &&
-      this.form.controls.gimnasioId.disabled
-    ) {
+    if (this.isAdmin && !this.cargandoGimnasios && this.form.controls.gimnasioId.disabled) {
       this.form.controls.gimnasioId.enable({ emitEvent: false });
     }
   }
@@ -242,35 +214,14 @@ export class Entrenador implements OnInit {
     });
   }
 
-  /* =================== Modal asesorías =================== */
+  /* =================== Navegar a asesorías (YA NO MODAL) =================== */
 
   verAsesorias(e: EntrenadorData): void {
     if (!e.idEntrenador) return;
 
-    this.entrenadorSeleccionado = e;
-    this.mostrarModal = true;
-    this.cargandoModal = true;
-    this.errorModal = null;
-    this.asesoriasModal = [];
-
-    this.entrenadorSrv.listarAsesoriasActivas(e.idEntrenador).subscribe({
-      next: (data) => {
-        this.asesoriasModal = data ?? [];
-        this.cargandoModal = false;
-      },
-      error: (err) => {
-        console.error(err);
-        this.errorModal = 'No se pudieron cargar las asesorías de este entrenador.';
-        this.cargandoModal = false;
-      },
-    });
-  }
-
-  cerrarModal(): void {
-    this.mostrarModal = false;
-    this.entrenadorSeleccionado = null;
-    this.asesoriasModal = [];
-    this.errorModal = null;
+    // Ajusta este path si tu routing es distinto.
+    // Recomendado: /pages/entrenador/:idEntrenador/asesorias
+    this.router.navigate(['/pages/entrenador', e.idEntrenador, 'asesorias']);
   }
 
   /* =================== Helpers template =================== */
@@ -278,13 +229,12 @@ export class Entrenador implements OnInit {
   get esEdicion(): boolean {
     return !!this.entrenadorEditando;
   }
+
   get idEditando(): number | null {
     return this.entrenadorEditando?.idEntrenador ?? null;
   }
 
-  gymLabel(
-    g?: { nombre?: string; id?: number; idGimnasio?: number } | null
-  ): string {
+  gymLabel(g?: { nombre?: string; id?: number; idGimnasio?: number } | null): string {
     if (!g) return '';
     if (g.nombre) return g.nombre;
     const id = g.idGimnasio ?? g.id;

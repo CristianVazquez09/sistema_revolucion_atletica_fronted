@@ -1,10 +1,6 @@
 <!-- src/app/pages/entrenador/entrenador.html -->
 
-<!-- =========================
-     ENCABEZADO (COMPACTO)
-     - En md+: título + botón SIEMPRE en la misma fila
-     - En <md: se apila
-========================= -->
+<!-- ENCABEZADO -->
 <div
   class="mx-2 md:mx-6 lg:mx-8 mb-3
          flex flex-col gap-2
@@ -28,9 +24,7 @@
   </a>
 </div>
 
-<!-- =========================
-     CARD FORM (COMPACTO)
-========================= -->
+<!-- CARD FORM -->
 <div class="mx-2 md:mx-6 lg:mx-8 mb-4 card">
   <div class="card-header flex items-center justify-between min-w-0">
     <div class="flex items-center gap-2 min-w-0">
@@ -63,7 +57,6 @@
       </div>
     }
 
-    <!-- Inputs: 1 columna en <md, 2 en md+ -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <div>
         <label class="block text-xs sm:text-sm font-medium mb-1">Nombre</label>
@@ -106,14 +99,7 @@
   </form>
 </div>
 
-<!-- =========================
-     TABLA (SIN SCROLL HORIZONTAL)
-     - Compacta en md/lg/xl/2xl
-     - En <lg: ocultamos "Acciones" como columna y lo metemos dentro del nombre
-     - Gimnasio SOLO ADMIN:
-       * Visible en lg+
-       * En <lg lo metemos en la celda de entrenador (para no forzar ancho)
-========================= -->
+<!-- TABLA -->
 <div class="mx-2 md:mx-6 lg:mx-8 min-w-0">
   <div class="shadow-card rounded-xl2 bg-white ring-1 ring-black/10 overflow-hidden min-w-0">
     <div class="overflow-x-hidden">
@@ -135,7 +121,6 @@
             <col class="hidden lg:table-column w-[20%]"><!-- Acciones (lg+) -->
           </colgroup>
 
-          <!-- Encabezado sticky -->
           <thead class="sticky top-0 z-10 bg-[color:var(--color-ra-grayLight)]/40 backdrop-blur">
             <tr>
               <th class="py-2 lg:py-3 px-3 lg:px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">ID</th>
@@ -188,7 +173,6 @@
                       {{ e.nombre }} {{ e.apellido }}
                     </div>
 
-                    <!-- <lg: mostramos gimnasio aquí si es admin -->
                     @if (isAdmin) {
                       <div class="mt-1 lg:hidden">
                         <span
@@ -204,12 +188,12 @@
                       </div>
                     }
 
-                    <!-- <lg: acciones abajo (para evitar scroll horizontal) -->
+                    <!-- <lg: acciones abajo -->
                     <div class="mt-2 flex items-center gap-2 lg:hidden">
                       <button
                         (click)="verAsesorias(e)"
                         class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
-                        title="Ver asesorías activas"
+                        title="Ver asesorías"
                       >
                         <img src="iconos/usuario_asesoria.svg" alt="Asesorías" class="w-5 h-5" />
                       </button>
@@ -254,7 +238,7 @@
                       <button
                         (click)="verAsesorias(e)"
                         class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
-                        title="Ver asesorías activas"
+                        title="Ver asesorías"
                       >
                         <img src="iconos/usuario_asesoria.svg" alt="Asesorías" class="w-5 h-5" />
                       </button>
@@ -285,14 +269,3 @@
     </div>
   </div>
 </div>
-
-<!-- Modal asesorías por entrenador -->
-@if (mostrarModal && entrenadorSeleccionado) {
-  <app-entrenador-modal
-    [entrenador]="entrenadorSeleccionado"
-    [asesorias]="asesoriasModal"
-    [cargando]="cargandoModal"
-    [error]="errorModal"
-    (cerrar)="cerrarModal()"
-  />
-}

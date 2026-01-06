@@ -42,8 +42,8 @@ export class SocioInfoAsesoria implements OnInit {
 
   ngOnInit(): void {
     this.idSocio = Number(this.route.snapshot.paramMap.get('idSocio'));
-    this.cargarHeaderSocio(); // 👈 carga confiable del encabezado
-    this.cargar();            // 👈 datos de la tabla
+    this.cargarHeaderSocio();
+    this.cargar();
   }
 
   /* =================== Header (nombre/teléfono) =================== */
@@ -56,9 +56,6 @@ export class SocioInfoAsesoria implements OnInit {
   }
 
   private cargarHeaderSocio(): void {
-    // Llama al método real que tengas en SocioService para obtener por ID.
-    // Probamos algunos nombres comunes para no romper tu build si tiene otro nombre:
-    // obtenerPorId / getById / buscarPorId
     const req =
       (this.socioSrv as any).obtenerPorId?.(this.idSocio) ??
       (this.socioSrv as any).getById?.(this.idSocio) ??
@@ -67,7 +64,7 @@ export class SocioInfoAsesoria implements OnInit {
     if (req?.subscribe) {
       req.subscribe({
         next: (s: any) => this.setHeaderFromSocio(s),
-        error: () => { /* silencioso; podemos caer al fallback desde la tabla */ }
+        error: () => { /* silencioso */ }
       });
     }
   }
@@ -78,6 +75,7 @@ export class SocioInfoAsesoria implements OnInit {
     if (this.totalElementos === 0) return 0;
     return this.pagina * this.tamanio + 1;
   }
+
   get rangoHasta(): number {
     const hasta = (this.pagina + 1) * this.tamanio;
     return Math.min(hasta, this.totalElementos);
@@ -99,14 +97,11 @@ export class SocioInfoAsesoria implements OnInit {
           this.tamanio = resp.pagina?.tamanio ?? this.tamanio;
           this.pagina = resp.pagina?.numero ?? this.pagina;
 
-          // Si aún no tenemos header (p. ej. la llamada directa no respondió),
-          // intenta con el socio embebido en el primer item.
           if (!this.socioNombre) {
             const s: any = this.asesorias[0]?.socio;
             if (s) this.setHeaderFromSocio(s);
           }
 
-          // Si quedó vacía esta página y no es la primera, retrocede una
           if (this.asesorias.length === 0 && this.pagina > 0) {
             this.pagina = this.pagina - 1;
             this.cargar();
@@ -169,5 +164,16 @@ export class SocioInfoAsesoria implements OnInit {
     const g = a.gimnasio;
     if (!g) return '—';
     return g.nombre ?? (g as any).id ?? '—';
+  }
+
+  /* =================== NUEVO: Vigente por vigenteHasta =================== */
+
+  esVigente(vigenteHasta?: string | null): boolean {
+    if (!vigenteHasta) return false;
+
+    const d = new Date(vigenteHasta);
+    if (Number.isNaN(d.getTime())) return false;
+
+    return d.getTime() > Date.now();
   }
 }
