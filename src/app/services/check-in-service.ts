@@ -20,6 +20,7 @@ export interface CheckInResponse {
   fecha: string;
   membresia: MembresiaData;
   registroId?: number;
+  socio?: SocioData;
 }
 
 export interface CheckInHuellaRequest {
@@ -39,9 +40,9 @@ export class CheckInService {
     return this.http.post<CheckInResponse>(`${this.base}/checkin`, body);
   }
 
+  /** NUEVO: check-in por idSocio (POST /v1/asistencias/checkin) */
   registrarEntradaPorSocio(idSocio: number): Observable<CheckInResponse> {
-    const body: CheckInRequest = { idSocio };
-    return this.http.post<CheckInResponse>(`${this.base}/checkin`, body);
+    return this.http.post<CheckInResponse>(`${this.base}/checkin`, { idSocio });
   }
 
   registrarEntradaPorHuella(huellaDigital: string): Observable<SocioData> {

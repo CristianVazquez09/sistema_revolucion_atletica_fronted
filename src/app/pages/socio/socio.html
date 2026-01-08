@@ -375,19 +375,31 @@
   </div>
 </div>
 
-<!-- Modal -->
 @if (modalSocioVisible()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModalSocio()"></div>
-    <div class="relative z-10 w-full max-w-[640px] mx-4">
-      <div class="bg-ra-white rounded-2xl shadow-2xl ring-1 ring-black/5">
+  <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] overflow-y-auto">
+    <!-- Contenedor: en móviles arriba; desde sm centrado -->
+    <div class="min-h-full p-3 sm:p-6 flex items-start sm:items-center justify-center">
+      <!-- Caja que limita ancho y evita que “toque” bordes -->
+      <div class="relative w-full max-w-[96vw] sm:max-w-2xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
+        <!-- Cerrar tocando fondo (opcional): si lo quieres, deja este botón invisible o un overlay separado -->
+        <button
+          type="button"
+          class="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 z-20 w-9 h-9 rounded-full bg-red-600 text-white shadow-lg
+                 grid place-items-center hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+          (click)="cerrarModalSocio()"
+          aria-label="Cerrar">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+
         <app-socio-modal
           [socio]="socioActual"
           (cancelar)="cerrarModalSocio()"
-          (guardado)="despuesDeGuardarSocio()"
-        >
+          (guardado)="despuesDeGuardarSocio()">
         </app-socio-modal>
       </div>
     </div>
   </div>
 }
+

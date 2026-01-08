@@ -18,7 +18,7 @@ import { HuellaModal, HuellaResultado } from '../huella-modal/huella-modal';
 
 import { PaqueteData } from '../../model/paquete-data';
 import { TiempoPlan } from '../../util/enums/tiempo-plan';
-import { CheckInService } from 'src/app/services/check-in-service';
+import { CheckInService, CheckInResponse } from 'src/app/services/check-in-service';
 
 type EstadoSemaforo = 'verde' | 'amarillo' | 'rojo';
 
@@ -46,12 +46,9 @@ export class Asistencia implements OnInit {
   });
 
   cargando = false;
-  /** Error de “pantalla” (búsqueda / carga de socio+membresías) */
   error: string | null = null;
-  /** Error puntual de operación (p.ej. check-in 409) para mostrar banner */
   errorOperacion: string | null = null;
 
-  // modal de huella
   mostrarHuellaModal = false;
 
   socio = this.asistenciaStore.socio;
@@ -77,13 +74,9 @@ export class Asistencia implements OnInit {
       estado: this.socioInactivo()
         ? ('rojo' as EstadoSemaforo)
         : (this.calcularSemaforo(m.fechaFin) as EstadoSemaforo),
-        
-        
     }))
-    
   );
 
-  
   autorizado = computed(
     () => !this.socioInactivo() && this.tarjetas().some((t) => t.estado !== 'rojo')
   );
@@ -99,10 +92,6 @@ export class Asistencia implements OnInit {
   });
 
   ngOnInit(): void {
-    console.log('[FECHAS] nowLocal:', new Date().toString());
-  console.log('[FECHAS] nowISO  :', new Date().toISOString());
-  console.log('[FECHAS] tzOffsetMin:', new Date().getTimezoneOffset());
-  console.log('[FECHAS] hoyISO():', hoyISO());
     this.inicializarDesdePersistencia();
   }
 
@@ -114,7 +103,8 @@ export class Asistencia implements OnInit {
       return;
     }
     const id = Number(this.formulario.controls.idSocio.value);
-    this.cargarDatosDeSocioPorId(id);
+    // AHORA: buscar por ID = registrar asistencia + cargar datos
+    this.registrarEntradaPorId(id);
   }
 
   abrirHuellaModal(): void {
@@ -157,19 +147,16 @@ export class Asistencia implements OnInit {
 
   protected hoyEsFinde(): boolean {
     const d = new Date();
-    const day = d.getDay(); // 0=Dom, 1=Lun, ... 6=Sáb
-    return day === 0 || day === 5 || day === 6; // Vie(5) Sáb(6) Dom(0)
+    const day = d.getDay();
+    return day === 0 || day === 5 || day === 6;
   }
 
   private membresiaVencida(fechaFinISO?: string | null): boolean {
-  if (!fechaFinISO) return true;
-
-  const hoy = dateLocalFromISO(hoyISO());
-  const fin = dateLocalFromISO(fechaFinISO);
-
-  return fin.getTime() < hoy.getTime(); // ✅ mismo día NO es vencida
-}
-
+    if (!fechaFinISO) return true;
+    const hoy = dateLocalFromISO(hoyISO());
+    const fin = dateLocalFromISO(fechaFinISO);
+    return fin.getTime() < hoy.getTime();
+  }
 
   /** Null si se permite check-in; string con motivo si se bloquea. */
   motivoBloqueoCheckIn(m: MembresiaData): string | null {
@@ -186,6 +173,10 @@ export class Asistencia implements OnInit {
     return null;
   }
 
+  /**
+   * IMPORTANTE: ya NO registramos por idMembresia.
+   * Este botón (cuando se muestre) registra por idSocio.
+   */
   registrarCheckIn(m: MembresiaData): void {
     const bloqueo = this.motivoBloqueoCheckIn(m);
     if (bloqueo) {
@@ -194,44 +185,14 @@ export class Asistencia implements OnInit {
       return;
     }
 
-    this.errorOperacion = null;
-    this.cargando = true;
+    const idSocio = this.socio()?.idSocio;
+    if (!idSocio) {
+      this.notificaciones.aviso('Primero busca un socio.');
+      return;
+    }
 
-    this.checkInService
-      .registrarEntradaPorMembresia(m.idMembresia!)
-      .pipe(finalize(() => (this.cargando = false)))
-      .subscribe({
-        next: (resp) => {
-          if (!resp?.autorizado) {
-            const msg = resp?.motivo || 'No autorizado';
-            this.errorOperacion = msg;
-            this.notificaciones.aviso(msg);
-            return;
-          }
-
-          // Actualizar membresía retornada por backend (incl. visitasRestantes)
-          const lista = [...(this.membresias() ?? [])];
-          const idx = lista.findIndex((x) => x.idMembresia === m.idMembresia);
-          if (idx >= 0 && resp.membresia) {
-            lista[idx] = resp.membresia;
-            this.asistenciaStore.guardarEstado(this.socio()!.idSocio, this.socio(), lista);
-          } else {
-            const id = this.socio()?.idSocio;
-            if (id) this.cargarDatosDeSocioPorId(id);
-          }
-
-          const visitasTxt = this.esPlanPorVisitas(resp.membresia?.paquete)
-            ? ` | Visitas restantes: ${resp.membresia.visitasRestantes}/${resp.membresia.paquete.visitasMaximas ?? '—'}`
-            : '';
-          this.notificaciones.exito(`Check-in registrado${visitasTxt}`);
-          this.errorOperacion = null;
-        },
-        error: (e) => {
-          const msg = this.mensajeLegibleRFC7807(e, 'No se pudo registrar el check-in.');
-          this.errorOperacion = msg;
-          this.notificaciones.error(msg);
-        },
-      });
+    // Reutilizamos el mismo flujo (check-in + carga)
+    this.registrarEntradaPorId(Number(idSocio));
   }
 
   // ─── Lógica de carga ────────────────────────────────────────
@@ -239,14 +200,89 @@ export class Asistencia implements OnInit {
     const ultimoId = this.leerIdSocioPersistidoDeTenant();
     if (ultimoId != null) {
       this.formulario.controls.idSocio.setValue(String(ultimoId));
-      this.cargarDatosDeSocioPorId(ultimoId);
+      // OJO: aquí SOLO consultamos para no registrar asistencia al abrir la pantalla
+      this.cargarDatosDeSocioPorIdSoloConsulta(ultimoId);
     } else {
       this.asistenciaStore.limpiar();
     }
-    
   }
 
-  private cargarDatosDeSocioPorId(id: number): void {
+  /**
+   * NUEVO: Buscar por ID con registro de asistencia.
+   * - Intenta POST /asistencias/checkin {idSocio}
+   * - Si falla (409, 404, etc) muestra mensaje y AÚN ASÍ carga socio+membresías.
+   */
+  private registrarEntradaPorId(id: number): void {
+    this.cargando = true;
+    this.error = null;
+    this.errorOperacion = null;
+
+    this.checkInService
+      .registrarEntradaPorSocio(id)
+      .pipe(
+        catchError((err) => {
+          // Mostramos error de operación pero no bloqueamos la carga de datos
+          const msg = this.mensajeLegibleRFC7807(err, 'No se pudo registrar el check-in.');
+          this.errorOperacion = msg;
+          return of(null as CheckInResponse | null);
+        }),
+        switchMap((resp) => {
+          // Si backend devuelve socio en la respuesta, lo usamos; si no, consultamos
+          const socio$ = resp?.socio
+            ? of(resp.socio)
+            : this.socioService.buscarPorId(id).pipe(
+                catchError((err) => {
+                  if (err?.status === 403 || err?.status === 404) return of(null);
+                  throw err;
+                })
+              );
+
+          const membresias$ = this.membresiaService
+            .buscarMembresiasVigentesPorSocio(id)
+            .pipe(catchError(() => of([] as MembresiaData[])));
+
+          return forkJoin({ resp: of(resp), socio: socio$, membresias: membresias$ });
+        }),
+        finalize(() => (this.cargando = false))
+      )
+      .subscribe({
+        next: ({ resp, socio, membresias }) => {
+          if (!socio) {
+            this.asistenciaStore.limpiar();
+            this.limpiarIdSocioPersistidoDeTenant();
+            const msg = 'Socio no encontrado o no pertenece a tu gimnasio.';
+            this.error = msg;
+            this.notificaciones.error(msg);
+            return;
+          }
+
+          this.formulario.controls.idSocio.setValue(String(socio.idSocio));
+          this.asistenciaStore.guardarEstado(id, socio, membresias ?? []);
+          this.persistirIdSocioDeTenant(id);
+
+          // Si backend retorna autorizado=false (si lo implementas así), avisamos
+          if (resp && resp.autorizado === false) {
+            const msg = resp?.motivo || 'No autorizado';
+            this.errorOperacion = msg;
+            this.notificaciones.aviso(msg);
+            return;
+          }
+
+          // Si NO hubo errorOperacion y el POST existió, mostramos éxito
+          if (!this.errorOperacion) {
+            const visitasTxt =
+              this.esPlanPorVisitas(resp?.membresia?.paquete)
+                ? ` | Visitas restantes: ${resp?.membresia?.visitasRestantes ?? '—'}/${resp?.membresia?.paquete?.visitasMaximas ?? '—'}`
+                : '';
+            this.notificaciones.exito(`Check-in registrado${visitasTxt}`);
+          }
+        },
+        error: (e) => this.notificarErrorPantalla(e, 'No se pudo realizar la operación.'),
+      });
+  }
+
+  /** SOLO CONSULTA: tu método original (renombrado) */
+  private cargarDatosDeSocioPorIdSoloConsulta(id: number): void {
     this.cargando = true;
     this.error = null;
     this.errorOperacion = null;
@@ -326,18 +362,17 @@ export class Asistencia implements OnInit {
 
   // ─── Helpers de UI ──────────────────────────────────────────
   private calcularSemaforo(fechaFinISO?: string | null): EstadoSemaforo {
-  if (!fechaFinISO) return 'rojo';
+    if (!fechaFinISO) return 'rojo';
 
-  const hoy = dateLocalFromISO(hoyISO());
-  const fin = dateLocalFromISO(fechaFinISO);
+    const hoy = dateLocalFromISO(hoyISO());
+    const fin = dateLocalFromISO(fechaFinISO);
 
-  const dias = Math.floor((fin.getTime() - hoy.getTime()) / 86400000);
+    const dias = Math.floor((fin.getTime() - hoy.getTime()) / 86400000);
 
-  if (dias > 3) return 'verde';
-  if (dias >= 0) return 'amarillo'; // ✅ incluye el “último día”
-  return 'rojo';
-}
-
+    if (dias > 3) return 'verde';
+    if (dias >= 0) return 'amarillo';
+    return 'rojo';
+  }
 
   private formatearId(id?: number | null): string {
     const n = Number(id ?? 0);
@@ -347,20 +382,16 @@ export class Asistencia implements OnInit {
   // ─── Manejo de errores legibles (incluye RFC7807) ───────────
   private mensajeLegibleRFC7807(err: any, fallback: string): string {
     const body = err?.error ?? {};
-    // RFC 7807
     const title = body.title ?? null;
     const detail = body.detail ?? null;
-    // Validaciones comunes
     const msg = body.message ?? null;
     const errorTxt = body.error ?? null;
 
-    // Bean Validation style
     if (Array.isArray(body.violations) && body.violations.length) {
       const v = body.violations[0];
       const vm = v?.message || JSON.stringify(v);
       return detail ? `${detail}` : vm;
     }
-    // Spring errors[]
     if (Array.isArray(body.errors) && body.errors.length) {
       const first = body.errors[0];
       const detailFirst = first?.defaultMessage || first?.message || JSON.stringify(first);

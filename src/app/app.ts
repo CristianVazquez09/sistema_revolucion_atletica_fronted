@@ -5,7 +5,7 @@ import { RaAppZoomComponent } from './shared/ra-app-zoom/ra-app-zoom';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet,NotificacionHost, RaAppZoomComponent],
+  imports: [RouterOutlet,NotificacionHost],
   templateUrl: './app.html',
   styleUrl: './app.css',
 

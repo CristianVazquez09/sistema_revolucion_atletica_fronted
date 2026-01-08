@@ -24,7 +24,7 @@ import { PagedResponse } from '../../model/paged-response';
 // Admin: detectar desde token
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
-import { TipoPaquete } from '../../util/enums/tipo-paquete'; // 👈 enum de tipo de paquete
+import { TipoPaquete } from '../../util/enums/tipo-paquete';
 import { MenuService } from 'src/app/services/menu-service';
 
 @Component({
@@ -40,8 +40,9 @@ export class Socio implements OnInit, OnDestroy {
   cargando = true;
   mensajeError: string | null = null;
 
+  // Menu
   private menuSrv = inject(MenuService);
-menuAbierto = this.menuSrv.menuAbierto;
+  menuAbierto = this.menuSrv.menuAbierto;
 
   // Admin
   private jwt = inject(JwtHelperService);
@@ -80,6 +81,16 @@ menuAbierto = this.menuSrv.menuAbierto;
     private notificacion: NotificacionService
   ) {}
 
+  // =========================
+  // Helpers de normalización
+  // =========================
+  private normalizarTermino(v: string): string {
+    return (v ?? '')
+      .replace(/\u00A0/g, ' ') // NBSP -> espacio normal
+      .replace(/\s+/g, ' ')    // colapsa espacios/tabs/saltos
+      .trim();
+  }
+
   // ─────────── Ciclo de vida ───────────
   ngOnInit(): void {
     this.isAdmin = this.deducirEsAdminDesdeToken();
@@ -87,7 +98,7 @@ menuAbierto = this.menuSrv.menuAbierto;
 
     this.subsBusqueda = this.busqueda$
       .pipe(
-        map((v) => v.trim()),
+        map((v) => this.normalizarTermino(v)),
         debounceTime(400),
         distinctUntilChanged(),
         tap((texto) => {
@@ -107,10 +118,8 @@ menuAbierto = this.menuSrv.menuAbierto;
           const tipoEnum = this.filtroTipoPaquete
             ? (this.filtroTipoPaquete as TipoPaquete)
             : undefined;
-          // Si hay tipoPaquete, asumimos que queremos solo socios con membresía vigente de ese tipo
           const soloVigentes: boolean | undefined = tipoEnum ? true : undefined;
 
-          // 🔍 Búsqueda por nombre + filtros combinados
           return this.socioService
             .buscarSociosPorNombre(
               texto,
@@ -188,8 +197,6 @@ menuAbierto = this.menuSrv.menuAbierto;
     this.tamanioPagina = resp.pagina?.tamanio ?? this.tamanioPagina;
     this.paginaActual = resp.pagina?.numero ?? this.paginaActual;
 
-    // Si la página viene vacía,
-    // intenta retroceder una página para no dejar la UI en blanco.
     if (this.listaSocios.length === 0 && this.paginaActual > 0) {
       this.paginaActual = this.paginaActual - 1;
       this.cargarSocios();
@@ -200,7 +207,7 @@ menuAbierto = this.menuSrv.menuAbierto;
     this.cargando = true;
     this.mensajeError = null;
 
-    const texto = this.terminoBusqueda.trim();
+    const texto = this.normalizarTermino(this.terminoBusqueda);
 
     const tipoEnum = this.filtroTipoPaquete
       ? (this.filtroTipoPaquete as TipoPaquete)
@@ -210,8 +217,7 @@ menuAbierto = this.menuSrv.menuAbierto;
 
     const fuente$ =
       texto.length >= this.minCaracteresBusqueda
-        ? // Si hay texto de búsqueda, usamos el mismo endpoint de búsqueda por nombre
-          this.socioService.buscarSociosPorNombre(
+        ? this.socioService.buscarSociosPorNombre(
             texto,
             this.paginaActual,
             this.tamanioPagina,
@@ -219,8 +225,7 @@ menuAbierto = this.menuSrv.menuAbierto;
             tipoEnum,
             soloVigentes
           )
-        : // Listado general con filtros de tipoPaquete + activo
-          this.socioService.buscarSocios(
+        : this.socioService.buscarSocios(
             this.paginaActual,
             this.tamanioPagina,
             tipoEnum,
@@ -237,8 +242,9 @@ menuAbierto = this.menuSrv.menuAbierto;
 
   // ─────────── Búsqueda ───────────
   onBuscarChange(valor: string): void {
-    this.terminoBusqueda = valor;
-    this.busqueda$.next(valor);
+    const limpio = this.normalizarTermino(valor);
+    this.terminoBusqueda = limpio;
+    this.busqueda$.next(limpio);
   }
 
   limpiarBusqueda(): void {
@@ -248,7 +254,7 @@ menuAbierto = this.menuSrv.menuAbierto;
   // ─────────── Filtro de tipo de paquete ───────────
   cambiarFiltroTipo(valor: string): void {
     if (this.filtroTipoPaquete === valor) return;
-    this.filtroTipoPaquete = valor; // '', 'GIMNASIO', 'ZONA_COMBATE', 'MIXTO'
+    this.filtroTipoPaquete = valor;
     this.paginaActual = 0;
     this.cargarSocios();
   }
@@ -256,7 +262,7 @@ menuAbierto = this.menuSrv.menuAbierto;
   // ─────────── Filtro de estado (activo / inactivo / todos) ───────────
   cambiarFiltroEstado(valor: string): void {
     if (this.filtroEstado === valor) return;
-    this.filtroEstado = valor as any; // 'ACTIVOS' | 'INACTIVOS' | 'TODOS'
+    this.filtroEstado = valor as any;
     this.paginaActual = 0;
     this.cargarSocios();
   }
