@@ -27,7 +27,6 @@ export class VentasAdmin {
   private ticket = inject(TicketService);
   private menuSrv = inject(MenuService);
   menuAbierto = this.menuSrv.menuAbierto;
-  
 
   // --- estado de tabla/paginación ---
   rows: VentaData[] = [];
@@ -37,7 +36,6 @@ export class VentasAdmin {
 
   // --- filtros/orden ---
   sizeSel = 10;
-  // incluye 'folio' como campo de ordenamiento
   sortCampo: 'fecha' | 'idVenta' | 'total' | 'folio' = 'fecha';
   sortDir: 'asc' | 'desc' = 'desc';
 
@@ -66,20 +64,20 @@ export class VentasAdmin {
     this.esRecep = roles.includes('RECEPCIONISTA') || roles.includes('ROLE_RECEPCIONISTA');
     this.cargar(1);
   }
+
   ngAfterViewInit(): void {
-  this.applyLayout();
+    this.applyLayout();
 
-  this.ro = new ResizeObserver(() => this.applyLayout());
-  this.ro.observe(this.zoomOuter.nativeElement);
+    this.ro = new ResizeObserver(() => this.applyLayout());
+    this.ro.observe(this.zoomOuter.nativeElement);
 
-  window.addEventListener('resize', this.applyLayout);
-}
+    window.addEventListener('resize', this.applyLayout);
+  }
 
-ngOnDestroy(): void {
-  this.ro?.disconnect();
-  window.removeEventListener('resize', this.applyLayout);
-}
-
+  ngOnDestroy(): void {
+    this.ro?.disconnect();
+    window.removeEventListener('resize', this.applyLayout);
+  }
 
   // ============= Helpers roles =============
   private rolesDesdeToken(): string[] {
@@ -125,7 +123,6 @@ ngOnDestroy(): void {
   cargar(pageUI: number): void {
     this.error = null;
 
-    // 🔎 si estamos filtrando por rango de fechas, usar el endpoint de rango
     if (this.buscandoPorRango && this.fechaDesde && this.fechaHasta) {
       this.cargando = true;
       this.srv.listarPorRango({
@@ -154,15 +151,11 @@ ngOnDestroy(): void {
       return;
     }
 
-    // 🔎 si estamos en búsqueda puntual por folio, no hay paginación real,
-    // solo mostramos una fila; deshabilitamos los controles de paginación desde la vista
     if (this.buscandoPorFolio) {
-      // simplemente re-ejecutamos la búsqueda por folio
       this.buscarPorFolio();
       return;
     }
 
-    // listado normal sin filtros
     this.cargando = true;
     this.srv.listar({ page: pageUI, size: this.sizeSel, sort: this.sortSel })
       .subscribe({
@@ -264,12 +257,10 @@ ngOnDestroy(): void {
   cerrarModal(): void { this.mostrarModal.set(false); this.idVer = null; }
 
   onGuardado(venta: VentaData) {
-    // toast
     (this.noti as any).exito
       ? this.noti.exito('Venta actualizada.')
       : this.noti.exito?.('Venta actualizada.');
 
-    // si estamos en modo búsqueda por folio y coincide, actualiza inline
     if (this.buscandoPorFolio && venta?.folio === Number(this.folioBuscar || 0)) {
       this.rows = [venta];
       this.page = { size: 1, number: 0, totalElements: 1, totalPages: 1 };
@@ -277,21 +268,18 @@ ngOnDestroy(): void {
       return;
     }
 
-    // si estamos en rango, recargamos la misma página del rango
     if (this.buscandoPorRango) {
       this.cargar(this.pageUI);
       this.cerrarModal();
       return;
     }
 
-    // si no, recarga el listado donde estábamos
     this.cargar(this.pageUI);
     this.cerrarModal();
   }
 
   // ============= Acciones tabla =============
   eliminar(v: VentaData): void {
-    // Recepcionista no puede eliminar
     if (this.esRecep) return;
     if (!v?.idVenta) return;
     if (!confirm(`¿Eliminar la venta #${v.folio ?? v.idVenta}?`)) return;
@@ -306,7 +294,6 @@ ngOnDestroy(): void {
 
     this.reimprimiendo = true;
 
-    // Datos del gimnasio (similar a gymDeVenta pero obteniendo el objeto)
     const g = this.gimnasioObjDeVenta(v) || {};
     const negocio = {
       nombre: (g as any).nombre || 'Gimnasio',
@@ -316,13 +303,11 @@ ngOnDestroy(): void {
 
     const cajero = v.usuario?.nombreUsuario || '';
 
-    // Intentamos armar el nombre del socio/cliente si existe
     const socioNombre = (
       `${(v as any).socio?.nombre ?? (v as any).cliente?.nombre ?? ''} ` +
       `${(v as any).socio?.apellido ?? (v as any).cliente?.apellido ?? ''}`
     ).trim();
 
-    // Pagos -> TicketPagoDetalle[]
     const pagos: TicketPagoDetalle[] | undefined =
       (v.pagos && v.pagos.length)
         ? v.pagos.map(p => ({
@@ -332,7 +317,6 @@ ngOnDestroy(): void {
         : undefined;
 
     try {
-      // usamos helper de TicketService que ya sabe mapear VentaData -> TicketVenta
       this.ticket.imprimirVentaDesdeBackend(
         v as any,
         { negocio, cajero, socio: socioNombre || undefined },
@@ -353,19 +337,59 @@ ngOnDestroy(): void {
       (v.pagos ?? [])
         .filter(p => p.tipoPago === tipo)
         .reduce((a, p) => a + (Number(p.monto) || 0), 0);
+
     const fmt = (n: number) =>
       new Intl.NumberFormat('es-MX', {
         style: 'currency',
         currency: 'MXN',
         minimumFractionDigits: 2
       }).format(n);
+
     const chips: string[] = [];
-    const e = tot('EFECTIVO');      if (e > 0) chips.push(`Efectivo ${fmt(e)}`);
-    const t = tot('TARJETA');       if (t > 0) chips.push(`Tarjeta ${fmt(t)}`);
+    const e = tot('EFECTIVO');       if (e > 0) chips.push(`Efectivo ${fmt(e)}`);
+    const t = tot('TARJETA');        if (t > 0) chips.push(`Tarjeta ${fmt(t)}`);
     const tr = tot('TRANSFERENCIA'); if (tr > 0) chips.push(`Transf. ${fmt(tr)}`);
     return chips.join(' · ') || '—';
   }
 
+  // ==========================
+  // ✅ NUEVO: PRODUCTO (columna "Producto")
+  // ==========================
+  private nombresProductos(v: VentaData): string[] {
+    const detalles: any[] = (v as any)?.detalles ?? [];
+
+    const nombres = detalles
+      .map(d =>
+        (d?.producto?.nombre ??
+         d?.productoNombre ??
+         d?.nombreProducto ??
+         d?.nombre ??
+         '')
+      )
+      .map((s: any) => String(s ?? '').trim())
+      .filter(Boolean);
+
+    // únicos, por si repite el mismo producto
+    return Array.from(new Set(nombres));
+  }
+
+  /** Texto corto para celda: "X" o "X (+N)" */
+  productoChip(v: VentaData): string {
+    const names = this.nombresProductos(v);
+    if (!names.length) return '—';
+    if (names.length === 1) return names[0];
+    return `${names[0]} (+${names.length - 1})`;
+  }
+
+  /** Tooltip con lista completa */
+  productoTitle(v: VentaData): string {
+    const names = this.nombresProductos(v);
+    return names.length ? names.join(' · ') : '—';
+  }
+
+  // ==========================
+  // Gimnasio
+  // ==========================
   private gimnasioObjDeVenta(v: VentaData): any {
     return (v as any).gimnasio
       ?? v.detalles?.[0]?.producto?.gimnasio
@@ -381,61 +405,85 @@ ngOnDestroy(): void {
 
   trackById = (_: number, it: VentaData) => it.idVenta!;
 
+  // ==========================
+  // ZOOM (igual que lo traías)
+  // ==========================
   @ViewChild('zoomOuter', { static: true }) zoomOuter!: ElementRef<HTMLElement>;
 
-uiZoom = 1;
-ventasMaxH = 650;
+  uiZoom = 1;
+  ventasMaxH = 650;
 
-private ro?: ResizeObserver;
+  private ro?: ResizeObserver;
 
-private readonly MIN_ZOOM = 0.67;
-private readonly MAX_ZOOM = 1.0;
+  private readonly MIN_ZOOM = 0.67;
+  private readonly MAX_ZOOM = 1.0;
 
-private clamp(n: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, n));
-}
-
-private round2(n: number) {
-  return Math.round(n * 100) / 100;
-}
-
-private getDesignWidth(): number {
-  const menu = this.menuAbierto(); // signal
-
-  // Ajusta estos números a tu gusto (depende de cuántas columnas se vean)
-  if (this.esAdmin) {
-    return menu ? 1550 : 1800;   // con menú abierto normalmente ocultas "Pagos"
+  private clamp(n: number, min: number, max: number) {
+    return Math.min(max, Math.max(min, n));
   }
-  return menu ? 1450 : 1700;
+
+  private round2(n: number) {
+    return Math.round(n * 100) / 100;
+  }
+
+  private getDesignWidth(): number {
+    const menu = this.menuAbierto(); // signal
+
+    if (this.esAdmin) {
+      return menu ? 1550 : 1800;
+    }
+    return menu ? 1450 : 1700;
+  }
+
+  private applyLayout = () => {
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      this.uiZoom = 1;
+
+      const top = this.zoomOuter.nativeElement.getBoundingClientRect().top;
+      const bottomReserve = 140;
+      const available = window.innerHeight - top - bottomReserve;
+      this.ventasMaxH = Math.max(420, Math.floor(available));
+      return;
+    }
+
+    const w = this.zoomOuter?.nativeElement?.clientWidth || window.innerWidth;
+    const design = this.getDesignWidth();
+
+    const z = this.clamp(w / design, this.MIN_ZOOM, this.MAX_ZOOM);
+    this.uiZoom = this.round2(z);
+
+    const top = this.zoomOuter.nativeElement.getBoundingClientRect().top;
+    const bottomReserve = 140;
+
+    const available = window.innerHeight - top - bottomReserve;
+
+    this.ventasMaxH = Math.max(420, Math.floor(available / this.uiZoom));
+  };
+  // Devuelve lista de productos para pintar en líneas.
+// Ajusta las rutas según tu modelo real (v.detalles, v.detalleVenta, etc.)
+productosDeVenta(v: any): string[] {
+  const dets = (v?.detalles ?? v?.detalle ?? v?.items ?? []) as any[];
+  if (!Array.isArray(dets) || dets.length === 0) return [];
+
+  // Agrupar por nombre y sumar cantidades (para evitar repetidos)
+  const map = new Map<string, number>();
+
+  for (const d of dets) {
+    const nombre = (d?.producto?.nombre ?? d?.nombreProducto ?? '').toString().trim();
+    if (!nombre) continue;
+
+    const qtyRaw = d?.cantidad ?? 1;
+    const qty = Number.isFinite(+qtyRaw) ? Math.max(1, +qtyRaw) : 1;
+
+    map.set(nombre, (map.get(nombre) ?? 0) + qty);
+  }
+
+  return Array.from(map.entries()).map(([nombre, qty]) => (qty > 1 ? `${nombre} x${qty}` : nombre));
 }
 
-private applyLayout = () => {
-  if (window.matchMedia('(min-width: 1024px)').matches) {
-  this.uiZoom = 1;
-  // igual calcula altura para scroller:
-  const top = this.zoomOuter.nativeElement.getBoundingClientRect().top;
-  const bottomReserve = 140;
-  const available = window.innerHeight - top - bottomReserve;
-  this.ventasMaxH = Math.max(420, Math.floor(available));
-  return;
+productoTitleCompleto(v: any): string {
+  const ps = this.productosDeVenta(v);
+  return ps.length ? ps.join(' | ') : '';
 }
-
-  const w = this.zoomOuter?.nativeElement?.clientWidth || window.innerWidth;
-  const design = this.getDesignWidth();
-
-  const z = this.clamp(w / design, this.MIN_ZOOM, this.MAX_ZOOM);
-  this.uiZoom = this.round2(z);
-
-  // Alto disponible real desde donde empieza este componente
-  const top = this.zoomOuter.nativeElement.getBoundingClientRect().top;
-
-  // “espacio” para paginación + márgenes + cualquier barra abajo
-  const bottomReserve = 140;
-
-  const available = window.innerHeight - top - bottomReserve;
-
-  // Compensación por zoom: si baja el zoom, sube el maxHeight para que se vea “alto normal”
-  this.ventasMaxH = Math.max(420, Math.floor(available / this.uiZoom));
-};
 
 }

@@ -12,6 +12,7 @@ import {
   CorteCajaPreviewDTO,
   RegistrarSalidaEfectivoRequest,
   SalidaEfectivo,
+  CorteDesgloseDTO,
 } from '../model/corte-caja-data';
 import { Injectable } from '@angular/core';
 
@@ -21,14 +22,12 @@ export class CorteCajaService extends GenericService<CorteCajaResponseDTO> {
     super(http, `${environment.HOST}/cortes`);
   }
 
-  // === Abrir con fondo ===
   abrir(req: AbrirCorte): Observable<CorteCajaResponseDTO> {
-  const body = { fondoCajaInicial: Number(req?.fondoCajaInicial ?? 0) }; // 👈 fuerza number
-  return this.http.post<CorteCajaResponseDTO>(`${this.url}/abrir`, body, {
-    headers: { 'Content-Type': 'application/json' } // explícito por si acaso
-  });
-}
-
+    const body = { fondoCajaInicial: Number(req?.fondoCajaInicial ?? 0) };
+    return this.http.post<CorteCajaResponseDTO>(`${this.url}/abrir`, body, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   cerrar(idCorte: number, req: CerrarCorte): Observable<CorteCajaResponseDTO> {
     return this.http.post<CorteCajaResponseDTO>(`${this.url}/${idCorte}/cerrar`, req);
@@ -47,7 +46,6 @@ export class CorteCajaService extends GenericService<CorteCajaResponseDTO> {
       );
   }
 
-  // === Preview en vivo (por id o el abierto actual) ===
   previsualizar(idCorte: number, hasta?: string): Observable<CorteCajaPreviewDTO> {
     let params = new HttpParams();
     if (hasta) params = params.set('hasta', hasta);
@@ -60,15 +58,18 @@ export class CorteCajaService extends GenericService<CorteCajaResponseDTO> {
     return this.http.get<CorteCajaPreviewDTO>(`${this.url}/abierto/preview`, { params });
   }
 
-  // === Salidas de efectivo ===
   registrarSalida(idCorte: number, req: RegistrarSalidaEfectivoRequest): Observable<SalidaEfectivo> {
     return this.http.post<SalidaEfectivo>(`${this.url}/${idCorte}/salidas`, req);
   }
+
   listarSalidas(idCorte: number): Observable<SalidaEfectivo[]> {
     return this.http.get<SalidaEfectivo[]>(`${this.url}/${idCorte}/salidas`);
   }
 
-  /** Listado paginado */
+  desgloseActual(): Observable<CorteDesgloseDTO> {
+    return this.http.get<CorteDesgloseDTO>(`${this.url}/actual/desglose`);
+  }
+
   listar(opts: {
     estado?: '' | 'ABIERTO' | 'CERRADO';
     page?: number;
@@ -87,4 +88,10 @@ export class CorteCajaService extends GenericService<CorteCajaResponseDTO> {
     const params = new HttpParams({ fromObject: paramsObj });
     return this.http.get<PagedResponse<CorteCajaListado>>(`${this.url}`, { params });
   }
+
+  // ✅ NUEVO: Desglose por ID (corte cerrado o abierto)
+desglose(idCorte: number): Observable<CorteDesgloseDTO> {
+  return this.http.get<CorteDesgloseDTO>(`${this.url}/${idCorte}/desglose`);
+}
+
 }

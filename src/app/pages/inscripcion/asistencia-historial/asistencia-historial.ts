@@ -1,7 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { CheckInService } from 'src/app/services/check-in-service';
 import { AsistenciaHistorialData } from 'src/app/model/asistencia-historial-data';
@@ -19,15 +23,16 @@ import { environment } from 'src/environments/environment';
   styleUrl: './asistencia-historial.css',
 })
 export class AsistenciaHistorial implements OnInit {
-
   private readonly asistenciaService = inject(CheckInService);
 
-  private jwt = inject(JwtHelperService);
-    private menuSrv = inject(MenuService);
-      menuAbierto = this.menuSrv.menuAbierto;
-  
-    // Admin?
-    isAdmin = false;
+  private readonly jwt = inject(JwtHelperService);
+  private readonly menuSrv = inject(MenuService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  menuAbierto = this.menuSrv.menuAbierto;
+
+  // Admin?
+  isAdmin = false;
 
   // ─────────── Estado ───────────
   listaAsistencias: AsistenciaHistorialData[] = [];
@@ -37,10 +42,23 @@ export class AsistenciaHistorial implements OnInit {
   // ─────────── Filtros ───────────
   filtroDesde: string | null = null; // 'YYYY-MM-DD'
   filtroHasta: string | null = null; // 'YYYY-MM-DD'
-  filtroIdSocio: number | null = null;
+  filtroNombreSocio: string = '';
 
-  get usandoRango(): boolean {
+  // Búsqueda tipo “Socios/Membresías”: debounce + mínimo 3 letras
+  private readonly nombreSearch$ = new Subject<string>();
+  private buscandoNombre = false;
+
+  private nombreTrim(): string {
+    return (this.filtroNombreSocio ?? '').trim();
+  }
+
+  private get rangoCompleto(): boolean {
     return !!(this.filtroDesde && this.filtroHasta);
+  }
+
+  // nombre listo para backend (≥3)
+  private get nombreListo(): boolean {
+    return this.nombreTrim().length >= 3;
   }
 
   // ─────────── Paginación ───────────
@@ -52,37 +70,79 @@ export class AsistenciaHistorial implements OnInit {
 
   // ─────────── Ciclo de vida ───────────
   ngOnInit(): void {
+    this.configurarBusquedaNombre();
     this.cargarAsistencias();
     this.isAdmin = this.deducirEsAdminDesdeToken();
   }
 
+  private configurarBusquedaNombre(): void {
+    this.nombreSearch$
+      .pipe(
+        map((v) => (v ?? '').trim()),
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((n) => {
+        const activar = n.length >= 3;
+
+        // Si venías buscando por nombre y ahora bajó a < 3 letras:
+        // recarga (pero ahora sin nombre; con fechas si están completas)
+        if (!activar && this.buscandoNombre) {
+          this.buscandoNombre = false;
+          this.paginaActual = 0;
+          this.cargarAsistencias();
+          return;
+        }
+
+        // Si ya tiene >= 3 letras: buscar automáticamente
+        if (activar) {
+          this.buscandoNombre = true;
+          this.paginaActual = 0;
+          this.cargarAsistencias();
+          return;
+        }
+
+        // Si quedó vacío: recarga listado normal (o por fechas si están completas)
+        if (n.length === 0) {
+          this.paginaActual = 0;
+          this.cargarAsistencias();
+        }
+      });
+  }
+
+  // ngModelChange del input nombre
+  onNombreChange(valor: string): void {
+    this.filtroNombreSocio = valor ?? '';
+    this.nombreSearch$.next(this.filtroNombreSocio);
+  }
+
   private deducirEsAdminDesdeToken(): boolean {
-      const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
-      if (!raw) return false;
-      try {
-        const decoded: any = this.jwt.decodeToken(raw);
-        const roles: string[] = [
-          ...(Array.isArray(decoded?.roles) ? decoded.roles : []),
-          ...(Array.isArray(decoded?.authorities) ? decoded.authorities : []),
-          ...(Array.isArray(decoded?.realm_access?.roles)
-            ? decoded.realm_access.roles
-            : []),
-        ]
-          .concat(
-            [decoded?.role, decoded?.rol, decoded?.perfil].filter(
-              Boolean
-            ) as string[]
-          )
-          .map((r) => String(r).toUpperCase());
-        return (
-          decoded?.is_admin === true ||
-          roles.includes('ADMIN') ||
-          roles.includes('ROLE_ADMIN')
-        );
-      } catch {
-        return false;
-      }
+    const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
+    if (!raw) return false;
+    try {
+      const decoded: any = this.jwt.decodeToken(raw);
+      const roles: string[] = [
+        ...(Array.isArray(decoded?.roles) ? decoded.roles : []),
+        ...(Array.isArray(decoded?.authorities) ? decoded.authorities : []),
+        ...(Array.isArray(decoded?.realm_access?.roles)
+          ? decoded.realm_access.roles
+          : []),
+      ]
+        .concat(
+          [decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[]
+        )
+        .map((r) => String(r).toUpperCase());
+
+      return (
+        decoded?.is_admin === true ||
+        roles.includes('ADMIN') ||
+        roles.includes('ROLE_ADMIN')
+      );
+    } catch {
+      return false;
     }
+  }
 
   // ─────────── Rango mostrado ───────────
   get rangoDesde(): number {
@@ -97,10 +157,27 @@ export class AsistenciaHistorial implements OnInit {
 
   // ─────────── Eventos UI: filtros ───────────
   aplicarFiltros(): void {
-    if (!this.filtroDesde || !this.filtroHasta) {
-      this.mensajeError = 'Selecciona fecha desde y hasta.';
+    // Si el nombre está listo (>=3), el botón solo fuerza recarga (ya es automático)
+    if (this.nombreListo) {
+      this.paginaActual = 0;
+      this.cargarAsistencias();
       return;
     }
+
+    // Si hay 1-2 letras, no disparamos búsqueda por nombre
+    const n = this.nombreTrim();
+    if (n.length > 0 && n.length < 3) {
+      this.mensajeError = 'Escribe al menos 3 letras para buscar por nombre.';
+      return;
+    }
+
+    // Si quiere filtrar por fechas, exige ambas (para no romper backend)
+    if ((this.filtroDesde && !this.filtroHasta) || (!this.filtroDesde && this.filtroHasta)) {
+      this.mensajeError = 'Para filtrar por fecha debes enviar "desde" y "hasta".';
+      return;
+    }
+
+    // Si no hay ni nombre listo ni rango completo, recarga todo
     this.paginaActual = 0;
     this.cargarAsistencias();
   }
@@ -108,7 +185,9 @@ export class AsistenciaHistorial implements OnInit {
   limpiarFiltros(): void {
     this.filtroDesde = null;
     this.filtroHasta = null;
-    this.filtroIdSocio = null;
+    this.filtroNombreSocio = '';
+    this.buscandoNombre = false;
+
     this.paginaActual = 0;
     this.cargarAsistencias();
   }
@@ -150,13 +229,23 @@ export class AsistenciaHistorial implements OnInit {
     this.cargando = true;
     this.mensajeError = null;
 
-    const obs = this.usandoRango
-      ? this.asistenciaService.listarHistorialRango(
+    // Solo enviamos nombre si >=3 (para no pegar al backend con 1-2 letras)
+    const nombre = this.nombreListo ? this.nombreTrim() : null;
+
+    // Solo enviamos fechas si están ambas
+    const desde = this.rangoCompleto ? this.filtroDesde : null;
+    const hasta = this.rangoCompleto ? this.filtroHasta : null;
+
+    // Si hay filtros (nombre>=3 o rango completo) => /buscar combinable
+    const usarBuscar = !!nombre || (desde && hasta);
+
+    const obs = usarBuscar
+      ? this.asistenciaService.buscar(
           this.paginaActual,
           this.tamanioPagina,
-          this.filtroDesde!, // no null si usandoRango
-          this.filtroHasta!,
-          this.filtroIdSocio && this.filtroIdSocio > 0 ? this.filtroIdSocio : undefined
+          desde,
+          hasta,
+          nombre
         )
       : this.asistenciaService.listarHistorial(this.paginaActual, this.tamanioPagina);
 
@@ -205,7 +294,6 @@ export class AsistenciaHistorial implements OnInit {
     return '—';
   }
 
-  // NUEVO
   displayPaqueteNombre(a: AsistenciaHistorialData): string {
     const p: any = a?.paquete;
     if (p?.nombre && String(p.nombre).trim().length) return p.nombre;
@@ -213,7 +301,6 @@ export class AsistenciaHistorial implements OnInit {
     return '—';
   }
 
-  // NUEVO: detalle tipo/tiempo (si viene)
   displayPaqueteDetalle(a: AsistenciaHistorialData): string {
     const p: any = a?.paquete;
     if (!p) return '';
@@ -222,7 +309,6 @@ export class AsistenciaHistorial implements OnInit {
     if (p.tipoPaquete) parts.push(String(p.tipoPaquete));
     if (p.tiempo) parts.push(String(p.tiempo));
 
-    // visitas / fines de semana (si quieres mostrarlo)
     if (p.visitasMaximas != null) parts.push(`Visitas: ${p.visitasMaximas}`);
     if (p.soloFinesDeSemana === true) parts.push('Solo finde');
 

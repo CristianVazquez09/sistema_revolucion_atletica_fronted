@@ -1,0 +1,166 @@
+@if (open) {
+  <!-- Backdrop -->
+  <div
+    class="fixed inset-0 z-[1000] bg-black/40 backdrop-blur-[1px] px-2 md:px-6 py-6 flex items-center justify-center"
+    (click)="cerrarClickBackdrop($event)"
+  >
+    <!-- Panel -->
+    <div
+      class="w-[96vw] md:w-[92vw] lg:w-[88vw] xl:w-[80vw] 2xl:w-[70vw]
+             max-h-[92vh] md:max-h-[90vh]
+             rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 overflow-hidden"
+    >
+      <!-- Header -->
+      <div class="px-4 md:px-6 py-4 border-b flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <div class="text-[18px] md:text-[20px] font-bold text-ra-slate leading-none">
+            Movimientos del corte
+          </div>
+          <div class="mt-2 text-xs text-ra-slate/70">
+            {{ movimientosFiltrados.length }} movimientos
+            · Total: {{ totalMovimientosFiltrados | currency:'MXN':'symbol-narrow':'1.2-2' }}
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <button class="rcm-btn rcm-btn--blue" (click)="refrescar.emit()" [disabled]="cargando">
+            @if (cargando) { Cargando… } @else { Actualizar }
+          </button>
+
+          <button
+            class="w-9 h-9 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+            (click)="cerrar.emit()"
+            aria-label="Cerrar"
+            type="button"
+          >
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Body con ZOOM -->
+      <div #zoomOuter class="px-4 md:px-6 py-4">
+        <div class="origin-top-left" [style.zoom]="uiZoom">
+          <!-- Filtros -->
+          <div class="border-b bg-ra-grayLight/20 rounded-xl p-3 md:p-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-3 items-end">
+              <div class="md:col-span-2">
+                <label class="block text-[11px] font-semibold text-ra-slate/70 mb-1">Buscar</label>
+                <input
+                  class="input-filled w-full"
+                  [(ngModel)]="filtroMovimientos"
+                  placeholder="folio / socio / concepto / cajero / pago…"
+                />
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-semibold text-ra-slate/70 mb-1">Módulo</label>
+                <select class="input-filled w-full" [(ngModel)]="filtroModulo">
+                  <option value="">Todos</option>
+                  <option value="VENTA">VENTA</option>
+                  <option value="MEMBRESIA">MEMBRESIA</option>
+                  <option value="ASESORIA">ASESORIA</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-semibold text-ra-slate/70 mb-1">Tipo de pago</label>
+                <select class="input-filled w-full" [(ngModel)]="filtroTipoPago">
+                  <option value="">Todos</option>
+                  <option value="EFECTIVO">EFECTIVO</option>
+                  <option value="TARJETA">TARJETA</option>
+                  <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+                </select>
+              </div>
+
+              <div class="md:col-span-4 flex items-center justify-between gap-2 flex-wrap mt-2">
+                <div class="text-[11px] text-ra-slate/70">
+                  Tip: filtra por <span class="font-semibold">concepto</span> o <span class="font-semibold">cajero</span>.
+                </div>
+                <button class="rcm-btn rcm-btn--blue" type="button" (click)="limpiarFiltros()">
+                  Limpiar filtros
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabla -->
+          <div class="mt-4 overflow-x-auto">
+            <div
+              class="overflow-y-auto rounded-lg ring-1 ring-black/5"
+              [style.maxHeight.px]="tablaMaxH"
+            >
+              <table class="w-full min-w-[1200px] text-[13px]">
+                <thead class="sticky top-0 bg-ra-grayLight/40 z-10">
+                  <tr class="text-ra-slate">
+                    <th class="py-3 px-4 text-left font-semibold uppercase">Fecha</th>
+                    <th class="py-3 px-4 text-left font-semibold uppercase">Módulo</th>
+                    <th class="py-3 px-4 text-left font-semibold uppercase">Folio</th>
+                    <th class="py-3 px-4 text-left font-semibold uppercase">Socio</th>
+                    <th class="py-3 px-4 text-left font-semibold uppercase">Concepto</th>
+                    <th class="py-3 px-4 text-left font-semibold uppercase">Pago</th>
+                    <th class="py-3 px-4 text-right font-semibold uppercase">Monto</th>
+                    <th class="py-3 px-4 text-left font-semibold uppercase">Cajero</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  @if (!movimientosFiltrados.length) {
+                    <tr>
+                      <td colspan="8" class="py-8 px-4 text-center text-ra-slate">
+                        @if (cargando) { Cargando movimientos… } @else { Sin movimientos para mostrar. }
+                      </td>
+                    </tr>
+                  } @else {
+                    @for (m of movimientosFiltrados; track $index) {
+                      <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
+                        <td class="py-2 px-4 whitespace-nowrap">
+                          {{ m.fecha | date:'dd/MM/yyyy HH:mm' }}
+                        </td>
+
+                        <td class="py-2 px-4 font-semibold">
+                          {{ moduloLabel(m.origen) }}
+                        </td>
+
+                        <td class="py-2 px-4">
+                          {{ m.folio ?? '—' }}
+                        </td>
+
+                        <td class="py-2 px-4">
+                          {{ m.socio ?? '—' }}
+                        </td>
+
+                        <td class="py-2 px-4">
+                          {{ m.concepto ?? '—' }}
+                        </td>
+
+                        <td class="py-2 px-4">
+                          {{ m.tipoPago }}
+                        </td>
+
+                        <td class="py-2 px-4 text-right font-semibold">
+                          {{ m.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                        </td>
+
+                        <td class="py-2 px-4">
+                          {{ m.cajero ?? '—' }}
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-4 md:px-6 py-4 border-t bg-white flex items-center justify-end gap-2">
+        <button class="btn-red" type="button" (click)="cerrar.emit()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}

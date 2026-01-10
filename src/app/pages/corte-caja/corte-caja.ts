@@ -13,14 +13,19 @@ import {
   CorteCajaPreviewDTO,
   SalidaEfectivo,
   RegistrarSalidaEfectivoRequest,
+  CorteDesgloseDTO,
+  CorteMovimientoViewDTO,
 } from '../../model/corte-caja-data';
 import { environment } from '../../../environments/environment';
 import { TicketService } from '../../services/ticket-service';
 
+// ✅ MODAL
+import { CorteCajaModal } from './corte-caja-modal/corte-caja-modal';
+
 @Component({
   selector: 'app-corte-caja',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CorteCajaModal],
   templateUrl: './corte-caja.html',
   styleUrl: './corte-caja.css',
 })
@@ -28,6 +33,14 @@ export class CorteCaja implements OnInit, OnDestroy {
   corte: CorteCajaResponseDTO | null = null;
   preview: CorteCajaPreviewDTO | null = null;
   salidas: SalidaEfectivo[] = [];
+
+  // ===== Desglose (encabezado + movimientos + salidas) =====
+  desglose: CorteDesgloseDTO | null = null;
+  movimientos: CorteMovimientoViewDTO[] = [];
+  cargandoDesglose = false;
+
+  // ✅ Modal state
+  modalMovimientosAbierto = false;
 
   cargando = false;
   error: string | null = null;
@@ -40,10 +53,11 @@ export class CorteCaja implements OnInit, OnDestroy {
   salidaConcepto = '';
   salidaMonto: number | null = null;
 
-  // cache del usuario logueado (como en Inscripción)
+  // cache del usuario logueado
   usuarioLogueado = '';
 
-  private timerId: any = null;
+  // watchers
+  private watchOpenId: any = null;
 
   private srv = inject(CorteCajaService);
   private noti = inject(NotificacionService);
@@ -54,15 +68,38 @@ export class CorteCaja implements OnInit, OnDestroy {
     this.cargarUsuarioDesdeStorageYToken();
 
     const idPersistido = this.obtenerCortePersistidoPorTenant();
+
+    // Si hay id persistido, lo intentamos; si falla o no está ABIERTO, caemos a consultarAbierto()
     if (idPersistido != null) {
-      this.cargarCortePorId(idPersistido, false);
-      return;
+      this.cargarCortePorId(idPersistido, true);
+    } else {
+      this.autocargarCorteAbierto();
     }
-    this.autocargarCorteAbierto();
+
+    // ✅ Si otro usuario abre corte mientras tú estás logueado, que se refleje solo
+    this.iniciarWatcherCorteAbierto();
   }
 
   ngOnDestroy(): void {
-    this.detenerPreview();
+    this.detenerWatcherCorteAbierto();
+  }
+
+  // ===== UI: Modal =====
+  abrirModalMovimientos(): void {
+    if (!this.estaAbierto) {
+      this.noti.aviso('No hay corte abierto.');
+      return;
+    }
+    this.modalMovimientosAbierto = true;
+
+    // si aún no hay movimientos, los cargamos al abrir
+    if (!this.movimientos?.length) {
+      this.refrescarDesgloseActual();
+    }
+  }
+
+  cerrarModalMovimientos(): void {
+    this.modalMovimientosAbierto = false;
   }
 
   // ===== Acciones =====
@@ -81,8 +118,13 @@ export class CorteCaja implements OnInit, OnDestroy {
           this.corte = this.normalizarCorte(resp);
           this.persistirCortePorTenant(resp.idCorte);
           this.noti.exito('Corte abierto.');
+
+          // ✅ al abrir, detenemos watcher (ya hay corte abierto)
+          this.detenerWatcherCorteAbierto();
+
           this.cargarSalidas();
           this.refrescarPreview();
+          this.refrescarDesgloseActual();
         },
         error: (e) => this.mostrarError(e, 'No se pudo abrir el corte.')
       });
@@ -106,14 +148,22 @@ export class CorteCaja implements OnInit, OnDestroy {
           this.corte = this.normalizarCorte(resp);
           this.borrarCortePersistidoPorTenant();
           this.noti.exito('Corte cerrado.');
-          this.detenerPreview();
+
+          // limpia desglose + modal
+          this.preview = null;
+          this.desglose = null;
+          this.movimientos = [];
+          this.modalMovimientosAbierto = false;
+
           try { this.imprimirTicketCorte(this.corte!); } catch {}
+
+          // ✅ al cerrar, volvemos a vigilar si alguien abre uno nuevo
+          this.iniciarWatcherCorteAbierto();
         },
         error: (e) => this.mostrarError(e, 'No se pudo cerrar el corte.')
       });
   }
 
-  // ✅ imprime ticket al registrar salida
   registrarSalida(): void {
     if (!this.corte?.idCorte) return;
 
@@ -122,7 +172,6 @@ export class CorteCaja implements OnInit, OnDestroy {
       return;
     }
 
-    // refresca usuario antes de imprimir (por si cambió storage/token)
     this.cargarUsuarioDesdeStorageYToken();
 
     const req: RegistrarSalidaEfectivoRequest = {
@@ -139,7 +188,6 @@ export class CorteCaja implements OnInit, OnDestroy {
         next: (resp: any) => {
           this.noti.exito('Salida registrada.');
 
-          // imprime con resp si viene; si no, busca la salida recién creada
           this.imprimirSalidaDespuesDeRegistrar(req, resp);
 
           this.salidaConcepto = '';
@@ -147,16 +195,13 @@ export class CorteCaja implements OnInit, OnDestroy {
 
           this.cargarSalidas();
           this.refrescarPreview();
+          this.refrescarDesgloseActual();
         },
         error: (e) => this.mostrarError(e, 'No se pudo registrar la salida.')
       });
   }
 
-  // ===== Preview (manual) =====
-  private detenerPreview(): void {
-    if (this.timerId) { clearInterval(this.timerId); this.timerId = null; }
-  }
-
+  // ===== Preview =====
   refrescarPreview(): void {
     if (!this.corte?.idCorte || this.corte.estado !== 'ABIERTO') {
       this.preview = null;
@@ -166,6 +211,36 @@ export class CorteCaja implements OnInit, OnDestroy {
       next: (p) => this.preview = p,
       error: () => { /* silencioso */ }
     });
+  }
+
+  // ===== Desglose actual =====
+  refrescarDesgloseActual(): void {
+    if (!this.estaAbierto) {
+      this.desglose = null;
+      this.movimientos = [];
+      return;
+    }
+
+    this.cargandoDesglose = true;
+    this.srv.desgloseActual()
+      .pipe(finalize(() => (this.cargandoDesglose = false)))
+      .subscribe({
+        next: (resp) => {
+          this.desglose = resp ?? null;
+
+          if (resp?.corte) {
+            this.corte = this.normalizarCorte(resp.corte);
+            this.persistirCortePorTenant(resp.corte.idCorte);
+          }
+
+          this.movimientos = (resp?.movimientos ?? []).slice();
+          this.salidas = resp?.salidas ?? this.salidas ?? [];
+        },
+        error: () => {
+          this.desglose = null;
+          this.movimientos = [];
+        }
+      });
   }
 
   private cargarSalidas(): void {
@@ -182,18 +257,32 @@ export class CorteCaja implements OnInit, OnDestroy {
       .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (resp) => {
-          if (!resp) return;
+          if (!resp) {
+            // no hay corte: seguir vigilando por si alguien lo abre
+            this.iniciarWatcherCorteAbierto();
+            return;
+          }
+
           this.corte = this.normalizarCorte(resp);
           this.persistirCortePorTenant(resp.idCorte);
           this.noti.info(`Corte #${resp.idCorte} abierto cargado.`);
+
+          // ✅ ya hay corte, detenemos watcher
+          this.detenerWatcherCorteAbierto();
+
           this.cargarSalidas();
           this.refrescarPreview();
+          this.refrescarDesgloseActual();
         },
-        error: (e) => this.mostrarError(e, 'No se pudo obtener el corte abierto.')
+        error: (e) => {
+          // no mostramos mega error, solo mensaje limpio
+          this.mostrarError(e, 'No se pudo obtener el corte abierto.');
+          this.iniciarWatcherCorteAbierto();
+        }
       });
   }
 
-  private cargarCortePorId(id: number, _iniciarLive = false): void {
+  private cargarCortePorId(id: number, fallbackToAbierto = false): void {
     this.resetErrores();
     this.cargando = true;
     this.srv.consultar(id)
@@ -203,16 +292,68 @@ export class CorteCaja implements OnInit, OnDestroy {
           this.corte = this.normalizarCorte(resp);
           this.persistirCortePorTenant(resp.idCorte);
           this.cargarSalidas();
-          if (this.corte.estado === 'ABIERTO') this.refrescarPreview();
+
+          if (this.corte.estado === 'ABIERTO') {
+            this.detenerWatcherCorteAbierto();
+            this.refrescarPreview();
+            this.refrescarDesgloseActual();
+          } else {
+            this.preview = null;
+            this.desglose = null;
+            this.movimientos = [];
+            if (fallbackToAbierto) this.autocargarCorteAbierto();
+          }
         },
-        error: (e) => this.mostrarError(e, 'No se pudo consultar el corte.')
+        error: (e) => {
+          this.mostrarError(e, 'No se pudo consultar el corte.');
+          if (fallbackToAbierto) this.autocargarCorteAbierto();
+        }
       });
+  }
+
+  // ===== Watcher: si alguien abre corte mientras yo tengo sesión =====
+  private iniciarWatcherCorteAbierto(): void {
+    if (this.watchOpenId) return;
+
+    // cada 12s (ajústalo si quieres)
+    this.watchOpenId = setInterval(() => {
+      if (this.estaAbierto) return;
+
+      this.srv.consultarAbierto().subscribe({
+        next: (resp) => {
+          if (!resp) return;
+
+          this.corte = this.normalizarCorte(resp);
+          this.persistirCortePorTenant(resp.idCorte);
+
+          this.noti.info(`Se detectó corte #${resp.idCorte} abierto.`);
+          this.detenerWatcherCorteAbierto();
+
+          this.cargarSalidas();
+          this.refrescarPreview();
+          this.refrescarDesgloseActual();
+        },
+        error: () => { /* silencioso */ }
+      });
+    }, 12000);
+  }
+
+  private detenerWatcherCorteAbierto(): void {
+    if (this.watchOpenId) {
+      clearInterval(this.watchOpenId);
+      this.watchOpenId = null;
+    }
   }
 
   // ===== Helpers =====
   get estaAbierto(): boolean { return (this.corte?.estado ?? '') === 'ABIERTO'; }
 
-  /** Agrega totales faltantes usando desgloses cuando vengan nulos del backend. */
+  // ✅ Total general LIVE (todas las formas de pago)
+  get totalGeneralLive(): number {
+    const v = Number(this.preview?.totalGeneral ?? this.corte?.totalGeneral ?? 0);
+    return Number.isFinite(v) ? v : 0;
+  }
+
   private normalizarCorte(resp: CorteCajaResponseDTO): CorteCajaResponseDTO {
     const desgloses = resp?.desgloses ?? [];
     const sumar = (origen: OrigenCorte) =>
@@ -232,10 +373,10 @@ export class CorteCaja implements OnInit, OnDestroy {
     const map = new Map<string, { operaciones: number; total: number }>();
     const lista = this.preview?.formasDePago ?? [];
     for (const it of lista) {
-      const key = String(it.tipoPago ?? '');
+      const key = String((it as any).tipoPago ?? '');
       const prev = map.get(key) ?? { operaciones: 0, total: 0 };
-      prev.operaciones += (it.operaciones ?? 0);
-      prev.total += (it.total ?? 0);
+      prev.operaciones += ((it as any).operaciones ?? 0);
+      prev.total += ((it as any).total ?? 0);
       map.set(key, prev);
     }
     const orden = ['EFECTIVO','TARJETA','TRANSFERENCIA','SPEI','DEPOSITO','MIXTO','OTRO'];
@@ -270,14 +411,11 @@ export class CorteCaja implements OnInit, OnDestroy {
     });
   }
 
-  // ===== Usuario logueado (igual patrón que Inscripción, pero robusto) =====
-
+  // ===== Usuario logueado =====
   private cargarUsuarioDesdeStorageYToken(): void {
-    // 1) prioridad: username en sessionStorage (en tus logs existe)
     const uStorage = (sessionStorage.getItem('username') ?? '').trim();
     if (uStorage) { this.usuarioLogueado = uStorage; return; }
 
-    // 2) token decode
     const token = this.tokenActual();
     if (!token) { this.usuarioLogueado = ''; return; }
 
@@ -362,21 +500,53 @@ export class CorteCaja implements OnInit, OnDestroy {
 
   private resetErrores(): void { this.error = null; }
 
+  // ✅ Errores “limpios” (sin mega texto)
   private mostrarError(e: any, porDefecto: string): void {
-    const m = e?.error?.message ?? e?.error?.error ?? e?.message ?? porDefecto;
-    this.error = m;
-    this.noti.error(m);
+    console.error('[CorteCaja] error', e);
+
+    const msg = this.mensajeAmigableError(e, porDefecto);
+    this.error = msg;
+    this.noti.error(msg);
+  }
+
+  private mensajeAmigableError(e: any, fallback: string): string {
+    const raw =
+      e?.error?.message ??
+      e?.error?.error ??
+      e?.error ??
+      e?.message ??
+      '';
+
+    let s = '';
+
+    if (typeof raw === 'string') s = raw;
+    else {
+      try { s = JSON.stringify(raw); } catch { s = String(raw ?? ''); }
+    }
+
+    s = (s || '').trim();
+
+    // quita el típico prefijo de Angular
+    s = s.replace(/Http failure response for\s+[^:]+:\s*/i, '').trim();
+    s = s.replace(/^Error:\s*/i, '').trim();
+
+    // si trae URL o basura larga, usa fallback
+    const isNoise =
+      !s ||
+      /http failure/i.test(s) ||
+      /unknown error/i.test(s) ||
+      s.length > 180;
+
+    return isNoise ? fallback : s;
   }
 
   // ===== Impresión Salida =====
   private imprimirSalidaDespuesDeRegistrar(req: RegistrarSalidaEfectivoRequest, resp: any): void {
-    // Si el backend devolvió info, imprime directo
     if (resp && (resp?.id || resp?.idSalidaEfectivo || resp?.fecha || resp?.concepto || resp?.monto)) {
       try { this.imprimirTicketSalidaEfectivo(resp, req); } catch {}
       return;
     }
 
-    // Si NO devuelve body, buscamos la salida más reciente y la imprimimos
     if (!this.corte?.idCorte) {
       try { this.imprimirTicketSalidaEfectivo(null, req); } catch {}
       return;
@@ -433,7 +603,6 @@ export class CorteCaja implements OnInit, OnDestroy {
       telefono: gym?.telefono || ''
     };
 
-    // fuerza a leer al logueado (tu caso)
     this.cargarUsuarioDesdeStorageYToken();
 
     const usuario =
@@ -458,7 +627,7 @@ export class CorteCaja implements OnInit, OnDestroy {
       negocio,
       folio,
       fecha,
-      cajero: usuario, // aquí va el usuario que retiró
+      cajero: usuario,
       idCorte: this.corte?.idCorte ?? '',
       concepto,
       monto
@@ -470,7 +639,7 @@ export class CorteCaja implements OnInit, OnDestroy {
     const t = sessionStorage.getItem('tenantId');
     if (t != null) return `corteActualId@tenant:${t}`;
 
-    const token = this.tokenActual(); // ✅ usa el mismo método robusto
+    const token = this.tokenActual();
     if (!token) return null;
 
     try {

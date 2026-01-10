@@ -54,20 +54,28 @@
         />
       </div>
 
-      <!-- Socio ID -->
-      <div class="flex items-center gap-2 md:gap-1.5 min-w-0">
-        <label class="text-ra-slate/80 whitespace-nowrap md:hidden 2xl:inline">Socio ID</label>
-        <input
-          type="number"
-          min="1"
-          class="input-filled
-                 w-[105px] sm:w-[120px]
-                 md:w-[96px] lg:w-[96px] xl:w-[110px] 2xl:w-[130px]
-                 min-w-0
-                 text-[11px] sm:text-xs md:text-[11px] xl:text-sm"
-          [(ngModel)]="filtroIdSocio"
-        />
-      </div>
+    
+      <!-- Nombre socio -->
+<!-- Nombre socio (autobúsqueda >= 3 letras) -->
+<div class="flex items-center gap-2 md:gap-1.5 min-w-0">
+  <label class="text-ra-slate/80 whitespace-nowrap md:hidden 2xl:inline">Nombre</label>
+
+  <input
+    type="text"
+    class="input-filled
+           w-[170px] sm:w-[200px]
+           md:w-[150px] lg:w-[170px] xl:w-[200px] 2xl:w-[240px]
+           min-w-0
+           text-[11px] sm:text-xs md:text-[11px] xl:text-sm"
+    placeholder="Nombre o apellido (mín. 3)"
+    [ngModel]="filtroNombreSocio"
+    (ngModelChange)="onNombreChange($event)"
+  />
+</div>
+
+
+
+
 
       <!-- Botones -->
       <div class="flex items-center gap-2 md:gap-1.5 shrink-0">

@@ -1,7 +1,7 @@
 <!-- src/app/pages/corte-caja-info/corte-caja-info.html -->
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
   <div
-    class="mx-4 w-full max-w-5xl rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 max-h-[90vh] flex flex-col overflow-hidden"
+    class="mx-4 w-full max-w-6xl rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 max-h-[90vh] flex flex-col overflow-hidden"
   >
     <!-- Header -->
     <div class="flex items-start justify-between px-6 pt-5 pb-3 border-b border-gray-100">
@@ -10,25 +10,34 @@
           Corte de caja #{{ corte.idCorte }}
         </h2>
         <p class="text-xs text-gray-500">
-          Apertura:
-          {{ corte.apertura | date:'dd/MM/yyyy HH:mm' }}
+          Apertura: {{ corte.apertura | date:'dd/MM/yyyy HH:mm' }}
           @if (corte.cierre) {
-            · Cierre:
-            {{ corte.cierre | date:'dd/MM/yyyy HH:mm' }}
+            · Cierre: {{ corte.cierre | date:'dd/MM/yyyy HH:mm' }}
           }
         </p>
       </div>
 
-      <button
-        class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
-        (click)="cerrarModal()"
-        aria-label="Cerrar"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm"
+          (click)="refrescar()"
+          [disabled]="cargando"
+        >
+          @if (cargando) { Cargando… } @else { Actualizar }
+        </button>
+
+        <button
+          class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+          (click)="cerrarModal()"
+          aria-label="Cerrar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Body -->
@@ -142,6 +151,7 @@
               Desglose por forma de pago
             </div>
           </div>
+
           <div class="overflow-x-auto rounded-xl border border-gray-200">
             <table class="min-w-full text-xs md:text-sm">
               <thead class="bg-gray-50 text-ra-slate/80">
@@ -152,6 +162,7 @@
                   <th class="px-3 py-2 text-right">Total</th>
                 </tr>
               </thead>
+
               <tbody>
                 @if (!detalle.desgloses?.length) {
                   <tr>
@@ -182,6 +193,141 @@
           </div>
         </div>
 
+        <!-- ✅ Movimientos del corte (como modal de movimientos, pero aquí dentro del corte CERRADO) -->
+        <div class="rounded-2xl border border-gray-200 bg-white p-3 md:p-4">
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <div>
+              <div class="text-sm font-semibold text-ra-slate">Movimientos del corte</div>
+              <div class="mt-1 text-xs text-ra-slate/70">
+                {{ movimientosFiltrados.length }} movimientos · Total:
+                {{ totalMovimientosFiltrados | currency:'MXN':'symbol-narrow':'1.2-2' }}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm"
+              (click)="limpiarFiltrosMov()"
+            >
+              Limpiar filtros
+            </button>
+          </div>
+
+          <!-- ZOOM wrapper (igual al modal) -->
+          <div #zoomOuter class="w-full">
+            <div class="origin-top-left" [style.zoom]="uiZoom">
+
+              <!-- Filtros -->
+              <div class="border border-gray-200 bg-gray-50 rounded-xl p-3 md:p-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-3 items-end">
+                  <div class="md:col-span-2">
+                    <label class="block text-[11px] font-semibold text-ra-slate/70 mb-1">Buscar</label>
+                    <input
+                      class="input-filled w-full"
+                      [(ngModel)]="filtroMovimientos"
+                      placeholder="folio / socio / concepto / cajero / pago…"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block text-[11px] font-semibold text-ra-slate/70 mb-1">Módulo</label>
+                    <select class="input-filled w-full" [(ngModel)]="filtroModulo">
+                      <option value="">Todos</option>
+                      <option value="VENTA">VENTA</option>
+                      <option value="MEMBRESIA">MEMBRESIA</option>
+                      <option value="ASESORIA">ASESORIA</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block text-[11px] font-semibold text-ra-slate/70 mb-1">Tipo de pago</label>
+                    <select class="input-filled w-full" [(ngModel)]="filtroTipoPago">
+                      <option value="">Todos</option>
+                      <option value="EFECTIVO">EFECTIVO</option>
+                      <option value="TARJETA">TARJETA</option>
+                      <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+                    </select>
+                  </div>
+
+                  <div class="md:col-span-4 mt-1 text-[11px] text-ra-slate/70">
+                    Tip: filtra por <span class="font-semibold">concepto</span> o <span class="font-semibold">cajero</span>.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tabla -->
+              <div class="mt-4 overflow-x-auto">
+                <div
+                  class="overflow-y-auto rounded-lg ring-1 ring-black/5"
+                  [style.maxHeight.px]="tablaMaxH"
+                >
+                  <table class="w-full min-w-[1200px] text-[13px]">
+                    <thead class="sticky top-0 bg-gray-100 z-10">
+                      <tr class="text-ra-slate">
+                        <th class="py-3 px-4 text-left font-semibold uppercase">Fecha</th>
+                        <th class="py-3 px-4 text-left font-semibold uppercase">Módulo</th>
+                        <th class="py-3 px-4 text-left font-semibold uppercase">Folio</th>
+                        <th class="py-3 px-4 text-left font-semibold uppercase">Socio</th>
+                        <th class="py-3 px-4 text-left font-semibold uppercase">Concepto</th>
+                        <th class="py-3 px-4 text-left font-semibold uppercase">Pago</th>
+                        <th class="py-3 px-4 text-right font-semibold uppercase">Monto</th>
+                        <th class="py-3 px-4 text-left font-semibold uppercase">Cajero</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      @if (!movimientosFiltrados.length) {
+                        <tr>
+                          <td colspan="8" class="py-8 px-4 text-center text-ra-slate">
+                            Sin movimientos para mostrar.
+                          </td>
+                        </tr>
+                      } @else {
+                        @for (m of movimientosFiltrados; track $index) {
+                          <tr class="border-t border-gray-200 hover:bg-gray-50">
+                            <td class="py-2 px-4 whitespace-nowrap">
+                              {{ m.fecha | date:'dd/MM/yyyy HH:mm' }}
+                            </td>
+
+                            <td class="py-2 px-4 font-semibold">
+                              {{ moduloLabel(m.origen) }}
+                            </td>
+
+                            <td class="py-2 px-4">
+                              {{ m.folio ?? '—' }}
+                            </td>
+
+                            <td class="py-2 px-4">
+                              {{ m.socio ?? '—' }}
+                            </td>
+
+                            <td class="py-2 px-4">
+                              {{ m.concepto ?? '—' }}
+                            </td>
+
+                            <td class="py-2 px-4">
+                              {{ m.tipoPago }}
+                            </td>
+
+                            <td class="py-2 px-4 text-right font-semibold">
+                              {{ m.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                            </td>
+
+                            <td class="py-2 px-4">
+                              {{ m.cajero ?? '—' }}
+                            </td>
+                          </tr>
+                        }
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
         <!-- Salidas de efectivo -->
         <div>
           <div class="flex items-center justify-between mb-1">
@@ -193,6 +339,7 @@
               {{ totalSalidasLocal() | currency:'MXN':'symbol-narrow':'1.2-2' }}
             </div>
           </div>
+
           <div class="overflow-x-auto rounded-xl border border-gray-200">
             <table class="min-w-full text-xs md:text-sm">
               <thead class="bg-gray-50 text-ra-slate/80">
@@ -202,6 +349,7 @@
                   <th class="px-3 py-2 text-right">Monto</th>
                 </tr>
               </thead>
+
               <tbody>
                 @if (!salidas.length) {
                   <tr>

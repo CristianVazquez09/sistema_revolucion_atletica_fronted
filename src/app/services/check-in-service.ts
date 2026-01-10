@@ -96,4 +96,55 @@ export class CheckInService {
       .get<any>(`${this.base}/rango`, { params })
       .pipe(map(raw => toPagedResponse<AsistenciaHistorialData>(raw)));
   }
+  // ─────────── 🔎 NUEVO: buscar historial por nombre de socio ───────────
+// GET /v1/asistencias/buscar?nombre=...&page=...&size=...
+buscarPorNombreSocio(
+  pagina: number,
+  tamanio: number,
+  nombre: string
+): Observable<PagedResponse<AsistenciaHistorialData>> {
+
+  const n = (nombre ?? '').trim();
+
+  let params = new HttpParams()
+    .set('page', pagina.toString())
+    .set('size', tamanio.toString())
+    .set('nombre', n);
+
+  return this.http
+    .get<any>(`${this.base}/buscar`, { params })
+    .pipe(map(raw => toPagedResponse<AsistenciaHistorialData>(raw)));
+}
+
+// ✅ NUEVO: filtros combinables (desde/hasta/nombre) -> GET {base}/buscar
+buscar(
+  pagina: number,
+  tamanio: number,
+  desde?: string | null,
+  hasta?: string | null,
+  nombre?: string | null
+): Observable<PagedResponse<AsistenciaHistorialData>> {
+
+  const n = (nombre ?? '').trim();
+
+  let params = new HttpParams()
+    .set('page', String(pagina))
+    .set('size', String(tamanio));
+
+  // solo mandamos fechas si vienen ambas (evita 400/IllegalArgumentException)
+  if (desde && hasta) {
+    params = params.set('desde', desde).set('hasta', hasta);
+  }
+
+  // solo mandamos nombre si trae contenido
+  if (n.length > 0) {
+    params = params.set('nombre', n);
+  }
+
+  return this.http
+    .get<any>(`${this.base}/buscar`, { params })
+    .pipe(map(raw => toPagedResponse<AsistenciaHistorialData>(raw)));
+}
+
+
 }

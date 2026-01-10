@@ -1,10 +1,13 @@
 <!-- ventas-admin.html
 =========================================================
-AJUSTES PEDIDOS:
-- XL..(<2XL): si se abre el menú (menuAbierto()):
-  - Ocultar columna Gimnasio (aunque sea admin)
-  - Reducir anchos (min-width) para evitar scroll horizontal
-- 2XL+: Gimnasio siempre visible si es admin
+AJUSTES:
+- menuAbierto():
+  - NO ocultar Producto
+  - OCULTAR Usuario (pero eliminándolo del layout con @if)
+  - Gimnasio oculto si menuAbierto
+  - Pagos oculto si menuAbierto
+- FIX Acciones: min-width + flex-nowrap + shrink-0
+- Producto: mostrar TODOS en líneas (sin "(+1)")
 ========================================================= -->
 
 <div #zoomOuter class="overflow-x-hidden">
@@ -20,11 +23,9 @@ AJUSTES PEDIDOS:
       <div class="text-base sm:text-lg xl:text-xl font-semibold text-ra-slate shrink-0">Ventas</div>
 
       <div class="w-full xl:w-auto flex flex-col xl:flex-row xl:flex-wrap xl:items-center xl:justify-end gap-2 xl:gap-3 text-[11px] xl:text-[12px] leading-none min-w-0">
-         <div
+        <div
           class="flex items-center gap-2 xl:gap-3 min-w-0 overflow-x-hidden"
-          [ngClass]="menuAbierto()
-            ? 'flex-wrap'
-            : 'flex-wrap xl:flex-nowrap'"
+          [ngClass]="menuAbierto() ? 'flex-wrap' : 'flex-wrap xl:flex-nowrap'"
         >
           <!-- Folio -->
           <div class="flex items-center gap-2 shrink-0">
@@ -121,8 +122,6 @@ AJUSTES PEDIDOS:
             <option [ngValue]="25">25</option>
             <option [ngValue]="50">50</option>
           </select>
-
-          
         </div>
       </div>
     </div>
@@ -139,33 +138,33 @@ AJUSTES PEDIDOS:
         >
           <table
             class="w-full table-fixed text-[9px] sm:text-[10px] xl:text-[12px]"
-            [class.min-w-[760px]]="!menuAbierto()"
-            [class.min-w-[700px]]="menuAbierto()"
+            [class.min-w-[900px]]="!menuAbierto()"
+            [class.min-w-[720px]]="menuAbierto()"
           >
             <colgroup>
-              <!-- Anchos ajustados para XL..(<2XL) cuando menu está abierto -->
-              <col [class.w-[11%]]="!menuAbierto()" [class.w-[12%]]="menuAbierto()" /> <!-- Folio -->
-              <col [class.w-[20%]]="!menuAbierto()" [class.w-[22%]]="menuAbierto()" /> <!-- Fecha -->
-              <col [class.w-[18%]]="!menuAbierto()" [class.w-[20%]]="menuAbierto()" /> <!-- Usuario -->
+              @if (menuAbierto()) {
+                <!-- Folio | Fecha | Producto | Total | Acciones -->
+                <col class="w-[12%]" />
+                <col class="w-[26%]" />
+                <col class="w-[32%]" />
+                <col class="w-[14%]" />
+                <col class="w-[16%]" />
+              } @else {
+                <!-- Folio | Fecha | Usuario | Producto | (Gimnasio 2XL admin) | Pagos | Total | Acciones -->
+                <col class="w-[11%]" />
+                <col class="w-[20%]" />
+                <col class="w-[18%]" />
+                <col class="w-[22%]" />
 
-              <!-- Gimnasio:
-                   - 2XL+: visible si admin
-                   - XL..(<2XL): ocultar si menu abierto -->
-              @if (esAdmin) {
-                @if (!menuAbierto()) {
+                @if (esAdmin) {
                   <col class="w-[17%] hidden 2xl:table-column" />
-                } @else {
-                  <col class="w-[0%] hidden" />
                 }
-              }
 
-              <!-- Pagos: solo cuando NO hay menú -->
-              @if (!menuAbierto()) {
                 <col class="w-[20%] hidden lg:table-column" />
-              }
 
-              <col [class.w-[12%]]="!menuAbierto()" [class.w-[12%]]="menuAbierto()" /> <!-- Total -->
-              <col [class.w-[12%]]="!menuAbierto()" [class.w-[12%]]="menuAbierto()" /> <!-- Acciones -->
+                <col class="w-[12%]" />
+                <col class="w-[12%]" />
+              }
             </colgroup>
 
             <thead class="sticky top-0 bg-ra-grayLight/40 z-10">
@@ -178,18 +177,20 @@ AJUSTES PEDIDOS:
                   Fecha
                 </th>
 
-                <th class="text-center text-ra-slate font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]">
-                  Usuario
+                @if (!menuAbierto()) {
+                  <th class="text-center text-ra-slate font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]">
+                    Usuario
+                  </th>
+                }
+
+                <th class="py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-center text-ra-slate font-semibold uppercase text-[10px] sm:text-[11px] xl:text-[12px]">
+                  Producto
                 </th>
 
-                <!-- Gimnasio:
-                     - 2XL+: visible si admin
-                     - XL..(<2XL): oculto si menuAbierto -->
-                @if (esAdmin) {
+                @if (!menuAbierto() && esAdmin) {
                   <th
                     class="text-center text-ra-slate font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]
                            hidden 2xl:table-cell"
-                    [class.hidden]="menuAbierto()"
                   >
                     Gimnasio
                   </th>
@@ -205,7 +206,11 @@ AJUSTES PEDIDOS:
                   Total
                 </th>
 
-                <th class="text-center text-ra-slate font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6 text-[10px] sm:text-[11px] xl:text-[12px]">
+                <th
+                  class="text-center text-ra-slate font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6
+                         text-[10px] sm:text-[11px] xl:text-[12px]
+                         whitespace-nowrap min-w-[110px] sm:min-w-[120px]"
+                >
                   Acciones
                 </th>
               </tr>
@@ -214,28 +219,19 @@ AJUSTES PEDIDOS:
             <tbody>
               @if (cargando) {
                 <tr>
-                  <td
-                    [attr.colspan]="99"
-                    class="py-4 px-4 text-center text-ra-slate"
-                  >
+                  <td [attr.colspan]="99" class="py-4 px-4 text-center text-ra-slate">
                     Cargando…
                   </td>
                 </tr>
               } @else if (error) {
                 <tr>
-                  <td
-                    [attr.colspan]="99"
-                    class="py-4 px-4 text-center text-red-600"
-                  >
+                  <td [attr.colspan]="99" class="py-4 px-4 text-center text-red-600">
                     {{ error }}
                   </td>
                 </tr>
               } @else if (!rows.length) {
                 <tr>
-                  <td
-                    [attr.colspan]="99"
-                    class="py-4 px-4 text-center text-ra-slate"
-                  >
+                  <td [attr.colspan]="99" class="py-4 px-4 text-center text-ra-slate">
                     Sin resultados.
                   </td>
                 </tr>
@@ -248,18 +244,36 @@ AJUSTES PEDIDOS:
                       </span>
                     </td>
 
-                    <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 text-[9.5px] sm:text-[10.5px] xl:text-[12px]">
+                    <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 text-[9.5px] sm:text-[10.5px] xl:text-[12px] truncate">
                       {{ v.fecha | date:'dd/MM/yyyy HH:mm:ss' }}
                     </td>
 
-                    <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 truncate text-[9.5px] sm:text-[10.5px] xl:text-[12px]">
-                      {{ v.usuario?.nombreUsuario || '—' }}
+                    @if (!menuAbierto()) {
+                      <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 truncate text-[9.5px] sm:text-[10.5px] xl:text-[12px]">
+                        {{ v.usuario?.nombreUsuario || '—' }}
+                      </td>
+                    }
+
+                    <!-- Producto: mostrar TODOS en líneas -->
+                    <td
+                      class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 text-left align-top"
+                      [title]="productoTitleCompleto(v)"
+                    >
+                      @if (productosDeVenta(v).length) {
+                        <div class="flex flex-col items-start gap-0.5 leading-tight">
+                          @for (p of productosDeVenta(v); track $index) {
+                            <span class="block whitespace-normal break-words">
+                              {{ p }}
+                            </span>
+                          }
+                        </div>
+                      } @else {
+                        <span class="text-ra-slate/60">—</span>
+                      }
                     </td>
 
-                    <!-- Gimnasio:
-                         - solo mostrar en 2XL+ y cuando NO esté el menú abierto -->
-                    @if (esAdmin) {
-                      <td class="hidden 2xl:table-cell py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6" [class.hidden]="menuAbierto()">
+                    @if (!menuAbierto() && esAdmin) {
+                      <td class="hidden 2xl:table-cell py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6">
                         <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-1.5 xl:px-2 py-0.5 text-[9px] sm:text-[10px] xl:text-xs">
                           <svg viewBox="0 0 24 24" class="w-3 h-3 xl:w-4 xl:h-4" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
@@ -279,26 +293,31 @@ AJUSTES PEDIDOS:
                       {{ v.total | currency:'MXN':'symbol-narrow':'1.2-2' }}
                     </td>
 
-                    <td class="py-0.5 xl:py-2 px-2 xl:px-4 2xl:px-6">
-                      <div class="flex items-center justify-center gap-1">
+                    <!-- Acciones: ancho mínimo + sin wrap + sin shrink -->
+                    <td
+                      class="py-0.5 xl:py-2 px-1.5 sm:px-2 xl:px-4 2xl:px-6
+                             whitespace-nowrap overflow-visible
+                             min-w-[110px] sm:min-w-[120px]"
+                    >
+                      <div class="flex flex-nowrap items-center justify-center gap-1.5">
                         @if (!esRecep) {
-                          <button (click)="ver(v)" class="p-1 xl:p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
-                            <img src="iconos/editar.svg" alt="Editar" class="w-3.5 h-3.5 xl:w-5 xl:h-5" />
+                          <button (click)="ver(v)" class="shrink-0 p-1 xl:p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
+                            <img src="iconos/editar.svg" alt="Editar" class="shrink-0 w-3.5 h-3.5 xl:w-5 xl:h-5" />
                           </button>
                         }
 
                         <button
                           (click)="reimprimir(v)"
-                          class="p-1 xl:p-2 rounded hover:bg-ra-grayLight/40 disabled:opacity-50"
+                          class="shrink-0 p-1 xl:p-2 rounded hover:bg-ra-grayLight/40 disabled:opacity-50"
                           [disabled]="reimprimiendo"
                           title="Reimprimir ticket"
                         >
-                          <img src="iconos/impresora.svg" alt="Reimprimir" class="w-3.5 h-3.5 xl:w-5 xl:h-5" />
+                          <img src="iconos/impresora.svg" alt="Reimprimir" class="shrink-0 w-3.5 h-3.5 xl:w-5 xl:h-5" />
                         </button>
 
                         @if (!esRecep) {
-                          <button (click)="eliminar(v)" class="p-1 xl:p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar">
-                            <img src="iconos/eliminar.svg" alt="Eliminar" class="w-3.5 h-3.5 xl:w-5 xl:h-5" />
+                          <button (click)="eliminar(v)" class="shrink-0 p-1 xl:p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar">
+                            <img src="iconos/eliminar.svg" alt="Eliminar" class="shrink-0 w-3.5 h-3.5 xl:w-5 xl:h-5" />
                           </button>
                         }
                       </div>

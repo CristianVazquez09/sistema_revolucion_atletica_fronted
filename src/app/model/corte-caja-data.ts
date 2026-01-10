@@ -1,7 +1,13 @@
 import { TipoPago } from '../util/enums/tipo-pago';
 
-export type OrigenCorte = 'VENTA' | 'MEMBRESIA' | 'ACCESORIA';
 export type CorteEstado = 'ABIERTO' | 'CERRADO';
+
+/**
+ * IMPORTANTE:
+ * - En el backend ya normalizaste a "ASESORIA".
+ * - Pero dejamos "ACCESORIA" por compatibilidad si te llega algo viejo.
+ */
+export type OrigenCorte = 'VENTA' | 'MEMBRESIA' | 'ASESORIA' | 'ACCESORIA';
 
 export interface ResumenPagoDTO {
   origen: OrigenCorte;
@@ -11,7 +17,7 @@ export interface ResumenPagoDTO {
 }
 
 export interface ResumenIngresoDTO {
-  tipo: 'INSCRIPCION' | 'SUSCRIPCION' | 'VENTA' | 'ACCESORIA';
+  tipo: 'INSCRIPCION' | 'SUSCRIPCION' | 'VENTA' | 'ASESORIA' | 'ACCESORIA';
   operaciones: number;
   total: number;
 }
@@ -22,6 +28,7 @@ export interface GimnasioResumen {
   direccion: string;
   telefono: string;
 }
+
 export interface UsuarioResumen {
   id: number;
   nombreUsuario: string;
@@ -42,7 +49,7 @@ export interface CorteCajaResponseDTO {
 
   desgloses: ResumenPagoDTO[];
 
-  // NUEVOS (pueden venir null en abiertos/consultas viejas)
+  // NUEVOS (pueden venir null)
   fondoCajaInicial?: number | null;
   efectivoEntregado?: number | null;
   efectivoEnCajaConteo?: number | null;
@@ -51,7 +58,6 @@ export interface CorteCajaResponseDTO {
   ingresosEfectivo?: number | null;
   efectivoEsperado?: number | null;
 
-  // metadata opcional
   gimnasio?: GimnasioResumen | null;
   abiertoPor?: UsuarioResumen | null;
   cerradoPor?: UsuarioResumen | null;
@@ -61,19 +67,17 @@ export interface CorteCajaResponseDTO {
 export interface CorteCajaPreviewDTO {
   idCorte: number;
   apertura: string;
-  hasta: string;                     // instante de corte de la preview
+  hasta: string;
   estado: CorteEstado;
 
   gimnasio?: GimnasioResumen | null;
   abiertoPor?: UsuarioResumen | null;
 
-  // Bloques ticket live
   fondoCajaInicial: number;
   ingresosEfectivo: number;
   totalSalidasEfectivo: number;
   efectivoEsperado: number;
 
-  // Totales y desglose
   totalGeneral: number;
   totalVentas: number;
   totalMembresias: number;
@@ -87,14 +91,14 @@ export interface AbrirCorte {
   fondoCajaInicial: number;
 }
 export interface CerrarCorte {
-  hasta: string;                     // 'YYYY-MM-DDTHH:mm:ss'
+  hasta: string;
   efectivoEntregado?: number | null;
   efectivoEnCajaConteo?: number | null;
 }
 export interface RegistrarSalidaEfectivoRequest {
   concepto: string;
   monto: number;
-  fecha?: string;                    // opcional
+  fecha?: string;
 }
 
 /** Salida de efectivo */
@@ -106,12 +110,10 @@ export interface SalidaEfectivo {
   creadoPor?: number | null;
 }
 
-/** Listado (paginado) */
-export interface CorteCajaListado extends CorteCajaResponseDTO {}
-
+/** Paginación */
 export interface PageMeta {
   size: number;
-  number: number;        // 0-based
+  number: number;
   totalElements: number;
   totalPages: number;
 }
@@ -119,3 +121,47 @@ export interface PagedResponse<T> {
   content: T[];
   page: PageMeta;
 }
+
+/**
+ * NUEVO: esto es lo que devuelve ahora tu backend en /actual/desglose
+ * (CorteMovimientoViewDTO)
+ */
+export interface CorteMovimientoViewDTO {
+  fecha: string;              // ISO
+  origen: OrigenCorte;        // VENTA | MEMBRESIA | ASESORIA (o ACCESORIA legacy)
+  folio: string | null;
+  socio: string | null;
+  concepto: string | null;
+  tipoPago: TipoPago;
+  monto: number;
+  cajero: string | null;
+}
+
+/** Respuesta del desglose */
+export interface CorteDesgloseDTO {
+  corte: CorteCajaResponseDTO;
+  movimientos: CorteMovimientoViewDTO[];
+  salidas: SalidaEfectivo[];
+}
+
+/** Listado (paginado) - coincide con CorteCajaListItemDTO del backend */
+export interface CorteCajaListado {
+  idCorte: number;
+  apertura: string;          // ISO
+  cierre: string | null;     // ISO
+  estado: CorteEstado;
+
+  totalGeneral: number;
+  totalVentas: number;
+  totalMembresias: number;
+  totalAccesorias: number;
+
+  gimnasio?: GimnasioResumen | null;
+  abiertoPor?: UsuarioResumen | null;
+  cerradoPor?: UsuarioResumen | null;
+
+  // nuevos en list item
+  fondoCajaInicial?: number | null;
+  efectivoEsperado?: number | null;
+}
+
