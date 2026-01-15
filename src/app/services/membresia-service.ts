@@ -10,6 +10,9 @@ import { MembresiaPatchRequest } from '../model/membresia-patch';
 
 type PageMetaApi = { size: number; number: number; totalElements: number; totalPages: number; };
 export type MembresiaPageResponse = { content: MembresiaData[]; page: PageMetaApi; };
+export type MembresiaBatchRequestDTO = {
+  membresias: any[]; // request flexible (puede ser parcial)
+};
 
 @Injectable({
   providedIn: 'root'
@@ -84,6 +87,23 @@ export class MembresiaService extends GenericService<MembresiaData> {
   /** POST /v1/membresias/reinscripcion/anticipada */
   reinscripcionAnticipada(payload: Partial<MembresiaData>): Observable<MembresiaData> {
     return this.http.post<MembresiaData>(`${this.url}/reinscripcion/anticipada`, payload);
+  }
+
+   /**
+   * ✅ Batch general: sirve para INSCRIPCION o REINSCRIPCION.
+   * Backend valida que todas traigan el mismo paquete (modalidad).
+   */
+  guardarBatch(membresias: any[]): Observable<MembresiaData[]> {
+    const body: MembresiaBatchRequestDTO = { membresias };
+    return this.http.post<MembresiaData[]>(`${this.url}/batch`, body);
+  }
+
+  /**
+   * ✅ Batch reinscripción anticipada.
+   */
+  reinscripcionAnticipadaBatch(membresias: any[]): Observable<MembresiaData[]> {
+    const body: MembresiaBatchRequestDTO = { membresias };
+    return this.http.post<MembresiaData[]>(`${this.url}/batch/reinscripcion/anticipada`, body);
   }
 
 }

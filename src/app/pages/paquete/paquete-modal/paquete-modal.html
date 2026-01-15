@@ -8,7 +8,8 @@
 
     <button
       class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
-      (click)="cancelar.emit()" aria-label="Cerrar">
+      (click)="cancelar.emit()"
+      aria-label="Cerrar">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
@@ -20,29 +21,32 @@
 
     <!-- SOLO ADMIN: Gimnasio -->
     @if (isAdmin) {
-    <div>
-      <label class="block text-sm font-semibold text-ra-slate mb-1.5">Gimnasio</label>
-      <select formControlName="gimnasioId"
-        class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent">
-        <option [ngValue]="null" disabled>Selecciona un gimnasio</option>
-        @for (g of gimnasios; track g.idGimnasio) {
-        <option [ngValue]="g.idGimnasio">{{ g.nombre }}</option>
+      <div>
+        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Gimnasio</label>
+        <select
+          formControlName="gimnasioId"
+          class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent">
+          <option [ngValue]="null" disabled>Selecciona un gimnasio</option>
+          @for (g of gimnasios; track g.idGimnasio) {
+            <option [ngValue]="g.idGimnasio">{{ g.nombre }}</option>
+          }
+        </select>
+        @if ((intentoGuardar || fb.get('gimnasioId')?.touched) && fb.get('gimnasioId')?.invalid) {
+          <p class="text-sm text-red-600 mt-1">Selecciona un gimnasio.</p>
         }
-      </select>
-      @if ((intentoGuardar || fb.get('gimnasioId')?.touched) && fb.get('gimnasioId')?.invalid) {
-      <p class="text-sm text-red-600 mt-1">Selecciona un gimnasio.</p>
-      }
-    </div>
+      </div>
     }
 
     <!-- Nombre -->
     <div>
       <label class="block text-sm font-semibold text-ra-slate mb-1.5">Nombre</label>
-      <input type="text" formControlName="nombre"
+      <input
+        type="text"
+        formControlName="nombre"
         class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
         placeholder="Ej. Paquete Estudiante" />
       @if (fb.get('nombre')?.touched && fb.get('nombre')?.invalid) {
-      <p class="text-sm text-red-600 mt-1">El nombre es obligatorio.</p>
+        <p class="text-sm text-red-600 mt-1">El nombre es obligatorio.</p>
       }
     </div>
 
@@ -51,19 +55,40 @@
       <label class="block text-sm font-semibold text-ra-slate mb-1.5">Tipo de paquete</label>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
         @for (tipo of tiposPaquete; track tipo) {
-        <label
-          class="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 cursor-pointer hover:border-ra-green">
-          <input
-            type="radio"
-            class="h-4 w-4"
-            [value]="tipo"
-            formControlName="tipoPaquete">
-          <span class="text-sm text-ra-slate">{{ labelTipoPaquete(tipo) }}</span>
-        </label>
+          <label class="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 cursor-pointer hover:border-ra-green">
+            <input
+              type="radio"
+              class="h-4 w-4"
+              [value]="tipo"
+              formControlName="tipoPaquete">
+            <span class="text-sm text-ra-slate">{{ labelTipoPaquete(tipo) }}</span>
+          </label>
         }
       </div>
       @if ((intentoGuardar || fb.get('tipoPaquete')?.touched) && fb.get('tipoPaquete')?.invalid) {
-      <p class="text-sm text-red-600 mt-1">Selecciona el tipo de paquete.</p>
+        <p class="text-sm text-red-600 mt-1">Selecciona el tipo de paquete.</p>
+      }
+    </div>
+
+    <!-- NUEVO: Modalidad -->
+    <div>
+      <label class="block text-sm font-semibold text-ra-slate mb-1.5">Modalidad</label>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+        @for (m of modalidades; track m) {
+          <label class="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 cursor-pointer hover:border-ra-green">
+            <input
+              type="radio"
+              class="h-4 w-4"
+              [value]="m"
+              formControlName="modalidad">
+            <span class="text-sm text-ra-slate">{{ labelModalidad(m) }}</span>
+          </label>
+        }
+      </div>
+
+      @if ((intentoGuardar || fb.get('modalidad')?.touched) && fb.get('modalidad')?.invalid) {
+        <p class="text-sm text-red-600 mt-1">Selecciona la modalidad.</p>
       }
     </div>
 
@@ -71,40 +96,45 @@
     <div>
       <label class="block text-sm font-semibold text-ra-slate mb-1.5">Tiempo</label>
       <div class="relative">
-        <select formControlName="tiempo"
+        <select
+          formControlName="tiempo"
           class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 pr-10 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent">
           <option [ngValue]="null" disabled>Selecciona una opción</option>
           @for (t of tiempos; track t) {
-          <option [ngValue]="t">{{ t | tiempoPlan }}</option>
+            <option [ngValue]="t">{{ t | tiempoPlan }}</option>
           }
         </select>
         <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd"
+            <path
+              fill-rule="evenodd"
               d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.06l3.71-3.83a.75.75 0 1 1 1.08 1.04l-4.25 4.39a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06z"
               clip-rule="evenodd" />
           </svg>
         </div>
       </div>
       @if (fb.get('tiempo')?.touched && fb.get('tiempo')?.invalid) {
-      <p class="text-sm text-red-600 mt-1">Selecciona el tiempo del plan.</p>
+        <p class="text-sm text-red-600 mt-1">Selecciona el tiempo del plan.</p>
       }
     </div>
 
     <!-- Visitas (solo para VISITA_10 | VISITA_15) -->
     @if (isPlanPorVisitas()) {
-    <div>
-      <label class="block text-sm font-semibold text-ra-slate mb-1.5">Visitas máximas</label>
-      <input type="number" step="1" formControlName="visitasMaximas"
-        class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
-        placeholder="Ej. 10 o 15" />
-      @if ((intentoGuardar || fb.get('visitasMaximas')?.touched) && fb.get('visitasMaximas')?.invalid) {
-      <p class="text-sm text-red-600 mt-1">Indica un número de visitas válido.</p>
-      }
-      <p class="text-xs text-ra-slate/70 mt-1">
-        Sugerencia automática: 10 para “10 visitas” y 15 para “15 visitas”.
-      </p>
-    </div>
+      <div>
+        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Visitas máximas</label>
+        <input
+          type="number"
+          step="1"
+          formControlName="visitasMaximas"
+          class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
+          placeholder="Ej. 10 o 15" />
+        @if ((intentoGuardar || fb.get('visitasMaximas')?.touched) && fb.get('visitasMaximas')?.invalid) {
+          <p class="text-sm text-red-600 mt-1">Indica un número de visitas válido.</p>
+        }
+        <p class="text-xs text-ra-slate/70 mt-1">
+          Sugerencia automática: 10 para “10 visitas” y 15 para “15 visitas”.
+        </p>
+      </div>
     }
 
     <div class="flex items-center gap-3 mt-2">
@@ -113,49 +143,62 @@
         Solo permitir acceso viernes, sábado y domingo
       </label>
     </div>
+
     @if (fb.controls['soloFinesDeSemana'].value) {
-    <div class="mt-1 text-xs text-gray-600">
-      Este paquete se validará en check-in para permitir entrada únicamente Vie/Sáb/Dom.
-    </div>
+      <div class="mt-1 text-xs text-gray-600">
+        Este paquete se validará en check-in para permitir entrada únicamente Vie/Sáb/Dom.
+      </div>
     }
 
     <!-- Precio / Inscripción -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-semibold text-ra-slate mb-1.5">Precio</label>
-        <input type="number" step="0.01" formControlName="precio"
+        <input
+          type="number"
+          step="0.01"
+          formControlName="precio"
           class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
           placeholder="0.00" />
         @if (fb.get('precio')?.touched && fb.get('precio')?.invalid) {
-        <p class="text-sm text-red-600 mt-1">Ingresa un precio válido.</p>
+          <p class="text-sm text-red-600 mt-1">Ingresa un precio válido.</p>
         }
       </div>
 
       <div>
         <label class="block text-sm font-semibold text-ra-slate mb-1.5">Inscripción</label>
-        <input type="number" step="0.01" formControlName="costoInscripcion"
+        <input
+          type="number"
+          step="0.01"
+          formControlName="costoInscripcion"
           class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
           placeholder="0.00" />
         @if (fb.get('costoInscripcion')?.touched && fb.get('costoInscripcion')?.invalid) {
-        <p class="text-sm text-red-600 mt-1">Ingresa un costo válido.</p>
+          <p class="text-sm text-red-600 mt-1">Ingresa un costo válido.</p>
         }
       </div>
     </div>
 
     @if (error) {
-    <div class="text-red-600 text-sm">{{ error }}</div>
+      <div class="text-red-600 text-sm">{{ error }}</div>
     }
 
     <!-- Footer -->
     <div class="flex items-center justify-end gap-2 pt-2">
-      <button type="button" (click)="cancelar.emit()"
+      <button
+        type="button"
+        (click)="cancelar.emit()"
         class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100">
         Cancelar
       </button>
-      <button type="submit" [disabled]="guardando"
+
+      <button
+        type="submit"
+        [disabled]="guardando"
         class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60">
         {{ guardando ? 'Guardando...' : 'Guardar' }}
       </button>
     </div>
+
   </form>
 </div>

@@ -26,13 +26,12 @@ import { TipoMovimiento } from 'src/app/util/enums/tipo-movimiento';
 import { crearContextoTicket } from 'src/app/util/ticket-contexto';
 import { environment } from 'src/environments/environment';
 
-// ✅ Para calcular la fecha fin del nuevo paquete
-import { calcularFechaFin, hoyISO } from 'src/app/util/fechas-precios';
+import { calcularFechaFin, hoyISO as hoyISOUtil } from 'src/app/util/fechas-precios';
 import { TiempoPlan } from 'src/app/util/enums/tiempo-plan';
+
 import { HuellaModal, HuellaResultado } from '../../huella-modal/huella-modal';
 
-// ✅ Huella
-
+// ===================== Helpers fechas ISO (local) =====================
 function parseLocalDate(iso: string): Date {
   const [y, m, d] = (iso ?? '').split('-').map(Number);
   return new Date(y, (m ?? 1) - 1, d ?? 1);
@@ -55,6 +54,18 @@ function diffDays(aIso: string, bIso: string): number {
   return Math.floor(ms / (1000 * 60 * 60 * 24));
 }
 
+// ===================== Tipos =====================
+type Modalidad = 'INDIVIDUAL' | 'DUO' | 'TRIO' | 'SQUAD';
+
+type MiembroSlot = {
+  socio: SocioData;
+  vigente: MembresiaData | null;
+  pagos: PagoData[] | null;
+  cargando: boolean;
+  error: string | null;
+  principal: boolean;
+};
+
 @Component({
   selector: 'app-reinscripcion-adelantada',
   standalone: true,
@@ -64,7 +75,7 @@ function diffDays(aIso: string, bIso: string): number {
     RouterLink,
     ResumenCompra,
     TiempoPlanLabelPipe,
-    HuellaModal, // ✅
+    HuellaModal,
   ],
   templateUrl: './reinscripcion-adelantada.html',
   styleUrl: './reinscripcion-adelantada.css',
@@ -85,96 +96,228 @@ export class ReinscripcionAdelantada implements OnInit {
   private ticket = inject(TicketService);
   private jwt = inject(JwtHelperService);
 
-  // Estado
-  idSocio: number | null = null;
-  socio = signal<SocioData | null>(null);
-  vigente = signal<MembresiaData | null>(null);
-
-  cargandoSocio = false;
-
-  listaPaquetes = signal<PaqueteData[]>([]);
-  cargandoPaquetes = true;
-  errorPaquetes: string | null = null;
-
-  mostrarResumen = signal(false);
-  guardando = false;
-  mensajeError: string | null = null;
-
-  // Huella
-  mostrarHuella = signal(false);
-
   // Contexto ticket
   gym: GimnasioData | null = null;
   cajero = 'Cajero';
 
-  // ========= Signals reactivas =========
-  paqueteIdSig = signal<number>(0);
-  descuentoValueSig = signal<number>(0);
-  fechaInicioSig = signal<string>(hoyISO()); // ✅ para recalcular fecha fin
+  // UI general
+  cargandoSocio = false;
+  cargandoPaquetes = true;
+  errorPaquetes: string | null = null;
 
-  // Form buscar
+  guardando = false;
+  mensajeError: string | null = null;
+
+  mostrarModalHuella = signal(false);
+  private modoHuellaSig = signal<'PRINCIPAL' | 'MIEMBRO'>('PRINCIPAL');
+
+  mostrarResumen = signal(false);
+  cobrandoIndexSig = signal<number>(0);
+
+  todayDate = new Date();
+
+  // Data
+  listaPaquetesSig = signal<PaqueteData[]>([]);
+  miembrosSig = signal<MiembroSlot[]>([]);
+
+  // Bloqueo paquete
+  paqueteBloqueadoSig = signal<boolean>(false);
+
+  // Controls
   formBuscar = this.fb.group({
     idSocio: this.fb.nonNullable.control<number>(0, [Validators.min(1)]),
   });
 
-  // Form pago (fechaInicio solo visual)
+  miembroBuscarIdCtrl = this.fb.nonNullable.control<number>(0, [Validators.min(1)]);
+
   form = this.fb.group({
     paqueteId: this.fb.nonNullable.control<number>(0, [Validators.min(1)]),
     descuento: this.fb.nonNullable.control<number>(0, [Validators.min(0)]),
-    fechaInicio: this.fb.nonNullable.control<string>({ value: hoyISO(), disabled: true }),
+    fechaInicio: this.fb.nonNullable.control<string>({ value: hoyISOUtil(), disabled: true }),
     movimiento: this.fb.nonNullable.control<TipoMovimiento>('REINSCRIPCION'),
   });
 
-  // Derivados
-  diasRestantesSig = computed(() => {
-    const v = this.vigente();
-    if (!v?.fechaFin) return null;
-    return diffDays(hoyISO(), v.fechaFin);
-  });
+  // ===================== Normalizadores =====================
+  private hoyISO(): string {
+    return hoyISOUtil();
+  }
 
-  fechaInicioNuevaSig = computed(() => {
-    const v = this.vigente();
-    if (!v?.fechaFin) return hoyISO();
-    return addDaysIso(v.fechaFin, 1); // día siguiente al vencimiento
-  });
+  private normalizarModalidad(raw: any): Modalidad {
+    const m = String(raw ?? 'INDIVIDUAL').toUpperCase();
+    if (m === 'DUO') return 'DUO';
+    if (m === 'TRIO') return 'TRIO';
+    if (m === 'SQUAD') return 'SQUAD';
+    return 'INDIVIDUAL';
+  }
+
+  private cantidadRequerida(modalidad: Modalidad): number {
+    if (modalidad === 'DUO') return 2;
+    if (modalidad === 'TRIO') return 3;
+    if (modalidad === 'SQUAD') return 5;
+    return 1;
+  }
+
+  private modalidadPaquete(p: PaqueteData | null): Modalidad {
+    return this.normalizarModalidad((p as any)?.modalidad);
+  }
+
+  private modalidadVigenteDe(m: MembresiaData | null): Modalidad {
+    return this.normalizarModalidad((m as any)?.paquete?.modalidad);
+  }
+
+  // ===================== Computeds =====================
+  socioPrincipalSig = computed(() => this.miembrosSig()[0]?.socio ?? null);
+  vigentePrincipalSig = computed(() => this.miembrosSig()[0]?.vigente ?? null);
+
+  modalidadVigenteSig = computed<Modalidad>(() => this.modalidadVigenteDe(this.vigentePrincipalSig()));
+  requeridoSig = computed(() => this.cantidadRequerida(this.modalidadVigenteSig()));
+  esGrupalSig = computed(() => this.requeridoSig() > 1);
 
   paqueteActualSig = computed(() => {
-    const id = this.paqueteIdSig();
-    return (this.listaPaquetes() ?? []).find(p => Number(p?.idPaquete) === id) ?? null;
+    const id = Number(this.form.controls.paqueteId.value ?? 0);
+    return (this.listaPaquetesSig() ?? []).find(p => Number(p?.idPaquete) === id) ?? null;
   });
 
-  precioPaqueteSig = computed(() => Number(this.paqueteActualSig()?.precio ?? 0));
-  descuentoSig = computed(() => Number(this.descuentoValueSig() ?? 0));
+  modalidadSeleccionadaSig = computed<Modalidad>(() => this.modalidadPaquete(this.paqueteActualSig()));
 
-  totalVistaSig = computed(() => {
-    const total = this.precioPaqueteSig() - this.descuentoSig();
-    return Math.max(0, Number(total.toFixed(2)));
+  // ✅ Regla: en adelantada NO se cambia modalidad (debe coincidir con la vigente)
+  modalidadCompatibleSig = computed(() => {
+    const principal = this.vigentePrincipalSig();
+    if (!principal?.fechaFin) return false;
+    return this.modalidadSeleccionadaSig() === this.modalidadVigenteSig();
   });
 
-  // ✅ NUEVO: fecha de “pago” = fecha fin (vencimiento) del NUEVO paquete
+  paquetesPermitidosSig = computed(() => {
+    const principal = this.vigentePrincipalSig();
+    const all = this.listaPaquetesSig() ?? [];
+    if (!principal?.fechaFin) return all; // aún no hay socio cargado
+    const mod = this.modalidadVigenteSig();
+    return all.filter(p => this.modalidadPaquete(p) === mod);
+  });
+
+  diasRestantesPrincipalSig = computed(() => {
+    const v = this.vigentePrincipalSig();
+    if (!v?.fechaFin) return null;
+    return diffDays(this.hoyISO(), v.fechaFin);
+  });
+
+  fechaInicioNuevaIsoSig = computed(() => {
+    const v = this.vigentePrincipalSig();
+    if (!v?.fechaFin) return this.hoyISO();
+    return addDaysIso(v.fechaFin, 1);
+  });
+
+  fechaInicioNuevaDateSig = computed(() => parseLocalDate(this.fechaInicioNuevaIsoSig()));
+
   fechaFinNuevaIsoSig = computed(() => {
-    const inicio = this.fechaInicioSig(); // ISO YYYY-MM-DD
+    const inicio = this.fechaInicioNuevaIsoSig();
     const tiempo = (this.paqueteActualSig()?.tiempo ?? null) as TiempoPlan | null;
     return calcularFechaFin(inicio, tiempo);
   });
 
   fechaFinNuevaDateSig = computed(() => parseLocalDate(this.fechaFinNuevaIsoSig()));
 
+  precioPaqueteSig = computed(() => Number(this.paqueteActualSig()?.precio ?? 0));
+  descuentoSig = computed(() => Number(this.form.controls.descuento.value ?? 0));
+
+  totalPorSocioSig = computed(() => {
+    const total = this.precioPaqueteSig() - this.descuentoSig();
+    return Math.max(0, Number(total.toFixed(2)));
+  });
+
+  faltanIntegrantesSig = computed(() => {
+    const req = this.requeridoSig();
+    const have = this.miembrosSig().length;
+    return Math.max(0, req - have);
+  });
+
+  faltanPagosSig = computed(() => {
+    return (this.miembrosSig() ?? []).filter(m => !(m.pagos?.length)).length;
+  });
+
+  // =====================
+  // ✅ BLOQUEOS SEPARADOS (FIX)
+  //  - cobrar: NO valida pagos
+  //  - guardar: SÍ valida pagos
+  // =====================
+  bloqueoAntesDeCobrarSig = computed(() => {
+    const principal = this.vigentePrincipalSig();
+    if (!principal?.fechaFin) return 'Primero busca un socio con membresía vigente.';
+    if (!this.paqueteActualSig()) return 'Selecciona un paquete.';
+    if (!this.modalidadCompatibleSig()) {
+      return `No puedes cambiar de modalidad en reinscripción adelantada. Modalidad vigente: ${this.modalidadVigenteSig()}.`;
+    }
+    if (this.esGrupalSig() && this.faltanIntegrantesSig() > 0) {
+      return `Faltan ${this.faltanIntegrantesSig()} integrante(s) para completar el paquete ${this.modalidadVigenteSig()}.`;
+    }
+
+    // Validar vigentes / misma modalidad / misma fechaFin (pero SIN pagos)
+    const principalFin = this.vigentePrincipalSig()?.fechaFin ?? null;
+    const mod = this.modalidadVigenteSig();
+    const slots = this.miembrosSig();
+
+    for (const s of slots) {
+      if (!s.vigente?.fechaFin) return 'Hay integrantes sin membresía vigente.';
+      const m = this.modalidadVigenteDe(s.vigente);
+      if (m !== mod) return 'Hay integrantes con modalidad distinta a la del socio principal.';
+      if (principalFin && s.vigente.fechaFin !== principalFin) {
+        return 'Para adelantada grupal, todos deben vencer el mismo día (fechaFin).';
+      }
+    }
+
+    return null;
+  });
+
+  bloqueoAntesDeGuardarSig = computed(() => {
+    const bloqueCobro = this.bloqueoAntesDeCobrarSig();
+    if (bloqueCobro) return bloqueCobro;
+
+    // aquí sí exigimos pagos
+    const slots = this.miembrosSig();
+    for (const s of slots) {
+      if (!s.pagos?.length) return 'Faltan pagos por capturar para algunos integrantes.';
+    }
+    return null;
+  });
+
+  // Cobro actual
+  socioCobrandoSig = computed(() => {
+    const idx = this.cobrandoIndexSig();
+    return this.miembrosSig()[idx] ?? null;
+  });
+
+  socioCobrandoNombreSig = computed(() => {
+    const slot = this.socioCobrandoSig();
+    if (!slot?.socio) return '';
+    return `${slot.socio.nombre ?? ''} ${slot.socio.apellido ?? ''}`.trim();
+  });
+
+  conceptoResumenSig = computed(() => {
+    const paquete = this.paqueteActualSig();
+    const nombre = paquete?.nombre ?? 'Paquete';
+
+    if (!this.esGrupalSig()) return nombre;
+
+    const idx = this.cobrandoIndexSig() + 1;
+    const req = this.requeridoSig();
+    return `${nombre} · Integrante ${idx} de ${req}`;
+  });
+
+  // ===================== Lifecycle =====================
   ngOnInit(): void {
     this.cargarContextoDesdeToken();
 
-    // Sync signals con form
-    this.paqueteIdSig.set(Number(this.form.controls.paqueteId.value ?? 0));
-    this.descuentoValueSig.set(Number(this.form.controls.descuento.value ?? 0));
-    this.fechaInicioSig.set(String(this.form.controls.fechaInicio.value ?? hoyISO()));
-
+    // Paquete/Descuento changes: invalida pagos ya capturados (para no desfasar totales)
     this.form.controls.paqueteId.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(v => this.paqueteIdSig.set(Number(v ?? 0)));
+      .subscribe(() => {
+        this.enforceModalidadSeleccionada();
+        this.limpiarPagos();
+      });
 
     this.form.controls.descuento.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(v => this.descuentoValueSig.set(Number(v ?? 0)));
+      .subscribe(() => this.limpiarPagos());
 
     // Cargar paquetes
     this.cargandoPaquetes = true;
@@ -182,17 +325,8 @@ export class ReinscripcionAdelantada implements OnInit {
     this.paqueteSrv.buscarTodos().subscribe({
       next: (lista) => {
         const activos = (lista ?? []).filter((p: any) => p?.activo !== false);
-        this.listaPaquetes.set(activos);
+        this.listaPaquetesSig.set(activos);
         this.cargandoPaquetes = false;
-
-        // Validar paqueteId actual
-        const initId = Number(this.form.controls.paqueteId.value ?? 0);
-        const valido = activos.some((p: any) => Number(p.idPaquete) === initId) ? initId : 0;
-        if (valido !== initId) {
-          this.form.controls.paqueteId.setValue(valido, { emitEvent: true });
-        } else {
-          this.paqueteIdSig.set(valido);
-        }
       },
       error: () => {
         this.errorPaquetes = 'No se pudieron cargar los paquetes.';
@@ -204,12 +338,12 @@ export class ReinscripcionAdelantada implements OnInit {
     const idParam = Number(this.route.snapshot.paramMap.get('id'));
     if (idParam > 0) {
       this.formBuscar.controls.idSocio.setValue(idParam, { emitEvent: false });
-      this.buscarSocio();
+      this.buscarPrincipalPorId();
     }
   }
 
-  // ===================== Buscar socio por ID =====================
-  buscarSocio(): void {
+  // ===================== Principal (ID/Huella) =====================
+  buscarPrincipalPorId(): void {
     const id = Number(this.formBuscar.controls.idSocio.value ?? 0);
     if (id <= 0) {
       this.notify.aviso('Ingresa un idSocio válido.');
@@ -217,67 +351,39 @@ export class ReinscripcionAdelantada implements OnInit {
     }
 
     this.cargandoSocio = true;
-    this.idSocio = id;
-    this.socio.set(null);
-    this.vigente.set(null);
     this.mensajeError = null;
 
     this.socioSrv.buscarPorId(id)
       .pipe(finalize(() => (this.cargandoSocio = false)))
       .subscribe({
         next: (s) => {
-          this.socio.set(s ?? null);
-          if (!s) {
+          if (!s?.idSocio) {
             this.notify.aviso('Socio no encontrado.');
+            this.resetFlujo();
             return;
           }
-          this.cargarVigente(id);
+          this.setPrincipal(s);
         },
         error: () => this.notify.error('No se pudo cargar el socio.'),
       });
   }
 
-  private cargarVigente(idSocio: number): void {
-    this.membresiaSrv.buscarMembresiasVigentesPorSocio(idSocio).subscribe({
-      next: (list) => {
-        const vigentes = (list ?? []).filter(m => !!m?.fechaFin);
-
-        if (!vigentes.length) {
-          this.vigente.set(null);
-
-          const hoy = hoyISO();
-          this.form.controls.fechaInicio.setValue(hoy, { emitEvent: false });
-          this.fechaInicioSig.set(hoy);
-
-          this.notify.aviso('Este socio no tiene membresía vigente. La reinscripción anticipada no aplica.');
-          return;
-        }
-
-        const max = vigentes.reduce((acc, cur) => {
-          if (!acc) return cur;
-          return (cur.fechaFin > acc.fechaFin) ? cur : acc;
-        }, null as any);
-
-        this.vigente.set(max);
-
-        // Inicio del nuevo paquete: día siguiente al vencimiento
-        const inicio = addDaysIso(max.fechaFin, 1);
-        this.form.controls.fechaInicio.setValue(inicio, { emitEvent: false });
-        this.fechaInicioSig.set(inicio);
-      },
-      error: () => {
-        this.vigente.set(null);
-        this.notify.error('No se pudo consultar la membresía vigente.');
-      }
-    });
+  abrirHuellaPrincipal(): void {
+    this.modoHuellaSig.set('PRINCIPAL');
+    this.mostrarModalHuella.set(true);
   }
 
-  // ===================== Buscar socio por HUELLAS =====================
-  abrirHuella(): void { this.mostrarHuella.set(true); }
-  cerrarHuella(): void { this.mostrarHuella.set(false); }
+  abrirHuellaMiembro(): void {
+    this.modoHuellaSig.set('MIEMBRO');
+    this.mostrarModalHuella.set(true);
+  }
+
+  cerrarHuella(): void {
+    this.mostrarModalHuella.set(false);
+  }
 
   confirmarHuella(res: HuellaResultado): void {
-    this.mostrarHuella.set(false);
+    this.mostrarModalHuella.set(false);
 
     const base64 = res?.muestras?.[0] ?? '';
     if (!base64) {
@@ -285,13 +391,16 @@ export class ReinscripcionAdelantada implements OnInit {
       return;
     }
 
-    this.buscarSocioPorHuella(base64);
+    const modo = this.modoHuellaSig();
+    if (modo === 'PRINCIPAL') {
+      this.buscarPrincipalPorHuella(base64);
+    } else {
+      this.agregarMiembroPorHuella(base64);
+    }
   }
 
-  private buscarSocioPorHuella(huellaBase64: string): void {
+  private buscarPrincipalPorHuella(huellaBase64: string): void {
     this.cargandoSocio = true;
-    this.socio.set(null);
-    this.vigente.set(null);
     this.mensajeError = null;
 
     this.socioSrv.buscarPorHuella(huellaBase64)
@@ -308,113 +417,516 @@ export class ReinscripcionAdelantada implements OnInit {
             this.notify.error('Huella no encontrada o no pertenece a tu gimnasio.');
             return;
           }
-
-          this.socio.set(s);
-          this.idSocio = Number(s.idSocio);
-
-          // Autocompleta el input
           this.formBuscar.controls.idSocio.setValue(Number(s.idSocio), { emitEvent: false });
-
-          // Cargar vigente
-          this.cargarVigente(Number(s.idSocio));
+          this.setPrincipal(s);
         },
         error: () => this.notify.error('No se pudo buscar el socio por huella.'),
       });
   }
 
-  // ===================== Flujo pago =====================
+  private setPrincipal(s: SocioData): void {
+    // reset
+    this.miembrosSig.set([{
+      socio: s,
+      vigente: null,
+      pagos: null,
+      cargando: true,
+      error: null,
+      principal: true,
+    }]);
+
+    // limpiar paquete/fechas
+    this.form.controls.descuento.setValue(0, { emitEvent: false });
+    this.form.controls.fechaInicio.setValue(this.hoyISO(), { emitEvent: false });
+    this.form.controls.paqueteId.setValue(0, { emitEvent: false });
+    this.paqueteBloqueadoSig.set(false);
+    this.form.controls.paqueteId.enable({ emitEvent: false });
+
+    this.cargarVigenteParaSlot(0, Number(s.idSocio));
+  }
+
+  private resetFlujo(): void {
+    this.miembrosSig.set([]);
+    this.form.controls.descuento.setValue(0, { emitEvent: false });
+    this.form.controls.paqueteId.setValue(0, { emitEvent: false });
+    this.form.controls.paqueteId.enable({ emitEvent: false });
+    this.paqueteBloqueadoSig.set(false);
+    this.mensajeError = null;
+    this.mostrarResumen.set(false);
+    this.cobrandoIndexSig.set(0);
+  }
+
+  // ===================== Vigente por socio =====================
+  private cargarVigenteParaSlot(index: number, idSocio: number): void {
+    this.setSlot(index, { cargando: true, error: null });
+
+    this.membresiaSrv.buscarMembresiasVigentesPorSocio(idSocio).subscribe({
+      next: (list) => {
+        const vigentes = (list ?? []).filter(m => !!m?.fechaFin);
+        if (!vigentes.length) {
+          // principal: bloquea adelantada
+          if (index === 0) {
+            this.setSlot(0, { cargando: false, vigente: null, error: 'No tiene membresía vigente. Adelantada no aplica.' });
+            this.notify.aviso('Este socio no tiene membresía vigente. La reinscripción adelantada no aplica.');
+            return;
+          }
+
+          // integrante: eliminar
+          this.notify.aviso('El integrante no tiene membresía vigente. No se puede usar en adelantada grupal.');
+          this.quitarMiembroByIndex(index);
+          return;
+        }
+
+        const max = vigentes.reduce((acc, cur) => {
+          if (!acc) return cur;
+          return (cur.fechaFin > acc.fechaFin) ? cur : acc;
+        }, null as any);
+
+        this.setSlot(index, { cargando: false, vigente: max, error: null });
+
+        // si es principal, fija fechas y paquete permitido
+        if (index === 0) {
+          const inicio = addDaysIso(max.fechaFin, 1);
+          this.form.controls.fechaInicio.setValue(inicio, { emitEvent: false });
+
+          // Auto-seleccionar paquete actual (mismo idPaquete) y bloquear
+          const idPaqueteVigente = Number((max as any)?.paquete?.idPaquete ?? 0);
+          const existe = (this.listaPaquetesSig() ?? []).some(p => Number(p.idPaquete) === idPaqueteVigente);
+
+          if (existe && idPaqueteVigente > 0) {
+            this.form.controls.paqueteId.setValue(idPaqueteVigente, { emitEvent: true });
+            this.form.controls.paqueteId.disable({ emitEvent: false });
+            this.paqueteBloqueadoSig.set(true);
+          } else {
+            // si no existe el mismo id, dejamos libre pero filtrado por modalidad vigente
+            this.form.controls.paqueteId.enable({ emitEvent: false });
+            this.paqueteBloqueadoSig.set(false);
+          }
+
+          // Al cargar principal, si es grupal: asegurar que solo quede el principal en la lista
+          const req = this.requeridoSig();
+          const current = this.miembrosSig();
+          this.miembrosSig.set(current.slice(0, Math.min(1, req)));
+
+          // Enforce modalidad por si el paquete actual quedó mal
+          this.enforceModalidadSeleccionada();
+        }
+
+        // Validaciones para integrantes: misma modalidad y misma fechaFin que principal
+        if (index > 0) {
+          const principalV = this.vigentePrincipalSig();
+          if (!principalV?.fechaFin) return;
+
+          const modPrincipal = this.modalidadVigenteSig();
+          const modMiembro = this.modalidadVigenteDe(max);
+
+          if (modMiembro !== modPrincipal) {
+            this.notify.aviso(`Ese socio tiene modalidad ${modMiembro}. Debe coincidir con ${modPrincipal}.`);
+            this.quitarMiembroByIndex(index);
+            return;
+          }
+
+          if (max.fechaFin !== principalV.fechaFin) {
+            this.notify.aviso('Para adelantada grupal, todos deben vencer el mismo día (fechaFin).');
+            this.quitarMiembroByIndex(index);
+            return;
+          }
+        }
+      },
+      error: () => {
+        if (index === 0) {
+          this.setSlot(0, { cargando: false, vigente: null, error: 'No se pudo consultar la membresía vigente.' });
+          this.notify.error('No se pudo consultar la membresía vigente.');
+          return;
+        }
+        this.notify.error('No se pudo consultar la membresía vigente del integrante.');
+        this.quitarMiembroByIndex(index);
+      }
+    });
+  }
+
+  private setSlot(index: number, patch: Partial<MiembroSlot>): void {
+    const arr = [...(this.miembrosSig() ?? [])];
+    const old = arr[index];
+    if (!old) return;
+    arr[index] = { ...old, ...patch };
+    this.miembrosSig.set(arr);
+  }
+
+  // ===================== Paquete: bloqueo / modalidad =====================
+  desbloquearPaquete(): void {
+    if (this.guardando) return;
+
+    if ((this.miembrosSig()?.length ?? 0) > 1) {
+      this.notify.aviso('Quita integrantes extra antes de cambiar el paquete.');
+      return;
+    }
+
+    this.form.controls.paqueteId.enable({ emitEvent: false });
+    this.paqueteBloqueadoSig.set(false);
+    this.notify.aviso('Paquete desbloqueado (solo misma modalidad).');
+  }
+
+  private enforceModalidadSeleccionada(): void {
+    const principal = this.vigentePrincipalSig();
+    if (!principal?.fechaFin) return;
+
+    const pid = Number(this.form.controls.paqueteId.value ?? 0);
+    if (!pid) return;
+
+    const p = this.paqueteActualSig();
+    if (!p) return;
+
+    const modSel = this.modalidadSeleccionadaSig();
+    const modVig = this.modalidadVigenteSig();
+
+    if (modSel !== modVig) {
+      this.notify.aviso(`No puedes cambiar de modalidad en adelantada. Debe ser ${modVig}.`);
+      const vigenteId = Number((principal as any)?.paquete?.idPaquete ?? 0);
+      const existe = (this.listaPaquetesSig() ?? []).some(x => Number(x.idPaquete) === vigenteId);
+
+      const fallback = existe ? vigenteId : 0;
+      this.form.controls.paqueteId.setValue(fallback, { emitEvent: false });
+    }
+  }
+
+  // ===================== Integrantes (solo grupal) =====================
+  agregarMiembroPorId(): void {
+    if (this.guardando) return;
+
+    if (!this.esGrupalSig()) {
+      this.notify.aviso('El socio principal no tiene modalidad grupal.');
+      return;
+    }
+
+    if (this.faltanIntegrantesSig() <= 0) {
+      this.notify.aviso('Ya completaste los integrantes requeridos.');
+      return;
+    }
+
+    const id = Number(this.miembroBuscarIdCtrl.value ?? 0);
+    if (!id || id <= 0) {
+      this.notify.aviso('Ingresa un ID válido.');
+      return;
+    }
+
+    if (this.miembrosSig().some(m => Number(m.socio?.idSocio) === Number(id))) {
+      this.notify.aviso('Ese socio ya está agregado.');
+      return;
+    }
+
+    this.socioSrv.buscarPorId(id).subscribe({
+      next: (s) => {
+        if (!s?.idSocio) {
+          this.notify.aviso('No se encontró el socio.');
+          return;
+        }
+
+        const arr = [...this.miembrosSig()];
+        arr.push({
+          socio: s,
+          vigente: null,
+          pagos: null,
+          cargando: true,
+          error: null,
+          principal: false,
+        });
+        this.miembrosSig.set(arr);
+
+        this.miembroBuscarIdCtrl.setValue(0, { emitEvent: false });
+        this.limpiarPagos();
+
+        this.cargarVigenteParaSlot(arr.length - 1, Number(s.idSocio));
+      },
+      error: () => this.notify.error('No se pudo cargar el socio por ID.'),
+    });
+  }
+
+  private agregarMiembroPorHuella(huellaBase64: string): void {
+    if (this.guardando) return;
+
+    if (!this.esGrupalSig()) {
+      this.notify.aviso('El socio principal no tiene modalidad grupal.');
+      return;
+    }
+
+    if (this.faltanIntegrantesSig() <= 0) {
+      this.notify.aviso('Ya completaste los integrantes requeridos.');
+      return;
+    }
+
+    this.socioSrv.buscarPorHuella(huellaBase64)
+      .pipe(
+        catchError(err => {
+          if (err?.status === 403 || err?.status === 404) return of(null);
+          throw err;
+        })
+      )
+      .subscribe({
+        next: (s: any) => {
+          if (!s?.idSocio) {
+            this.notify.aviso('No se encontró socio para esa huella.');
+            return;
+          }
+          if (this.miembrosSig().some(m => Number(m.socio?.idSocio) === Number(s.idSocio))) {
+            this.notify.aviso('Ese socio ya está agregado.');
+            return;
+          }
+
+          const arr = [...this.miembrosSig()];
+          arr.push({
+            socio: s,
+            vigente: null,
+            pagos: null,
+            cargando: true,
+            error: null,
+            principal: false,
+          });
+          this.miembrosSig.set(arr);
+
+          this.limpiarPagos();
+          this.cargarVigenteParaSlot(arr.length - 1, Number(s.idSocio));
+        },
+        error: () => this.notify.error('No se pudo buscar socio por huella.'),
+      });
+  }
+
+  quitarMiembro(idSocio: number): void {
+    if (this.guardando) return;
+
+    const principalId = Number(this.socioPrincipalSig()?.idSocio ?? 0);
+    if (Number(idSocio) === principalId) {
+      this.notify.aviso('No puedes quitar al socio principal.');
+      return;
+    }
+
+    this.miembrosSig.set(this.miembrosSig().filter(m => Number(m.socio?.idSocio) !== Number(idSocio)));
+
+    const idx = this.cobrandoIndexSig();
+    if (idx >= this.miembrosSig().length) {
+      this.cobrandoIndexSig.set(Math.max(0, this.miembrosSig().length - 1));
+    }
+
+    this.limpiarPagos();
+  }
+
+  private quitarMiembroByIndex(index: number): void {
+    const arr = [...this.miembrosSig()];
+    if (index <= 0 || index >= arr.length) return;
+    arr.splice(index, 1);
+    this.miembrosSig.set(arr);
+
+    const idx = this.cobrandoIndexSig();
+    if (idx >= arr.length) {
+      this.cobrandoIndexSig.set(Math.max(0, arr.length - 1));
+    }
+
+    this.limpiarPagos();
+  }
+
+  private limpiarPagos(): void {
+    const arr = this.miembrosSig().map(m => ({ ...m, pagos: null }));
+    this.miembrosSig.set(arr);
+  }
+
+  // ===================== Fechas por integrante =====================
+  inicioNuevoIso(slot: MiembroSlot): string | null {
+    const fin = slot?.vigente?.fechaFin;
+    if (!fin) return null;
+    return addDaysIso(fin, 1);
+  }
+
+  finNuevoIso(slot: MiembroSlot): string | null {
+    const inicio = this.inicioNuevoIso(slot);
+    const tiempo = (this.paqueteActualSig()?.tiempo ?? null) as TiempoPlan | null;
+    if (!inicio || !tiempo) return null;
+    return calcularFechaFin(inicio, tiempo);
+  }
+
+  finNuevoDate(slot: MiembroSlot): Date | null {
+    const iso = this.finNuevoIso(slot);
+    return iso ? parseLocalDate(iso) : null;
+  }
+
+  // ===================== Cobro =====================
   abrirResumen(): void {
-    if (!this.idSocio || !this.socio()) {
-      this.mensajeError = 'Primero busca y selecciona un socio.';
+    if (this.guardando) return;
+
+    const bloque = this.bloqueoAntesDeCobrarSig();
+    if (bloque) {
+      this.mensajeError = bloque;
       return;
     }
-    if (!this.vigente()) {
-      this.mensajeError = 'No hay membresía vigente; la reinscripción anticipada no aplica.';
-      return;
-    }
-    if ((this.form.controls.paqueteId.value ?? 0) <= 0) {
-      this.form.markAllAsTouched();
-      this.mensajeError = 'Selecciona un paquete para continuar.';
-      return;
-    }
+
+    // cobrar al primer integrante sin pago
+    const miembros = this.miembrosSig();
+    const idx = miembros.findIndex(m => !(m.pagos?.length));
+    this.cobrandoIndexSig.set(idx >= 0 ? idx : 0);
 
     this.mensajeError = null;
     this.mostrarResumen.set(true);
   }
 
-  cerrarResumen(): void { this.mostrarResumen.set(false); }
+  abrirResumenParaIndex(index: number): void {
+    if (this.guardando) return;
 
-  confirmar(pagos: PagoData[]): void {
-    const paquete = this.paqueteActualSig();
-    if (!this.idSocio || !this.socio() || !this.vigente()) {
-      this.notify.aviso('Falta socio o membresía vigente.');
-      return;
-    }
-    if (!paquete || (paquete as any)?.activo === false) {
-      this.notify.aviso('Selecciona un paquete activo.');
+    const bloque = this.bloqueoAntesDeCobrarSig();
+    if (bloque) {
+      this.mensajeError = bloque;
       return;
     }
 
-    const total = this.totalVistaSig() ?? 0;
-    const sumaPagos = (pagos ?? []).reduce((a, p) => a + (Number(p.monto) || 0), 0);
-    if (Math.abs(total - sumaPagos) > 0.01) {
+    const slots = this.miembrosSig();
+    if (index < 0 || index >= slots.length) return;
+
+    this.cobrandoIndexSig.set(index);
+    this.mensajeError = null;
+    this.mostrarResumen.set(true);
+  }
+
+  cerrarResumen(): void {
+    this.mostrarResumen.set(false);
+  }
+
+  confirmarPago(pagos: PagoData[]): void {
+    const slot = this.socioCobrandoSig();
+    if (!slot?.socio?.idSocio) {
+      this.notify.error('Falta socio.');
+      return;
+    }
+
+    const total = this.totalPorSocioSig() ?? 0;
+    const suma = (pagos ?? []).reduce((a, p) => a + (Number(p.monto) || 0), 0);
+    if (Math.abs(total - suma) > 0.01) {
       this.notify.aviso('La suma de pagos no coincide con el total.');
       return;
     }
 
-    const payload: Partial<MembresiaData> = {
-      socio: { idSocio: this.idSocio } as any,
-      paquete: { idPaquete: paquete.idPaquete } as any,
+    // set pagos al integrante
+    const idx = this.cobrandoIndexSig();
+    this.setSlot(idx, { pagos: pagos ?? [] });
+
+    this.mostrarResumen.set(false);
+
+    // ¿faltan integrantes por cobrar?
+    const faltanPagos = this.miembrosSig().filter(m => !(m.pagos?.length)).length;
+    if (faltanPagos > 0) {
+      this.notify.exito(`Pago capturado. Faltan ${faltanPagos} integrante(s) por cobrar.`);
+      return;
+    }
+
+    // guardar todo
+    this.guardarTodo();
+  }
+
+  // ===================== Guardar =====================
+  private guardarTodo(): void {
+    const bloque = this.bloqueoAntesDeGuardarSig(); // ✅ ahora sí exige pagos
+    if (bloque) {
+      this.notify.aviso(bloque);
+      return;
+    }
+
+    const paquete = this.paqueteActualSig();
+    if (!paquete?.idPaquete) {
+      this.notify.error('Selecciona un paquete.');
+      return;
+    }
+
+    const miembros = this.miembrosSig();
+    const descuento = Number(this.form.controls.descuento.value ?? 0);
+
+    const payloads = miembros.map(m => ({
+      socio: { idSocio: m.socio.idSocio },
+      paquete: { idPaquete: paquete.idPaquete },
       movimiento: 'REINSCRIPCION',
-      pagos,
-      descuento: Number(this.form.controls.descuento.value ?? 0),
-      // (opcional) si tu backend lo acepta/ignora:
-      // fechaInicio: this.fechaInicioSig(),
-      // fechaFin: this.fechaFinNuevaIsoSig(),
-    };
+      descuento,
+      pagos: m.pagos ?? [],
+    }));
 
     this.guardando = true;
-    this.membresiaSrv.reinscripcionAnticipada(payload).subscribe({
-      next: (resp: any) => {
-        this.guardando = false;
-        this.mostrarResumen.set(false);
-        this.notify.exito('Reinscripción adelantada realizada correctamente.');
 
-        // Ticket
-        const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
-        const socioNombre = this.nombreCompleto();
+    const esBatch = this.esGrupalSig();
+    if (esBatch) {
+      this.membresiaSrv.reinscripcionAnticipadaBatch(payloads as any[])
+        .pipe(finalize(() => (this.guardando = false)))
+        .subscribe({
+          next: (respArr: any[]) => {
+            const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
 
-        const pagosDet = (pagos ?? [])
-          .filter(p => (Number(p.monto) || 0) > 0)
-          .map(p => ({ metodo: p.tipoPago, monto: Number(p.monto) || 0 }));
-        const folioTicket = resp?.folio
-        this.ticket.imprimirMembresiaDesdeContexto({
-          ctx,
-          folio: folioTicket,
-          fecha: new Date(),
-          socioNombre,
-          paqueteNombre: paquete?.nombre ?? null,
-          precioPaquete: Number(paquete?.precio ?? 0),
-          descuento: Number(this.form.controls.descuento.value ?? 0),
-          costoInscripcion: 0,
-          pagos: pagosDet,
-          referencia: resp?.referencia,
+            const lista = Array.isArray(respArr) ? respArr : [];
+            for (let i = 0; i < miembros.length; i++) {
+              const r = lista[i] ?? {};
+              this.imprimirTicket(ctx, r, miembros[i].socio, miembros[i].pagos ?? [], paquete, descuento);
+            }
+
+            this.notify.exito('Reinscripción adelantada grupal guardada.');
+            const principalId = Number(this.socioPrincipalSig()?.idSocio ?? 0);
+            if (principalId > 0) this.router.navigate(['/pages/socio', principalId, 'historial']);
+          },
+          error: (e) => {
+            const msg = e?.error?.detail || e?.error?.message || e?.error?.title || 'No se pudo guardar la adelantada grupal.';
+            this.notify.error(msg);
+          },
         });
+      return;
+    }
 
-        this.router.navigate(['/pages/socio', this.idSocio, 'historial']);
-      },
-      error: (e) => {
-        this.guardando = false;
-        this.notify.error(e?.error?.message ?? 'No se pudo completar la reinscripción adelantada.');
-      },
+    // individual
+    this.membresiaSrv.reinscripcionAnticipada(payloads[0] as any)
+      .pipe(finalize(() => (this.guardando = false)))
+      .subscribe({
+        next: (resp: any) => {
+          const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
+          const socio = miembros[0].socio;
+          const pagos = miembros[0].pagos ?? [];
+          this.imprimirTicket(ctx, resp, socio, pagos, paquete, descuento);
+
+          this.notify.exito('Reinscripción adelantada guardada.');
+          const principalId = Number(this.socioPrincipalSig()?.idSocio ?? 0);
+          if (principalId > 0) this.router.navigate(['/pages/socio', principalId, 'historial']);
+        },
+        error: (e) => {
+          const msg = e?.error?.detail || e?.error?.message || e?.error?.title || 'No se pudo completar la reinscripción adelantada.';
+          this.notify.error(msg);
+        },
+      });
+  }
+
+  private imprimirTicket(
+    ctx: VentaContexto,
+    resp: any,
+    socio: SocioData,
+    pagos: PagoData[],
+    paquete: PaqueteData,
+    descuento: number
+  ): void {
+    const pagosDet = (pagos ?? [])
+      .filter(p => (Number(p.monto) || 0) > 0)
+      .map(p => ({ metodo: p.tipoPago, monto: Number(p.monto) || 0 }));
+
+    const folioTicket = resp?.folio;
+
+    this.ticket.imprimirMembresiaDesdeContexto({
+      ctx,
+      folio: folioTicket,
+      fecha: new Date(),
+      socioNombre: `${socio.nombre ?? ''} ${socio.apellido ?? ''}`.trim(),
+      paqueteNombre: resp?.paquete?.nombre ?? paquete?.nombre ?? null,
+      precioPaquete: Number(resp?.paquete?.precio ?? paquete?.precio ?? 0),
+      descuento: Number(resp?.descuento ?? descuento ?? 0),
+      costoInscripcion: 0,
+      pagos: pagosDet,
+      referencia: resp?.referencia,
     });
   }
 
-  nombreCompleto(): string {
-    const s = this.socio();
+  // ===================== Helpers =====================
+  nombreCompleto(s: SocioData | null): string {
     return s ? `${s.nombre ?? ''} ${s.apellido ?? ''}`.trim() : '';
   }
 
+  // ===================== Token / gym =====================
   private cargarContextoDesdeToken(): void {
     const token = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
     if (!token) return;
@@ -434,4 +946,6 @@ export class ReinscripcionAdelantada implements OnInit {
       /* noop */
     }
   }
+
+  
 }

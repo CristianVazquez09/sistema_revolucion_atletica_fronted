@@ -1,15 +1,31 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, computed, inject } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  computed,
+  inject
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, Validators, FormGroup, FormControl } from '@angular/forms';
+
+import { JwtHelperService } from '@auth0/angular-jwt';
+
 import { PaqueteData } from '../../../model/paquete-data';
+import { GimnasioData } from '../../../model/gimnasio-data';
+
 import { TiempoPlan } from '../../../util/enums/tiempo-plan';
+import { TipoPaquete } from '../../../util/enums/tipo-paquete';
+import { ModalidadPaquete } from 'src/app/util/enums/modalidad-paquete';
+
 import { TiempoPlanLabelPipe } from '../../../util/tiempo-plan-label';
+
 import { PaqueteService } from '../../../services/paquete-service';
 import { GimnasioService } from '../../../services/gimnasio-service';
-import { GimnasioData } from '../../../model/gimnasio-data';
-import { JwtHelperService } from '@auth0/angular-jwt';
+
 import { environment } from '../../../../environments/environment';
-import { TipoPaquete } from '../../../util/enums/tipo-paquete';
 
 @Component({
   selector: 'app-paquete-modal',
@@ -39,6 +55,10 @@ export class PaqueteModal implements OnInit, OnDestroy {
   TipoPaquete = TipoPaquete;
   tiposPaquete: TipoPaquete[] = Object.values(TipoPaquete);
 
+  // Opciones de modalidad
+  ModalidadPaquete = ModalidadPaquete;
+  modalidades: ModalidadPaquete[] = (Object.values(ModalidadPaquete).filter(v => typeof v === 'string') as string[]) as unknown as ModalidadPaquete[];
+
   titulo = computed(() => this.paquete ? 'Editar paquete' : 'Agregar paquete');
 
   fb: FormGroup = new FormGroup({
@@ -55,8 +75,11 @@ export class PaqueteModal implements OnInit, OnDestroy {
     // Solo fines de semana
     soloFinesDeSemana: new FormControl<boolean>(false),
 
-    // NUEVO: tipo de paquete
+    // Tipo de paquete
     tipoPaquete:       new FormControl<TipoPaquete | null>(TipoPaquete.GIMNASIO, [Validators.required]),
+
+    // Modalidad (DEFAULT: INDIVIDUAL)
+    modalidad:         new FormControl<ModalidadPaquete | null>(ModalidadPaquete.INDIVIDUAL, [Validators.required]),
   });
 
   // Bandera reactiva
@@ -101,7 +124,9 @@ export class PaqueteModal implements OnInit, OnDestroy {
     window.removeEventListener('keydown', this.handleEsc);
   }
 
-  private handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') this.cancelar.emit(); };
+  private handleEsc = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') this.cancelar.emit();
+  };
 
   private esAdminDesdeToken(): boolean {
     const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
@@ -115,8 +140,11 @@ export class PaqueteModal implements OnInit, OnDestroy {
       ]
         .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
         .map(r => String(r).toUpperCase());
+
       return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   }
 
   private cargarGimnasios(done?: () => void): void {
@@ -124,25 +152,31 @@ export class PaqueteModal implements OnInit, OnDestroy {
     this.gimnasioService.buscarTodos().subscribe({
       next: (lista) => {
         const vistos = new Set<number>();
-        this.gimnasios = (lista ?? []).map((g: any) => ({
-          idGimnasio: typeof g.idGimnasio === 'number' ? g.idGimnasio : Number(g.id),
-          nombre: g.nombre,
-          direccion: g.direccion,
-          telefono: g.telefono
-        } as GimnasioData)).filter(g => {
-          if (!g.idGimnasio) return false;
-          if (vistos.has(g.idGimnasio)) return false;
-          vistos.add(g.idGimnasio);
-          return true;
-        });
+        this.gimnasios = (lista ?? [])
+          .map((g: any) => ({
+            idGimnasio: typeof g.idGimnasio === 'number' ? g.idGimnasio : Number(g.id),
+            nombre: g.nombre,
+            direccion: g.direccion,
+            telefono: g.telefono
+          } as GimnasioData))
+          .filter(g => {
+            if (!g.idGimnasio) return false;
+            if (vistos.has(g.idGimnasio)) return false;
+            vistos.add(g.idGimnasio);
+            return true;
+          });
 
         if (!this.paquete && this.gimnasios.length) {
           this.fb.controls['gimnasioId'].setValue(this.gimnasios[0].idGimnasio);
         }
+
         this.cargandoGimnasios = false;
         done?.();
       },
-      error: () => { this.cargandoGimnasios = false; done?.(); }
+      error: () => {
+        this.cargandoGimnasios = false;
+        done?.();
+      }
     });
   }
 
@@ -150,20 +184,25 @@ export class PaqueteModal implements OnInit, OnDestroy {
     if (!this.paquete) return;
 
     this.fb.patchValue({
-      idPaquete:        this.paquete.idPaquete,
-      nombre:           this.paquete.nombre,
-      tiempo:           this.paquete.tiempo,
-      precio:           this.paquete.precio,
-      costoInscripcion: this.paquete.costoInscripcion,
-      visitasMaximas:   this.paquete.visitasMaximas ?? null,
+      idPaquete:         this.paquete.idPaquete,
+      nombre:            this.paquete.nombre,
+      tiempo:            this.paquete.tiempo,
+      precio:            this.paquete.precio,
+      costoInscripcion:  this.paquete.costoInscripcion,
+      visitasMaximas:    this.paquete.visitasMaximas ?? null,
       soloFinesDeSemana: !!this.paquete.soloFinesDeSemana,
-      tipoPaquete:      this.paquete.tipoPaquete ?? TipoPaquete.GIMNASIO,
+      tipoPaquete:       this.paquete.tipoPaquete ?? TipoPaquete.GIMNASIO,
+
+      // NUEVO: modalidad (fallback a INDIVIDUAL)
+      modalidad:         (this.paquete as any).modalidad ?? ModalidadPaquete.INDIVIDUAL,
     });
 
     if (this.isAdmin) {
       const anyG = this.paquete.gimnasio as any;
-      const gymId = (typeof anyG?.idGimnasio === 'number' ? anyG.idGimnasio :
-                    (typeof anyG?.id === 'number' ? anyG.id : null));
+      const gymId =
+        (typeof anyG?.idGimnasio === 'number' ? anyG.idGimnasio :
+        (typeof anyG?.id === 'number' ? anyG.id : null));
+
       if (gymId != null) {
         this.fb.controls['gimnasioId'].setValue(gymId);
       }
@@ -182,9 +221,27 @@ export class PaqueteModal implements OnInit, OnDestroy {
     }
   }
 
+  labelModalidad(mod: ModalidadPaquete): string {
+    switch (mod) {
+      case ModalidadPaquete.INDIVIDUAL:
+        return 'Individual';
+      case ModalidadPaquete.DUO:
+        return 'Dúo';
+      case ModalidadPaquete.TRIO:
+        return 'Trío';
+      case ModalidadPaquete.SQUAD:
+        return 'Squad';
+      default:
+        return 'Individual';
+    }
+  }
+
   guardar(): void {
     this.intentoGuardar = true;
-    if (this.fb.invalid) { this.fb.markAllAsTouched(); return; }
+    if (this.fb.invalid) {
+      this.fb.markAllAsTouched();
+      return;
+    }
 
     this.error = null;
     this.guardando = true;
@@ -207,6 +264,9 @@ export class PaqueteModal implements OnInit, OnDestroy {
 
       // tipo de paquete
       tipoPaquete: f.tipoPaquete ?? TipoPaquete.GIMNASIO,
+
+      // NUEVO: modalidad
+      modalidad: f.modalidad ?? ModalidadPaquete.INDIVIDUAL,
     };
 
     const payloadCrear: any = {
@@ -225,9 +285,15 @@ export class PaqueteModal implements OnInit, OnDestroy {
       : this.paqueteService.guardar(payloadCrear as PaqueteData);
 
     obs.subscribe({
-      next: () => { this.guardando = false; this.guardado.emit(); },
-      error: (err) => { console.error(err); this.guardando = false; this.error = 'No se pudo guardar el paquete.'; }
+      next: () => {
+        this.guardando = false;
+        this.guardado.emit();
+      },
+      error: (err) => {
+        console.error(err);
+        this.guardando = false;
+        this.error = 'No se pudo guardar el paquete.';
+      }
     });
   }
-
 }

@@ -1,3 +1,4 @@
+import { ModalidadPaquete } from "../util/enums/modalidad-paquete";
 import { TiempoPlan } from "../util/enums/tiempo-plan";
 import { TipoPaquete } from "../util/enums/tipo-paquete";
 import { GimnasioData } from "./gimnasio-data";
@@ -19,6 +20,8 @@ export interface PaqueteData {
 
   // NUEVO: tipo de paquete (gimnasio, zona de combate, mixto)
   tipoPaquete?: TipoPaquete;
+
+  modalidad?: ModalidadPaquete; 
   
 }
 
