@@ -13,7 +13,7 @@
         whitespace-nowrap
       "
     >
-      Ver productos
+      Inventario
     </a>
 
     <a
@@ -32,26 +32,21 @@
   </div>
 
   <!-- Agregar -->
-  <div class="flex">
-    <button
-      (click)="abrirCrear()"
-      class="
-        inline-flex items-center gap-2 rounded-md bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card
-        px-2.5 py-1.5 text-xs
-        lg:px-3 lg:py-1.5 lg:text-sm
-        xl:px-3.5 xl:py-2 xl:text-sm
-        2xl:px-4 2xl:py-2 2xl:text-base
-        whitespace-nowrap
-      "
-    >
-      <img
-        src="iconos/agregar.svg"
-        class="shrink-0 w-4 h-4 lg:w-[18px] lg:h-[18px] xl:w-5 xl:h-5"
-        alt=""
-      />
-      Agregar producto
-    </button>
-  </div>
+  <button
+    (click)="abrirCrear()"
+    class="
+      inline-flex items-center justify-center rounded-md bg-ra-azul-fuerte text-white hover:brightness-110 shadow-card
+      px-2.5 py-1.5 text-xs
+      lg:px-3 lg:py-1.5 lg:text-sm
+      xl:px-3.5 xl:py-2 xl:text-sm
+      2xl:px-4 2xl:py-2 2xl:text-base
+      whitespace-nowrap
+    "
+    title="Agregar producto"
+  >
+    <img src="iconos/agregar.svg" alt="" class="w-4 h-4 lg:w-[18px] lg:h-[18px] xl:w-5 xl:h-5 mr-2" />
+    Agregar
+  </button>
 </div>
 
 <!-- Contenedor -->
@@ -110,7 +105,7 @@
           }
 
           <!-- Acciones -->
-          <col class="w-[108px] xl:w-[112px] 2xl:w-[120px]" />
+          <col class="w-[132px] xl:w-[140px] 2xl:w-[152px]" />
         </colgroup>
 
         <thead class="sticky top-0 bg-ra-grayLight/40 z-10 backdrop-blur">
@@ -137,7 +132,6 @@
               Nombre
             </th>
 
-            <!-- ✅ Código (lg+), pero si menú abierto: oculto en lg<xl -->
             <th
               class="
                 py-2 lg:py-1.5 2xl:py-2.5
@@ -163,22 +157,18 @@
               Detalles
             </th>
 
-            <!-- Compra -->
             <th class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center font-semibold uppercase text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]">
               Compra
             </th>
 
-            <!-- Venta -->
             <th class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center font-semibold uppercase text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]">
               Venta
             </th>
 
-            <!-- Cantidad -->
             <th class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center font-semibold uppercase text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]">
               Cantidad
             </th>
 
-            <!-- Categoría -->
             <th class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center font-semibold uppercase text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]">
               Categoría
             </th>
@@ -237,7 +227,7 @@
                   }
                 </td>
 
-                <!-- ✅ Código (lg+), pero si menú abierto: oculto en lg<xl -->
+                <!-- Código -->
                 <td
                   class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top"
                   [ngClass]="menuAbierto() ? 'hidden xl:table-cell' : 'hidden lg:table-cell'"
@@ -277,27 +267,27 @@
                   </div>
                 </td>
 
-                <!-- Compra (lg+) -->
+                <!-- Compra -->
                 <td class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top font-medium">
                   {{ (+p.precioCompra) | currency:'MXN':'symbol-narrow':'1.2-2' }}
                 </td>
 
-                <!-- Venta (lg+) -->
+                <!-- Venta -->
                 <td class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top font-medium">
                   {{ (+p.precioVenta) | currency:'MXN':'symbol-narrow':'1.2-2' }}
                 </td>
 
-                <!-- Cantidad (lg+) -->
+                <!-- Cantidad -->
                 <td class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top">
                   <span class="font-semibold">{{ p.cantidad }}</span>
                 </td>
 
-                <!-- Categoría (lg+) -->
+                <!-- Categoría -->
                 <td class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top min-w-0">
                   <span class="truncate inline-block max-w-full" [title]="p.categoria.nombre">{{ p.categoria.nombre }}</span>
                 </td>
 
-                <!-- Gimnasio (admin, xl+) -->
+                <!-- Gimnasio -->
                 @if (isAdmin) {
                   <td class="hidden xl:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top min-w-0">
                     <span
@@ -315,6 +305,47 @@
                 <!-- Acciones -->
                 <td class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 align-top">
                   <div class="flex items-center justify-center gap-1.5">
+                    @if (puedeMoverStock) {
+  <!-- Entrada -->
+  <button
+    (click)="abrirEntrada(p)"
+    class="
+      h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8
+      grid place-items-center rounded-md
+      hover:bg-blue-100
+      active:scale-[0.98]
+
+    "
+    title="Entrada de stock"
+  >
+    <img
+      src="iconos/agregar-negro.svg"
+      alt="Entrada"
+      class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5"
+    />
+  </button>
+
+  <!-- Ajuste -->
+  <button
+    (click)="abrirAjuste(p)"
+    class="
+      h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8
+      grid place-items-center rounded-md
+      hover:bg-amber-100
+      active:scale-[0.98]
+     
+    "
+    title="Ajustar stock"
+  >
+    <img
+      src="iconos/actualizar.svg"
+      alt="Ajuste"
+      class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5"
+    />
+  </button>
+}
+
+
                     <button
                       (click)="editar(p)"
                       class="h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40"
@@ -341,7 +372,7 @@
   </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal Producto -->
 @if (mostrarModal()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center">
     <div class="absolute inset-0 bg-black/50" (click)="cerrarModal()"></div>
@@ -353,6 +384,23 @@
           (guardado)="onGuardado()"
         >
         </app-producto-modal>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal Stock -->
+@if (mostrarStockModal() && stockProducto) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" (click)="cerrarStockModal()"></div>
+    <div class="relative z-10 w-full max-w-xl mx-4">
+      <div class="bg-ra-white rounded-xl2 shadow-card">
+        <app-stock-modal
+          [producto]="stockProducto"
+          [modo]="stockModo"
+          (cancelar)="cerrarStockModal()"
+          (aplicado)="onStockAplicado()"
+        />
       </div>
     </div>
   </div>

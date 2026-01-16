@@ -6,15 +6,16 @@ import { ProductoService } from '../../services/producto-service';
 import { ProductoData } from '../../model/producto-data';
 import { NotificacionService } from '../../services/notificacion-service';
 
-// Deducir admin
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
 import { MenuService } from 'src/app/services/menu-service';
 
+import { StockModal, StockModalModo } from './stock-modal/stock-modal';
+
 @Component({
   selector: 'app-producto',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProductoModal, RouterLink],
+  imports: [CommonModule, RouterModule, ProductoModal, StockModal, RouterLink],
   templateUrl: './producto.html',
   styleUrl: './producto.css',
 })
@@ -24,27 +25,39 @@ export class Producto implements OnInit {
   private notificacion = inject(NotificacionService);
   private jwt = inject(JwtHelperService);
   private menuSrv = inject(MenuService);
-    menuAbierto = this.menuSrv.menuAbierto;
 
-  // Admin?
+  menuAbierto = this.menuSrv.menuAbierto;
+
   isAdmin = false;
+  isGerente = false;
+  puedeMoverStock = false;
 
   productos: (ProductoData & { gimnasio?: any })[] = [];
   loading = true;
   error: string | null = null;
 
-  // Modal
+  // Modal CRUD producto
   mostrarModal = signal(false);
   productoEditando: (ProductoData & { gimnasio?: any }) | null = null;
 
+  // Modal stock
+  mostrarStockModal = signal(false);
+  stockProducto: (ProductoData & { gimnasio?: any }) | null = null;
+  stockModo: StockModalModo = 'ENTRADA';
+
   ngOnInit(): void {
-    this.isAdmin = this.deducirEsAdminDesdeToken();
+    const roles = this.leerRolesDesdeToken();
+    this.isAdmin = roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
+    this.isGerente = roles.includes('GERENTE') || roles.includes('ROLE_GERENTE');
+
+    this.puedeMoverStock = this.isAdmin || this.isGerente;
+
     this.cargar();
   }
 
-  private deducirEsAdminDesdeToken(): boolean {
+  private leerRolesDesdeToken(): string[] {
     const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
-    if (!raw) return false;
+    if (!raw) return [];
     try {
       const decoded: any = this.jwt.decodeToken(raw);
       const roles: string[] = [
@@ -54,19 +67,12 @@ export class Producto implements OnInit {
           ? decoded.realm_access.roles
           : []),
       ]
-        .concat(
-          [decoded?.role, decoded?.rol, decoded?.perfil].filter(
-            Boolean
-          ) as string[]
-        )
+        .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
         .map((r) => String(r).toUpperCase());
-      return (
-        decoded?.is_admin === true ||
-        roles.includes('ADMIN') ||
-        roles.includes('ROLE_ADMIN')
-      );
+      if (decoded?.is_admin === true && !roles.includes('ADMIN')) roles.push('ADMIN');
+      return roles;
     } catch {
-      return false;
+      return [];
     }
   }
 
@@ -87,10 +93,7 @@ export class Producto implements OnInit {
 
     this.productoSrv.buscarTodos().subscribe({
       next: (data) => {
-        // 👇 Solo productos activos (si no trae 'activo', se asume true)
-        this.productos = (data ?? []).filter(
-          (p) => p?.activo !== false
-        ) as any[];
+        this.productos = (data ?? []).filter((p) => p?.activo !== false) as any[];
         this.loading = false;
       },
       error: (err) => {
@@ -137,5 +140,30 @@ export class Producto implements OnInit {
       error: () =>
         this.notificacion.error('No se pudo desactivar el producto.'),
     });
+  }
+
+  // ✅ Stock
+  abrirEntrada(p: ProductoData & { gimnasio?: any }): void {
+    if (!this.puedeMoverStock) return;
+    this.stockProducto = p;
+    this.stockModo = 'ENTRADA';
+    this.mostrarStockModal.set(true);
+  }
+
+  abrirAjuste(p: ProductoData & { gimnasio?: any }): void {
+    if (!this.puedeMoverStock) return;
+    this.stockProducto = p;
+    this.stockModo = 'AJUSTE';
+    this.mostrarStockModal.set(true);
+  }
+
+  cerrarStockModal(): void {
+    this.mostrarStockModal.set(false);
+    this.stockProducto = null;
+  }
+
+  onStockAplicado(): void {
+    this.cerrarStockModal();
+    this.cargar();
   }
 }

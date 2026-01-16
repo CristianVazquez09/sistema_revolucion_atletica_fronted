@@ -1,0 +1,141 @@
+<!-- Barra superior -->
+<div class="mx-4 md:mx-10 mb-4 flex items-center justify-between gap-3">
+  <div class="flex items-center gap-2">
+    <div class="text-base sm:text-lg xl:text-xl font-semibold text-ra-slate">Inventario</div>
+
+    
+  </div>
+
+  
+</div>
+
+<!-- Filtros -->
+<div class="mx-4 md:mx-10 mb-4 grid grid-cols-1 lg:grid-cols-12 gap-3">
+  <div class="lg:col-span-3">
+    <label class="block text-xs font-semibold text-ra-slate mb-1">Fecha</label>
+    <input
+      type="date"
+      class="input-filled"
+      [ngModel]="fecha()"
+      (ngModelChange)="onFechaChange($event)"
+    />
+  </div>
+
+  <div class="lg:col-span-3">
+    <label class="block text-xs font-semibold text-ra-slate mb-1">Turno</label>
+    <select class="input-filled" [ngModel]="turno()" (ngModelChange)="onTurnoChange($event)">
+      @for (t of turnosDisponibles(); track t) {
+        <option [ngValue]="t">{{ turnoLabel(t) }}</option>
+      }
+    </select>
+  </div>
+
+  @if (isAdmin) {
+    <div class="lg:col-span-3">
+      <label class="block text-xs font-semibold text-ra-slate mb-1">Gimnasio</label>
+      <select class="input-filled" [ngModel]="gimnasioId()" (ngModelChange)="onGymChange($event)">
+        @if (cargandoGimnasios) {
+          <option [ngValue]="null" disabled>Cargando gimnasios…</option>
+        } @else {
+          @for (g of gimnasios; track g.idGimnasio) {
+            <option [ngValue]="g.idGimnasio">{{ g.nombre }}</option>
+          }
+        }
+      </select>
+    </div>
+  }
+
+  <div class="lg:col-span-3">
+    <label class="block text-xs font-semibold text-ra-slate mb-1">Buscar</label>
+    <input
+      type="text"
+      class="input-filled"
+      placeholder="Nombre, código o ID"
+      [ngModel]="termino()"
+      (ngModelChange)="termino.set($event)"
+    />
+  </div>
+</div>
+
+<!-- Tabla -->
+<div class="shadow-card rounded-xl2 mx-4 md:mx-10 bg-ra-white ring-1 ring-black/10 overflow-hidden">
+  <div class="overflow-x-hidden xl:overflow-x-auto">
+    <div
+      class="
+        overflow-y-auto
+        max-h-[calc(100dvh-260px)]
+        min-h-[320px]
+        xl:max-h-[calc(100dvh-280px)]
+        2xl:max-h-[calc(100dvh-300px)]
+      "
+    >
+      <table class="w-full min-w-0 table-auto 2xl:table-fixed text-[11px] sm:text-[12px] lg:text-[11px] 2xl:text-[12px] 2xl:min-w-[980px]">
+        <colgroup>
+          <col class="w-[70px]" />
+          <col class="w-auto 2xl:w-[320px]" />
+          <col class="hidden lg:table-column lg:w-[140px]" />
+          <col class="w-[110px]" />
+          <col class="w-[110px]" />
+          <col class="w-[110px]" />
+          <col class="w-[130px]" />
+        </colgroup>
+
+        <thead class="sticky top-0 bg-ra-grayLight/40 z-10 backdrop-blur">
+          <tr class="text-ra-slate">
+            <th class="py-2 px-4 text-center font-semibold uppercase text-[10px] sm:text-[11px]">ID</th>
+            <th class="py-2 px-4 text-left font-semibold uppercase text-[10px] sm:text-[11px]">Producto</th>
+            <th class="hidden lg:table-cell py-2 px-4 text-center font-semibold uppercase text-[10px] sm:text-[11px]">Código</th>
+            <th class="py-2 px-4 text-center font-semibold uppercase text-[10px] sm:text-[11px]">Stock</th>
+            <th class="py-2 px-4 text-center font-semibold uppercase text-[10px] sm:text-[11px]">Vendidos</th>
+            <th class="py-2 px-4 text-center font-semibold uppercase text-[10px] sm:text-[11px]">Entradas</th>
+            <th class="py-2 px-4 text-center font-semibold uppercase text-[10px] sm:text-[11px]">Inicial</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @if (loading()) {
+            <tr><td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Cargando…</td></tr>
+          } @else if (error()) {
+            <tr><td [attr.colspan]="99" class="py-6 px-6 text-center text-red-600">{{ error() }}</td></tr>
+          } @else if (filasFiltradas().length === 0) {
+            <tr><td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td></tr>
+          } @else {
+            @for (x of filasFiltradas(); track x.idProducto) {
+              <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
+                <td class="py-2 px-4 text-center">
+                  <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] font-mono text-gray-700">
+                    {{ x.idProducto }}
+                  </span>
+                </td>
+
+                <td class="py-2 px-4 text-left min-w-0">
+                  <div class="font-medium truncate" [title]="x.nombre">{{ x.nombre }}</div>
+                  <div class="lg:hidden mt-1">
+                    <span class="inline-flex items-center gap-1 rounded-full bg-ra-grayLight/40 px-2 py-0.5 text-[10px] font-semibold text-ra-slate">
+                      <span class="text-ra-slate/70">Cod:</span> {{ x.codigo || '—' }}
+                    </span>
+                  </div>
+                </td>
+
+                <td class="hidden lg:table-cell py-2 px-4 text-center">
+                  <span class="font-medium">{{ x.codigo || '—' }}</span>
+                </td>
+
+                <td class="py-2 px-4 text-center font-semibold text-ra-slate">{{ x.stockActual }}</td>
+                <td class="py-2 px-4 text-center">{{ x.vendidos }}</td>
+                <td class="py-2 px-4 text-center">{{ x.entradas }}</td>
+                <td class="py-2 px-4 text-center">
+                  @if (x.stockTeorico != null) {
+                    <span class="font-semibold">{{ x.stockTeorico }}</span>
+                  } @else {
+                    <span class="text-gray-400">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

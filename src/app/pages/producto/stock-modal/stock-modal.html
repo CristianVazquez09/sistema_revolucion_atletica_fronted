@@ -1,0 +1,61 @@
+<div class="mx-auto w-full rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+  <!-- Header -->
+  <div class="flex items-start justify-between px-6 pt-5">
+    <div class="min-w-0">
+      <h2 class="text-[20px] font-bold text-ra-slate leading-none">{{ titulo() }}</h2>
+      <p class="mt-1 text-sm text-gray-600 truncate" [title]="producto.nombre">
+        {{ producto.nombre }} <span class="text-gray-400">(#{{ producto.idProducto }})</span>
+      </p>
+      <p class="mt-1 text-xs text-gray-500">
+        Stock actual: <span class="font-semibold text-ra-slate">{{ producto.cantidad  }}</span>
+      </p>
+    </div>
+
+    <button type="button"
+            class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700"
+            (click)="cancelar.emit()" aria-label="Cerrar">✕</button>
+  </div>
+
+  <form class="px-6 pb-6 pt-4 space-y-4" [formGroup]="form" (ngSubmit)="submit()">
+
+    @if (modo === 'ENTRADA') {
+      <div>
+        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Cantidad a ingresar</label>
+        <input type="number" step="1" formControlName="cantidad" class="input-filled" placeholder="1">
+        @if ((intento || form.controls.cantidad.touched) && form.controls.cantidad.invalid) {
+          <p class="text-sm text-red-600 mt-1">La cantidad debe ser mayor a 0.</p>
+        }
+      </div>
+    } @else {
+      <div>
+        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Nuevo stock</label>
+        <input type="number" step="1" formControlName="nuevoStock" class="input-filled" placeholder="0">
+        @if ((intento || form.controls.nuevoStock.touched) && form.controls.nuevoStock.invalid) {
+          <p class="text-sm text-red-600 mt-1">El stock no puede ser negativo.</p>
+        }
+      </div>
+    }
+
+    <div>
+      <label class="block text-sm font-semibold text-ra-slate mb-1.5">Nota (opcional)</label>
+      <input formControlName="nota" class="input-filled" placeholder="Ej: Entrega proveedor / Ajuste por conteo">
+    </div>
+
+    @if (error) {
+      <div class="text-red-600 text-sm">{{ error }}</div>
+    }
+
+    <div class="flex items-center justify-end gap-2 pt-2">
+      <button type="button"
+              (click)="cancelar.emit()"
+              class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100">
+        Cancelar
+      </button>
+      <button type="submit"
+              [disabled]="guardando"
+              class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60">
+        {{ guardando ? 'Guardando…' : (modo === 'ENTRADA' ? 'Registrar entrada' : 'Registrar ajuste') }}
+      </button>
+    </div>
+  </form>
+</div>
