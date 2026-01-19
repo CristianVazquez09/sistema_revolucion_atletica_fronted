@@ -4,25 +4,51 @@
          [class.noti--exito]="n.tipo==='exito'"
          [class.noti--error]="n.tipo==='error'"
          [class.noti--info]="n.tipo==='info'"
-         [class.noti--aviso]="n.tipo==='aviso'">
+         [class.noti--aviso]="n.tipo==='aviso'"
+         [class.noti--expandida]="estaExpandida(n.id)"
+         role="status">
+
       <div class="noti-barra"></div>
 
       <div class="noti-cuerpo">
-        <div class="noti-icono">
+        <div class="noti-icono" aria-hidden="true">
           @if (n.tipo === 'exito') {
-            <svg viewBox="0 0 24 24" class="w-5 h-5"><path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <svg viewBox="0 0 24 24" class="w-5 h-5">
+              <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
           } @else if (n.tipo === 'error') {
-            <svg viewBox="0 0 24 24" class="w-5 h-5"><path d="M6 6l12 12M6 18L18 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <svg viewBox="0 0 24 24" class="w-5 h-5">
+              <path d="M6 6l12 12M6 18L18 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
           } @else if (n.tipo === 'aviso') {
-            <svg viewBox="0 0 24 24" class="w-5 h-5"><path d="M12 9v4m0 4h.01M10.29 3.86l-8.4 14.57A1 1 0 0 0 2.72 20h18.56a1 1 0 0 0 .84-1.57L13.71 3.86a1 1 0 0 0-1.72 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <svg viewBox="0 0 24 24" class="w-5 h-5">
+              <path d="M12 9v4m0 4h.01M10.29 3.86l-8.4 14.57A1 1 0 0 0 2.72 20h18.56a1 1 0 0 0 .84-1.57L13.71 3.86a1 1 0 0 0-1.72 0z"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
           } @else {
-            <svg viewBox="0 0 24 24" class="w-5 h-5"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <svg viewBox="0 0 24 24" class="w-5 h-5">
+              <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 8v4m0 4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
           }
         </div>
 
         <div class="noti-textos">
-          @if (n.titulo) { <div class="noti-titulo">{{ n.titulo }}</div> }
+          @if (n.titulo) {
+            <div class="noti-titulo">{{ n.titulo }}</div>
+          }
+
           <div class="noti-mensaje">{{ n.mensaje }}</div>
+
+          @if (esLargo(n.mensaje)) {
+            <button
+              type="button"
+              class="noti-expandir"
+              (click)="toggleExpandir(n.id)"
+              [attr.aria-expanded]="estaExpandida(n.id)">
+              @if (estaExpandida(n.id)) { Ver menos } @else { Ver más }
+            </button>
+          }
         </div>
 
         <button class="noti-cerrar" (click)="cerrar(n.id)" aria-label="Cerrar">✕</button>

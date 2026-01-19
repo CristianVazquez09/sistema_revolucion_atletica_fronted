@@ -23,7 +23,7 @@ export class NotificacionService {
       tipo: opts.tipo ?? 'info',
       mensaje: opts.mensaje,
       titulo: opts.titulo,
-      duracion: opts.duracion ?? 3000,
+      duracion: opts.duracion ?? 5000,
     };
     this._notificaciones.update(lst => [...lst, n]);
     setTimeout(() => this.cerrar(n.id), n.duracion);

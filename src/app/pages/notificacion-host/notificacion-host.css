@@ -1,48 +1,238 @@
+/* =========================
+   NOTIFICACIONES (Toast)
+   Diseño blanco/gris + top-right
+   ========================= */
 
-/* Pila: esquina superior derecha */
 .noti-pila{
-  position: fixed; top: 16px; right: 16px; z-index: 9999;
-  display: flex; flex-direction: column; gap: 10px;
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  align-items: flex-end;
+  max-width: calc(100vw - 24px);
 }
 
-/* Tarjeta base */
+/* Base: pensado para 2XL / pantallas grandes */
 .noti{
-  width: min(92vw, 380px);
   background: var(--color-ra-white);
   color: var(--color-ra-slate);
   border-radius: 12px;
   box-shadow: var(--shadow-card);
   border: 1px solid color-mix(in oklab, var(--color-ra-grayLight) 60%, transparent);
   overflow: hidden;
+
+  /* tamaño “normal” en pantallas grandes */
+  width: auto;
+  min-width: 340px;
+  max-width: min(92vw, 760px);
+
   transform: translateY(-6px);
   opacity: 0;
   animation: noti-in .18s ease-out forwards;
 }
 @keyframes noti-in { to { transform: translateY(0); opacity: 1; } }
 
-.noti-cuerpo{ display:flex; align-items:center; gap:10px; padding: 10px 12px; }
+.noti-cuerpo{
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+}
 
-/* Barra de color (lado izquierdo) */
-.noti-barra{ width: 6px; align-self: stretch; background: #e5e7eb; }
+/* Barra */
+.noti-barra{
+  width: 6px;
+  align-self: stretch;
+  background: #e5e7eb;
+}
 
-/* Ícono */
-.noti-icono{ color: #6b7280; display:grid; place-items:center; }
+/* Icono */
+.noti-icono{
+  color: #6b7280;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
 
 /* Textos */
-.noti-textos{ flex:1; min-width: 0; }
-.noti-titulo{ font-weight: 700; font-size: 0.92rem; line-height: 1.1; }
-.noti-mensaje{ font-size: 0.9rem; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.noti-textos{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.noti-titulo{
+  font-weight: 700;
+  font-size: 0.92rem;
+  line-height: 1.1;
+  margin-bottom: 2px;
+}
+
+/* Mensaje: wrap + sin scrollbar visible */
+.noti-mensaje{
+  font-size: 0.9rem;
+  line-height: 1.2;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+
+  /* deja crecer; si ya es enorme, scroll pero sin barra visible */
+  max-height: calc(100vh - 140px);
+  overflow: auto;
+
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE/Edge legacy */
+}
+.noti-mensaje::-webkit-scrollbar{
+  width: 0;
+  height: 0;
+}
+
+/* Botón expandir (si lo usas) */
+.noti-expandir{
+  margin-top: 6px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 0;
+  cursor: pointer;
+}
+.noti-expandir:hover{
+  text-decoration: underline;
+}
 
 /* Botón cerrar */
 .noti-cerrar{
-  width:28px; height:28px; border-radius: 8px;
-  display:grid; place-items:center;
-  color:#6b7280; background: transparent; border: none; cursor:pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+
+  display: grid;
+  place-items: center;
+
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  flex: 0 0 auto;
+  margin-left: 4px;
 }
 .noti-cerrar:hover{ background:#f3f4f6; }
 
-/* Colores por tipo (tu paleta) */
+/* Colores por tipo */
 .noti--exito .noti-barra{ background: var(--color-ra-verde); }
 .noti--error .noti-barra{ background: var(--color-ra-rojo); }
 .noti--aviso .noti-barra{ background: #f59e0b; }
 .noti--info  .noti-barra{ background: var(--color-ra-azul-fuerte); }
+
+/* =========================
+   REDUCCIÓN: XL hacia abajo
+   (para que NO se vea gigante)
+   ========================= */
+
+/* XL y menores: reduce ancho, padding y tipografías */
+@media (max-width: 1279px){
+  .noti{
+    min-width: 300px;
+    max-width: min(92vw, 560px);
+    border-radius: 11px;
+  }
+
+  .noti-cuerpo{
+    padding: 9px 10px;
+    gap: 9px;
+  }
+
+  .noti-titulo{
+    font-size: 0.88rem;
+  }
+
+  .noti-mensaje{
+    font-size: 0.85rem;
+    line-height: 1.18;
+  }
+
+  .noti-cerrar{
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+  }
+}
+
+/* LG y menores */
+@media (max-width: 1023px){
+  .noti{
+    min-width: 280px;
+    max-width: min(92vw, 480px);
+  }
+
+  .noti-cuerpo{
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .noti-titulo{
+    font-size: 0.86rem;
+  }
+
+  .noti-mensaje{
+    font-size: 0.83rem;
+  }
+
+  .noti-barra{
+    width: 5px;
+  }
+}
+
+/* MD y menores */
+@media (max-width: 767px){
+  .noti{
+    min-width: 0;
+    max-width: min(92vw, 420px);
+  }
+
+  .noti-cuerpo{
+    padding: 8px 9px;
+  }
+
+  .noti-titulo{
+    font-size: 0.84rem;
+  }
+
+  .noti-mensaje{
+    font-size: 0.82rem;
+  }
+}
+
+/* SM (móvil): ocupa ancho completo, sin verse enorme */
+@media (max-width: 640px){
+  .noti-pila{
+    left: 12px;
+    right: 12px;
+    align-items: stretch;
+  }
+
+  .noti{
+    width: 100%;
+    max-width: 100%;
+    border-radius: 10px;
+  }
+
+  .noti-cuerpo{
+    padding: 8px 9px;
+    gap: 8px;
+  }
+
+  .noti-cerrar{
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+  }
+}
