@@ -10,7 +10,7 @@ export interface PaqueteData {
   tiempo: TiempoPlan;
   costoInscripcion: number;
   gimnasio?: GimnasioData;
-  activo:boolean;
+  activo: boolean;
 
   // NUEVO: para planes por visitas (null/undefined => plan por días)
   visitasMaximas?: number | null;
@@ -21,7 +21,8 @@ export interface PaqueteData {
   // NUEVO: tipo de paquete (gimnasio, zona de combate, mixto)
   tipoPaquete?: TipoPaquete;
 
-  modalidad?: ModalidadPaquete; 
-  
-}
+  modalidad?: ModalidadPaquete;
 
+  // ✅ NUEVO: paquete estudiantil
+  estudiantil?: boolean;
+}

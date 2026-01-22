@@ -57,7 +57,8 @@ export class PaqueteModal implements OnInit, OnDestroy {
 
   // Opciones de modalidad
   ModalidadPaquete = ModalidadPaquete;
-  modalidades: ModalidadPaquete[] = (Object.values(ModalidadPaquete).filter(v => typeof v === 'string') as string[]) as unknown as ModalidadPaquete[];
+  modalidades: ModalidadPaquete[] =
+    (Object.values(ModalidadPaquete).filter(v => typeof v === 'string') as string[]) as unknown as ModalidadPaquete[];
 
   titulo = computed(() => this.paquete ? 'Editar paquete' : 'Agregar paquete');
 
@@ -80,6 +81,9 @@ export class PaqueteModal implements OnInit, OnDestroy {
 
     // Modalidad (DEFAULT: INDIVIDUAL)
     modalidad:         new FormControl<ModalidadPaquete | null>(ModalidadPaquete.INDIVIDUAL, [Validators.required]),
+
+    // ✅ NUEVO: Paquete estudiantil
+    estudiantil:       new FormControl<boolean>(false),
   });
 
   // Bandera reactiva
@@ -193,8 +197,11 @@ export class PaqueteModal implements OnInit, OnDestroy {
       soloFinesDeSemana: !!this.paquete.soloFinesDeSemana,
       tipoPaquete:       this.paquete.tipoPaquete ?? TipoPaquete.GIMNASIO,
 
-      // NUEVO: modalidad (fallback a INDIVIDUAL)
+      // modalidad (fallback a INDIVIDUAL)
       modalidad:         (this.paquete as any).modalidad ?? ModalidadPaquete.INDIVIDUAL,
+
+      // ✅ NUEVO: estudiantil (default false)
+      estudiantil:       (this.paquete as any).estudiantil === true,
     });
 
     if (this.isAdmin) {
@@ -265,8 +272,11 @@ export class PaqueteModal implements OnInit, OnDestroy {
       // tipo de paquete
       tipoPaquete: f.tipoPaquete ?? TipoPaquete.GIMNASIO,
 
-      // NUEVO: modalidad
+      // modalidad
       modalidad: f.modalidad ?? ModalidadPaquete.INDIVIDUAL,
+
+      // ✅ NUEVO: estudiantil
+      estudiantil: !!f.estudiantil,
     };
 
     const payloadCrear: any = {

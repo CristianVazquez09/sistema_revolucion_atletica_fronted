@@ -17,7 +17,7 @@ import { NotificacionService } from '../../services/notificacion-service';
 import { PaqueteService } from '../../services/paquete-service';
 
 import { SocioData } from '../../model/socio-data';
-import { MembresiaData, PagoData } from '../../model/membresia-data';
+import { PagoData } from '../../model/membresia-data';
 
 import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
@@ -50,6 +50,12 @@ import {
   selectFechaInicio,
   selectPaqueteId,
 } from './state/reinscripcion-selectors';
+
+// ✅ Asesoría nutricional (nuevo endpoint estado)
+import { AsesoriaNutricionalService, AsesoriaNutricionalEstadoDTO } from 'src/app/services/asesoria-nutricional-service';
+
+import { forkJoin, of } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 
 const STORAGE_KEY_REINSCRIPCION_GRUPAL = 'ra_reinscripcion_grupal_v1';
 
@@ -90,6 +96,9 @@ export class Reinscripcion implements OnInit {
 
   private store = inject(Store);
 
+  // ✅ Asesoría Nutricional
+  private asesoriaSrv = inject(AsesoriaNutricionalService);
+
   // Contexto ticket
   gym: GimnasioData | null = null;
   cajero = 'Cajero';
@@ -115,9 +124,12 @@ export class Reinscripcion implements OnInit {
   miembrosSig = signal<SocioData[]>([]);
   pagosBySocioIdSig = signal<Record<string, PagoData[]>>({});
 
-  socioBuscarIdCtrl = this.fb.nonNullable.control<number>(0, [
-    Validators.min(1),
-  ]);
+  socioBuscarIdCtrl = this.fb.nonNullable.control<number>(0, [Validators.min(1)]);
+
+  // ✅ Estado asesoría por socio (SOLO se muestra si existe asesoría)
+  estadoAsesoriaBySocioIdSig = signal<Record<string, AsesoriaNutricionalEstadoDTO>>({});
+  cargandoEstadoAsesoriaSig = signal(false);
+  validandoAsesoriaSig = signal(false);
 
   // Form
   form = this.fb.group({
@@ -138,7 +150,7 @@ export class Reinscripcion implements OnInit {
   fechaInicioSelSig = this.store.selectSignal(selectFechaInicio);
   paqueteIdSelSig = this.store.selectSignal(selectPaqueteId);
 
-  // Helpers para template (evita String() en HTML)
+  // Helpers para template
   key(id: number | null | undefined): string {
     return String(id ?? '');
   }
@@ -165,9 +177,7 @@ export class Reinscripcion implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((f) =>
         this.store.dispatch(
-          ReinscripcionActions.setFechaInicio({
-            fechaInicio: String(f ?? hoyISO()),
-          })
+          ReinscripcionActions.setFechaInicio({ fechaInicio: String(f ?? hoyISO()) })
         )
       );
   }
@@ -216,6 +226,28 @@ export class Reinscripcion implements OnInit {
     return `${nombre} · Integrante ${idx} de ${req}`;
   });
 
+  // ✅ ¿Cuándo validar asesoría?
+  private requiereValidarAsesoriaNutricional(): boolean {
+    const p: any = this.paqueteActualSig() as any;
+    if (!p) return false;
+
+    // 1) flags si existen
+    if (p?.requiereAsesoriaNutricional === true) return true;
+    if (p?.esAsesoriaNutricional === true) return true;
+
+    // 2) tipo si existe
+    const tipo = String(p?.tipoPaquete ?? p?.tipo ?? '').toUpperCase();
+    if (tipo.includes('ASESORIA')) return true;
+    if (tipo.includes('NUTRI')) return true;
+
+    // 3) heurística por nombre
+    const nombre = String(p?.nombre ?? '').toLowerCase();
+    if (nombre.includes('asesor')) return true;
+    if (nombre.includes('nutri')) return true;
+
+    return false;
+  }
+
   // =========================
   // Init
   // =========================
@@ -237,13 +269,12 @@ export class Reinscripcion implements OnInit {
         this.socioPrincipalSig.set(socio);
 
         if (socio?.idSocio) {
-          const ya = this.miembrosSig().some(
-            (x) => Number(x.idSocio) === Number(socio.idSocio)
-          );
-          if (!ya) {
-            this.miembrosSig.set([socio, ...this.miembrosSig()]);
-          }
+          const ya = this.miembrosSig().some((x) => Number(x.idSocio) === Number(socio.idSocio));
+          if (!ya) this.miembrosSig.set([socio, ...this.miembrosSig()]);
         }
+
+        // ✅ cargar estado asesoría SOLO para los miembros actuales
+        this.refrescarEstadosAsesoria();
 
         this.guardarDraft();
       },
@@ -256,9 +287,7 @@ export class Reinscripcion implements OnInit {
     this.paqueteSrv.buscarTodos().subscribe({
       next: (lista) => {
         const activos = (lista ?? []).filter((p) => p?.activo !== false);
-        this.store.dispatch(
-          ReinscripcionActions.setListaPaquetes({ paquetes: activos })
-        );
+        this.store.dispatch(ReinscripcionActions.setListaPaquetes({ paquetes: activos }));
         this.cargandoPaquetes = false;
 
         // Auto-paquete anterior
@@ -272,35 +301,155 @@ export class Reinscripcion implements OnInit {
   }
 
   // =========================
+  // Asesoría: cargar estado por socio (solo si existe asesoría)
+  // =========================
+  private refrescarEstadosAsesoria(): void {
+    const miembros = this.miembrosSig() ?? [];
+    if (!miembros.length) return;
+
+    const ids = Array.from(new Set(miembros.map((m) => Number(m.idSocio ?? 0)).filter((x) => x > 0)));
+    if (!ids.length) return;
+
+    this.cargandoEstadoAsesoriaSig.set(true);
+
+    forkJoin(
+      ids.map((id) =>
+        this.asesoriaSrv.estado(id).pipe(
+          catchError((err) => {
+            console.error('Error estado asesoría', id, err);
+            // Si falla el endpoint por red, no mostramos nada (no afectamos UI)
+            return of(null as any);
+          })
+        )
+      )
+    )
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.cargandoEstadoAsesoriaSig.set(false))
+      )
+      .subscribe((arr) => {
+        const map: Record<string, AsesoriaNutricionalEstadoDTO> = {};
+        for (let i = 0; i < ids.length; i++) {
+          const idSocio = ids[i];
+          const dto = arr[i] as AsesoriaNutricionalEstadoDTO | null;
+
+          // ✅ regla: si NO tiene asesoría -> NO guardamos nada (no se muestra nada)
+          if (dto && dto.asesorado) {
+            map[this.key(idSocio)] = dto;
+          }
+        }
+        this.estadoAsesoriaBySocioIdSig.set(map);
+      });
+  }
+
+  estadoAsesoriaDe(idSocio: number): AsesoriaNutricionalEstadoDTO | null {
+    const map = this.estadoAsesoriaBySocioIdSig() ?? {};
+    return map[this.key(idSocio)] ?? null;
+  }
+
+  private nombreSocio(s: SocioData | null): string {
+    if (!s) return '—';
+    return `${s.nombre ?? ''} ${s.apellido ?? ''}`.trim() || `ID ${s.idSocio ?? ''}`;
+  }
+
+  private validarAsesoriaAntesDeContinuar(next: () => void): void {
+    // Si no aplica, continuar
+    if (!this.requiereValidarAsesoriaNutricional()) {
+      next();
+      return;
+    }
+
+    const miembros = this.miembrosSig() ?? [];
+    if (!miembros.length) {
+      this.mensajeError = 'No hay socios seleccionados.';
+      return;
+    }
+
+    this.validandoAsesoriaSig.set(true);
+    this.mensajeError = null;
+
+    // Validación correcta: consultar /estado por cada miembro y decidir
+    forkJoin(
+      miembros.map((m) =>
+        this.asesoriaSrv.estado(Number(m.idSocio)).pipe(
+          catchError((err) => {
+            console.error('Error validando estado asesoría', m?.idSocio, err);
+            return of({
+              asesorado: false,
+              vigente: false,
+              activo: false,
+              estado: 'SIN_ASESORIA',
+              fechaInicio: null,
+              fechaFin: null,
+              idAsesoriaNutricional: null,
+            } as AsesoriaNutricionalEstadoDTO);
+          })
+        )
+      )
+    )
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.validandoAsesoriaSig.set(false))
+      )
+      .subscribe((arr) => {
+        // Actualizamos cache UI (solo los que sí tengan asesoría)
+        const current = { ...(this.estadoAsesoriaBySocioIdSig() ?? {}) };
+        for (let i = 0; i < miembros.length; i++) {
+          const socio = miembros[i];
+          const dto = arr[i];
+
+          if (dto?.asesorado) current[this.key(Number(socio.idSocio))] = dto;
+          else delete current[this.key(Number(socio.idSocio))];
+        }
+        this.estadoAsesoriaBySocioIdSig.set(current);
+
+        // Regla de bloqueo:
+        // - Si NO asesorado => bloquear
+        // - Si asesorado pero NO vigente => bloquear
+        for (let i = 0; i < miembros.length; i++) {
+          const socio = miembros[i];
+          const dto = arr[i];
+
+          if (!dto?.asesorado) {
+            this.mensajeError =
+              `El socio "${this.nombreSocio(socio)}" no tiene asesoría nutricional registrada con Roberto. ` +
+              `No se puede reinscribir este paquete.`;
+            return;
+          }
+
+          if (!dto?.vigente) {
+            const finTxt = dto?.fechaFin ? ` (Vigencia: ${dto.fechaFin})` : '';
+            this.mensajeError =
+              `La asesoría nutricional de "${this.nombreSocio(socio)}" no está vigente ` +
+              `(${dto?.estado ?? 'NO_VIGENTE'})${finTxt}. No se puede reinscribir este paquete.`;
+            return;
+          }
+        }
+
+        // todo OK
+        next();
+      });
+  }
+
+  // =========================
   // Paquete anterior auto
   // =========================
   private cargarPaqueteAnteriorDelSocio(idSocio: number): void {
-    // Page 1 size 1: depende de tu endpoint; aquí lo haces con buscarMembresiasPorSocio
     this.membresiaSrv.buscarMembresiasPorSocio(idSocio, 1, 1).subscribe({
       next: (page) => {
-        // tu PagedResponse real puede llamarse content/items/data; lo resolvemos flexible
-        const rows: any[] =
-          (page as any)?.content ??
-          (page as any)?.items ??
-          (page as any)?.data ??
-          [];
-
+        const rows: any[] = (page as any)?.content ?? (page as any)?.items ?? (page as any)?.data ?? [];
         const ultima = rows?.[0] ?? null;
         const idPaquete = Number(ultima?.paquete?.idPaquete ?? 0);
 
         if (!idPaquete) {
-          // sin historial: no bloquear
           this.form.controls.paqueteId.enable({ emitEvent: false });
           return;
         }
 
-        // set + bloquear (sin usar disabled en template)
         this.form.controls.paqueteId.setValue(idPaquete, { emitEvent: true });
         this.form.controls.paqueteId.disable({ emitEvent: false });
 
-        this.store.dispatch(
-          ReinscripcionActions.setPaqueteId({ paqueteId: idPaquete })
-        );
+        this.store.dispatch(ReinscripcionActions.setPaqueteId({ paqueteId: idPaquete }));
         this.guardarDraft();
       },
       error: () => {
@@ -352,6 +501,10 @@ export class Reinscripcion implements OnInit {
 
         this.miembrosSig.set([...this.miembrosSig(), s]);
         this.socioBuscarIdCtrl.setValue(0);
+
+        // ✅ refrescar estado asesoría del nuevo miembro (sin afectar si no tiene)
+        this.refrescarEstadosAsesoria();
+
         this.guardarDraft();
         this.notify.exito('Socio agregado.');
       },
@@ -372,9 +525,12 @@ export class Reinscripcion implements OnInit {
     delete map[this.key(idSocio)];
     this.pagosBySocioIdSig.set(map);
 
-    this.miembrosSig.set(
-      this.miembrosSig().filter((m) => Number(m.idSocio) !== Number(idSocio))
-    );
+    this.miembrosSig.set(this.miembrosSig().filter((m) => Number(m.idSocio) !== Number(idSocio)));
+
+    // ✅ limpiar estado asesoría del que quitaste
+    const est = { ...(this.estadoAsesoriaBySocioIdSig() ?? {}) };
+    delete est[this.key(idSocio)];
+    this.estadoAsesoriaBySocioIdSig.set(est);
 
     const idx = this.cobrandoIndex();
     if (idx >= this.miembrosSig().length) {
@@ -400,11 +556,7 @@ export class Reinscripcion implements OnInit {
     this.mostrarModalHuella.set(false);
 
     let idx = 0;
-    if (
-      Array.isArray(res.calidades) &&
-      res.calidades.length === res.muestras.length &&
-      res.calidades.length > 0
-    ) {
+    if (Array.isArray(res.calidades) && res.calidades.length === res.muestras.length && res.calidades.length > 0) {
       let best = Number.POSITIVE_INFINITY;
       res.calidades.forEach((q, i) => {
         if (q < best) {
@@ -425,7 +577,6 @@ export class Reinscripcion implements OnInit {
       return;
     }
 
-    // ✅ Debes tener este método en SocioService (ajusta URL)
     this.socioSrv.buscarPorHuella(huellaBase64).subscribe({
       next: (s) => {
         if (!s?.idSocio) {
@@ -436,7 +587,12 @@ export class Reinscripcion implements OnInit {
           this.notify.aviso('Ese socio ya está agregado.');
           return;
         }
+
         this.miembrosSig.set([...this.miembrosSig(), s]);
+
+        // ✅ refrescar estado asesoría del nuevo miembro
+        this.refrescarEstadosAsesoria();
+
         this.guardarDraft();
         this.notify.exito('Socio agregado por huella.');
       },
@@ -461,14 +617,15 @@ export class Reinscripcion implements OnInit {
       return;
     }
 
-    // cobrar al primer socio sin pagos
-    const miembros = this.miembrosSig();
-    const map = this.pagosBySocioIdSig();
-    const idx = miembros.findIndex((m) => !map[this.key(m.idSocio!)]);
-    this.cobrandoIndex.set(idx >= 0 ? idx : 0);
+    this.validarAsesoriaAntesDeContinuar(() => {
+      const miembros = this.miembrosSig();
+      const map = this.pagosBySocioIdSig();
+      const idx = miembros.findIndex((m) => !map[this.key(m.idSocio!)]);
+      this.cobrandoIndex.set(idx >= 0 ? idx : 0);
 
-    this.mensajeError = null;
-    this.mostrarResumen.set(true);
+      this.mensajeError = null;
+      this.mostrarResumen.set(true);
+    });
   }
 
   cerrarResumen(): void {
@@ -497,15 +654,16 @@ export class Reinscripcion implements OnInit {
 
     this.mostrarResumen.set(false);
 
-    // si faltan pagos, avisar
     const miembros = this.miembrosSig();
     const faltan = miembros.filter((m) => !this.pagosBySocioIdSig()[this.key(m.idSocio!)]).length;
+
     if (faltan > 0) {
       this.notify.exito(`Pago capturado. Faltan ${faltan} integrante(s) por cobrar.`);
       return;
     }
 
-    this.guardarTodo();
+    // ✅ validar otra vez antes de guardar
+    this.validarAsesoriaAntesDeContinuar(() => this.guardarTodo());
   }
 
   private guardarTodo(): void {
@@ -524,7 +682,6 @@ export class Reinscripcion implements OnInit {
     const descuento = Number(this.descuentoSelSig() ?? 0);
     const map = this.pagosBySocioIdSig();
 
-    // payload DTO MembresiaRequestDTO
     const membresiasPayload = miembros.map((m) => ({
       socio: { idSocio: m.idSocio },
       paquete: { idPaquete: paquete.idPaquete },
@@ -533,7 +690,6 @@ export class Reinscripcion implements OnInit {
       pagos: map[this.key(m.idSocio!)] ?? [],
     }));
 
-    // validar todos con pago
     const sinPago = miembros.filter((m) => !(map[this.key(m.idSocio!)]?.length));
     if (sinPago.length) {
       this.notify.aviso('Faltan pagos por capturar para algunos integrantes.');
@@ -551,7 +707,6 @@ export class Reinscripcion implements OnInit {
           this.guardando = false;
 
           const lista = Array.isArray(respArr) ? respArr : [];
-          // imprime ticket por integrante
           for (let i = 0; i < miembros.length; i++) {
             const r = lista[i] ?? {};
             const socio = miembros[i];
@@ -571,7 +726,6 @@ export class Reinscripcion implements OnInit {
       return;
     }
 
-    // individual
     this.membresiaSrv.guardar(membresiasPayload[0] as any).subscribe({
       next: (resp: any) => {
         this.guardando = false;
@@ -621,12 +775,15 @@ export class Reinscripcion implements OnInit {
     this.pagosBySocioIdSig.set({});
     this.cobrandoIndex.set(0);
 
-    sessionStorage.removeItem(STORAGE_KEY_REINSCRIPCION_GRUPAL);
+    // ✅ limpia UI de asesorías también (queda igual que ahora si no tiene)
+    this.estadoAsesoriaBySocioIdSig.set({});
 
+    sessionStorage.removeItem(STORAGE_KEY_REINSCRIPCION_GRUPAL);
     this.store.dispatch(ReinscripcionActions.reset());
 
     if (principal?.idSocio) {
       this.cargarPaqueteAnteriorDelSocio(principal.idSocio);
+      this.refrescarEstadosAsesoria();
     }
   }
 
@@ -640,7 +797,6 @@ export class Reinscripcion implements OnInit {
       const d = JSON.parse(raw) as Draft;
 
       if (d?.pagosBySocioId) this.pagosBySocioIdSig.set(d.pagosBySocioId);
-      // miembrosIds se reconstruyen al agregar por UI; el principal se agrega al cargar socio
     } catch {
       // noop
     }

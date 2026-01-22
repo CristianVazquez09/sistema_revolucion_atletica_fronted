@@ -51,6 +51,7 @@ import {
 
 import { HuellaModal } from '../huella-modal/huella-modal';
 import { HttpErrorResponse } from '@angular/common/http';
+import { catchError, finalize, map, of, switchMap } from 'rxjs';
 
 type MembresiaPayload = Omit<MembresiaData, 'paquete' | 'total' | 'fechaFin'> & {
   paquete: { idPaquete: number };
@@ -59,8 +60,8 @@ type MembresiaPayload = Omit<MembresiaData, 'paquete' | 'total' | 'fechaFin'> & 
 // === Borrador en sessionStorage ===
 const STORAGE_KEY_INSCRIPCION = 'ra_inscripcion_borrador_v3';
 
-// ✅ Para que el template pueda usar p.modalidad sin casts
-type PaqueteUI = PaqueteData & { modalidad?: any };
+// ✅ Para que el template pueda usar p.modalidad / p.estudiantil sin casts
+type PaqueteUI = PaqueteData & { modalidad?: any; estudiantil?: boolean };
 
 type InscripcionFormValue = {
   nombre: string;
@@ -71,10 +72,14 @@ type InscripcionFormValue = {
   direccion: string;
   genero: 'MASCULINO' | 'FEMENINO';
   comentarios: string | null;
+
   paqueteId: number;
   fechaInicio: string;
   descuento: number;
   movimiento: TipoMovimiento;
+
+  // ✅ NUEVO: estudiante
+  credencialEstudianteVigencia: string | null;
 };
 
 type BatchDraftItem = {
@@ -150,11 +155,14 @@ export class Inscripcion implements OnInit {
     foto: string | null;
   } | null = null;
 
+  // =========================
+  // Form
+  // =========================
   formularioInscripcion = this.fb.group({
     nombre: this.fb.nonNullable.control('', [Validators.required]),
     apellido: this.fb.nonNullable.control('', [Validators.required]),
 
-    // ✅ AHORA OBLIGATORIO (10 dígitos)
+    // ✅ OBLIGATORIO (10 dígitos)
     telefono: this.fb.nonNullable.control('', [
       Validators.required,
       Validators.pattern(/^[0-9]{10}$/),
@@ -176,6 +184,9 @@ export class Inscripcion implements OnInit {
     fechaInicio: this.fb.nonNullable.control(hoyISO()),
     descuento: this.fb.nonNullable.control(0, [Validators.min(0)]),
     movimiento: this.fb.nonNullable.control<TipoMovimiento>('INSCRIPCION'),
+
+    // ✅ NUEVO (estudiante)
+    credencialEstudianteVigencia: this.fb.control<string | null>(null),
   });
 
   // Selectores como signals
@@ -218,6 +229,12 @@ export class Inscripcion implements OnInit {
   batchIniciadoSig = computed(() => this.batchDraftsSig().length > 0);
   batchPasoSig = computed(() => this.batchDraftsSig().length + 1);
 
+  // ✅ estudiante
+  esPaqueteEstudiantilSig = computed(() => {
+    const p: any = this.paqueteActualSig() as any;
+    return Boolean(p?.estudiantil === true);
+  });
+
   conceptoResumenSig = computed(() => {
     const nombre = this.paqueteActualSig()?.nombre ?? 'Paquete seleccionado';
     if (!this.batchActivoSig()) return nombre;
@@ -238,6 +255,7 @@ export class Inscripcion implements OnInit {
     this.cargarBorradorDesdeStorage();
     this.cargarPaquetes();
 
+    // paqueteId
     this.formularioInscripcion.controls.paqueteId.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((id) => {
@@ -254,13 +272,17 @@ export class Inscripcion implements OnInit {
         this.store.dispatch(
           InscripcionActions.setPaqueteId({ paqueteId: Number(id ?? 0) })
         );
+
         if (!this.formularioInscripcion.controls.fechaInicio.value) {
           this.formularioInscripcion.controls.fechaInicio.setValue(hoyISO(), {
             emitEvent: false,
           });
         }
+
+        this.syncValidadoresEstudiantePorPaqueteId(Number(id ?? 0));
       });
 
+    // descuento
     this.formularioInscripcion.controls.descuento.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((d) =>
@@ -269,6 +291,7 @@ export class Inscripcion implements OnInit {
         )
       );
 
+    // fechaInicio
     this.formularioInscripcion.controls.fechaInicio.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((f) =>
@@ -279,11 +302,17 @@ export class Inscripcion implements OnInit {
         )
       );
 
+    // persist draft
     this.formularioInscripcion.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.guardarBorradorEnStorage());
 
     this.lockPaqueteControl(this.batchIniciadoSig());
+
+    // sync validadores por paquete actual del draft
+    this.syncValidadoresEstudiantePorPaqueteId(
+      Number(this.formularioInscripcion.controls.paqueteId.value ?? 0)
+    );
   }
 
   // =========================
@@ -314,6 +343,8 @@ export class Inscripcion implements OnInit {
           this.formularioInscripcion.controls.paqueteId.setValue(valido, { emitEvent: false });
         }
         this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: valido }));
+
+        this.syncValidadoresEstudiantePorPaqueteId(Number(valido ?? 0));
       },
       error: () => {
         this.cargandoPaquetes = false;
@@ -347,6 +378,9 @@ export class Inscripcion implements OnInit {
       return;
     }
 
+    // ✅ validaciones UI (estudiante)
+    if (!this.validarPaqueteEstudiantilUI()) return;
+
     this.mensajeError = null;
     this.mostrarModalResumen.set(true);
   }
@@ -355,25 +389,93 @@ export class Inscripcion implements OnInit {
     this.mostrarModalResumen.set(false);
   }
 
+  // =========================
   // ✅ Reglas exactas para abrir el modal
+  // =========================
   private camposFaltantesParaResumen(): string[] {
     const c = this.formularioInscripcion.controls;
     const f: string[] = [];
 
     if (c.nombre.invalid) f.push('Nombre');
     if (c.apellido.invalid) f.push('Apellidos');
-
-    // ✅ ahora requerido
     if (c.telefono.invalid) f.push('Teléfono (10 dígitos)');
     if (c.fechaNacimiento.invalid) f.push('Fecha de nacimiento');
-
     if (c.direccion.invalid) f.push('Dirección');
     if (c.genero.invalid) f.push('Sexo');
 
-    // ✅ necesario para calcular/cobrar
     if (!c.paqueteId.value || c.paqueteId.value <= 0) f.push('Paquete');
 
+    // ✅ estudiante: pedir vigencia
+    const esEst = this.esPaqueteEstudiantilSig();
+    if (esEst) {
+      if (!c.credencialEstudianteVigencia.value) f.push('Vigencia credencial estudiante');
+    }
+
     return f;
+  }
+
+  // =========================
+  // ✅ Validaciones UI: Estudiante
+  // =========================
+  private syncValidadoresEstudiantePorPaqueteId(paqueteId: number): void {
+    const p = this.listaPaquetes.find((x) => Number(x.idPaquete) === Number(paqueteId)) as any;
+    const esEst = Boolean(p?.estudiantil === true);
+
+    const ctrl = this.formularioInscripcion.controls.credencialEstudianteVigencia;
+
+    if (esEst) {
+      ctrl.setValidators([Validators.required]);
+    } else {
+      ctrl.clearValidators();
+      ctrl.setValue(null, { emitEvent: false });
+    }
+    ctrl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private calcularEdadDesdeISO(fechaISO: string, hoy = new Date()): number {
+    const parts = String(fechaISO ?? '').split('-').map((x) => Number(x));
+    if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return 0;
+
+    const [y, m, d] = parts;
+    const birth = new Date(y, (m ?? 1) - 1, d ?? 1);
+
+    let edad = hoy.getFullYear() - birth.getFullYear();
+    const mDiff = hoy.getMonth() - birth.getMonth();
+    if (mDiff < 0 || (mDiff === 0 && hoy.getDate() < birth.getDate())) edad--;
+
+    return Math.max(0, edad);
+  }
+
+  private validarPaqueteEstudiantilUI(): boolean {
+    const esEst = this.esPaqueteEstudiantilSig();
+    if (!esEst) return true;
+
+    const fn = this.formularioInscripcion.controls.fechaNacimiento.value;
+    if (!fn) {
+      this.notificacion.error('Para paquete estudiantil se requiere fecha de nacimiento.');
+      return false;
+    }
+
+    const edad = this.calcularEdadDesdeISO(fn);
+    if (edad > 22) {
+      this.notificacion.error(`Paquete estudiantil solo aplica hasta 22 años. Edad actual: ${edad}.`);
+      return false;
+    }
+
+    const vig = this.formularioInscripcion.controls.credencialEstudianteVigencia.value;
+    if (!vig) {
+      this.notificacion.error('Para paquete estudiantil se requiere la vigencia de la credencial.');
+      return false;
+    }
+
+    // ISO compare (YYYY-MM-DD)
+    const hoy = hoyISO();
+    if (String(vig) < String(hoy)) {
+      this.notificacion.error(`Credencial de estudiante vencida (vigencia: ${vig}).`);
+      return false;
+    }
+
+    return true;
   }
 
   // =========================
@@ -410,6 +512,7 @@ export class Inscripcion implements OnInit {
         direccion: socio?.direccion ?? '',
         genero: (socio?.genero ?? 'MASCULINO') as any,
         comentarios: socio?.comentarios ?? null,
+        credencialEstudianteVigencia: socio?.credencialEstudianteVigencia ?? null,
       },
       { emitEvent: false }
     );
@@ -467,28 +570,27 @@ export class Inscripcion implements OnInit {
       return;
     }
 
+    if (!this.validarPaqueteEstudiantilUI()) return;
+
     const drafts = [...this.batchDraftsSig()];
     const target = drafts[idx];
     if (!target) return;
 
-    // ✅ solo corregimos datos del socio (NO tocamos pagos ni montos)
     const socioNuevo: any = {
       ...((target.cuerpo?.socio as any) ?? {}),
-      nombre: this.formularioInscripcion.controls.nombre.value!,
-      apellido: this.formularioInscripcion.controls.apellido.value!,
-      direccion: this.formularioInscripcion.controls.direccion.value!,
-      telefono: this.formularioInscripcion.controls.telefono.value!,
+      nombre: this.formularioInscripcion.controls.nombre.value ?? '',
+      apellido: this.formularioInscripcion.controls.apellido.value ?? '',
+      direccion: this.formularioInscripcion.controls.direccion.value ?? '',
+      telefono: this.formularioInscripcion.controls.telefono.value ?? '',
       email: this.formularioInscripcion.controls.email.value ?? '',
       fechaNacimiento: this.formularioInscripcion.controls.fechaNacimiento.value ?? '',
-      genero: this.formularioInscripcion.controls.genero.value!,
+      genero: this.formularioInscripcion.controls.genero.value ?? 'MASCULINO',
       comentarios: this.formularioInscripcion.controls.comentarios.value ?? '',
+      credencialEstudianteVigencia: this.formularioInscripcion.controls.credencialEstudianteVigencia.value ?? null,
     };
 
     if (this.huellaDigitalBase64) {
       socioNuevo.huellaDigital = this.huellaDigitalBase64;
-    } else {
-      // si quieres permitir "quitar huella", descomenta:
-      // delete socioNuevo.huellaDigital;
     }
 
     const socioNombre = this.socioNombreActual();
@@ -500,13 +602,11 @@ export class Inscripcion implements OnInit {
         ...target.cuerpo,
         socio: socioNuevo as SocioData,
       },
-      // pagos se mantienen tal cual
       pagos: target.pagos,
     };
 
     this.batchDraftsSig.set(drafts);
 
-    // restaurar lo que el usuario estaba escribiendo
     const backup = this.backupAntesEditar;
     this.batchEditIndexSig.set(null);
     this.backupAntesEditar = null;
@@ -532,7 +632,7 @@ export class Inscripcion implements OnInit {
       const draft = JSON.parse(raw) as InscripcionDraft;
 
       if (draft?.form) {
-        this.formularioInscripcion.patchValue(draft.form, { emitEvent: false });
+        this.formularioInscripcion.patchValue(draft.form as any, { emitEvent: false });
       }
       this.huellaDigitalBase64 = draft?.huellaDigitalBase64 ?? null;
       this.fotoPreviewUrl = draft?.fotoPreviewUrl ?? null;
@@ -548,7 +648,7 @@ export class Inscripcion implements OnInit {
   private guardarBorradorEnStorage(): void {
     const formValue = this.formularioInscripcion.getRawValue();
     const draft: InscripcionDraft = {
-      form: formValue as InscripcionFormValue,
+      form: formValue as unknown as InscripcionFormValue,
       huellaDigitalBase64: this.huellaDigitalBase64,
       fotoPreviewUrl: this.fotoPreviewUrl,
       batchDrafts: this.batchDraftsSig(),
@@ -588,10 +688,10 @@ export class Inscripcion implements OnInit {
     this.formularioInscripcion.reset({
       nombre: '',
       apellido: '',
-      telefono: '', // ✅ requerido
+      telefono: '',
       email: null,
 
-      fechaNacimiento: null, // ✅ requerido
+      fechaNacimiento: null,
       direccion: '',
       genero: 'MASCULINO',
       comentarios: null,
@@ -600,6 +700,8 @@ export class Inscripcion implements OnInit {
       fechaInicio,
       descuento,
       movimiento,
+
+      credencialEstudianteVigencia: null,
     });
 
     this.huellaDigitalBase64 = null;
@@ -637,6 +739,9 @@ export class Inscripcion implements OnInit {
       return;
     }
 
+    // ✅ validaciones UI (estudiante)
+    if (!this.validarPaqueteEstudiantilUI()) return;
+
     const totalUI = this.totalVistaSig() ?? 0;
 
     const pagos: PagoData[] = Array.isArray(evento)
@@ -651,7 +756,8 @@ export class Inscripcion implements OnInit {
 
     const fechaInicio = this.fechaInicioSelSig() ?? hoyISO();
 
-    const socioNuevo: any = {
+    // Socio payload (siempre captura normal)
+    const socioPayload: any = {
       nombre: this.formularioInscripcion.controls.nombre.value!,
       apellido: this.formularioInscripcion.controls.apellido.value!,
       direccion: this.formularioInscripcion.controls.direccion.value!,
@@ -660,14 +766,16 @@ export class Inscripcion implements OnInit {
       fechaNacimiento: this.formularioInscripcion.controls.fechaNacimiento.value ?? '',
       genero: this.formularioInscripcion.controls.genero.value!,
       comentarios: this.formularioInscripcion.controls.comentarios.value ?? '',
+      credencialEstudianteVigencia:
+        this.formularioInscripcion.controls.credencialEstudianteVigencia.value ?? null,
     };
 
     if (this.huellaDigitalBase64) {
-      socioNuevo.huellaDigital = this.huellaDigitalBase64;
+      socioPayload.huellaDigital = this.huellaDigitalBase64;
     }
 
     const cuerpo: MembresiaPayload = {
-      socio: socioNuevo as SocioData,
+      socio: socioPayload as SocioData,
       paquete: { idPaquete: paquete.idPaquete },
       fechaInicio,
       movimiento: this.formularioInscripcion.controls.movimiento.value!,
@@ -677,17 +785,27 @@ export class Inscripcion implements OnInit {
 
     const socioNombre = this.socioNombreActual();
 
-    const requerido = this.batchRequeridoSig();
-    const esBatch = requerido > 1;
-
     // =========================
     // MODO INDIVIDUAL
     // =========================
+    const requerido = this.batchRequeridoSig();
+    const esBatch = requerido > 1;
+
     if (!esBatch) {
       this.guardandoMembresia = true;
 
-      this.membresiaSrv.guardar(cuerpo as unknown as MembresiaData).subscribe({
-        next: (resp: any) => {
+      of(void 0)
+        .pipe(
+          switchMap(() => this.membresiaSrv.guardar(cuerpo as unknown as MembresiaData)),
+          finalize(() => (this.guardandoMembresia = false)),
+          catchError((err: any) => {
+            this.notificacion.error(this.extraerMensajeError(err));
+            return of(null);
+          })
+        )
+        .subscribe((resp: any) => {
+          if (!resp) return;
+
           const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
 
           const pagosDet = (pagos ?? [])
@@ -707,7 +825,6 @@ export class Inscripcion implements OnInit {
             referencia: resp?.referencia,
           });
 
-          this.guardandoMembresia = false;
           this.cerrarModalResumen();
 
           this.huellaDigitalBase64 = null;
@@ -716,6 +833,7 @@ export class Inscripcion implements OnInit {
 
           sessionStorage.removeItem(STORAGE_KEY_INSCRIPCION);
 
+          // reset completo
           const hoy = hoyISO();
           this.formularioInscripcion.reset({
             genero: 'MASCULINO',
@@ -727,18 +845,18 @@ export class Inscripcion implements OnInit {
             email: null,
             fechaNacimiento: null,
             comentarios: null,
+
+            credencialEstudianteVigencia: null,
+            nombre: '',
+            apellido: '',
+            direccion: '',
           });
 
           this.store.dispatch(InscripcionActions.reset());
           this.cargarPaquetes();
 
           this.notificacion.exito('Membresía guardada con éxito.');
-        },
-        error: (err: HttpErrorResponse) => {
-          this.guardandoMembresia = false;
-          this.notificacion.error(this.extraerMensajeError(err));
-        },
-      });
+        });
 
       return;
     }
@@ -794,7 +912,9 @@ export class Inscripcion implements OnInit {
             paqueteNombre: resp?.paquete?.nombre ?? paquete?.nombre ?? null,
             precioPaquete: Number(resp?.paquete?.precio ?? this.precioPaqueteSig() ?? 0),
             descuento: Number(resp?.descuento ?? d.cuerpo?.descuento ?? 0),
-            costoInscripcion: Number(resp?.paquete?.costoInscripcion ?? this.costoInscripcionSig() ?? 0),
+            costoInscripcion: Number(
+              resp?.paquete?.costoInscripcion ?? this.costoInscripcionSig() ?? 0
+            ),
             pagos: pagosDet,
             referencia: resp?.referencia,
           });
@@ -823,6 +943,11 @@ export class Inscripcion implements OnInit {
           email: null,
           fechaNacimiento: null,
           comentarios: null,
+
+          credencialEstudianteVigencia: null,
+          nombre: '',
+          apellido: '',
+          direccion: '',
         });
 
         this.store.dispatch(InscripcionActions.reset());
@@ -841,7 +966,7 @@ export class Inscripcion implements OnInit {
     });
   }
 
-  private extraerMensajeError(err: HttpErrorResponse): string {
+  private extraerMensajeError(err: any): string {
     const e: any = err?.error;
 
     if (e?.detail) return String(e.detail);

@@ -64,6 +64,40 @@
         }
       </div>
 
+      <!-- ✅ Estado asesoría: SOLO SI existe (asesorado=true) -->
+      @if (socioPrincipalSig()?.idSocio && estadoAsesoriaDe(socioPrincipalSig()!.idSocio!)) {
+        @let est = estadoAsesoriaDe(socioPrincipalSig()!.idSocio!)!;
+
+        <div class="mb-3 rounded-xl2 border border-gray-200 bg-gray-50 p-3">
+          <div class="flex items-center justify-between gap-2">
+            <div class="text-sm font-semibold text-ra-slate">
+              Asesoría nutricional (Roberto)
+            </div>
+
+            <!-- Badge -->
+            @if (est.estado === 'VIGENTE') {
+              <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">Vigente</span>
+            } @else if (est.estado === 'VENCIDA') {
+              <span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-800">Vencida</span>
+            } @else if (est.estado === 'DESACTIVADA') {
+              <span class="text-xs px-2 py-1 rounded-full bg-gray-200 text-ra-slate/80">Desactivada</span>
+            } @else if (est.estado === 'PROGRAMADA') {
+              <span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">Programada</span>
+            } @else {
+              <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-ra-slate/70">—</span>
+            }
+          </div>
+
+          <div class="mt-1 text-xs text-ra-slate/70">
+            @if (est.fechaInicio && est.fechaFin) {
+              Vigencia: <span class="font-semibold">{{ est.fechaInicio }}</span> → <span class="font-semibold">{{ est.fechaFin }}</span>
+            } @else {
+              Sin fechas registradas.
+            }
+          </div>
+        </div>
+      }
+
       <form [formGroup]="form" class="space-y-3">
         <!-- Paquete (auto) -->
         <div>
@@ -164,6 +198,29 @@
                     <div class="text-xs text-ra-slate/70">
                       ID: {{ m.idSocio }} · Tel: {{ m.telefono || '—' }}
                     </div>
+
+                    <!-- ✅ Estado asesoría por integrante: SOLO SI existe -->
+                    @if (estadoAsesoriaDe(m.idSocio!)) {
+                      @let e = estadoAsesoriaDe(m.idSocio!)!;
+                      <div class="mt-1 text-[11px] text-ra-slate/70">
+                        Asesoría:
+                        @if (e.estado === 'VIGENTE') {
+                          <span class="font-semibold text-green-700">Vigente</span>
+                        } @else if (e.estado === 'VENCIDA') {
+                          <span class="font-semibold text-red-700">Vencida</span>
+                        } @else if (e.estado === 'DESACTIVADA') {
+                          <span class="font-semibold text-ra-slate/70">Desactivada</span>
+                        } @else if (e.estado === 'PROGRAMADA') {
+                          <span class="font-semibold text-amber-700">Programada</span>
+                        } @else {
+                          <span class="font-semibold">—</span>
+                        }
+
+                        @if (e.fechaFin) {
+                          <span class="ml-1">· Fin: {{ e.fechaFin }}</span>
+                        }
+                      </div>
+                    }
                   </div>
 
                   <div class="flex items-center gap-2">
@@ -209,8 +266,13 @@
         }
 
         <div class="pt-2">
-          <button type="button" class="btn-primary-red w-full" (click)="abrirResumen()">
-            Continuar con el pago
+          <button
+            type="button"
+            class="btn-primary-red w-full"
+            (click)="abrirResumen()"
+            [disabled]="guardando || validandoAsesoriaSig()"
+          >
+            {{ validandoAsesoriaSig() ? 'Validando asesoría…' : 'Continuar con el pago' }}
           </button>
         </div>
       </form>

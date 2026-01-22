@@ -8,11 +8,14 @@ export interface SocioData {
   direccion: string;
   telefono: string;
   email: string;
-  fechaNacimiento: string; // ISO 'YYYY-MM-DD' o Date
+  fechaNacimiento: string; // ISO 'YYYY-MM-DD'
   genero: 'MASCULINO' | 'FEMENINO' | 'OTRO';
   comentarios?: string;
-  activo?:boolean;
+  activo?: boolean;
   gimnasio?: GimnasioData;
 
-  huellaDigital?: string; 
+  huellaDigital?: string;
+
+  // ✅ NUEVO: Vigencia de credencial de estudiante (opcional)
+  credencialEstudianteVigencia?: string | null;
 }

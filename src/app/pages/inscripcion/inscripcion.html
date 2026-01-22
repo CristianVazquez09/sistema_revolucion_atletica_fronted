@@ -163,6 +163,25 @@
           />
         </div>
 
+        <!-- ✅ Paquete estudiantil: mostrar vigencia credencial -->
+        @if (esPaqueteEstudiantilSig()) {
+          <div class="grid grid-cols-[320px_1fr] gap-4 items-center">
+            <label class="text-sm font-semibold text-ra-slate">
+              Vigencia credencial estudiante*
+            </label>
+            <input
+              type="date"
+              formControlName="credencialEstudianteVigencia"
+              class="input-filled"
+              aria-label="Vigencia credencial estudiante"
+              title="Vigencia credencial estudiante"
+            />
+          </div>
+          <div class="text-xs text-ra-slate/70">
+            Se valida: edad ≤ 22 años y vigencia ≥ hoy.
+          </div>
+        }
+
         <div class="grid grid-cols-[1fr_auto] gap-4 items-center">
           <input formControlName="direccion" placeholder="Dirección*" class="input-filled" />
 
@@ -259,6 +278,7 @@
               @for (p of listaPaquetes; track p.idPaquete) {
                 <option [ngValue]="p.idPaquete">
                   {{ p.nombre }} — {{ p.tiempo | tiempoPlan }} · {{ modalidadTexto(p.modalidad) }}
+                  @if (p.estudiantil) { · Estudiantil }
                 </option>
               }
             </select>
@@ -349,7 +369,7 @@
 
         @if (!puedeAbrirResumen() && (formularioInscripcion.touched || formularioInscripcion.dirty) && !editandoIntegranteSig()) {
           <div class="text-xs text-ra-slate/70 text-center pt-2">
-            Completa: Nombre, Apellidos, Teléfono, Fecha de nacimiento, Sexo, Dirección y Paquete.
+            Completa los campos requeridos y valida Estudiante si aplica.
           </div>
         }
       </form>
