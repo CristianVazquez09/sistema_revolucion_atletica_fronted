@@ -84,14 +84,16 @@ export const pagesRoutes: Routes = [
     data: {
       sectionTitle: 'Administración',
       allowed: [
-        'membresias',
-        'cortes',
-        'ventas',
-        'gimnasios',
-        'estadisticas',
-        'usuarios',
-        'asesoriasNutri',
-      ],
+  'membresias',
+  'cortes',
+  'ventas',
+  'gimnasios',
+  'estadisticas',
+  'usuarios',
+  'promociones',
+  'asesoriasNutri',
+],
+
     },
     children: [
       {
@@ -140,6 +142,13 @@ export const pagesRoutes: Routes = [
           ),
         data: { title: 'Asesorías nutricionales' },
       },
+      {
+  path: 'promociones',
+  loadComponent: () =>
+    import('./administracion/promociones/promociones').then((m) => m.Promociones),
+  data: { title: 'Promociones' },
+},
+
     ],
   },
 
@@ -149,7 +158,7 @@ export const pagesRoutes: Routes = [
     canMatch: [gerenteGuard],
     data: {
       sectionTitle: 'Operación',
-      allowed: ['membresias', 'cortes', 'ventas'],
+      allowed: ['membresias', 'cortes', 'ventas', 'estadisticas', 'promociones'],
     },
     children: [
       {
@@ -176,6 +185,11 @@ export const pagesRoutes: Routes = [
           ),
         data: { title: 'Ventas' },
       },
+      {
+    path: 'promociones',
+    loadComponent: () => import('./administracion/promociones/promociones').then((m) => m.Promociones),
+    data: { title: 'Promociones' },
+  },
     ],
   },
 ];

@@ -25,7 +25,7 @@ import { MembresiaData, PagoData } from '../../model/membresia-data';
 
 import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
-import { hoyISO } from '../../util/fechas-precios';
+import { calcularTotal, hoyISO } from '../../util/fechas-precios';
 import { TipoPago } from '../../util/enums/tipo-pago';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
@@ -62,6 +62,21 @@ const STORAGE_KEY_INSCRIPCION = 'ra_inscripcion_borrador_v3';
 
 // ✅ Para que el template pueda usar p.modalidad / p.estudiantil sin casts
 type PaqueteUI = PaqueteData & { modalidad?: any; estudiantil?: boolean };
+
+// ✅ Promoción (UI)
+type PromocionUI = {
+  idPromocion?: number;
+  nombre?: string;
+  descripcion?: string;
+  tipo?: string;
+  descuentoMonto?: number;
+  descuentoPorcentaje?: number;
+  mesesGratis?: number;
+  sinCostoInscripcion?: boolean;
+  fechaInicio?: string;
+  fechaFin?: string;
+  activo?: boolean;
+};
 
 type InscripcionFormValue = {
   nombre: string;
@@ -201,6 +216,114 @@ export class Inscripcion implements OnInit {
   precioPaqueteSig = this.store.selectSignal(selectPrecioPaquete);
 
   // =========================
+  // ✅ Promociones (por paquete)
+  // =========================
+  promoCargandoSig = signal(false);
+  promocionesVigentesSig = signal<PromocionUI[]>([]);
+  promoErrorSig = signal<string | null>(null);
+
+  promocionAplicadaSig = computed<PromocionUI | null>(() => {
+    const lista = this.promocionesVigentesSig();
+    const precio = Number(this.precioPaqueteSig() ?? 0);
+    const insc = Number(this.costoInscripcionSig() ?? 0);
+    return this.seleccionarMejorPromocion(lista, precio, insc);
+  });
+
+  promoInscripcionGratisSig = computed(() =>
+    Boolean((this.promocionAplicadaSig() as any)?.sinCostoInscripcion === true)
+  );
+
+  promoMesesGratisSig = computed(() =>
+    Math.max(0, Number((this.promocionAplicadaSig() as any)?.mesesGratis ?? 0))
+  );
+
+  promoDescuentoMontoSig = computed(() => {
+    const promo: any = this.promocionAplicadaSig();
+    if (!promo) return 0;
+
+    const precio = Number(this.precioPaqueteSig() ?? 0);
+    const tipo = String(promo?.tipo ?? '').toUpperCase();
+
+    let monto = 0;
+    if (tipo === 'DESCUENTO_PORCENTAJE' || tipo === 'PORCENTAJE') {
+      const pct = Number(promo?.descuentoPorcentaje ?? 0);
+      monto = (precio * pct) / 100;
+    } else if (tipo === 'DESCUENTO_MONTO' || tipo === 'MONTO') {
+      monto = Number(promo?.descuentoMonto ?? 0);
+    } else {
+      // fallback por si el backend envía otra convención
+      monto = Number(promo?.descuento ?? 0);
+    }
+
+    if (!Number.isFinite(monto) || monto < 0) monto = 0;
+    return this.round2(Math.min(monto, precio));
+  });
+
+  // ✅ descuento TOTAL que se envía al backend
+  // - incluye: descuento manual + descuento promo + (inscripción si la promo la hace gratis)
+  descuentoTotalSig = computed(() => {
+    const descManual = Math.max(0, Number(this.descuentoSelSig() ?? 0));
+    const descPromo = Math.max(0, Number(this.promoDescuentoMontoSig() ?? 0));
+
+    const insc = Math.max(0, Number(this.costoInscripcionSig() ?? 0));
+    const inscGratis = this.promoInscripcionGratisSig() ? insc : 0;
+
+    return this.round2(descManual + descPromo + inscGratis);
+  });
+
+  totalConPromoSig = computed(() => {
+    const precio = Math.max(0, Number(this.precioPaqueteSig() ?? 0));
+    const insc = Math.max(0, Number(this.costoInscripcionSig() ?? 0));
+    const desc = Math.max(0, Number(this.descuentoTotalSig() ?? 0));
+    return calcularTotal(precio, desc, insc);
+  });
+
+  // Para mostrar ahorro vs el total SIN promo (pero con descuento manual)
+  totalSinPromoSig = computed(() => {
+    const precio = Math.max(0, Number(this.precioPaqueteSig() ?? 0));
+    const insc = Math.max(0, Number(this.costoInscripcionSig() ?? 0));
+    const descManual = Math.max(0, Number(this.descuentoSelSig() ?? 0));
+    return calcularTotal(precio, descManual, insc);
+  });
+
+  ahorroPromoSig = computed(() => {
+    const ahorro = Number(this.totalSinPromoSig() ?? 0) - Number(this.totalConPromoSig() ?? 0);
+    return this.round2(Math.max(0, ahorro));
+  });
+
+  promoBadgeTextoSig = computed(() => {
+    const promo: any = this.promocionAplicadaSig();
+    if (!promo) return null;
+
+    const parts: string[] = [];
+    const tipo = String(promo?.tipo ?? '').toUpperCase();
+
+    // descuento
+    if (tipo === 'DESCUENTO_PORCENTAJE' || tipo === 'PORCENTAJE') {
+      const pct = Number(promo?.descuentoPorcentaje ?? 0);
+      if (pct > 0) parts.push(`-${pct}%`);
+    } else {
+      const m = this.promoDescuentoMontoSig();
+      if (m > 0) parts.push(`-$${m.toFixed(2)}`);
+    }
+
+    if (this.promoInscripcionGratisSig()) parts.push('Inscripción gratis');
+
+    const mg = this.promoMesesGratisSig();
+    if (mg > 0) parts.push(`+${mg} mes(es) gratis`);
+
+    return parts.filter(Boolean).join(' · ') || 'Promoción activa';
+  });
+
+  // ✅ Congelar valores del modal de cobro
+  // Evita el caso en que el total cambie (por promo/descuento) entre que se abre el modal
+  // y se confirma el pago, lo cual provoca: "La suma de pagos no coincide con el total".
+  totalEnModalSig = signal<number>(0);
+  montoPaqueteEnModalSig = signal<number>(0);
+  montoInscripcionEnModalSig = signal<number>(0);
+  descuentoEnModalSig = signal<number>(0);
+
+  // =========================
   // Modalidad → cantidad requerida
   // =========================
   private cantidadRequerida(modalidad: any): number {
@@ -234,12 +357,16 @@ export class Inscripcion implements OnInit {
     const p: any = this.paqueteActualSig() as any;
     return Boolean(p?.estudiantil === true);
   });
-
   conceptoResumenSig = computed(() => {
-    const nombre = this.paqueteActualSig()?.nombre ?? 'Paquete seleccionado';
-    if (!this.batchActivoSig()) return nombre;
-    return `${nombre} · Integrante ${this.batchPasoSig()} de ${this.batchRequeridoSig()}`;
+    const nombrePaquete = this.paqueteActualSig()?.nombre ?? 'Paquete seleccionado';
+    const promo: any = this.promocionAplicadaSig();
+    const promoTxt = promo?.nombre ? ` · Promo: ${promo.nombre}` : '';
+
+    if (!this.batchActivoSig()) return `${nombrePaquete}${promoTxt}`;
+
+    return `${nombrePaquete} · Integrante ${this.batchPasoSig()} de ${this.batchRequeridoSig()}${promoTxt}`;
   });
+
 
   botonContinuarSig = computed(() => {
     if (!this.batchActivoSig()) return 'Continuar con el pago';
@@ -280,6 +407,7 @@ export class Inscripcion implements OnInit {
         }
 
         this.syncValidadoresEstudiantePorPaqueteId(Number(id ?? 0));
+        this.cargarPromocionesPorPaquete(Number(id ?? 0));
       });
 
     // descuento
@@ -311,6 +439,10 @@ export class Inscripcion implements OnInit {
 
     // sync validadores por paquete actual del draft
     this.syncValidadoresEstudiantePorPaqueteId(
+      Number(this.formularioInscripcion.controls.paqueteId.value ?? 0)
+    );
+
+    this.cargarPromocionesPorPaquete(
       Number(this.formularioInscripcion.controls.paqueteId.value ?? 0)
     );
   }
@@ -345,6 +477,7 @@ export class Inscripcion implements OnInit {
         this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: valido }));
 
         this.syncValidadoresEstudiantePorPaqueteId(Number(valido ?? 0));
+        this.cargarPromocionesPorPaquete(Number(valido ?? 0));
       },
       error: () => {
         this.cargandoPaquetes = false;
@@ -360,33 +493,59 @@ export class Inscripcion implements OnInit {
   }
 
   // ✅ Para deshabilitar botón y bloquear apertura del modal
+  // ✅ Para deshabilitar botón y bloquear apertura del modal
   puedeAbrirResumen(): boolean {
-    return this.camposFaltantesParaResumen().length === 0;
+    return this.camposFaltantesParaResumen().length === 0 && !this.promoCargandoSig();
   }
+
+  resumenResetKeySig = signal(0);
 
   abrirModalResumen(): void {
-    if (this.guardandoMembresia) return;
-    if (this.editandoIntegranteSig()) {
-      this.notificacion.aviso('Estás editando un integrante capturado. Guarda o cancela la edición.');
-      return;
-    }
+  if (this.guardandoMembresia) return;
 
-    const faltantes = this.camposFaltantesParaResumen();
-    if (faltantes.length) {
-      this.formularioInscripcion.markAllAsTouched();
-      this.mensajeError = 'Completa: ' + faltantes.join(', ') + '.';
-      return;
-    }
-
-    // ✅ validaciones UI (estudiante)
-    if (!this.validarPaqueteEstudiantilUI()) return;
-
-    this.mensajeError = null;
-    this.mostrarModalResumen.set(true);
+  if (this.editandoIntegranteSig()) {
+    this.notificacion.aviso('Estás editando un integrante capturado. Guarda o cancela la edición.');
+    return;
   }
+
+  const faltantes = this.camposFaltantesParaResumen();
+  if (faltantes.length) {
+    this.formularioInscripcion.markAllAsTouched();
+    this.mensajeError = 'Completa: ' + faltantes.join(', ') + '.';
+    return;
+  }
+
+  if (this.promoCargandoSig()) {
+    this.notificacion.aviso('Cargando promoción del paquete. Intenta de nuevo.');
+    return;
+  }
+
+  if (!this.validarPaqueteEstudiantilUI()) return;
+
+  // ✅ Congelar valores del modal (con promo)
+  this.totalEnModalSig.set(Number(this.totalConPromoSig() ?? 0));
+  this.montoPaqueteEnModalSig.set(Number(this.precioPaqueteSig() ?? 0));
+  this.montoInscripcionEnModalSig.set(Number(this.costoInscripcionSig() ?? 0));
+  // OJO: aquí tú estabas congelando SOLO descuento manual; si quieres mostrar el total real descontado:
+  // - Para UI del modal puedes mostrar descuentoTotal (manual + promo + insc gratis)
+  this.descuentoEnModalSig.set(Number(this.descuentoTotalSig() ?? 0));
+
+  // ✅ Resetear inputs del modal (evita que se quede 180 de una operación anterior)
+  this.resumenResetKeySig.update(v => v + 1);
+
+  this.mensajeError = null;
+  this.mostrarModalResumen.set(true);
+}
+
 
   cerrarModalResumen(): void {
     this.mostrarModalResumen.set(false);
+
+    // limpiar valores congelados
+    this.totalEnModalSig.set(0);
+    this.montoPaqueteEnModalSig.set(0);
+    this.montoInscripcionEnModalSig.set(0);
+    this.descuentoEnModalSig.set(0);
   }
 
   // =========================
@@ -742,16 +901,24 @@ export class Inscripcion implements OnInit {
     // ✅ validaciones UI (estudiante)
     if (!this.validarPaqueteEstudiantilUI()) return;
 
-    const totalUI = this.totalVistaSig() ?? 0;
+    // ✅ usar el total congelado del modal (evita desajustes por promos/descuento mientras el modal está abierto)
+    const totalUI = Number(this.totalEnModalSig() || this.totalConPromoSig() || 0);
 
-    const pagos: PagoData[] = Array.isArray(evento)
+    let pagos: PagoData[] = Array.isArray(evento)
       ? evento
       : [{ tipoPago: evento, monto: totalUI }];
 
     const sumaPagos = (pagos ?? []).reduce((a, p) => a + (Number(p.monto) || 0), 0);
     if (Math.abs(totalUI - sumaPagos) > 0.01) {
-      this.notificacion.aviso('La suma de pagos no coincide con el total.');
-      return;
+      // Si el modal envía un solo pago y el total cambió, normalizamos al total congelado.
+      if (Array.isArray(pagos) && pagos.length === 1) {
+        pagos = [{ ...pagos[0], monto: totalUI }];
+      } else {
+        this.notificacion.aviso(
+          `La suma de pagos (${sumaPagos.toFixed(2)}) no coincide con el total (${totalUI.toFixed(2)}).`
+        );
+        return;
+      }
     }
 
     const fechaInicio = this.fechaInicioSelSig() ?? hoyISO();
@@ -780,7 +947,7 @@ export class Inscripcion implements OnInit {
       fechaInicio,
       movimiento: this.formularioInscripcion.controls.movimiento.value!,
       pagos,
-      descuento: this.descuentoSelSig() ?? 0,
+      descuento: this.descuentoTotalSig() ?? 0,
     };
 
     const socioNombre = this.socioNombreActual();
@@ -819,7 +986,7 @@ export class Inscripcion implements OnInit {
             socioNombre,
             paqueteNombre: paquete?.nombre ?? null,
             precioPaquete: Number(paquete?.precio ?? 0),
-            descuento: Number(this.descuentoSelSig() ?? 0),
+            descuento: Number(this.descuentoTotalSig() ?? 0),
             costoInscripcion: Number(this.costoInscripcionSig() ?? 0),
             pagos: pagosDet,
             referencia: resp?.referencia,
@@ -964,6 +1131,100 @@ export class Inscripcion implements OnInit {
         this.notificacion.error(this.extraerMensajeError(err));
       },
     });
+  }
+
+
+  // =========================
+  // ✅ Promociones
+  // =========================
+  private round2(n: number): number {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return 0;
+    return Math.round(x * 100) / 100;
+  }
+
+  private toISODate(value: any): string | null {
+    const s = String(value ?? '').trim();
+    if (!s) return null;
+    return s.includes('T') ? s.split('T')[0] : s;
+  }
+
+  private promoVigenteHoy(promo: any, hoy: string): boolean {
+    const ini = this.toISODate(promo?.fechaInicio);
+    const fin = this.toISODate(promo?.fechaFin);
+
+    if (ini && String(hoy) < String(ini)) return false;
+    if (fin && String(hoy) > String(fin)) return false;
+    return true;
+  }
+
+  private scorePromo(promo: any, precioPaquete: number, costoInscripcion: number): number {
+    const tipo = String(promo?.tipo ?? '').toUpperCase();
+
+    let score = 0;
+    // inscripción gratis = ahorro directo
+    if (promo?.sinCostoInscripcion === true) score += Math.max(0, Number(costoInscripcion) || 0);
+
+    // descuento monetario
+    if (tipo === 'DESCUENTO_PORCENTAJE' || tipo === 'PORCENTAJE') {
+      const pct = Number(promo?.descuentoPorcentaje ?? 0);
+      if (pct > 0) score += (Math.max(0, Number(precioPaquete) || 0) * pct) / 100;
+    } else if (tipo === 'DESCUENTO_MONTO' || tipo === 'MONTO') {
+      score += Math.max(0, Number(promo?.descuentoMonto ?? 0) || 0);
+    }
+
+    // meses gratis: no afecta el total, pero sí es un beneficio; solo sirve para desempatar
+    const mg = Number(promo?.mesesGratis ?? 0) || 0;
+    if (mg > 0) score += mg * 0.0001;
+
+    return Number.isFinite(score) ? score : 0;
+  }
+
+  private seleccionarMejorPromocion(
+    lista: PromocionUI[],
+    precioPaquete: number,
+    costoInscripcion: number
+  ): PromocionUI | null {
+    const hoy = hoyISO();
+    const vigentes = (lista ?? [])
+      .filter((p) => p && (p as any)?.activo !== false)
+      .filter((p) => this.promoVigenteHoy(p as any, hoy));
+
+    if (!vigentes.length) return null;
+
+    const ordenadas = [...vigentes].sort(
+      (a, b) => this.scorePromo(b as any, precioPaquete, costoInscripcion) - this.scorePromo(a as any, precioPaquete, costoInscripcion)
+    );
+
+    return ordenadas[0] ?? null;
+  }
+
+  private cargarPromocionesPorPaquete(idPaquete: number): void {
+    const id = Number(idPaquete ?? 0);
+
+    if (!id || id <= 0) {
+      this.promocionesVigentesSig.set([]);
+      this.promoErrorSig.set(null);
+      return;
+    }
+
+    this.promoCargandoSig.set(true);
+    this.promoErrorSig.set(null);
+
+    // ✅ Método agregado en PaqueteService (según lo que comentaste).
+    // Debe devolver la lista de promociones vigentes del paquete.
+    (this.paqueteSrv as any)
+      .buscarPromocionesVigentes(id)
+      .pipe(
+        finalize(() => this.promoCargandoSig.set(false)),
+        catchError((err: any) => {
+          this.promoErrorSig.set(this.extraerMensajeError(err));
+          return of([] as PromocionUI[]);
+        })
+      )
+      .subscribe((lista: any) => {
+        this.promocionesVigentesSig.set(Array.isArray(lista) ? (lista as PromocionUI[]) : []);
+      });
   }
 
   private extraerMensajeError(err: any): string {
