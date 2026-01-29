@@ -11,6 +11,10 @@
 
       <div class="w-full 2xl:w-auto flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-end gap-2 xl:gap-3 text-[11px] xl:text-[12px] leading-none min-w-0">
         <div class="w-full flex flex-wrap 2xl:flex-nowrap items-center gap-2 xl:gap-3 min-w-0">
+          @if (esAdmin) {
+  <ra-gimnasio-filter label="Gimnasio"></ra-gimnasio-filter>
+}
+
           <div class="w-full sm:w-auto flex items-center gap-2 min-w-0">
             <label class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">Folio</label>
 

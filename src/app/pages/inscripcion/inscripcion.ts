@@ -7,33 +7,38 @@ import {
   inject,
   DestroyRef,
   computed,
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+
+import { Subject, catchError, debounceTime, distinctUntilChanged, finalize, map, of, switchMap } from 'rxjs';
 
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
+import { HuellaModal } from '../huella-modal/huella-modal';
 
 import { PaqueteService } from '../../services/paquete-service';
 import { MembresiaService } from '../../services/membresia-service';
 import { NotificacionService } from '../../services/notificacion-service';
+import { GimnasioService } from '../../services/gimnasio-service';
+import { TicketService, VentaContexto } from '../../services/ticket-service';
 
 import { PaqueteData } from '../../model/paquete-data';
 import { SocioData } from '../../model/socio-data';
 import { MembresiaData, PagoData } from '../../model/membresia-data';
+import { GimnasioData } from '../../model/gimnasio-data';
 
 import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
+import { TipoPago } from '../../util/enums/tipo-pago';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
 import { calcularTotal, hoyISO } from '../../util/fechas-precios';
-import { TipoPago } from '../../util/enums/tipo-pago';
+import { crearContextoTicket } from '../../util/ticket-contexto';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { GimnasioService } from '../../services/gimnasio-service';
-import { TicketService, VentaContexto } from '../../services/ticket-service';
-import { GimnasioData } from '../../model/gimnasio-data';
 import { environment } from '../../../environments/environment';
-import { crearContextoTicket } from '../../util/ticket-contexto';
 
 import { Store } from '@ngrx/store';
 import { InscripcionActions } from './state/inscripcion-actions';
@@ -48,10 +53,6 @@ import {
   selectCostoInscripcion,
   selectPrecioPaquete,
 } from './state/inscripcion-selectors';
-
-import { HuellaModal } from '../huella-modal/huella-modal';
-import { HttpErrorResponse } from '@angular/common/http';
-import { catchError, finalize, map, of, switchMap } from 'rxjs';
 
 type MembresiaPayload = Omit<MembresiaData, 'paquete' | 'total' | 'fechaFin'> & {
   paquete: { idPaquete: number };
@@ -93,7 +94,7 @@ type InscripcionFormValue = {
   descuento: number;
   movimiento: TipoMovimiento;
 
-  // ✅ NUEVO: estudiante
+  // ✅ estudiante
   credencialEstudianteVigencia: string | null;
 };
 
@@ -142,8 +143,35 @@ export class Inscripcion implements OnInit {
   gym: GimnasioData | null = null;
   cajero = 'Cajero';
 
-  listaPaquetes: PaqueteUI[] = [];
+  // =====================================================
+  // ✅ FIX CD: tick signal para que el template reaccione
+  // (especialmente en apps zoneless / signals-first)
+  // =====================================================
+  private formTickSig = signal(0);
+  private bumpFormTick(): void {
+    this.formTickSig.update((v) => v + 1);
+  }
+
+  // =========================
+  // ✅ PAQUETES (lista + buscador)
+  // =========================
+  listaPaquetesSig = signal<PaqueteUI[]>([]);
   cargandoPaquetes = true;
+
+  paqueteBusquedaSig = signal<string>('');
+  paqueteDropdownAbiertoSig = signal(false);
+  paqueteBuscandoSig = signal(false);
+  paqueteBusquedaErrorSig = signal<string | null>(null);
+  paquetesResultadosSig = signal<PaqueteUI[]>([]);
+  paqueteBloqueadoSig = signal(false);
+  private paqueteBuscar$ = new Subject<string>();
+
+  paquetesSugeridosSig = computed<PaqueteUI[]>(() => {
+    const q = (this.paqueteBusquedaSig() ?? '').trim();
+    const lista = this.listaPaquetesSig() ?? [];
+    if (q.length < 2) return lista.slice(0, 12);
+    return this.paquetesResultadosSig() ?? [];
+  });
 
   mostrarModalResumen = signal(false);
   mostrarModalHuella = signal(false);
@@ -154,7 +182,6 @@ export class Inscripcion implements OnInit {
   fotoArchivo: File | null = null;
   fotoPreviewUrl: string | null = null;
 
-  // Huella (OPCIONAL)
   huellaDigitalBase64: string | null = null;
 
   // ✅ Lote capturado
@@ -177,30 +204,24 @@ export class Inscripcion implements OnInit {
     nombre: this.fb.nonNullable.control('', [Validators.required]),
     apellido: this.fb.nonNullable.control('', [Validators.required]),
 
-    // ✅ OBLIGATORIO (10 dígitos)
     telefono: this.fb.nonNullable.control('', [
       Validators.required,
       Validators.pattern(/^[0-9]{10}$/),
     ]),
 
     email: this.fb.control<string | null>(null, [Validators.email]),
-
-    // ✅ requerido para abrir modal
     fechaNacimiento: this.fb.control<string | null>(null, [Validators.required]),
-
     direccion: this.fb.nonNullable.control('', [Validators.required]),
     genero: this.fb.nonNullable.control<'MASCULINO' | 'FEMENINO'>('MASCULINO', [
       Validators.required,
     ]),
     comentarios: this.fb.control<string | null>(null),
 
-    // ✅ paquete necesario para cobrar
     paqueteId: this.fb.nonNullable.control(0, [Validators.min(1)]),
     fechaInicio: this.fb.nonNullable.control(hoyISO()),
     descuento: this.fb.nonNullable.control(0, [Validators.min(0)]),
     movimiento: this.fb.nonNullable.control<TipoMovimiento>('INSCRIPCION'),
 
-    // ✅ NUEVO (estudiante)
     credencialEstudianteVigencia: this.fb.control<string | null>(null),
   });
 
@@ -251,7 +272,6 @@ export class Inscripcion implements OnInit {
     } else if (tipo === 'DESCUENTO_MONTO' || tipo === 'MONTO') {
       monto = Number(promo?.descuentoMonto ?? 0);
     } else {
-      // fallback por si el backend envía otra convención
       monto = Number(promo?.descuento ?? 0);
     }
 
@@ -260,7 +280,6 @@ export class Inscripcion implements OnInit {
   });
 
   // ✅ descuento TOTAL que se envía al backend
-  // - incluye: descuento manual + descuento promo + (inscripción si la promo la hace gratis)
   descuentoTotalSig = computed(() => {
     const descManual = Math.max(0, Number(this.descuentoSelSig() ?? 0));
     const descPromo = Math.max(0, Number(this.promoDescuentoMontoSig() ?? 0));
@@ -278,7 +297,6 @@ export class Inscripcion implements OnInit {
     return calcularTotal(precio, desc, insc);
   });
 
-  // Para mostrar ahorro vs el total SIN promo (pero con descuento manual)
   totalSinPromoSig = computed(() => {
     const precio = Math.max(0, Number(this.precioPaqueteSig() ?? 0));
     const insc = Math.max(0, Number(this.costoInscripcionSig() ?? 0));
@@ -298,7 +316,6 @@ export class Inscripcion implements OnInit {
     const parts: string[] = [];
     const tipo = String(promo?.tipo ?? '').toUpperCase();
 
-    // descuento
     if (tipo === 'DESCUENTO_PORCENTAJE' || tipo === 'PORCENTAJE') {
       const pct = Number(promo?.descuentoPorcentaje ?? 0);
       if (pct > 0) parts.push(`-${pct}%`);
@@ -316,8 +333,6 @@ export class Inscripcion implements OnInit {
   });
 
   // ✅ Congelar valores del modal de cobro
-  // Evita el caso en que el total cambie (por promo/descuento) entre que se abre el modal
-  // y se confirma el pago, lo cual provoca: "La suma de pagos no coincide con el total".
   totalEnModalSig = signal<number>(0);
   montoPaqueteEnModalSig = signal<number>(0);
   montoInscripcionEnModalSig = signal<number>(0);
@@ -357,16 +372,15 @@ export class Inscripcion implements OnInit {
     const p: any = this.paqueteActualSig() as any;
     return Boolean(p?.estudiantil === true);
   });
+
   conceptoResumenSig = computed(() => {
     const nombrePaquete = this.paqueteActualSig()?.nombre ?? 'Paquete seleccionado';
     const promo: any = this.promocionAplicadaSig();
     const promoTxt = promo?.nombre ? ` · Promo: ${promo.nombre}` : '';
 
     if (!this.batchActivoSig()) return `${nombrePaquete}${promoTxt}`;
-
     return `${nombrePaquete} · Integrante ${this.batchPasoSig()} de ${this.batchRequeridoSig()}${promoTxt}`;
   });
-
 
   botonContinuarSig = computed(() => {
     if (!this.batchActivoSig()) return 'Continuar con el pago';
@@ -377,22 +391,85 @@ export class Inscripcion implements OnInit {
       : `Cobrar integrante ${paso} y guardar lote (${req})`;
   });
 
+  // =====================================================
+  // ✅ Señal reactiva para habilitar botón (FIX)
+  // =====================================================
+  puedeAbrirResumenSig = computed(() => {
+    // depende del tick para re-render aunque sea zoneless
+    this.formTickSig();
+
+    return this.camposFaltantesParaResumen().length === 0 && !this.promoCargandoSig();
+  });
+
+  resumenResetKeySig = signal(0);
+
   ngOnInit(): void {
     this.cargarContextoDesdeToken();
     this.cargarBorradorDesdeStorage();
     this.cargarPaquetes();
 
-    // paqueteId
+    // ✅ buscador paquetes (debounced)
+    this.paqueteBuscar$
+      .pipe(
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap((raw) => {
+          const q = (raw ?? '').trim();
+
+          this.paqueteBusquedaErrorSig.set(null);
+
+          if (this.paqueteBloqueadoSig()) {
+            this.paqueteBuscandoSig.set(false);
+            return of([] as PaqueteUI[]);
+          }
+
+          if (q.length < 2) {
+            this.paqueteBuscandoSig.set(false);
+            return of([] as PaqueteUI[]);
+          }
+
+          this.paqueteBuscandoSig.set(true);
+          return this.paqueteSrv.buscarPorNombre(q, true).pipe(
+            map((lista) => {
+              const arr = Array.isArray(lista) ? lista : [];
+              return arr.map((x) => this.normalizePaquete(x)) as PaqueteUI[];
+            }),
+            catchError((err) => {
+              this.paqueteBusquedaErrorSig.set(this.extraerMensajeError(err));
+              return of([] as PaqueteUI[]);
+            }),
+            finalize(() => this.paqueteBuscandoSig.set(false))
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((lista) => this.paquetesResultadosSig.set(lista ?? []));
+
+    // ✅ mantener input mostrando el paquete seleccionado (y revertir cuando se cierra)
+    effect(() => {
+      const dropdownOpen = this.paqueteDropdownAbiertoSig();
+      if (dropdownOpen) return;
+
+      const id = Number(this.paqueteIdSelSig() ?? 0);
+      const lista = this.listaPaquetesSig();
+      const sel = (lista ?? []).find((p) => Number(p.idPaquete) === id);
+
+      if (sel) this.paqueteBusquedaSig.set(this.paqueteLabel(sel));
+    });
+
+    // paqueteId (si cambia por UI nativa / restore)
     this.formularioInscripcion.controls.paqueteId.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((id) => {
+        this.bumpFormTick();
+
         if (this.batchIniciadoSig()) {
           const actual = this.paqueteIdSelSig();
-          this.formularioInscripcion.controls.paqueteId.setValue(
-            Number(actual ?? 0),
-            { emitEvent: false }
-          );
+          this.formularioInscripcion.controls.paqueteId.setValue(Number(actual ?? 0), {
+            emitEvent: false,
+          });
           this.notificacion.aviso('Para cambiar de paquete, reinicia el lote.');
+          this.bumpFormTick();
           return;
         }
 
@@ -408,32 +485,47 @@ export class Inscripcion implements OnInit {
 
         this.syncValidadoresEstudiantePorPaqueteId(Number(id ?? 0));
         this.cargarPromocionesPorPaquete(Number(id ?? 0));
+
+        if (!this.paqueteDropdownAbiertoSig()) {
+          const lista = this.listaPaquetesSig();
+          const sel = (lista ?? []).find((p) => Number(p.idPaquete) === Number(id ?? 0));
+          if (sel) this.paqueteBusquedaSig.set(this.paqueteLabel(sel));
+        }
+
+        this.bumpFormTick();
       });
 
-    // descuento
+    // descuento → store
     this.formularioInscripcion.controls.descuento.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((d) =>
+      .subscribe((d) => {
         this.store.dispatch(
           InscripcionActions.setDescuento({ descuento: Number(d ?? 0) })
-        )
-      );
+        );
+        this.bumpFormTick();
+      });
 
-    // fechaInicio
+    // fechaInicio → store
     this.formularioInscripcion.controls.fechaInicio.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((f) =>
+      .subscribe((f) => {
         this.store.dispatch(
-          InscripcionActions.setFechaInicio({
-            fechaInicio: String(f ?? hoyISO()),
-          })
-        )
-      );
+          InscripcionActions.setFechaInicio({ fechaInicio: String(f ?? hoyISO()) })
+        );
+        this.bumpFormTick();
+      });
 
-    // persist draft
+    // ✅ FIX: valueChanges/statusChanges → tick + persist
     this.formularioInscripcion.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.guardarBorradorEnStorage());
+      .subscribe(() => {
+        this.guardarBorradorEnStorage();
+        this.bumpFormTick();
+      });
+
+    this.formularioInscripcion.statusChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.bumpFormTick());
 
     this.lockPaqueteControl(this.batchIniciadoSig());
 
@@ -445,46 +537,170 @@ export class Inscripcion implements OnInit {
     this.cargarPromocionesPorPaquete(
       Number(this.formularioInscripcion.controls.paqueteId.value ?? 0)
     );
+
+    this.bumpFormTick();
+  }
+
+  // =========================
+  // ✅ Buscador Paquetes - helpers FIX
+  // =========================
+  private paqueteLabel(p: PaqueteUI): string {
+    return String(p?.nombre ?? '').trim();
+  }
+
+  private normalizarPaqueteSeleccionado(p: PaqueteUI): PaqueteUI {
+    const picked = this.normalizePaquete(p);
+    const id = this.getPaqueteId(picked);
+    if (!id) return picked;
+
+    const lista = this.listaPaquetesSig() ?? [];
+    const existente = lista.find((x) => this.getPaqueteId(x) === id);
+    if (existente) return existente;
+
+    const nueva = [...lista, picked]
+      .filter((x) => x && this.getPaqueteId(x) > 0)
+      .reduce(
+        (acc, item) => {
+          const key = this.getPaqueteId(item);
+          if (!acc.map.has(key)) {
+            acc.map.set(key, true);
+            acc.arr.push(item);
+          }
+          return acc;
+        },
+        { map: new Map<number, boolean>(), arr: [] as PaqueteUI[] }
+      ).arr;
+
+    this.listaPaquetesSig.set(nueva);
+    this.store.dispatch(InscripcionActions.setListaPaquetes({ paquetes: nueva as any }));
+
+    return picked;
+  }
+
+  abrirDropdownPaquetes(): void {
+    if (this.paqueteBloqueadoSig() || this.cargandoPaquetes) return;
+    this.paqueteDropdownAbiertoSig.set(true);
+    this.paqueteBuscar$.next(this.paqueteBusquedaSig());
+  }
+
+  cerrarDropdownPaquetes(): void {
+    const wasOpen = this.paqueteDropdownAbiertoSig();
+    this.paqueteDropdownAbiertoSig.set(false);
+    this.paquetesResultadosSig.set([]);
+
+    if (!wasOpen) return;
+
+    const id =
+      Number(this.formularioInscripcion.controls.paqueteId.value ?? 0) ||
+      Number(this.paqueteIdSelSig() ?? 0);
+
+    const lista = this.listaPaquetesSig();
+    const sel = (lista ?? []).find((p) => Number(p.idPaquete) === Number(id));
+    if (sel) this.paqueteBusquedaSig.set(this.paqueteLabel(sel));
+  }
+
+  onPaqueteBusquedaChange(v: string): void {
+    if (this.paqueteBloqueadoSig() || this.cargandoPaquetes) return;
+
+    this.paqueteBusquedaSig.set(v);
+    this.paqueteDropdownAbiertoSig.set(true);
+    this.paqueteBuscar$.next(v);
+  }
+
+  seleccionarPaqueteDesdeBusqueda(p: PaqueteUI, evt?: Event): void {
+    evt?.stopPropagation();
+    if (this.paqueteBloqueadoSig() || this.cargandoPaquetes) return;
+
+    const picked = this.normalizePaquete(p);
+    const id = this.getPaqueteId(picked);
+
+    if (!id || id <= 0) {
+      this.notificacion.error('No se pudo seleccionar el paquete (id inválido).');
+      return;
+    }
+
+    const master = (this.listaPaquetesSig() ?? []).find((x) => this.getPaqueteId(x) === id);
+    const real = master ?? this.normalizarPaqueteSeleccionado(picked);
+
+    this.aplicarSeleccionPaquete(id, real);
+
+    this.paqueteDropdownAbiertoSig.set(false);
+    this.paquetesResultadosSig.set([]);
+
+    this.bumpFormTick();
+  }
+
+  limpiarPaqueteSeleccionado(evt?: Event): void {
+    evt?.stopPropagation();
+    if (this.paqueteBloqueadoSig() || this.cargandoPaquetes) return;
+
+    this.formularioInscripcion.controls.paqueteId.setValue(0, { emitEvent: false });
+    this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: 0 }));
+
+    this.paqueteBusquedaSig.set('');
+    this.paquetesResultadosSig.set([]);
+    this.paqueteDropdownAbiertoSig.set(false);
+
+    this.promocionesVigentesSig.set([]);
+    this.promoErrorSig.set(null);
+
+    this.bumpFormTick();
   }
 
   // =========================
   // Lock/Unlock paqueteId
   // =========================
   private lockPaqueteControl(locked: boolean): void {
-    const c = this.formularioInscripcion.controls.paqueteId;
-    if (locked && c.enabled) c.disable({ emitEvent: false });
-    if (!locked && c.disabled) c.enable({ emitEvent: false });
+    this.paqueteBloqueadoSig.set(locked);
+    if (locked) this.cerrarDropdownPaquetes();
   }
 
-  private cargarPaquetes(): void {
-    this.cargandoPaquetes = true;
-    this.paqueteSrv.buscarTodos().subscribe({
-      next: (lista) => {
-        const activos = (lista ?? []).filter((p) => p?.activo !== false);
-        this.listaPaquetes = activos as PaqueteUI[];
-        this.cargandoPaquetes = false;
+ private cargarPaquetes(): void {
+  this.cargandoPaquetes = true;
 
-        this.store.dispatch(
-          InscripcionActions.setListaPaquetes({ paquetes: activos as any })
-        );
+  this.paqueteSrv.buscarTodos().subscribe({
+    next: (lista) => {
+      const activos = (lista ?? [])
+        .map((x) => this.normalizePaquete(x))
+        .filter((p) => p?.activo !== false && this.getPaqueteId(p) > 0) as PaqueteUI[];
 
-        const idInit = Number(this.formularioInscripcion.controls.paqueteId.value ?? 0);
-        const valido = activos.some((p) => Number(p.idPaquete) === idInit) ? idInit : 0;
+      this.listaPaquetesSig.set(activos);
+      this.store.dispatch(InscripcionActions.setListaPaquetes({ paquetes: activos as any }));
 
-        if (valido !== idInit) {
-          this.formularioInscripcion.controls.paqueteId.setValue(valido, { emitEvent: false });
-        }
-        this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: valido }));
+      // ✅ 1) preferir form (borrador), si no, store, si no 0
+      const idForm = Number(this.formularioInscripcion.controls.paqueteId.value ?? 0);
+      const idStore = Number(this.paqueteIdSelSig() ?? 0);
+      const idPreferido = idForm > 0 ? idForm : (idStore > 0 ? idStore : 0);
 
-        this.syncValidadoresEstudiantePorPaqueteId(Number(valido ?? 0));
-        this.cargarPromocionesPorPaquete(Number(valido ?? 0));
-      },
-      error: () => {
-        this.cargandoPaquetes = false;
-        this.mensajeError = 'No se pudieron cargar los paquetes.';
-      },
-    });
-  }
+      // ✅ 2) validar que exista en la lista
+      const existe = activos.some((p) => Number(p.idPaquete) === idPreferido);
+      const idFinal = existe ? idPreferido : 0;
+
+      // ✅ 3) aplicar selección (esto pinta el input + promos + validadores)
+      if (idFinal > 0) {
+        const sel = activos.find((p) => Number(p.idPaquete) === idFinal);
+        this.aplicarSeleccionPaquete(idFinal, sel);
+      } else {
+        // dejar todo limpio
+        this.formularioInscripcion.controls.paqueteId.setValue(0, { emitEvent: false });
+        this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: 0 }));
+        this.paqueteBusquedaSig.set('');
+        this.promocionesVigentesSig.set([]);
+        this.promoErrorSig.set(null);
+        this.syncValidadoresEstudiantePorPaqueteId(0);
+      }
+
+      this.cargandoPaquetes = false;
+      this.bumpFormTick();
+    },
+    error: () => {
+      this.cargandoPaquetes = false;
+      this.mensajeError = 'No se pudieron cargar los paquetes.';
+      this.bumpFormTick();
+    },
+  });
+}
+
 
   socioNombreActual(): string {
     const n = this.formularioInscripcion.controls.nombre.value ?? '';
@@ -492,56 +708,45 @@ export class Inscripcion implements OnInit {
     return `${n} ${a}`.trim();
   }
 
-  // ✅ Para deshabilitar botón y bloquear apertura del modal
-  // ✅ Para deshabilitar botón y bloquear apertura del modal
-  puedeAbrirResumen(): boolean {
-    return this.camposFaltantesParaResumen().length === 0 && !this.promoCargandoSig();
-  }
-
-  resumenResetKeySig = signal(0);
-
   abrirModalResumen(): void {
-  if (this.guardandoMembresia) return;
+    if (this.guardandoMembresia) return;
 
-  if (this.editandoIntegranteSig()) {
-    this.notificacion.aviso('Estás editando un integrante capturado. Guarda o cancela la edición.');
-    return;
+    if (this.editandoIntegranteSig()) {
+      this.notificacion.aviso('Estás editando un integrante capturado. Guarda o cancela la edición.');
+      return;
+    }
+
+    const faltantes = this.camposFaltantesParaResumen();
+    if (faltantes.length) {
+      this.formularioInscripcion.markAllAsTouched();
+      this.mensajeError = 'Completa: ' + faltantes.join(', ') + '.';
+      this.bumpFormTick();
+      return;
+    }
+
+    if (this.promoCargandoSig()) {
+      this.notificacion.aviso('Cargando promoción del paquete. Intenta de nuevo.');
+      return;
+    }
+
+    if (!this.validarPaqueteEstudiantilUI()) return;
+
+    this.totalEnModalSig.set(Number(this.totalConPromoSig() ?? 0));
+    this.montoPaqueteEnModalSig.set(Number(this.precioPaqueteSig() ?? 0));
+    this.montoInscripcionEnModalSig.set(Number(this.costoInscripcionSig() ?? 0));
+    this.descuentoEnModalSig.set(Number(this.descuentoTotalSig() ?? 0));
+
+    this.resumenResetKeySig.update((v) => v + 1);
+
+    this.mensajeError = null;
+    this.mostrarModalResumen.set(true);
+
+    this.bumpFormTick();
   }
-
-  const faltantes = this.camposFaltantesParaResumen();
-  if (faltantes.length) {
-    this.formularioInscripcion.markAllAsTouched();
-    this.mensajeError = 'Completa: ' + faltantes.join(', ') + '.';
-    return;
-  }
-
-  if (this.promoCargandoSig()) {
-    this.notificacion.aviso('Cargando promoción del paquete. Intenta de nuevo.');
-    return;
-  }
-
-  if (!this.validarPaqueteEstudiantilUI()) return;
-
-  // ✅ Congelar valores del modal (con promo)
-  this.totalEnModalSig.set(Number(this.totalConPromoSig() ?? 0));
-  this.montoPaqueteEnModalSig.set(Number(this.precioPaqueteSig() ?? 0));
-  this.montoInscripcionEnModalSig.set(Number(this.costoInscripcionSig() ?? 0));
-  // OJO: aquí tú estabas congelando SOLO descuento manual; si quieres mostrar el total real descontado:
-  // - Para UI del modal puedes mostrar descuentoTotal (manual + promo + insc gratis)
-  this.descuentoEnModalSig.set(Number(this.descuentoTotalSig() ?? 0));
-
-  // ✅ Resetear inputs del modal (evita que se quede 180 de una operación anterior)
-  this.resumenResetKeySig.update(v => v + 1);
-
-  this.mensajeError = null;
-  this.mostrarModalResumen.set(true);
-}
-
 
   cerrarModalResumen(): void {
     this.mostrarModalResumen.set(false);
 
-    // limpiar valores congelados
     this.totalEnModalSig.set(0);
     this.montoPaqueteEnModalSig.set(0);
     this.montoInscripcionEnModalSig.set(0);
@@ -562,9 +767,9 @@ export class Inscripcion implements OnInit {
     if (c.direccion.invalid) f.push('Dirección');
     if (c.genero.invalid) f.push('Sexo');
 
-    if (!c.paqueteId.value || c.paqueteId.value <= 0) f.push('Paquete');
+    const pid = Number(c.paqueteId.value ?? 0);
+    if (!pid || pid <= 0 || c.paqueteId.invalid) f.push('Paquete');
 
-    // ✅ estudiante: pedir vigencia
     const esEst = this.esPaqueteEstudiantilSig();
     if (esEst) {
       if (!c.credencialEstudianteVigencia.value) f.push('Vigencia credencial estudiante');
@@ -577,7 +782,8 @@ export class Inscripcion implements OnInit {
   // ✅ Validaciones UI: Estudiante
   // =========================
   private syncValidadoresEstudiantePorPaqueteId(paqueteId: number): void {
-    const p = this.listaPaquetes.find((x) => Number(x.idPaquete) === Number(paqueteId)) as any;
+    const lista = this.listaPaquetesSig();
+    const p = (lista ?? []).find((x) => Number(x.idPaquete) === Number(paqueteId)) as any;
     const esEst = Boolean(p?.estudiantil === true);
 
     const ctrl = this.formularioInscripcion.controls.credencialEstudianteVigencia;
@@ -588,7 +794,9 @@ export class Inscripcion implements OnInit {
       ctrl.clearValidators();
       ctrl.setValue(null, { emitEvent: false });
     }
+
     ctrl.updateValueAndValidity({ emitEvent: false });
+    this.bumpFormTick();
   }
 
   private calcularEdadDesdeISO(fechaISO: string, hoy = new Date()): number {
@@ -627,7 +835,6 @@ export class Inscripcion implements OnInit {
       return false;
     }
 
-    // ISO compare (YYYY-MM-DD)
     const hoy = hoyISO();
     if (String(vig) < String(hoy)) {
       this.notificacion.error(`Credencial de estudiante vencida (vigencia: ${vig}).`);
@@ -682,6 +889,7 @@ export class Inscripcion implements OnInit {
     this.mensajeError = null;
     this.guardarBorradorEnStorage();
     this.notificacion.aviso(`Editando integrante ${index + 1}.`);
+    this.bumpFormTick();
   }
 
   editarAnteriorCapturado(): void {
@@ -714,6 +922,7 @@ export class Inscripcion implements OnInit {
 
     this.guardarBorradorEnStorage();
     this.notificacion.aviso('Edición cancelada.');
+    this.bumpFormTick();
   }
 
   guardarEdicionIntegrante(): void {
@@ -726,6 +935,7 @@ export class Inscripcion implements OnInit {
     if (faltantes.length) {
       this.formularioInscripcion.markAllAsTouched();
       this.mensajeError = 'Completa: ' + faltantes.join(', ') + '.';
+      this.bumpFormTick();
       return;
     }
 
@@ -745,7 +955,8 @@ export class Inscripcion implements OnInit {
       fechaNacimiento: this.formularioInscripcion.controls.fechaNacimiento.value ?? '',
       genero: this.formularioInscripcion.controls.genero.value ?? 'MASCULINO',
       comentarios: this.formularioInscripcion.controls.comentarios.value ?? '',
-      credencialEstudianteVigencia: this.formularioInscripcion.controls.credencialEstudianteVigencia.value ?? null,
+      credencialEstudianteVigencia:
+        this.formularioInscripcion.controls.credencialEstudianteVigencia.value ?? null,
     };
 
     if (this.huellaDigitalBase64) {
@@ -778,6 +989,7 @@ export class Inscripcion implements OnInit {
 
     this.guardarBorradorEnStorage();
     this.notificacion.exito('Integrante actualizado.');
+    this.bumpFormTick();
   }
 
   // =========================
@@ -799,6 +1011,8 @@ export class Inscripcion implements OnInit {
       if (Array.isArray(draft?.batchDrafts)) {
         this.batchDraftsSig.set(draft.batchDrafts);
       }
+
+      this.bumpFormTick();
     } catch {
       // noop
     }
@@ -834,6 +1048,7 @@ export class Inscripcion implements OnInit {
     this.lockPaqueteControl(false);
     this.guardarBorradorEnStorage();
     this.notificacion.aviso('Lote reiniciado.');
+    this.bumpFormTick();
   }
 
   private limpiarParaSiguienteIntegrante(): void {
@@ -869,11 +1084,10 @@ export class Inscripcion implements OnInit {
 
     this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId }));
     this.store.dispatch(InscripcionActions.setDescuento({ descuento }));
-    this.store.dispatch(
-      InscripcionActions.setFechaInicio({ fechaInicio: String(fechaInicio) })
-    );
+    this.store.dispatch(InscripcionActions.setFechaInicio({ fechaInicio: String(fechaInicio) }));
 
     this.guardarBorradorEnStorage();
+    this.bumpFormTick();
   }
 
   // =========================
@@ -898,10 +1112,8 @@ export class Inscripcion implements OnInit {
       return;
     }
 
-    // ✅ validaciones UI (estudiante)
     if (!this.validarPaqueteEstudiantilUI()) return;
 
-    // ✅ usar el total congelado del modal (evita desajustes por promos/descuento mientras el modal está abierto)
     const totalUI = Number(this.totalEnModalSig() || this.totalConPromoSig() || 0);
 
     let pagos: PagoData[] = Array.isArray(evento)
@@ -910,7 +1122,6 @@ export class Inscripcion implements OnInit {
 
     const sumaPagos = (pagos ?? []).reduce((a, p) => a + (Number(p.monto) || 0), 0);
     if (Math.abs(totalUI - sumaPagos) > 0.01) {
-      // Si el modal envía un solo pago y el total cambió, normalizamos al total congelado.
       if (Array.isArray(pagos) && pagos.length === 1) {
         pagos = [{ ...pagos[0], monto: totalUI }];
       } else {
@@ -923,7 +1134,6 @@ export class Inscripcion implements OnInit {
 
     const fechaInicio = this.fechaInicioSelSig() ?? hoyISO();
 
-    // Socio payload (siempre captura normal)
     const socioPayload: any = {
       nombre: this.formularioInscripcion.controls.nombre.value!,
       apellido: this.formularioInscripcion.controls.apellido.value!,
@@ -952,9 +1162,6 @@ export class Inscripcion implements OnInit {
 
     const socioNombre = this.socioNombreActual();
 
-    // =========================
-    // MODO INDIVIDUAL
-    // =========================
     const requerido = this.batchRequeridoSig();
     const esBatch = requerido > 1;
 
@@ -1000,7 +1207,6 @@ export class Inscripcion implements OnInit {
 
           sessionStorage.removeItem(STORAGE_KEY_INSCRIPCION);
 
-          // reset completo
           const hoy = hoyISO();
           this.formularioInscripcion.reset({
             genero: 'MASCULINO',
@@ -1012,30 +1218,27 @@ export class Inscripcion implements OnInit {
             email: null,
             fechaNacimiento: null,
             comentarios: null,
-
             credencialEstudianteVigencia: null,
             nombre: '',
             apellido: '',
             direccion: '',
           });
 
+          this.paqueteBusquedaSig.set('');
           this.store.dispatch(InscripcionActions.reset());
           this.cargarPaquetes();
 
           this.notificacion.exito('Membresía guardada con éxito.');
+          this.bumpFormTick();
         });
 
       return;
     }
 
-    // =========================
-    // MODO BATCH (DUO/TRIO/SQUAD)
-    // =========================
     const drafts = this.batchDraftsSig();
     const capturados = drafts.length;
-    const esUltimo = capturados === (requerido - 1);
+    const esUltimo = capturados === requerido - 1;
 
-    // 1) NO es último -> agregar a drafts y limpiar
     if (!esUltimo) {
       const nuevos = [...drafts, { socioNombre, cuerpo, pagos }];
       this.batchDraftsSig.set(nuevos);
@@ -1044,14 +1247,12 @@ export class Inscripcion implements OnInit {
       this.guardarBorradorEnStorage();
 
       this.cerrarModalResumen();
-      this.notificacion.exito(
-        `Integrante ${nuevos.length}/${requerido} capturado. Continúa con el siguiente.`
-      );
+      this.notificacion.exito(`Integrante ${nuevos.length}/${requerido} capturado. Continúa con el siguiente.`);
       this.limpiarParaSiguienteIntegrante();
+      this.bumpFormTick();
       return;
     }
 
-    // 2) último -> no lo agregamos a drafts antes, para evitar duplicados al fallar
     const fullDrafts: BatchDraftItem[] = [...drafts, { socioNombre, cuerpo, pagos }];
     const membresiasArray = fullDrafts.map((x) => x.cuerpo);
 
@@ -1079,9 +1280,7 @@ export class Inscripcion implements OnInit {
             paqueteNombre: resp?.paquete?.nombre ?? paquete?.nombre ?? null,
             precioPaquete: Number(resp?.paquete?.precio ?? this.precioPaqueteSig() ?? 0),
             descuento: Number(resp?.descuento ?? d.cuerpo?.descuento ?? 0),
-            costoInscripcion: Number(
-              resp?.paquete?.costoInscripcion ?? this.costoInscripcionSig() ?? 0
-            ),
+            costoInscripcion: Number(resp?.paquete?.costoInscripcion ?? this.costoInscripcionSig() ?? 0),
             pagos: pagosDet,
             referencia: resp?.referencia,
           });
@@ -1110,17 +1309,18 @@ export class Inscripcion implements OnInit {
           email: null,
           fechaNacimiento: null,
           comentarios: null,
-
           credencialEstudianteVigencia: null,
           nombre: '',
           apellido: '',
           direccion: '',
         });
 
+        this.paqueteBusquedaSig.set('');
         this.store.dispatch(InscripcionActions.reset());
         this.cargarPaquetes();
 
         this.notificacion.exito(`Lote guardado con éxito (${requerido} membresías).`);
+        this.bumpFormTick();
       },
       error: (err: HttpErrorResponse) => {
         this.guardandoMembresia = false;
@@ -1129,10 +1329,10 @@ export class Inscripcion implements OnInit {
         this.guardarBorradorEnStorage();
 
         this.notificacion.error(this.extraerMensajeError(err));
+        this.bumpFormTick();
       },
     });
   }
-
 
   // =========================
   // ✅ Promociones
@@ -1162,10 +1362,8 @@ export class Inscripcion implements OnInit {
     const tipo = String(promo?.tipo ?? '').toUpperCase();
 
     let score = 0;
-    // inscripción gratis = ahorro directo
     if (promo?.sinCostoInscripcion === true) score += Math.max(0, Number(costoInscripcion) || 0);
 
-    // descuento monetario
     if (tipo === 'DESCUENTO_PORCENTAJE' || tipo === 'PORCENTAJE') {
       const pct = Number(promo?.descuentoPorcentaje ?? 0);
       if (pct > 0) score += (Math.max(0, Number(precioPaquete) || 0) * pct) / 100;
@@ -1173,7 +1371,6 @@ export class Inscripcion implements OnInit {
       score += Math.max(0, Number(promo?.descuentoMonto ?? 0) || 0);
     }
 
-    // meses gratis: no afecta el total, pero sí es un beneficio; solo sirve para desempatar
     const mg = Number(promo?.mesesGratis ?? 0) || 0;
     if (mg > 0) score += mg * 0.0001;
 
@@ -1193,7 +1390,9 @@ export class Inscripcion implements OnInit {
     if (!vigentes.length) return null;
 
     const ordenadas = [...vigentes].sort(
-      (a, b) => this.scorePromo(b as any, precioPaquete, costoInscripcion) - this.scorePromo(a as any, precioPaquete, costoInscripcion)
+      (a, b) =>
+        this.scorePromo(b as any, precioPaquete, costoInscripcion) -
+        this.scorePromo(a as any, precioPaquete, costoInscripcion)
     );
 
     return ordenadas[0] ?? null;
@@ -1211,12 +1410,13 @@ export class Inscripcion implements OnInit {
     this.promoCargandoSig.set(true);
     this.promoErrorSig.set(null);
 
-    // ✅ Método agregado en PaqueteService (según lo que comentaste).
-    // Debe devolver la lista de promociones vigentes del paquete.
-    (this.paqueteSrv as any)
+    this.paqueteSrv
       .buscarPromocionesVigentes(id)
       .pipe(
-        finalize(() => this.promoCargandoSig.set(false)),
+        finalize(() => {
+          this.promoCargandoSig.set(false);
+          this.bumpFormTick();
+        }),
         catchError((err: any) => {
           this.promoErrorSig.set(this.extraerMensajeError(err));
           return of([] as PromocionUI[]);
@@ -1224,6 +1424,7 @@ export class Inscripcion implements OnInit {
       )
       .subscribe((lista: any) => {
         this.promocionesVigentesSig.set(Array.isArray(lista) ? (lista as PromocionUI[]) : []);
+        this.bumpFormTick();
       });
   }
 
@@ -1247,6 +1448,7 @@ export class Inscripcion implements OnInit {
     reader.onload = () => {
       this.fotoPreviewUrl = reader.result as string;
       this.guardarBorradorEnStorage();
+      this.bumpFormTick();
     };
     reader.readAsDataURL(file);
   }
@@ -1255,6 +1457,7 @@ export class Inscripcion implements OnInit {
     this.fotoArchivo = null;
     this.fotoPreviewUrl = null;
     this.guardarBorradorEnStorage();
+    this.bumpFormTick();
   }
 
   private cargarContextoDesdeToken(): void {
@@ -1306,11 +1509,72 @@ export class Inscripcion implements OnInit {
     this.huellaDigitalBase64 = res.muestras[idx] ?? null;
 
     this.guardarBorradorEnStorage();
-
     this.notificacion.exito(
       res.muestras.length > 1
         ? 'Huella registrada (se usará la de mejor calidad).'
         : 'Huella registrada.'
     );
+
+    this.bumpFormTick();
+  }
+
+  // ✅ ID robusto (soporta idPaquete | paqueteId | id | id_paquete)
+  private getPaqueteId(p: any): number {
+    const raw =
+      p?.idPaquete ??
+      p?.paqueteId ??
+      p?.id ??
+      p?.id_paquete ??
+      p?.idPaqueteFk ??
+      0;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  private toNumber(v: any): number {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  // ✅ normaliza objeto para que SIEMPRE tenga idPaquete + números
+  private normalizePaquete(p: any): PaqueteUI {
+    const id = this.getPaqueteId(p);
+    return {
+      ...(p ?? {}),
+      idPaquete: id,
+      precio: this.toNumber(p?.precio),
+      costoInscripcion: this.toNumber(p?.costoInscripcion),
+    } as PaqueteUI;
+  }
+
+  /** ✅ Aplica selección de paquete sin depender de valueChanges */
+  private aplicarSeleccionPaquete(idPaquete: number, picked?: PaqueteUI): void {
+    const id = Number(idPaquete ?? 0);
+    if (!id || id <= 0) return;
+
+    // 1) set form SIN disparar valueChanges
+    this.formularioInscripcion.controls.paqueteId.setValue(id, { emitEvent: false });
+
+    // 2) set store
+    this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: id }));
+
+    // 3) fechaInicio default (y store)
+    if (!this.formularioInscripcion.controls.fechaInicio.value) {
+      const hoy = hoyISO();
+      this.formularioInscripcion.controls.fechaInicio.setValue(hoy, { emitEvent: false });
+      this.store.dispatch(InscripcionActions.setFechaInicio({ fechaInicio: hoy }));
+    }
+
+    // 4) estudiante + promos
+    this.syncValidadoresEstudiantePorPaqueteId(id);
+    this.cargarPromocionesPorPaquete(id);
+
+    // 5) etiqueta input
+    const master = (this.listaPaquetesSig() ?? []).find((x) => this.getPaqueteId(x) === id);
+    const show = master ?? picked;
+    if (show) this.paqueteBusquedaSig.set(this.paqueteLabel(show));
+
+    // ✅ clave para que el botón reaccione aunque sea zoneless
+    this.bumpFormTick();
   }
 }

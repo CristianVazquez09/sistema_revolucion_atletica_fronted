@@ -1,7 +1,12 @@
-import { Component, inject } from '@angular/core';
+import {
+  Component,
+  inject,
+  DestroyRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { finalize } from 'rxjs';
+import { finalize, distinctUntilChanged, skip } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { CorteCajaService } from '../../../services/corte-caja-service';
 import { NotificacionService } from '../../../services/notificacion-service';
@@ -11,13 +16,17 @@ import { CorteCajaListado, PagedResponse, PageMeta } from '../../../model/corte-
 import { TicketService } from '../../../services/ticket-service';
 import { CorteCajaInfo } from './corte-caja-info/corte-caja-info';
 
+// ✅ tenant selector
+import { TenantContextService } from 'src/app/core/tenant-context.service';
+import { RaGimnasioFilterComponent } from 'src/app/shared/ra-app-zoom/ra-gimnasio-filter/ra-gimnasio-filter';
+
 type CampoOrden = 'apertura' | 'cierre' | 'idCorte';
 type DirOrden   = 'asc' | 'desc';
 
 @Component({
   selector: 'app-corte-caja-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, CorteCajaInfo],
+  imports: [CommonModule, FormsModule, CorteCajaInfo, RaGimnasioFilterComponent],
   templateUrl: './corte-caja-admin.html',
   styleUrl: './corte-caja-admin.css'
 })
@@ -27,6 +36,11 @@ export class CorteCajaAdmin {
   private jwt    = inject(JwtHelperService);
   private noti   = inject(NotificacionService);
   private ticket = inject(TicketService);
+
+  // ✅ tenant ctx
+  private tenantCtx = inject(TenantContextService);
+  private destroyRef = inject(DestroyRef);
+  private destroying = false;
 
   // Estado tabla
   cortes: CorteCajaListado[] = [];
@@ -54,10 +68,36 @@ export class CorteCajaAdmin {
   corteSeleccionado: CorteCajaListado | null = null;
 
   ngOnInit(): void {
-    this.esAdmin = this.detectarAdmin();
+    // ✅ igual que Membresías/Ventas
+    this.tenantCtx.initFromToken();
+    this.esAdmin = this.tenantCtx.isAdmin;
+
+    if (this.esAdmin) {
+      this.tenantCtx.viewTenantChanges$
+        .pipe(
+          distinctUntilChanged(),
+          skip(1),
+          takeUntilDestroyed(this.destroyRef)
+        )
+        .subscribe(() => {
+          if (this.destroying) return;
+          this.cargar(1);
+        });
+    }
+
     this.cargar(1);
   }
 
+  ngOnDestroy(): void {
+    this.destroying = true;
+
+    // ✅ CLAVE: reset a "Todos" al salir para no dejar filtro pegado
+    if (this.esAdmin) {
+      this.tenantCtx.setViewTenant(null);
+    }
+  }
+
+  // (opcional) lo dejo por si lo usas en otro lado, pero ya no se usa para esAdmin
   private detectarAdmin(): boolean {
     const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
     if (!raw) return false;
@@ -83,7 +123,7 @@ export class CorteCajaAdmin {
   // Acciones de ordenamiento (encabezados clicables)
   setSortCampo(campo: CampoOrden): void {
     if (this.sortCampo === campo) {
-      this.toggleSortDir(); // mismo campo => invierte dirección
+      this.toggleSortDir();
     } else {
       this.sortCampo = campo;
       this.go(1);
@@ -141,7 +181,6 @@ export class CorteCajaAdmin {
   reimprimir(c: CorteCajaListado): void {
     if (!c?.idCorte || this.reimprimiendo) return;
 
-    // opcional: solo cortes cerrados
     if (c.estado !== 'CERRADO') {
       this.noti.aviso?.('Solo puedes reimprimir tickets de cortes cerrados.');
       return;
@@ -163,7 +202,6 @@ export class CorteCajaAdmin {
       .pipe(finalize(() => (this.reimprimiendo = false)))
       .subscribe({
         next: (detalle) => {
-          // CorteCajaResponseDTO debe ser compatible con CorteBackend
           this.ticket.imprimirCorteDesdeBackend(detalle as any, ctx);
           this.noti.info(`Ticket de corte #${c.idCorte} enviado a impresión.`);
         },

@@ -6,8 +6,6 @@ import { GenericService } from './generic-service';
 import { environment } from '../../environments/environment';
 import { PaqueteData } from '../model/paquete-data';
 
-// Si ya tienes este archivo, deja este import.
-// Si no lo tienes, abajo te dejo un modelo mínimo.
 import { PromocionData } from '../model/promocion-data';
 
 @Injectable({
@@ -19,6 +17,23 @@ export class PaqueteService extends GenericService<PaqueteData> {
   }
 
   /**
+   * ✅ NUEVO
+   * GET /v1/paquetes/buscar?nombre=...&activo=true|false
+   */
+  buscarPorNombre(nombre?: string, activo?: boolean): Observable<PaqueteData[]> {
+    let params = new HttpParams();
+
+    const n = (nombre ?? '').trim();
+    if (n.length) params = params.set('nombre', n);
+
+    if (activo !== undefined && activo !== null) {
+      params = params.set('activo', String(!!activo));
+    }
+
+    return this.http.get<PaqueteData[]>(`${this.url}/buscar`, { params });
+  }
+
+  /**
    * GET /v1/paquetes/{idPaquete}/promociones?vigentes=true
    * (Lo expone tu PaquetePromocionController)
    */
@@ -27,8 +42,6 @@ export class PaqueteService extends GenericService<PaqueteData> {
 
     const params = new HttpParams().set('vigentes', 'true');
 
-    // this.url ya es: {HOST}/paquetes
-    // entonces queda: {HOST}/paquetes/{id}/promociones
     return this.http.get<PromocionData[]>(`${this.url}/${id}/promociones`, { params });
   }
 

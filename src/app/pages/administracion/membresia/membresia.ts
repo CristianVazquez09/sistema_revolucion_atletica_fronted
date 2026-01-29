@@ -5,6 +5,7 @@ import {
   inject,
   signal,
   computed,
+  DestroyRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -21,6 +22,13 @@ import { TiempoPlanLabelPipe } from 'src/app/util/tiempo-plan-label';
 import { TicketMembresia, TicketPagoDetalle, TicketService } from 'src/app/services/ticket-service';
 import { MenuService } from 'src/app/services/menu-service';
 
+import { distinctUntilChanged, skip } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+// ✅ selector admin
+import { TenantContextService } from 'src/app/core/tenant-context.service';
+import { RaGimnasioFilterComponent } from 'src/app/shared/ra-app-zoom/ra-gimnasio-filter/ra-gimnasio-filter';
+
 type PageMeta = {
   size: number;
   number: number;
@@ -31,7 +39,7 @@ type PageMeta = {
 @Component({
   selector: 'app-membresia',
   standalone: true,
-  imports: [CommonModule, FormsModule, MembresiaModal, TiempoPlanLabelPipe],
+  imports: [CommonModule, FormsModule, MembresiaModal, TiempoPlanLabelPipe, RaGimnasioFilterComponent],
   templateUrl: './membresia.html',
   styleUrl: './membresia.css',
 })
@@ -41,6 +49,11 @@ export class Membresia {
   private jwt = inject(JwtHelperService);
   private ticket = inject(TicketService);
   private menuSrv = inject(MenuService);
+
+  // ✅ tenant ctx
+  private tenantCtx = inject(TenantContextService);
+  private destroyRef = inject(DestroyRef);
+  private destroying = false;
 
   menuAbierto = this.menuSrv.menuAbierto;
 
@@ -110,9 +123,29 @@ export class Membresia {
   });
 
   ngOnInit(): void {
+    // ✅ Inicializa contexto (admin / tenant)
+    this.tenantCtx.initFromToken();
+    this.esAdmin = this.tenantCtx.isAdmin;
+
+    // Roles extra para recep (sin romper tu lógica)
     const roles = this.rolesDesdeToken();
-    this.esAdmin = roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     this.esRecep = roles.includes('RECEPCIONISTA') || roles.includes('ROLE_RECEPCIONISTA');
+
+    // ✅ Admin: si cambia el gimnasio en el selector => recargar listado
+    if (this.esAdmin) {
+      this.tenantCtx.viewTenantChanges$
+        .pipe(
+          distinctUntilChanged(),
+          skip(1),
+          takeUntilDestroyed(this.destroyRef)
+        )
+        .subscribe(() => {
+          if (this.destroying) return;
+          // recarga conservando filtros (folio/nombre/fechas), pero en página 1
+          this.cargar(1);
+        });
+    }
+
     this.cargar(1);
   }
 
@@ -126,8 +159,16 @@ export class Membresia {
   }
 
   ngOnDestroy(): void {
+    this.destroying = true;
+
     this.ro?.disconnect();
     window.removeEventListener('resize', this.applyLayout);
+
+    // ✅ CLAVE: al salir del módulo, reset a "Todos"
+    // para que no se quede el filtro pegado en otros componentes.
+    if (this.esAdmin) {
+      this.tenantCtx.setViewTenant(null);
+    }
   }
 
   private rolesDesdeToken(): string[] {
@@ -436,14 +477,11 @@ export class Membresia {
     return Math.round(n * 100) / 100;
   }
 
-  // ✅ Design widths ajustados para que el zoom NO se vaya tan bajo en XL
   private getDesignWidth(): number {
-    // Si gimnasio NO se muestra (menú abierto en <2XL), requiere menos ancho
     return this.mostrarGimnasioCol() ? 1800 : 1600;
   }
 
   private applyLayout = (): void => {
-    // breakpoints reactivos
     this.esXlUp.set(window.matchMedia('(min-width: 1280px)').matches);
     this.es2xlUp.set(window.matchMedia('(min-width: 1536px)').matches);
 

@@ -1,4 +1,11 @@
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
@@ -135,7 +142,21 @@ export class ReinscripcionAdelantada implements OnInit {
   // Bloqueo paquete
   paqueteBloqueadoSig = signal<boolean>(false);
 
-  // Controls
+  // =========================
+  // ✅ BUSCADOR DE PAQUETES (NUEVO)
+  // =========================
+  paqueteBusquedaSig = signal<string>('');
+  paqueteDropdownAbiertoSig = signal<boolean>(false);
+  paqueteIdSig = signal<number>(0);
+
+private setPaqueteId(id: number, emitEvent = true): void {
+  const v = Number(id ?? 0);
+  this.paqueteIdSig.set(v);
+  this.form.controls.paqueteId.setValue(v, { emitEvent });
+}
+
+
+  // ===================== Controls =====================
   formBuscar = this.fb.group({
     idSocio: this.fb.nonNullable.control<number>(0, [Validators.min(1)]),
   });
@@ -190,9 +211,9 @@ export class ReinscripcionAdelantada implements OnInit {
   esGrupalSig = computed(() => this.requeridoSig() > 1);
 
   paqueteActualSig = computed(() => {
-    const id = Number(this.form.controls.paqueteId.value ?? 0);
-    return (this.listaPaquetesSig() ?? []).find(p => Number(p?.idPaquete) === id) ?? null;
-  });
+  const id = Number(this.paqueteIdSig() ?? 0);
+  return (this.listaPaquetesSig() ?? []).find(p => Number((p as any)?.idPaquete) === id) ?? null;
+});
 
   modalidadSeleccionadaSig = computed<Modalidad>(() => this.modalidadPaquete(this.paqueteActualSig()));
 
@@ -207,8 +228,21 @@ export class ReinscripcionAdelantada implements OnInit {
     const principal = this.vigentePrincipalSig();
     const all = this.listaPaquetesSig() ?? [];
     if (!principal?.fechaFin) return all;
+
     const mod = this.modalidadVigenteSig();
     return all.filter(p => this.modalidadPaquete(p) === mod);
+  });
+
+  // ✅ lista sugerida para dropdown por nombre
+  paquetesSugeridosSig = computed(() => {
+    const q = (this.paqueteBusquedaSig() ?? '').trim().toLowerCase();
+    const lista = this.paquetesPermitidosSig() ?? [];
+
+    if (!q) return lista.slice(0, 12);
+
+    return lista
+      .filter(p => String((p as any)?.nombre ?? '').toLowerCase().includes(q))
+      .slice(0, 25);
   });
 
   diasRestantesPrincipalSig = computed(() => {
@@ -306,7 +340,7 @@ export class ReinscripcionAdelantada implements OnInit {
 
   conceptoResumenSig = computed(() => {
     const paquete = this.paqueteActualSig();
-    const nombre = paquete?.nombre ?? 'Paquete';
+    const nombre = (paquete as any)?.nombre ?? 'Paquete';
 
     if (!this.esGrupalSig()) return nombre;
 
@@ -446,6 +480,81 @@ export class ReinscripcionAdelantada implements OnInit {
       });
   }
 
+  // =====================
+  // ✅ Buscador Paquetes (helpers)
+  // =====================
+  private paqueteLabel(p: PaqueteData | null): string {
+    if (!p) return '';
+    return String((p as any)?.nombre ?? '').trim();
+  }
+
+  private syncPaqueteBusquedaConSeleccion(): void {
+    if (this.paqueteDropdownAbiertoSig()) return;
+
+    const id = Number(this.form.controls.paqueteId.value ?? 0);
+    if (!id) {
+      this.paqueteBusquedaSig.set('');
+      return;
+    }
+
+    const lista = this.listaPaquetesSig() ?? [];
+    const sel = lista.find(x => Number((x as any)?.idPaquete) === id) ?? null;
+    this.paqueteBusquedaSig.set(this.paqueteLabel(sel));
+  }
+
+  abrirDropdownPaquetes(): void {
+    if (this.paqueteBloqueadoSig() || this.cargandoPaquetes) return;
+    this.paqueteDropdownAbiertoSig.set(true);
+  }
+
+  cerrarDropdownPaquetes(): void {
+    const wasOpen = this.paqueteDropdownAbiertoSig();
+    this.paqueteDropdownAbiertoSig.set(false);
+    if (!wasOpen) return;
+
+    // al cerrar, revertimos al seleccionado actual
+    this.syncPaqueteBusquedaConSeleccion();
+  }
+
+  onPaqueteBusquedaChange(v: string): void {
+    if (this.paqueteBloqueadoSig() || this.cargandoPaquetes) return;
+
+    this.paqueteBusquedaSig.set(v);
+    this.paqueteDropdownAbiertoSig.set(true);
+
+    // si el usuario borra todo, no cambiamos paquete automáticamente
+  }
+
+  seleccionarPaqueteDesdeBusqueda(p: PaqueteData, evt?: Event): void {
+    evt?.stopPropagation();
+    if (this.paqueteBloqueadoSig() || this.cargandoPaquetes) return;
+
+    const id = Number((p as any)?.idPaquete ?? 0);
+    if (!id) {
+      this.notify.aviso('No se pudo seleccionar el paquete (id inválido).');
+      return;
+    }
+
+    // ✅ setValue con emitEvent true para disparar enforce/limpiar pagos
+    this.form.controls.paqueteId.setValue(id, { emitEvent: true });
+
+    // sincroniza texto
+    this.paqueteBusquedaSig.set(this.paqueteLabel(p));
+
+    // cierra dropdown
+    this.paqueteDropdownAbiertoSig.set(false);
+  }
+
+  limpiarPaqueteSeleccionado(evt?: Event): void {
+    evt?.stopPropagation();
+    if (this.paqueteBloqueadoSig() || this.cargandoPaquetes) return;
+
+    this.setPaqueteId(0, true);
+this.paqueteBusquedaSig.set('');
+this.paqueteDropdownAbiertoSig.set(false);
+
+  }
+
   // ===================== Lifecycle =====================
   ngOnInit(): void {
     this.cargarContextoDesdeToken();
@@ -455,9 +564,26 @@ export class ReinscripcionAdelantada implements OnInit {
       .subscribe(() => {
         this.enforceModalidadSeleccionada();
         this.limpiarPagos();
-        // ✅ al cambiar paquete, si es de asesoría, puede cambiar visibilidad/validación
         this.refrescarEstadosAsesoria();
+
+        // ✅ mantener input sincronizado
+        this.syncPaqueteBusquedaConSeleccion();
       });
+
+      // ✅ inicializa signal con el valor actual del form
+this.paqueteIdSig.set(Number(this.form.controls.paqueteId.value ?? 0));
+
+this.form.controls.paqueteId.valueChanges
+  .pipe(takeUntilDestroyed(this.destroyRef))
+  .subscribe((v) => {
+    this.paqueteIdSig.set(Number(v ?? 0));
+
+    this.enforceModalidadSeleccionada();
+    this.limpiarPagos();
+    this.refrescarEstadosAsesoria();
+    this.syncPaqueteBusquedaConSeleccion();
+  });
+
 
     this.form.controls.descuento.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -471,6 +597,9 @@ export class ReinscripcionAdelantada implements OnInit {
         const activos = (lista ?? []).filter((p: any) => p?.activo !== false);
         this.listaPaquetesSig.set(activos);
         this.cargandoPaquetes = false;
+
+        // ✅ si ya hay paqueteId (por membresía vigente), pinta el texto
+        this.syncPaqueteBusquedaConSeleccion();
       },
       error: () => {
         this.errorPaquetes = 'No se pudieron cargar los paquetes.';
@@ -579,13 +708,17 @@ export class ReinscripcionAdelantada implements OnInit {
 
     this.form.controls.descuento.setValue(0, { emitEvent: false });
     this.form.controls.fechaInicio.setValue(this.hoyISO(), { emitEvent: false });
-    this.form.controls.paqueteId.setValue(0, { emitEvent: false });
+    this.setPaqueteId(0, false);
+
+    // ✅ limpia texto del buscador
+    this.paqueteBusquedaSig.set('');
+    this.paqueteDropdownAbiertoSig.set(false);
+
     this.paqueteBloqueadoSig.set(false);
     this.form.controls.paqueteId.enable({ emitEvent: false });
+    
 
     this.cargarVigenteParaSlot(0, Number(s.idSocio));
-
-    // ✅ carga estado asesoría del principal (solo si existe se mostrará)
     this.refrescarEstadosAsesoria();
   }
 
@@ -601,6 +734,10 @@ export class ReinscripcionAdelantada implements OnInit {
 
     // ✅ limpia asesorías
     this.estadoAsesoriaBySocioIdSig.set({});
+
+    // ✅ limpia buscador
+    this.paqueteBusquedaSig.set('');
+    this.paqueteDropdownAbiertoSig.set(false);
   }
 
   // ===================== Vigente por socio =====================
@@ -634,12 +771,17 @@ export class ReinscripcionAdelantada implements OnInit {
           this.form.controls.fechaInicio.setValue(inicio, { emitEvent: false });
 
           const idPaqueteVigente = Number((max as any)?.paquete?.idPaquete ?? 0);
-          const existe = (this.listaPaquetesSig() ?? []).some(p => Number(p.idPaquete) === idPaqueteVigente);
+          const existe = (this.listaPaquetesSig() ?? []).some(p => Number((p as any)?.idPaquete) === idPaqueteVigente);
 
           if (existe && idPaqueteVigente > 0) {
-            this.form.controls.paqueteId.setValue(idPaqueteVigente, { emitEvent: true });
-            this.form.controls.paqueteId.disable({ emitEvent: false });
-            this.paqueteBloqueadoSig.set(true);
+            this.setPaqueteId(idPaqueteVigente, true);
+this.form.controls.paqueteId.disable({ emitEvent: false });
+this.paqueteBloqueadoSig.set(true);
+this.syncPaqueteBusquedaConSeleccion();
+
+
+            // ✅ pinta texto (por si paquetes ya cargaron)
+            this.syncPaqueteBusquedaConSeleccion();
           } else {
             this.form.controls.paqueteId.enable({ emitEvent: false });
             this.paqueteBloqueadoSig.set(false);
@@ -650,8 +792,6 @@ export class ReinscripcionAdelantada implements OnInit {
           this.miembrosSig.set(current.slice(0, Math.min(1, req)));
 
           this.enforceModalidadSeleccionada();
-
-          // ✅ refrescar asesorías al cambiar principal/modalidad
           this.refrescarEstadosAsesoria();
         }
 
@@ -674,7 +814,6 @@ export class ReinscripcionAdelantada implements OnInit {
             return;
           }
 
-          // ✅ refrescar asesorías (para mostrar badge si aplica)
           this.refrescarEstadosAsesoria();
         }
       },
@@ -709,6 +848,10 @@ export class ReinscripcionAdelantada implements OnInit {
 
     this.form.controls.paqueteId.enable({ emitEvent: false });
     this.paqueteBloqueadoSig.set(false);
+
+    // ✅ abre dropdown para facilitar cambio
+    this.paqueteDropdownAbiertoSig.set(true);
+
     this.notify.aviso('Paquete desbloqueado (solo misma modalidad).');
   }
 
@@ -728,10 +871,17 @@ export class ReinscripcionAdelantada implements OnInit {
     if (modSel !== modVig) {
       this.notify.aviso(`No puedes cambiar de modalidad en adelantada. Debe ser ${modVig}.`);
       const vigenteId = Number((principal as any)?.paquete?.idPaquete ?? 0);
-      const existe = (this.listaPaquetesSig() ?? []).some(x => Number(x.idPaquete) === vigenteId);
+      const existe = (this.listaPaquetesSig() ?? []).some(x => Number((x as any)?.idPaquete) === vigenteId);
 
       const fallback = existe ? vigenteId : 0;
-      this.form.controls.paqueteId.setValue(fallback, { emitEvent: false });
+
+      // OJO: emitEvent false para evitar loop
+      this.setPaqueteId(fallback, false);
+this.syncPaqueteBusquedaConSeleccion();
+
+
+      // ✅ sincroniza texto del buscador al fallback
+      this.syncPaqueteBusquedaConSeleccion();
     }
   }
 
@@ -916,7 +1066,6 @@ export class ReinscripcionAdelantada implements OnInit {
       return;
     }
 
-    // ✅ Validación asesoría (solo si aplica)
     this.validarAsesoriaAntesDeContinuar(() => {
       const miembros = this.miembrosSig();
       const idx = miembros.findIndex(m => !(m.pagos?.length));
@@ -939,7 +1088,6 @@ export class ReinscripcionAdelantada implements OnInit {
     const slots = this.miembrosSig();
     if (index < 0 || index >= slots.length) return;
 
-    // ✅ Validación asesoría (solo si aplica)
     this.validarAsesoriaAntesDeContinuar(() => {
       this.cobrandoIndexSig.set(index);
       this.mensajeError = null;
@@ -987,13 +1135,12 @@ export class ReinscripcionAdelantada implements OnInit {
       return;
     }
 
-    // ✅ Validación asesoría (solo si aplica) antes de persistir
     this.validarAsesoriaAntesDeContinuar(() => this.persistir());
   }
 
   private persistir(): void {
     const paquete = this.paqueteActualSig();
-    if (!paquete?.idPaquete) {
+    if (!(paquete as any)?.idPaquete) {
       this.notify.error('Selecciona un paquete.');
       return;
     }
@@ -1003,7 +1150,7 @@ export class ReinscripcionAdelantada implements OnInit {
 
     const payloads = miembros.map(m => ({
       socio: { idSocio: m.socio.idSocio },
-      paquete: { idPaquete: paquete.idPaquete },
+      paquete: { idPaquete: (paquete as any).idPaquete },
       movimiento: 'REINSCRIPCION',
       descuento,
       pagos: m.pagos ?? [],
@@ -1058,31 +1205,36 @@ export class ReinscripcionAdelantada implements OnInit {
   }
 
   private imprimirTicket(
-    ctx: VentaContexto,
-    resp: any,
-    socio: SocioData,
-    pagos: PagoData[],
-    paquete: PaqueteData,
-    descuento: number
-  ): void {
+  ctx: VentaContexto,
+  resp: any,
+  socio: SocioData,
+  pagos: PagoData[],
+  paquete: PaqueteData | null,
+  descuento: number
+): void {
+
     const pagosDet = (pagos ?? [])
       .filter(p => (Number(p.monto) || 0) > 0)
       .map(p => ({ metodo: p.tipoPago, monto: Number(p.monto) || 0 }));
 
     const folioTicket = resp?.folio;
 
-    this.ticket.imprimirMembresiaDesdeContexto({
-      ctx,
-      folio: folioTicket,
-      fecha: new Date(),
-      socioNombre: `${socio.nombre ?? ''} ${socio.apellido ?? ''}`.trim(),
-      paqueteNombre: resp?.paquete?.nombre ?? paquete?.nombre ?? null,
-      precioPaquete: Number(resp?.paquete?.precio ?? paquete?.precio ?? 0),
-      descuento: Number(resp?.descuento ?? descuento ?? 0),
-      costoInscripcion: 0,
-      pagos: pagosDet,
-      referencia: resp?.referencia,
-    });
+    const paqueteNombreFinal = resp?.paquete?.nombre ?? paquete?.nombre ?? 'Paquete';
+const precioFinal = Number(resp?.paquete?.precio ?? paquete?.precio ?? 0);
+
+this.ticket.imprimirMembresiaDesdeContexto({
+  ctx,
+  folio: folioTicket,
+  fecha: new Date(),
+  socioNombre: `${socio.nombre ?? ''} ${socio.apellido ?? ''}`.trim(),
+  paqueteNombre: paqueteNombreFinal,
+  precioPaquete: precioFinal,
+  descuento: Number(resp?.descuento ?? descuento ?? 0),
+  costoInscripcion: 0,
+  pagos: pagosDet,
+  referencia: resp?.referencia,
+});
+
   }
 
   // ===================== Helpers =====================

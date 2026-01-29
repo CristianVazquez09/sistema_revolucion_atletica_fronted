@@ -12,6 +12,7 @@ import {
   filter,
   switchMap,
   tap,
+  skip,
 } from 'rxjs';
 
 import { SocioService } from '../../services/socio-service';
@@ -21,16 +22,21 @@ import { Router } from '@angular/router';
 import { NotificacionService } from '../../services/notificacion-service';
 import { PagedResponse } from '../../model/paged-response';
 
-// Admin: detectar desde token
-import { JwtHelperService } from '@auth0/angular-jwt';
-import { environment } from '../../../environments/environment';
 import { TipoPaquete } from '../../util/enums/tipo-paquete';
 import { MenuService } from 'src/app/services/menu-service';
+
+// ✅ selector admin + tenant ctx
+import { TenantContextService } from 'src/app/core/tenant-context.service';
+import { RaGimnasioFilterComponent } from 'src/app/shared/ra-app-zoom/ra-gimnasio-filter/ra-gimnasio-filter';
+
+// ✅ roles desde token
+import { JwtHelperService } from '@auth0/angular-jwt';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-socio',
   standalone: true,
-  imports: [CommonModule, SocioModal, FormsModule],
+  imports: [CommonModule, SocioModal, FormsModule, RaGimnasioFilterComponent],
   templateUrl: './socio.html',
   styleUrl: './socio.css',
 })
@@ -44,9 +50,17 @@ export class Socio implements OnInit, OnDestroy {
   private menuSrv = inject(MenuService);
   menuAbierto = this.menuSrv.menuAbierto;
 
-  // Admin
+  // ✅ Tenant context
+  private tenantCtx = inject(TenantContextService);
+
+  // ✅ JWT
   private jwt = inject(JwtHelperService);
+
+  // Admin
   isAdmin = false;
+
+  // ✅ Permisos (Admin + Gerente)
+  puedeEditarEliminar = false;
 
   // Modal
   modalSocioVisible = signal(false);
@@ -67,12 +81,10 @@ export class Socio implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
 
   // ─────────── Filtro por tipo de paquete vigente ───────────
-  // Se maneja como string para que el template esté sencillo: '', 'GIMNASIO', 'ZONA_COMBATE', 'MIXTO'
   filtroTipoPaquete = ''; // '' => todos
   readonly TipoPaquete = TipoPaquete;
 
   // ─────────── Filtro por estado (activo / inactivo / todos) ───────────
-  // Valores: 'ACTIVOS' | 'INACTIVOS' | 'TODOS'
   filtroEstado: 'ACTIVOS' | 'INACTIVOS' | 'TODOS' = 'ACTIVOS';
 
   constructor(
@@ -86,16 +98,71 @@ export class Socio implements OnInit, OnDestroy {
   // =========================
   private normalizarTermino(v: string): string {
     return (v ?? '')
-      .replace(/\u00A0/g, ' ') // NBSP -> espacio normal
-      .replace(/\s+/g, ' ')    // colapsa espacios/tabs/saltos
+      .replace(/\u00A0/g, ' ')
+      .replace(/\s+/g, ' ')
       .trim();
+  }
+
+  // =========================
+  // ✅ Roles desde token
+  // =========================
+  private rolesDesdeToken(): string[] {
+    const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
+    if (!raw) return [];
+    try {
+      const d: any = this.jwt.decodeToken(raw);
+      return [
+        ...(Array.isArray(d?.roles) ? d.roles : []),
+        ...(Array.isArray(d?.authorities) ? d.authorities : []),
+        ...(Array.isArray(d?.realm_access?.roles) ? d.realm_access.roles : []),
+        d?.role,
+        d?.rol,
+        d?.perfil,
+      ]
+        .filter(Boolean)
+        .map((r: string) => String(r).toUpperCase());
+    } catch {
+      return [];
+    }
+  }
+
+  private tieneRol(roles: string[], ...candidatos: string[]): boolean {
+    const set = new Set(roles.map(r => String(r).toUpperCase()));
+    return candidatos.some(c => set.has(String(c).toUpperCase()));
   }
 
   // ─────────── Ciclo de vida ───────────
   ngOnInit(): void {
-    this.isAdmin = this.deducirEsAdminDesdeToken();
+    // ✅ inicializa contexto (admin / tenant)
+    this.tenantCtx.initFromToken();
+    this.isAdmin = this.tenantCtx.isAdmin;
+
+    // ✅ permisos: Admin y Gerente pueden editar/eliminar
+    const roles = this.rolesDesdeToken();
+    this.puedeEditarEliminar = this.tieneRol(
+      roles,
+      'ADMIN', 'ROLE_ADMIN',
+      'GERENTE', 'ROLE_GERENTE'
+    );
+
+    // ✅ Admin: al cambiar gimnasio en selector => recarga lista
+    if (this.isAdmin) {
+      this.tenantCtx.viewTenantChanges$
+        .pipe(
+          distinctUntilChanged(),
+          skip(1),
+          takeUntilDestroyed(this.destroyRef)
+        )
+        .subscribe(() => {
+          this.paginaActual = 0;
+          this.cargarSocios();
+        });
+    }
+
+    // primera carga
     this.cargarSocios();
 
+    // búsqueda con debounce
     this.subsBusqueda = this.busqueda$
       .pipe(
         map((v) => this.normalizarTermino(v)),
@@ -103,7 +170,6 @@ export class Socio implements OnInit, OnDestroy {
         distinctUntilChanged(),
         tap((texto) => {
           if (texto.length === 0) {
-            // limpiar búsqueda -> recargar con filtros normales
             this.paginaActual = 0;
             this.cargarSocios();
           }
@@ -143,25 +209,10 @@ export class Socio implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subsBusqueda?.unsubscribe();
-  }
 
-  // --- Admin helper
-  private deducirEsAdminDesdeToken(): boolean {
-    const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
-    if (!raw) return false;
-    try {
-      const decoded: any = this.jwt.decodeToken(raw);
-      const roles: string[] = [
-        ...(Array.isArray(decoded?.roles) ? decoded.roles : []),
-        ...(Array.isArray(decoded?.authorities) ? decoded.authorities : []),
-        ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
-      ]
-        .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
-        .map((r) => String(r).toUpperCase());
-
-      return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('GERENTE');
-    } catch {
-      return false;
+    // ✅ si admin eligió un gimnasio aquí, al salir lo regresamos a "Todos"
+    if (this.isAdmin) {
+      this.tenantCtx.setViewTenant(null);
     }
   }
 
@@ -259,7 +310,7 @@ export class Socio implements OnInit, OnDestroy {
     this.cargarSocios();
   }
 
-  // ─────────── Filtro de estado (activo / inactivo / todos) ───────────
+  // ─────────── Filtro de estado ───────────
   cambiarFiltroEstado(valor: string): void {
     if (this.filtroEstado === valor) return;
     this.filtroEstado = valor as any;

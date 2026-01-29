@@ -1,6 +1,6 @@
 <!-- pages/inscripcion/inscripcion.html -->
 
-<div class="relative">
+<div class="relative" (click)="cerrarDropdownPaquetes()">
   <!-- ✅ CONTENIDO ESCALADO (SIN MODALES ADENTRO) -->
   <div
     class="
@@ -78,7 +78,7 @@
               <button
                 type="button"
                 class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-xs whitespace-nowrap"
-                (click)="editarAnteriorCapturado()"
+                (click)="editarAnteriorCapturado(); $event.stopPropagation()"
               >
                 Editar anterior
               </button>
@@ -86,7 +86,7 @@
               <button
                 type="button"
                 class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-xs whitespace-nowrap"
-                (click)="editarPrimeroCapturado()"
+                (click)="editarPrimeroCapturado(); $event.stopPropagation()"
               >
                 Editar primero
               </button>
@@ -95,7 +95,7 @@
             <button
               type="button"
               class="px-4 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm whitespace-nowrap"
-              (click)="reiniciarLote()"
+              (click)="reiniciarLote(); $event.stopPropagation()"
             >
               Reiniciar lote
             </button>
@@ -108,7 +108,7 @@
               <button
                 type="button"
                 class="px-3 py-1 rounded-full bg-gray-100 text-xs text-ra-slate hover:bg-gray-200"
-                (click)="editarIntegrante($index)"
+                (click)="editarIntegrante($index); $event.stopPropagation()"
                 [title]="'Editar integrante ' + ($index + 1)"
               >
                 {{ $index + 1 }}. {{ d.socioNombre }}
@@ -163,7 +163,6 @@
           />
         </div>
 
-        <!-- ✅ Paquete estudiantil: mostrar vigencia credencial -->
         @if (esPaqueteEstudiantilSig()) {
           <div class="grid grid-cols-[320px_1fr] gap-4 items-center">
             <label class="text-sm font-semibold text-ra-slate">
@@ -198,10 +197,6 @@
           </div>
         </div>
 
-        <!-- ✅ FIX: evitar que Foto/Huella/Comentarios se “estiren” por la columna de Paquete -->
-        <!-- - Se cambia items-stretch por items-start -->
-        <!-- - Se hace responsive: en md se acomoda a 2 columnas -->
-        <!-- - Comentarios mantiene altura similar a las tarjetas -->
         <div
           class="
             grid gap-4 items-start
@@ -228,7 +223,7 @@
                   <button
                     type="button"
                     class="px-3 py-1.5 rounded-md bg-white/90 border hover:bg-white"
-                    (click)="quitarFoto()"
+                    (click)="quitarFoto(); $event.stopPropagation()"
                   >
                     Quitar
                   </button>
@@ -265,7 +260,7 @@
                   <button
                     type="button"
                     class="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700"
-                    (click)="abrirModalHuella()"
+                    (click)="abrirModalHuella(); $event.stopPropagation()"
                   >
                     Ingresar huella
                   </button>
@@ -295,17 +290,76 @@
             ></textarea>
           </div>
 
-          <!-- PAQUETE / PAGO -->
-          <div class="h-full flex flex-col self-start md:col-span-2 xl:col-span-1">
-            <select formControlName="paqueteId" class="input-filled">
-              <option [ngValue]="0" disabled>Seleccionar paquete*</option>
-              @for (p of listaPaquetes; track p.idPaquete) {
-                <option [ngValue]="p.idPaquete">
-                  {{ p.nombre }} — {{ p.tiempo | tiempoPlan }} · {{ modalidadTexto(p.modalidad) }}
-                  @if (p.estudiantil) { · Estudiantil }
-                </option>
+          <!-- ✅ PAQUETE / PAGO (con buscador) -->
+          <div class="h-full flex flex-col self-start md:col-span-2 xl:col-span-1" (click)="$event.stopPropagation()">
+            <input type="hidden" formControlName="paqueteId" />
+
+            <label class="block text-sm font-semibold text-ra-slate mb-1">
+              Paquete*
+            </label>
+
+            <div class="relative">
+              <input
+                type="text"
+                class="input-filled w-full pr-10"
+                placeholder="Escribe para buscar paquete…"
+                [value]="paqueteBusquedaSig()"
+                (focus)="abrirDropdownPaquetes()"
+                (input)="onPaqueteBusquedaChange($any($event.target).value)"
+                [disabled]="paqueteBloqueadoSig() || cargandoPaquetes"
+              />
+
+              @if (!paqueteBloqueadoSig() && !cargandoPaquetes && paqueteBusquedaSig()) {
+                <button
+                  type="button"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 grid place-items-center rounded-md hover:bg-gray-100"
+                  title="Limpiar"
+                  (click)="limpiarPaqueteSeleccionado($event)"
+                >
+                  ✕
+                </button>
               }
-            </select>
+
+              @if (paqueteDropdownAbiertoSig() && !paqueteBloqueadoSig() && !cargandoPaquetes) {
+                <div class="absolute z-50 mt-1 w-full rounded-xl2 border border-gray-200 bg-white shadow-card overflow-hidden">
+                  <div class="max-h-[280px] overflow-auto">
+                    @if (paqueteBuscandoSig()) {
+                      <div class="px-3 py-2 text-sm text-ra-slate/70">Buscando…</div>
+                    } @else if (paqueteBusquedaErrorSig()) {
+                      <div class="px-3 py-2 text-sm text-red-700">
+                        {{ paqueteBusquedaErrorSig() }}
+                      </div>
+                    } @else if (paquetesSugeridosSig().length === 0) {
+                      <div class="px-3 py-2 text-sm text-ra-slate/70">Sin resultados.</div>
+                    } @else {
+                      @for (p of paquetesSugeridosSig(); track p.idPaquete) {
+                        <button
+                          type="button"
+                          class="w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                          (click)="seleccionarPaqueteDesdeBusqueda(p, $event)"
+                        >
+                          <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                              <div class="font-semibold text-ra-slate truncate">
+                                {{ p.nombre }}
+                              </div>
+                              <div class="text-[11px] text-ra-slate/70 mt-0.5">
+                                {{ p.tiempo | tiempoPlan }} · {{ modalidadTexto(p.modalidad) }}
+                                @if (p.estudiantil) { · Estudiantil }
+                              </div>
+                            </div>
+
+                            <div class="text-sm font-semibold text-ra-slate whitespace-nowrap">
+                              ${{ (p.precio || 0) | number: '1.2-2' }}
+                            </div>
+                          </div>
+                        </button>
+                      }
+                    }
+                  </div>
+                </div>
+              }
+            </div>
 
             @if (batchIniciadoSig()) {
               <div class="mt-1 text-xs text-ra-slate/70">
@@ -425,8 +479,8 @@
           @if (!editandoIntegranteSig()) {
             <button
               type="button"
-              (click)="abrirModalResumen()"
-              [disabled]="guardandoMembresia || !puedeAbrirResumen()"
+              (click)="abrirModalResumen(); $event.stopPropagation()"
+              [disabled]="guardandoMembresia || !puedeAbrirResumenSig()"
               class="px-8 py-2.5 rounded-md text-white
                      disabled:opacity-50 disabled:cursor-not-allowed
                      bg-red-600 hover:bg-red-700"
@@ -436,7 +490,7 @@
           } @else {
             <button
               type="button"
-              (click)="guardarEdicionIntegrante()"
+              (click)="guardarEdicionIntegrante(); $event.stopPropagation()"
               [disabled]="guardandoMembresia"
               class="px-6 py-2.5 rounded-md text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -445,7 +499,7 @@
 
             <button
               type="button"
-              (click)="cancelarEdicionIntegrante()"
+              (click)="cancelarEdicionIntegrante(); $event.stopPropagation()"
               [disabled]="guardandoMembresia"
               class="px-6 py-2.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-ra-slate disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -454,7 +508,7 @@
           }
         </div>
 
-        @if (!puedeAbrirResumen() && (formularioInscripcion.touched || formularioInscripcion.dirty) && !editandoIntegranteSig()) {
+        @if (!puedeAbrirResumenSig() && (formularioInscripcion.touched || formularioInscripcion.dirty) && !editandoIntegranteSig()) {
           <div class="text-xs text-ra-slate/70 text-center pt-2">
             Completa los campos requeridos y valida Estudiante si aplica.
           </div>

@@ -27,6 +27,11 @@ AJUSTES:
           class="flex items-center gap-2 xl:gap-3 min-w-0 overflow-x-hidden"
           [ngClass]="menuAbierto() ? 'flex-wrap' : 'flex-wrap xl:flex-nowrap'"
         >
+        @if (esAdmin) {
+  <ra-gimnasio-filter label="Gimnasio"></ra-gimnasio-filter>
+  <div class="w-px h-5 xl:h-6 mx-2 bg-gray-200 hidden md:block shrink-0"></div>
+}
+
           <!-- Folio -->
           <div class="flex items-center gap-2 shrink-0">
             <label class="hidden md:inline text-[11px] xl:text-[12px] text-ra-slate/80">Folio</label>

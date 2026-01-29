@@ -1,4 +1,11 @@
-import { Component, ElementRef, inject, signal, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  inject,
+  signal,
+  ViewChild,
+  DestroyRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -12,10 +19,16 @@ import { VentasAdminModal } from './ventas-admin-modal/ventas-admin-modal';
 import { TicketService, TicketPagoDetalle } from 'src/app/services/ticket-service';
 import { MenuService } from 'src/app/services/menu-service';
 
+// ✅ tenant selector + recarga reactiva
+import { TenantContextService } from 'src/app/core/tenant-context.service';
+import { RaGimnasioFilterComponent } from 'src/app/shared/ra-app-zoom/ra-gimnasio-filter/ra-gimnasio-filter';
+import { distinctUntilChanged, skip } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 @Component({
   selector: 'app-ventas-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, VentasAdminModal],
+  imports: [CommonModule, FormsModule, VentasAdminModal, RaGimnasioFilterComponent],
   templateUrl: './ventas-admin.html',
   styleUrl: './ventas-admin.css'
 })
@@ -26,6 +39,12 @@ export class VentasAdmin {
   private jwt    = inject(JwtHelperService);
   private ticket = inject(TicketService);
   private menuSrv = inject(MenuService);
+
+  // ✅ tenant ctx
+  private tenantCtx = inject(TenantContextService);
+  private destroyRef = inject(DestroyRef);
+  private destroying = false;
+
   menuAbierto = this.menuSrv.menuAbierto;
 
   // --- estado de tabla/paginación ---
@@ -57,11 +76,41 @@ export class VentasAdmin {
   fechaHasta: string = ''; // 'YYYY-MM-DD'
   buscandoPorRango = false;
 
+  // =========================
+  // ZOOM
+  // =========================
+  @ViewChild('zoomOuter', { static: true }) zoomOuter!: ElementRef<HTMLElement>;
+  uiZoom = 1;
+  ventasMaxH = 650;
+  private ro?: ResizeObserver;
+
+  private readonly MIN_ZOOM = 0.67;
+  private readonly MAX_ZOOM = 1.0;
+
   // ============= Ciclo de vida =============
   ngOnInit(): void {
+    // ✅ Inicializa tenant desde token (admin/no admin)
+    this.tenantCtx.initFromToken();
+    this.esAdmin = this.tenantCtx.isAdmin;
+
+    // roles extra para recep
     const roles = this.rolesDesdeToken();
-    this.esAdmin = roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     this.esRecep = roles.includes('RECEPCIONISTA') || roles.includes('ROLE_RECEPCIONISTA');
+
+    // ✅ Admin: al cambiar gimnasio en el selector => recargar
+    if (this.esAdmin) {
+      this.tenantCtx.viewTenantChanges$
+        .pipe(
+          distinctUntilChanged(),
+          skip(1),
+          takeUntilDestroyed(this.destroyRef)
+        )
+        .subscribe(() => {
+          if (this.destroying) return;
+          this.cargar(1);
+        });
+    }
+
     this.cargar(1);
   }
 
@@ -75,8 +124,15 @@ export class VentasAdmin {
   }
 
   ngOnDestroy(): void {
+    this.destroying = true;
+
     this.ro?.disconnect();
     window.removeEventListener('resize', this.applyLayout);
+
+    // ✅ CLAVE: al salir, reset a "Todos" para no dejar filtro pegado en otros módulos
+    if (this.esAdmin) {
+      this.tenantCtx.setViewTenant(null);
+    }
   }
 
   // ============= Helpers roles =============
@@ -98,23 +154,6 @@ export class VentasAdmin {
     } catch {
       return [];
     }
-  }
-
-  /** Helper antiguo, lo dejamos por si lo necesitas en otro lado. */
-  private detectarAdmin(): boolean {
-    const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
-    if (!raw) return false;
-    try {
-      const d: any = this.jwt.decodeToken(raw);
-      const roles: string[] = [
-        ...(Array.isArray(d?.roles) ? d.roles : []),
-        ...(Array.isArray(d?.authorities) ? d.authorities : []),
-        ...(Array.isArray(d?.realm_access?.roles) ? d.realm_access.roles : []),
-      ]
-        .concat([d?.role, d?.rol, d?.perfil].filter(Boolean) as string[])
-        .map(r => String(r).toUpperCase());
-      return d?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
-    } catch { return false; }
   }
 
   get sortSel(): string { return `${this.sortCampo},${this.sortDir}`; }
@@ -199,19 +238,12 @@ export class VentasAdmin {
     this.srv.buscarPorFolio(folio).subscribe({
       next: (venta) => {
         this.rows = venta ? [venta] : [];
-        this.page = {
-          size: 1,
-          number: 0,
-          totalElements: this.rows.length,
-          totalPages: 1
-        };
+        this.page = { size: 1, number: 0, totalElements: this.rows.length, totalPages: 1 };
         this.buscandoPorFolio = true;
         this.buscandoPorRango = false;
         this.cargando = false;
 
-        if (!venta) {
-          this.noti.error(`No se encontró la venta con folio #${folio}.`);
-        }
+        if (!venta) this.noti.error(`No se encontró la venta con folio #${folio}.`);
       },
       error: () => {
         this.cargando = false;
@@ -257,9 +289,7 @@ export class VentasAdmin {
   cerrarModal(): void { this.mostrarModal.set(false); this.idVer = null; }
 
   onGuardado(venta: VentaData) {
-    (this.noti as any).exito
-      ? this.noti.exito('Venta actualizada.')
-      : this.noti.exito?.('Venta actualizada.');
+    this.noti.exito?.('Venta actualizada.');
 
     if (this.buscandoPorFolio && venta?.folio === Number(this.folioBuscar || 0)) {
       this.rows = [venta];
@@ -353,38 +383,30 @@ export class VentasAdmin {
   }
 
   // ==========================
-  // ✅ NUEVO: PRODUCTO (columna "Producto")
+  // Productos
   // ==========================
-  private nombresProductos(v: VentaData): string[] {
-    const detalles: any[] = (v as any)?.detalles ?? [];
+  productosDeVenta(v: any): string[] {
+    const dets = (v?.detalles ?? v?.detalle ?? v?.items ?? []) as any[];
+    if (!Array.isArray(dets) || dets.length === 0) return [];
 
-    const nombres = detalles
-      .map(d =>
-        (d?.producto?.nombre ??
-         d?.productoNombre ??
-         d?.nombreProducto ??
-         d?.nombre ??
-         '')
-      )
-      .map((s: any) => String(s ?? '').trim())
-      .filter(Boolean);
+    const map = new Map<string, number>();
 
-    // únicos, por si repite el mismo producto
-    return Array.from(new Set(nombres));
+    for (const d of dets) {
+      const nombre = (d?.producto?.nombre ?? d?.nombreProducto ?? '').toString().trim();
+      if (!nombre) continue;
+
+      const qtyRaw = d?.cantidad ?? 1;
+      const qty = Number.isFinite(+qtyRaw) ? Math.max(1, +qtyRaw) : 1;
+
+      map.set(nombre, (map.get(nombre) ?? 0) + qty);
+    }
+
+    return Array.from(map.entries()).map(([nombre, qty]) => (qty > 1 ? `${nombre} x${qty}` : nombre));
   }
 
-  /** Texto corto para celda: "X" o "X (+N)" */
-  productoChip(v: VentaData): string {
-    const names = this.nombresProductos(v);
-    if (!names.length) return '—';
-    if (names.length === 1) return names[0];
-    return `${names[0]} (+${names.length - 1})`;
-  }
-
-  /** Tooltip con lista completa */
-  productoTitle(v: VentaData): string {
-    const names = this.nombresProductos(v);
-    return names.length ? names.join(' · ') : '—';
+  productoTitleCompleto(v: any): string {
+    const ps = this.productosDeVenta(v);
+    return ps.length ? ps.join(' | ') : '';
   }
 
   // ==========================
@@ -406,18 +428,8 @@ export class VentasAdmin {
   trackById = (_: number, it: VentaData) => it.idVenta!;
 
   // ==========================
-  // ZOOM (igual que lo traías)
+  // Layout
   // ==========================
-  @ViewChild('zoomOuter', { static: true }) zoomOuter!: ElementRef<HTMLElement>;
-
-  uiZoom = 1;
-  ventasMaxH = 650;
-
-  private ro?: ResizeObserver;
-
-  private readonly MIN_ZOOM = 0.67;
-  private readonly MAX_ZOOM = 1.0;
-
   private clamp(n: number, min: number, max: number) {
     return Math.min(max, Math.max(min, n));
   }
@@ -428,10 +440,7 @@ export class VentasAdmin {
 
   private getDesignWidth(): number {
     const menu = this.menuAbierto(); // signal
-
-    if (this.esAdmin) {
-      return menu ? 1550 : 1800;
-    }
+    if (this.esAdmin) return menu ? 1550 : 1800;
     return menu ? 1450 : 1700;
   }
 
@@ -456,34 +465,6 @@ export class VentasAdmin {
     const bottomReserve = 140;
 
     const available = window.innerHeight - top - bottomReserve;
-
     this.ventasMaxH = Math.max(420, Math.floor(available / this.uiZoom));
   };
-  // Devuelve lista de productos para pintar en líneas.
-// Ajusta las rutas según tu modelo real (v.detalles, v.detalleVenta, etc.)
-productosDeVenta(v: any): string[] {
-  const dets = (v?.detalles ?? v?.detalle ?? v?.items ?? []) as any[];
-  if (!Array.isArray(dets) || dets.length === 0) return [];
-
-  // Agrupar por nombre y sumar cantidades (para evitar repetidos)
-  const map = new Map<string, number>();
-
-  for (const d of dets) {
-    const nombre = (d?.producto?.nombre ?? d?.nombreProducto ?? '').toString().trim();
-    if (!nombre) continue;
-
-    const qtyRaw = d?.cantidad ?? 1;
-    const qty = Number.isFinite(+qtyRaw) ? Math.max(1, +qtyRaw) : 1;
-
-    map.set(nombre, (map.get(nombre) ?? 0) + qty);
-  }
-
-  return Array.from(map.entries()).map(([nombre, qty]) => (qty > 1 ? `${nombre} x${qty}` : nombre));
-}
-
-productoTitleCompleto(v: any): string {
-  const ps = this.productosDeVenta(v);
-  return ps.length ? ps.join(' | ') : '';
-}
-
 }

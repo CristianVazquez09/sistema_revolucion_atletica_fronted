@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, DestroyRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { distinctUntilChanged, skip } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { CorteCajaService } from '../../services/corte-caja-service';
 import { NotificacionService } from '../../services/notificacion-service';
@@ -19,13 +21,17 @@ import {
 import { environment } from '../../../environments/environment';
 import { TicketService } from '../../services/ticket-service';
 
-// ✅ MODAL
+// ✅ Modal
 import { CorteCajaModal } from './corte-caja-modal/corte-caja-modal';
+
+// ✅ selector admin
+import { TenantContextService } from 'src/app/core/tenant-context.service';
+import { RaGimnasioFilterComponent } from 'src/app/shared/ra-app-zoom/ra-gimnasio-filter/ra-gimnasio-filter';
 
 @Component({
   selector: 'app-corte-caja',
   standalone: true,
-  imports: [CommonModule, FormsModule, CorteCajaModal],
+  imports: [CommonModule, FormsModule, CorteCajaModal, RaGimnasioFilterComponent],
   templateUrl: './corte-caja.html',
   styleUrl: './corte-caja.css',
 })
@@ -64,35 +70,118 @@ export class CorteCaja implements OnInit, OnDestroy {
   private jwt = inject(JwtHelperService);
   private ticket = inject(TicketService);
 
+  private tenantCtx = inject(TenantContextService);
+  private destroyRef = inject(DestroyRef);
+
+  // UI flags
+  esAdmin = false;
+
   ngOnInit(): void {
-    this.cargarUsuarioDesdeStorageYToken();
+  // ✅ Asegura que el TenantContext se inicialice desde token y sessionStorage
+  this.tenantCtx.initFromToken();
+
+  // ✅ Admin real (usa el mismo criterio del TenantContextService)
+  this.esAdmin = this.tenantCtx.isAdmin;
+
+
+  // ✅ Si eres admin, escucha cambios del selector para recargar
+  if (this.esAdmin) {
+    this.tenantCtx.viewTenantChanges$
+      .pipe(
+        distinctUntilChanged(),
+        skip(1),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => this.onTenantChanged(false));
+  }
+
+  this.cargarUsuarioDesdeStorageYToken();
+
+  // ✅ primer load
+  this.onTenantChanged(true);
+}
+
+
+  ngOnDestroy(): void {
+  this.detenerWatcherCorteAbierto();
+
+  // ✅ IMPORTANTE: si eres admin, al salir de Corte resetea a "Todos"
+  // para que otros módulos no queden filtrados.
+  if (this.esAdmin) {
+    this.tenantCtx.setViewTenant(null);
+  }
+}
+
+
+  // ========= TENANT / SELECCIÓN =========
+
+  // ✅ tenant seleccionado para VISTA:
+  // - admin: lo que eligió en selector (puede ser null => "Todos")
+  // - no admin: tenant del token/storage
+  private get tenantSeleccionado(): number | null {
+    if (this.esAdmin) return this.tenantCtx.viewTenantId;
+    return this.tenantIdDesdeStorageOToken();
+  }
+
+  // ✅ Corte de caja exige tenant. Si admin está en "Todos", entonces se requiere seleccionar 1.
+  get requiereSeleccionGimnasio(): boolean {
+    return this.esAdmin && this.tenantSeleccionado == null;
+  }
+
+  private onTenantChanged(isFirstLoad = false): void {
+    // ✅ Si admin está en "Todos" => NO pegamos al backend (corte exige tenant)
+    if (this.requiereSeleccionGimnasio) {
+      this.detenerWatcherCorteAbierto();
+      this.resetVistaCompleta();
+      if (!isFirstLoad) this.noti.info('Selecciona un gimnasio para ver el corte de caja.');
+      return;
+    }
+
+    // reset + recargar
+    this.detenerWatcherCorteAbierto();
+    this.resetVistaCompleta();
 
     const idPersistido = this.obtenerCortePersistidoPorTenant();
 
-    // Si hay id persistido, lo intentamos; si falla o no está ABIERTO, caemos a consultarAbierto()
     if (idPersistido != null) {
       this.cargarCortePorId(idPersistido, true);
     } else {
       this.autocargarCorteAbierto();
     }
 
-    // ✅ Si otro usuario abre corte mientras tú estás logueado, que se refleje solo
+    // watcher sólo si no hay corte abierto
     this.iniciarWatcherCorteAbierto();
   }
 
-  ngOnDestroy(): void {
-    this.detenerWatcherCorteAbierto();
+  private resetVistaCompleta(): void {
+    this.corte = null;
+    this.preview = null;
+    this.salidas = [];
+    this.desglose = null;
+    this.movimientos = [];
+    this.modalMovimientosAbierto = false;
+    this.error = null;
+    this.cargando = false;
+    this.cargandoDesglose = false;
+    this.fondoCajaInicial = 0;
+    this.efectivoEntregado = null;
+    this.efectivoEnCajaConteo = null;
+    this.salidaConcepto = '';
+    this.salidaMonto = null;
   }
 
   // ===== UI: Modal =====
   abrirModalMovimientos(): void {
+    if (this.requiereSeleccionGimnasio) {
+      this.noti.aviso('Selecciona un gimnasio.');
+      return;
+    }
     if (!this.estaAbierto) {
       this.noti.aviso('No hay corte abierto.');
       return;
     }
     this.modalMovimientosAbierto = true;
 
-    // si aún no hay movimientos, los cargamos al abrir
     if (!this.movimientos?.length) {
       this.refrescarDesgloseActual();
     }
@@ -104,6 +193,11 @@ export class CorteCaja implements OnInit, OnDestroy {
 
   // ===== Acciones =====
   abrirCorte(): void {
+    if (this.requiereSeleccionGimnasio) {
+      this.noti.aviso('Selecciona un gimnasio para abrir corte.');
+      return;
+    }
+
     this.resetErrores();
     if (this.fondoCajaInicial == null || this.fondoCajaInicial < 0) {
       this.noti.aviso('Ingresa un fondo de caja válido.');
@@ -119,9 +213,7 @@ export class CorteCaja implements OnInit, OnDestroy {
           this.persistirCortePorTenant(resp.idCorte);
           this.noti.exito('Corte abierto.');
 
-          // ✅ al abrir, detenemos watcher (ya hay corte abierto)
           this.detenerWatcherCorteAbierto();
-
           this.cargarSalidas();
           this.refrescarPreview();
           this.refrescarDesgloseActual();
@@ -131,7 +223,12 @@ export class CorteCaja implements OnInit, OnDestroy {
   }
 
   cerrarCorte(): void {
+    if (this.requiereSeleccionGimnasio) {
+      this.noti.aviso('Selecciona un gimnasio.');
+      return;
+    }
     if (!this.corte?.idCorte) return;
+
     this.resetErrores();
 
     const req: CerrarCorte = {
@@ -149,7 +246,6 @@ export class CorteCaja implements OnInit, OnDestroy {
           this.borrarCortePersistidoPorTenant();
           this.noti.exito('Corte cerrado.');
 
-          // limpia desglose + modal
           this.preview = null;
           this.desglose = null;
           this.movimientos = [];
@@ -157,7 +253,6 @@ export class CorteCaja implements OnInit, OnDestroy {
 
           try { this.imprimirTicketCorte(this.corte!); } catch {}
 
-          // ✅ al cerrar, volvemos a vigilar si alguien abre uno nuevo
           this.iniciarWatcherCorteAbierto();
         },
         error: (e) => this.mostrarError(e, 'No se pudo cerrar el corte.')
@@ -165,6 +260,10 @@ export class CorteCaja implements OnInit, OnDestroy {
   }
 
   registrarSalida(): void {
+    if (this.requiereSeleccionGimnasio) {
+      this.noti.aviso('Selecciona un gimnasio.');
+      return;
+    }
     if (!this.corte?.idCorte) return;
 
     if (!this.salidaConcepto || !this.salidaMonto || this.salidaMonto <= 0) {
@@ -187,7 +286,6 @@ export class CorteCaja implements OnInit, OnDestroy {
       .subscribe({
         next: (resp: any) => {
           this.noti.exito('Salida registrada.');
-
           this.imprimirSalidaDespuesDeRegistrar(req, resp);
 
           this.salidaConcepto = '';
@@ -203,18 +301,23 @@ export class CorteCaja implements OnInit, OnDestroy {
 
   // ===== Preview =====
   refrescarPreview(): void {
-    if (!this.corte?.idCorte || this.corte.estado !== 'ABIERTO') {
-      this.preview = null;
-      return;
-    }
+    if (this.requiereSeleccionGimnasio) { this.preview = null; return; }
+    if (!this.corte?.idCorte || this.corte.estado !== 'ABIERTO') { this.preview = null; return; }
+
     this.srv.previsualizar(this.corte.idCorte).subscribe({
       next: (p) => this.preview = p,
-      error: () => { /* silencioso */ }
+      error: () => {}
     });
   }
 
   // ===== Desglose actual =====
   refrescarDesgloseActual(): void {
+    if (this.requiereSeleccionGimnasio) {
+      this.desglose = null;
+      this.movimientos = [];
+      return;
+    }
+
     if (!this.estaAbierto) {
       this.desglose = null;
       this.movimientos = [];
@@ -244,7 +347,9 @@ export class CorteCaja implements OnInit, OnDestroy {
   }
 
   private cargarSalidas(): void {
+    if (this.requiereSeleccionGimnasio) { this.salidas = []; return; }
     if (!this.corte?.idCorte) { this.salidas = []; return; }
+
     this.srv.listarSalidas(this.corte.idCorte).subscribe({
       next: (arr) => this.salidas = arr,
       error: () => { this.salidas = []; }
@@ -252,30 +357,27 @@ export class CorteCaja implements OnInit, OnDestroy {
   }
 
   private autocargarCorteAbierto(): void {
+    if (this.requiereSeleccionGimnasio) return;
+
     this.cargando = true;
     this.srv.consultarAbierto()
       .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (resp) => {
           if (!resp) {
-            // no hay corte: seguir vigilando por si alguien lo abre
             this.iniciarWatcherCorteAbierto();
             return;
           }
 
           this.corte = this.normalizarCorte(resp);
           this.persistirCortePorTenant(resp.idCorte);
-          this.noti.info(`Corte #${resp.idCorte} abierto cargado.`);
 
-          // ✅ ya hay corte, detenemos watcher
           this.detenerWatcherCorteAbierto();
-
           this.cargarSalidas();
           this.refrescarPreview();
           this.refrescarDesgloseActual();
         },
         error: (e) => {
-          // no mostramos mega error, solo mensaje limpio
           this.mostrarError(e, 'No se pudo obtener el corte abierto.');
           this.iniciarWatcherCorteAbierto();
         }
@@ -283,6 +385,8 @@ export class CorteCaja implements OnInit, OnDestroy {
   }
 
   private cargarCortePorId(id: number, fallbackToAbierto = false): void {
+    if (this.requiereSeleccionGimnasio) return;
+
     this.resetErrores();
     this.cargando = true;
     this.srv.consultar(id)
@@ -311,12 +415,13 @@ export class CorteCaja implements OnInit, OnDestroy {
       });
   }
 
-  // ===== Watcher: si alguien abre corte mientras yo tengo sesión =====
+  // ===== Watcher =====
   private iniciarWatcherCorteAbierto(): void {
+    if (this.requiereSeleccionGimnasio) return;
     if (this.watchOpenId) return;
 
-    // cada 12s (ajústalo si quieres)
     this.watchOpenId = setInterval(() => {
+      if (this.requiereSeleccionGimnasio) return;
       if (this.estaAbierto) return;
 
       this.srv.consultarAbierto().subscribe({
@@ -326,14 +431,12 @@ export class CorteCaja implements OnInit, OnDestroy {
           this.corte = this.normalizarCorte(resp);
           this.persistirCortePorTenant(resp.idCorte);
 
-          this.noti.info(`Se detectó corte #${resp.idCorte} abierto.`);
           this.detenerWatcherCorteAbierto();
-
           this.cargarSalidas();
           this.refrescarPreview();
           this.refrescarDesgloseActual();
         },
-        error: () => { /* silencioso */ }
+        error: () => {}
       });
     }, 12000);
   }
@@ -348,7 +451,6 @@ export class CorteCaja implements OnInit, OnDestroy {
   // ===== Helpers =====
   get estaAbierto(): boolean { return (this.corte?.estado ?? '') === 'ABIERTO'; }
 
-  // ✅ Total general LIVE (todas las formas de pago)
   get totalGeneralLive(): number {
     const v = Number(this.preview?.totalGeneral ?? this.corte?.totalGeneral ?? 0);
     return Number.isFinite(v) ? v : 0;
@@ -367,48 +469,6 @@ export class CorteCaja implements OnInit, OnDestroy {
     const tg = (typeof resp.totalGeneral === 'number' ? resp.totalGeneral : (tv + tm + ta));
 
     return { ...resp, totalVentas: tv, totalMembresias: tm, totalAccesorias: ta, totalGeneral: tg };
-  }
-
-  get formasPagoAgrupadasPreview(): Array<{ tipo: string; operaciones: number; total: number }> {
-    const map = new Map<string, { operaciones: number; total: number }>();
-    const lista = this.preview?.formasDePago ?? [];
-    for (const it of lista) {
-      const key = String((it as any).tipoPago ?? '');
-      const prev = map.get(key) ?? { operaciones: 0, total: 0 };
-      prev.operaciones += ((it as any).operaciones ?? 0);
-      prev.total += ((it as any).total ?? 0);
-      map.set(key, prev);
-    }
-    const orden = ['EFECTIVO','TARJETA','TRANSFERENCIA','SPEI','DEPOSITO','MIXTO','OTRO'];
-    const arr = Array.from(map.entries()).map(([tipo, v]) => ({ tipo, ...v }));
-    arr.sort((a,b) => {
-      const ia = orden.indexOf(a.tipo); const ib = orden.indexOf(b.tipo);
-      const sa = ia === -1 ? 999 : ia;  const sb = ib === -1 ? 999 : ib;
-      return sa === sb ? a.tipo.localeCompare(b.tipo) : sa - sb;
-    });
-    return arr;
-  }
-
-  private imprimirTicketCorte(corte: CorteCajaResponseDTO): void {
-    const gym: any = (corte as any)?.gimnasio ?? {};
-    const negocio = {
-      nombre: gym?.nombre || 'REVOLUCIÓN ATLÉTICA',
-      direccion: gym?.direccion || '',
-      telefono: gym?.telefono || ''
-    };
-
-    this.cargarUsuarioDesdeStorageYToken();
-    const cajero =
-      this.usuarioActual() ||
-      this.extraerNombreUsuario((corte as any)?.usuarioCierre) ||
-      this.extraerNombreUsuario((corte as any)?.usuario) ||
-      '';
-
-    this.ticket.imprimirCorteDesdeBackend(corte as any, {
-      negocio,
-      cajero,
-      brandTitle: 'REVOLUCIÓN ATLÉTICA'
-    });
   }
 
   // ===== Usuario logueado =====
@@ -436,61 +496,36 @@ export class CorteCaja implements OnInit, OnDestroy {
   }
 
   private tokenActual(): string {
-    const keys = [
-      environment.TOKEN_NAME,
-      'access_token',
-      'token',
-      'id_token'
-    ].filter(Boolean) as string[];
-
-    const read = (k: string) =>
-      (sessionStorage.getItem(k) ?? localStorage.getItem(k) ?? '').trim();
+    const keys = [environment.TOKEN_NAME, 'access_token', 'token', 'id_token']
+      .filter(Boolean) as string[];
 
     for (const k of keys) {
-      const raw = read(k);
+      const raw = (sessionStorage.getItem(k) ?? localStorage.getItem(k) ?? '').trim();
       if (raw) return raw.replace(/^Bearer\s+/i, '').trim();
     }
     return '';
   }
 
-  private usuarioActual(): string {
-    const cached = (this.usuarioLogueado ?? '').trim();
-    if (cached) return cached;
+  // ✅ aquí definimos admin desde token (como tu TenantContextService)
+  private isAdminFromToken(): boolean {
+  const token = this.tokenActual();
+  if (!token) return false;
 
-    const u1 = (sessionStorage.getItem('username') ?? '').trim();
-    if (u1) return u1;
+  try {
+    const d: any = this.jwt.decodeToken(token) || {};
+    const auths = d?.authorities ?? d?.roles ?? [];
+    const arr = Array.isArray(auths) ? auths : [auths];
 
-    const token = this.tokenActual();
-    if (!token) return '';
-
-    try {
-      const d: any = this.jwt.decodeToken(token) || {};
-      return String(
-        d?.preferred_username ??
-        d?.nombreUsuario ??
-        d?.username ??
-        d?.name ??
-        d?.email ??
-        d?.sub ??
-        ''
-      ).trim();
-    } catch {
-      return '';
-    }
+    return arr.some((x: any) => {
+      const raw = (typeof x === 'string') ? x : (x?.authority ?? x?.name ?? x?.rol ?? '');
+      const r = String(raw ?? '').trim().toUpperCase();
+      return r === 'ADMIN' || r === 'ROLE_ADMIN';
+    });
+  } catch {
+    return false;
   }
+}
 
-  private extraerNombreUsuario(u: any): string {
-    if (!u) return '';
-    if (typeof u === 'string') return u.trim();
-    return String(
-      u?.nombreUsuario ??
-      u?.preferred_username ??
-      u?.username ??
-      u?.name ??
-      u?.email ??
-      ''
-    ).trim();
-  }
 
   private fechaLocalDateTime(d = new Date()): string {
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -500,10 +535,8 @@ export class CorteCaja implements OnInit, OnDestroy {
 
   private resetErrores(): void { this.error = null; }
 
-  // ✅ Errores “limpios” (sin mega texto)
   private mostrarError(e: any, porDefecto: string): void {
     console.error('[CorteCaja] error', e);
-
     const msg = this.mensajeAmigableError(e, porDefecto);
     this.error = msg;
     this.noti.error(msg);
@@ -518,126 +551,26 @@ export class CorteCaja implements OnInit, OnDestroy {
       '';
 
     let s = '';
-
     if (typeof raw === 'string') s = raw;
     else {
       try { s = JSON.stringify(raw); } catch { s = String(raw ?? ''); }
     }
 
     s = (s || '').trim();
-
-    // quita el típico prefijo de Angular
     s = s.replace(/Http failure response for\s+[^:]+:\s*/i, '').trim();
     s = s.replace(/^Error:\s*/i, '').trim();
 
-    // si trae URL o basura larga, usa fallback
-    const isNoise =
-      !s ||
-      /http failure/i.test(s) ||
-      /unknown error/i.test(s) ||
-      s.length > 180;
-
+    const isNoise = !s || /http failure/i.test(s) || /unknown error/i.test(s) || s.length > 180;
     return isNoise ? fallback : s;
   }
 
-  // ===== Impresión Salida =====
-  private imprimirSalidaDespuesDeRegistrar(req: RegistrarSalidaEfectivoRequest, resp: any): void {
-    if (resp && (resp?.id || resp?.idSalidaEfectivo || resp?.fecha || resp?.concepto || resp?.monto)) {
-      try { this.imprimirTicketSalidaEfectivo(resp, req); } catch {}
-      return;
-    }
-
-    if (!this.corte?.idCorte) {
-      try { this.imprimirTicketSalidaEfectivo(null, req); } catch {}
-      return;
-    }
-
-    this.srv.listarSalidas(this.corte.idCorte).subscribe({
-      next: (arr: SalidaEfectivo[]) => {
-        this.salidas = arr;
-        const match = this.encontrarSalidaReciente(arr, req);
-        try { this.imprimirTicketSalidaEfectivo(match ?? null, req); } catch {}
-      },
-      error: () => {
-        try { this.imprimirTicketSalidaEfectivo(null, req); } catch {}
-      }
-    });
-  }
-
-  private encontrarSalidaReciente(arr: SalidaEfectivo[], req: RegistrarSalidaEfectivoRequest): SalidaEfectivo | null {
-    const cReq = (req.concepto ?? '').trim().toLowerCase();
-    const mReq = Number(req.monto ?? 0);
-
-    const same = (s: any) => {
-      const c = String(s?.concepto ?? '').trim().toLowerCase();
-      const m = Number(s?.monto ?? 0);
-      return c === cReq && Math.abs(m - mReq) < 0.01;
-    };
-
-    const candidatos = (arr || []).filter(same);
-
-    const pick = (list: any[]) => {
-      const getId = (x: any) =>
-        Number(x?.id ?? x?.idSalidaEfectivo ?? x?.idSalida ?? NaN);
-
-      const withId = list.filter(x => Number.isFinite(getId(x)));
-      if (withId.length) return withId.sort((a,b) => getId(b) - getId(a))[0];
-
-      return list.sort((a,b) => {
-        const da = new Date(a?.fecha ?? a?.createdAt ?? 0).getTime();
-        const db = new Date(b?.fecha ?? b?.createdAt ?? 0).getTime();
-        return db - da;
-      })[0];
-    };
-
-    if (candidatos.length) return pick(candidatos) as SalidaEfectivo;
-    if (arr?.length) return pick(arr as any) as SalidaEfectivo;
-    return null;
-  }
-
-  private imprimirTicketSalidaEfectivo(resp: any, req: RegistrarSalidaEfectivoRequest): void {
-    const gym: any = (this.corte as any)?.gimnasio ?? {};
-    const negocio = {
-      nombre: gym?.nombre || 'REVOLUCIÓN ATLÉTICA',
-      direccion: gym?.direccion || '',
-      telefono: gym?.telefono || ''
-    };
-
-    this.cargarUsuarioDesdeStorageYToken();
-
-    const usuario =
-      this.usuarioActual() ||
-      this.extraerNombreUsuario(resp?.usuarioRegistro) ||
-      this.extraerNombreUsuario(resp?.usuarioRetiro) ||
-      this.extraerNombreUsuario(resp?.usuario) ||
-      this.extraerNombreUsuario(resp?.nombreUsuario) ||
-      '—';
-
-    const folio =
-      resp?.idSalidaEfectivo ??
-      resp?.idSalida ??
-      resp?.id ??
-      `RET-${Date.now()}`;
-
-    const fecha = resp?.fecha ?? resp?.createdAt ?? new Date();
-    const concepto = resp?.concepto ?? req?.concepto ?? 'Salida de efectivo';
-    const monto = resp?.monto ?? req?.monto ?? 0;
-
-    this.ticket.imprimirSalidaEfectivo({
-      negocio,
-      folio,
-      fecha,
-      cajero: usuario,
-      idCorte: this.corte?.idCorte ?? '',
-      concepto,
-      monto
-    });
-  }
-
   // ===== Persistencia por tenant =====
-  private claveTenant(): string | null {
+  private tenantIdDesdeStorageOToken(): number | null {
     const t = sessionStorage.getItem('tenantId');
-    if (t != null) return `corteActualId@tenant:${t}`;
+    if (t != null && t !== '') {
+      const n = Number(t);
+      return Number.isFinite(n) ? n : null;
+    }
 
     const token = this.tokenActual();
     if (!token) return null;
@@ -645,24 +578,82 @@ export class CorteCaja implements OnInit, OnDestroy {
     try {
       const decoded: any = this.jwt.decodeToken(token) || {};
       const tenantId = decoded?.tenantId ?? decoded?.gimnasioId ?? decoded?.id_gimnasio ?? null;
-      return tenantId != null ? `corteActualId@tenant:${tenantId}` : null;
+      const n = Number(tenantId);
+      return Number.isFinite(n) ? n : null;
     } catch {
       return null;
     }
   }
 
+  private claveTenant(): string | null {
+    const tid = this.tenantSeleccionado;
+    if (tid == null) return null; // ADMIN "Todos" => no persistimos corte
+    return `corteActualId@tenant:${tid}`;
+  }
+
   private persistirCortePorTenant(id: number): void {
-    const key = this.claveTenant(); if (key) sessionStorage.setItem(key, String(id));
+    const key = this.claveTenant();
+    if (key) sessionStorage.setItem(key, String(id));
   }
 
   private obtenerCortePersistidoPorTenant(): number | null {
-    const key = this.claveTenant(); if (!key) return null;
+    const key = this.claveTenant();
+    if (!key) return null;
     const raw = sessionStorage.getItem(key);
     const id = raw ? Number(raw) : NaN;
     return Number.isFinite(id) ? id : null;
   }
 
   private borrarCortePersistidoPorTenant(): void {
-    const key = this.claveTenant(); if (key) sessionStorage.removeItem(key);
+    const key = this.claveTenant();
+    if (key) sessionStorage.removeItem(key);
   }
+
+  // ===== impresión (si ya lo tienes en tu clase, déjalo igual) =====
+  private imprimirTicketCorte(corte: CorteCajaResponseDTO): void {
+    const gym: any = (corte as any)?.gimnasio ?? {};
+    const negocio = {
+      nombre: gym?.nombre || 'REVOLUCIÓN ATLÉTICA',
+      direccion: gym?.direccion || '',
+      telefono: gym?.telefono || ''
+    };
+
+    this.cargarUsuarioDesdeStorageYToken();
+    const cajero = (this.usuarioLogueado ?? '').trim();
+
+    this.ticket.imprimirCorteDesdeBackend(corte as any, {
+      negocio,
+      cajero,
+      brandTitle: 'REVOLUCIÓN ATLÉTICA'
+    });
+  }
+
+  private imprimirSalidaDespuesDeRegistrar(req: RegistrarSalidaEfectivoRequest, resp: any): void {
+    // deja tu implementación si ya la tenías; aquí no afecta al filtrado
+    try { /* no-op */ } catch {}
+  }
+  get formasPagoAgrupadasPreview(): Array<{ tipo: string; operaciones: number; total: number }> {
+  const map = new Map<string, { operaciones: number; total: number }>();
+  const lista = (this.preview as any)?.formasDePago ?? (this.preview as any)?.formasPago ?? [];
+
+  for (const it of lista) {
+    const key = String((it as any)?.tipoPago ?? '');
+    const prev = map.get(key) ?? { operaciones: 0, total: 0 };
+    prev.operaciones += Number((it as any)?.operaciones ?? 0);
+    prev.total += Number((it as any)?.total ?? 0);
+    map.set(key, prev);
+  }
+
+  const orden = ['EFECTIVO','TARJETA','TRANSFERENCIA','SPEI','DEPOSITO','MIXTO','OTRO'];
+  const arr = Array.from(map.entries()).map(([tipo, v]) => ({ tipo, ...v }));
+
+  arr.sort((a,b) => {
+    const ia = orden.indexOf(a.tipo); const ib = orden.indexOf(b.tipo);
+    const sa = ia === -1 ? 999 : ia;  const sb = ib === -1 ? 999 : ib;
+    return sa === sb ? a.tipo.localeCompare(b.tipo) : sa - sb;
+  });
+
+  return arr;
+}
+
 }

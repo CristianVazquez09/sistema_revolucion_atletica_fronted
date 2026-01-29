@@ -1,5 +1,5 @@
 <!-- Barra superior -->
-<div class="mx-4 md:mx-10 mb-4 flex items-center justify-between gap-3">
+<div class="mx-4 md:mx-10 mb-3 flex items-center justify-between gap-3">
   <!-- Acciones izquierda -->
   <div class="flex flex-wrap items-center gap-2">
     <a
@@ -31,40 +31,82 @@
     </a>
   </div>
 
-  <!-- Agregar -->
-  <button
-    (click)="abrirCrear()"
-    class="
-      inline-flex items-center justify-center rounded-md bg-ra-azul-fuerte text-white hover:brightness-110 shadow-card
-      px-2.5 py-1.5 text-xs
-      lg:px-3 lg:py-1.5 lg:text-sm
-      xl:px-3.5 xl:py-2 xl:text-sm
-      2xl:px-4 2xl:py-2 2xl:text-base
-      whitespace-nowrap
-    "
-    title="Agregar producto"
-  >
-    <img src="iconos/agregar.svg" alt="" class="w-4 h-4 lg:w-[18px] lg:h-[18px] xl:w-5 xl:h-5 mr-2" />
-    Agregar
-  </button>
+  <!-- Agregar (Admin/Gerente) -->
+  @if (puedeCrudProducto) {
+    <button
+      (click)="abrirCrear()"
+      class="
+        inline-flex items-center justify-center rounded-md bg-ra-azul-fuerte text-white hover:brightness-110 shadow-card
+        px-2.5 py-1.5 text-xs
+        lg:px-3 lg:py-1.5 lg:text-sm
+        xl:px-3.5 xl:py-2 xl:text-sm
+        2xl:px-4 2xl:py-2 2xl:text-base
+        whitespace-nowrap
+      "
+      title="Agregar producto"
+    >
+      <img src="iconos/agregar.svg" alt="" class="w-4 h-4 lg:w-[18px] lg:h-[18px] xl:w-5 xl:h-5 mr-2" />
+      Agregar
+    </button>
+  }
+</div>
+
+<!-- ✅ BUSCADOR + FILTRO GIMNASIO -->
+<div class="mx-4 md:mx-10 mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+  <!-- Filtro gimnasio (solo admin) -->
+  <div class="flex items-center gap-3">
+    @if (isAdmin) {
+      <ra-gimnasio-filter label="Gimnasio"></ra-gimnasio-filter>
+    }
+  </div>
+
+  <!-- Buscador -->
+  <div class="relative max-w-md w-full md:w-[420px]">
+    <input
+      type="text"
+      class="input-filled pl-10 pr-9 text-[12px] sm:text-[13px]"
+      placeholder="Buscar producto por nombre "
+      [ngModel]="terminoBusqueda"
+      (ngModelChange)="onBuscarChange($event)"
+    />
+    <svg
+      class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+    >
+      <circle cx="11" cy="11" r="7" stroke-width="2"></circle>
+      <path d="M21 21l-4.3-4.3" stroke-width="2" stroke-linecap="round"></path>
+    </svg>
+
+    <button
+      *ngIf="terminoBusqueda"
+      type="button"
+      title="Limpiar"
+      aria-label="Limpiar"
+      class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full grid place-items-center text-gray-500 hover:text-gray-700 hover:bg-gray-200"
+      (click)="limpiarBusqueda()"
+    >
+      &times;
+    </button>
+  </div>
 </div>
 
 <!-- Contenedor -->
 <div class="shadow-card rounded-xl2 mx-4 md:mx-10 bg-ra-white ring-1 ring-black/10 overflow-hidden">
-  <!-- <xl: sin scroll horizontal; xl+: si hace falta, se permite -->
   <div class="overflow-x-hidden xl:overflow-x-auto">
     <div
       class="
         overflow-y-auto
-        max-h-[calc(100dvh-220px)]
+        max-h-[calc(100dvh-260px)]
         min-h-[320px]
-        sm:max-h-[calc(100dvh-230px)] sm:min-h-[340px]
-        md:max-h-[calc(100dvh-240px)] md:min-h-[360px]
-        lg:max-h-[calc(100dvh-250px)] lg:min-h-[380px]
-        xl:max-h-[calc(100dvh-270px)] xl:min-h-[420px]
-        2xl:max-h-[calc(100dvh-290px)] 2xl:min-h-[460px]
-        [@media(max-height:900px)]:max-h-[calc(100dvh-180px)]
-        [@media(max-height:820px)]:max-h-[calc(100dvh-140px)]
+        sm:max-h-[calc(100dvh-270px)] sm:min-h-[340px]
+        md:max-h-[calc(100dvh-280px)] md:min-h-[360px]
+        lg:max-h-[calc(100dvh-290px)] lg:min-h-[380px]
+        xl:max-h-[calc(100dvh-310px)] xl:min-h-[420px]
+        2xl:max-h-[calc(100dvh-330px)] 2xl:min-h-[460px]
+        [@media(max-height:900px)]:max-h-[calc(100dvh-200px)]
+        [@media(max-height:820px)]:max-h-[calc(100dvh-160px)]
       "
     >
       <table
@@ -77,83 +119,48 @@
         "
       >
         <colgroup>
-          <!-- ID -->
           <col class="w-[68px] lg:w-[60px] xl:w-[64px] 2xl:w-[72px]" />
-
-          <!-- Nombre -->
           <col class="w-auto 2xl:w-[260px]" />
 
-          <!-- ✅ Código (lg+), pero si menú abierto: oculto en lg<xl y solo aparece en xl+ -->
+          <!-- Código -->
           <col
             [ngClass]="menuAbierto()
               ? 'hidden xl:table-column xl:w-[130px] 2xl:w-[140px]'
               : 'hidden lg:table-column lg:w-[120px] xl:w-[130px] 2xl:w-[140px]'"
           />
 
-          <!-- Detalles (solo <lg): código + precios + cantidad + categoría -->
           <col class="lg:hidden w-[320px]" />
 
-          <!-- Compra / Venta / Cantidad / Categoría (lg+) -->
-          <col class="hidden lg:table-column lg:w-[135px] xl:w-[140px] 2xl:w-[150px]" /> <!-- Compra -->
-          <col class="hidden lg:table-column lg:w-[135px] xl:w-[140px] 2xl:w-[150px]" /> <!-- Venta -->
-          <col class="hidden lg:table-column lg:w-[95px]  xl:w-[105px]  2xl:w-[120px]" /> <!-- Cantidad -->
-          <col class="hidden lg:table-column lg:w-[160px] xl:w-[170px] 2xl:w-[190px]" /> <!-- Categoría -->
+          <col class="hidden lg:table-column lg:w-[135px] xl:w-[140px] 2xl:w-[150px]" />
+          <col class="hidden lg:table-column lg:w-[135px] xl:w-[140px] 2xl:w-[150px]" />
+          <col class="hidden lg:table-column lg:w-[95px]  xl:w-[105px]  2xl:w-[120px]" />
+          <col class="hidden lg:table-column lg:w-[160px] xl:w-[170px] 2xl:w-[190px]" />
 
-          <!-- Gimnasio (admin, xl+) -->
           @if (isAdmin) {
             <col class="hidden xl:table-column xl:w-[180px] 2xl:w-[200px]" />
           }
 
-          <!-- Acciones -->
           <col class="w-[132px] xl:w-[140px] 2xl:w-[152px]" />
         </colgroup>
 
         <thead class="sticky top-0 bg-ra-grayLight/40 z-10 backdrop-blur">
           <tr class="text-ra-slate">
-            <th
-              class="
-                py-2 lg:py-1.5 2xl:py-2.5
-                px-3 sm:px-4 lg:px-3.5 2xl:px-6
-                text-center font-semibold uppercase
-                text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]
-              "
-            >
+            <th class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center font-semibold uppercase text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]">
               ID
             </th>
 
-            <th
-              class="
-                py-2 lg:py-1.5 2xl:py-2.5
-                px-3 sm:px-4 lg:px-3.5 2xl:px-6
-                text-left font-semibold uppercase
-                text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]
-              "
-            >
+            <th class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-left font-semibold uppercase text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]">
               Nombre
             </th>
 
             <th
-              class="
-                py-2 lg:py-1.5 2xl:py-2.5
-                px-3 sm:px-4 lg:px-3.5 2xl:px-6
-                text-center font-semibold uppercase
-                text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]
-              "
+              class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center font-semibold uppercase text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]"
               [ngClass]="menuAbierto() ? 'hidden xl:table-cell' : 'hidden lg:table-cell'"
             >
               Código
             </th>
 
-            <!-- <lg -->
-            <th
-              class="
-                lg:hidden
-                py-2
-                px-3 sm:px-4
-                text-left font-semibold uppercase
-                text-[10px] sm:text-[11px]
-              "
-            >
+            <th class="lg:hidden py-2 px-3 sm:px-4 text-left font-semibold uppercase text-[10px] sm:text-[11px]">
               Detalles
             </th>
 
@@ -201,14 +208,12 @@
           } @else {
             @for (p of productos; track p.idProducto ?? $index) {
               <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
-                <!-- ID -->
                 <td class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top">
                   <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] sm:text-[11px] 2xl:text-xs font-mono text-gray-700">
                     {{ p.idProducto }}
                   </span>
                 </td>
 
-                <!-- Nombre -->
                 <td class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-left min-w-0 align-top">
                   <div class="font-medium truncate" [title]="p.nombre">{{ p.nombre }}</div>
 
@@ -227,7 +232,6 @@
                   }
                 </td>
 
-                <!-- Código -->
                 <td
                   class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top"
                   [ngClass]="menuAbierto() ? 'hidden xl:table-cell' : 'hidden lg:table-cell'"
@@ -235,7 +239,6 @@
                   <span class="font-medium">{{ p.codigo }}</span>
                 </td>
 
-                <!-- Detalles (solo <lg) -->
                 <td class="lg:hidden py-2 px-3 sm:px-4 align-top">
                   <div class="flex flex-col gap-1.5 min-w-0">
                     <div class="flex flex-wrap items-center gap-2">
@@ -267,27 +270,22 @@
                   </div>
                 </td>
 
-                <!-- Compra -->
                 <td class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top font-medium">
                   {{ (+p.precioCompra) | currency:'MXN':'symbol-narrow':'1.2-2' }}
                 </td>
 
-                <!-- Venta -->
                 <td class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top font-medium">
                   {{ (+p.precioVenta) | currency:'MXN':'symbol-narrow':'1.2-2' }}
                 </td>
 
-                <!-- Cantidad -->
                 <td class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top">
                   <span class="font-semibold">{{ p.cantidad }}</span>
                 </td>
 
-                <!-- Categoría -->
                 <td class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top min-w-0">
                   <span class="truncate inline-block max-w-full" [title]="p.categoria.nombre">{{ p.categoria.nombre }}</span>
                 </td>
 
-                <!-- Gimnasio -->
                 @if (isAdmin) {
                   <td class="hidden xl:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top min-w-0">
                     <span
@@ -302,65 +300,43 @@
                   </td>
                 }
 
-                <!-- Acciones -->
                 <td class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 align-top">
                   <div class="flex items-center justify-center gap-1.5">
                     @if (puedeMoverStock) {
-  <!-- Entrada -->
-  <button
-    (click)="abrirEntrada(p)"
-    class="
-      h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8
-      grid place-items-center rounded-md
-      hover:bg-blue-100
-      active:scale-[0.98]
+                      <button
+                        (click)="abrirEntrada(p)"
+                        class="h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8 grid place-items-center rounded-md hover:bg-blue-100 active:scale-[0.98]"
+                        title="Entrada de stock"
+                      >
+                        <img src="iconos/agregar-negro.svg" alt="Entrada" class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5" />
+                      </button>
 
-    "
-    title="Entrada de stock"
-  >
-    <img
-      src="iconos/agregar-negro.svg"
-      alt="Entrada"
-      class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5"
-    />
-  </button>
+                      <button
+                        (click)="abrirAjuste(p)"
+                        class="h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8 grid place-items-center rounded-md hover:bg-amber-100 active:scale-[0.98]"
+                        title="Ajustar stock"
+                      >
+                        <img src="iconos/actualizar.svg" alt="Ajuste" class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5" />
+                      </button>
+                    }
 
-  <!-- Ajuste -->
-  <button
-    (click)="abrirAjuste(p)"
-    class="
-      h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8
-      grid place-items-center rounded-md
-      hover:bg-amber-100
-      active:scale-[0.98]
-     
-    "
-    title="Ajustar stock"
-  >
-    <img
-      src="iconos/actualizar.svg"
-      alt="Ajuste"
-      class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5"
-    />
-  </button>
-}
+                    @if (puedeCrudProducto) {
+                      <button
+                        (click)="editar(p)"
+                        class="h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40"
+                        title="Editar"
+                      >
+                        <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5" />
+                      </button>
 
-
-                    <button
-                      (click)="editar(p)"
-                      class="h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40"
-                      title="Editar"
-                    >
-                      <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5" />
-                    </button>
-
-                    <button
-                      (click)="desactivar(p)"
-                      class="h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40"
-                      title="Eliminar"
-                    >
-                      <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5" />
-                    </button>
+                      <button
+                        (click)="desactivar(p)"
+                        class="h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40"
+                        title="Eliminar"
+                      >
+                        <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5" />
+                      </button>
+                    }
                   </div>
                 </td>
               </tr>

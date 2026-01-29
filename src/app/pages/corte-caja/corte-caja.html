@@ -1,7 +1,11 @@
 <!-- Encabezado / acciones -->
-<div class="ml-2 md:ml-4 mr-4 md:mr-8 mb-3 flex items-center justify-between">
-  <div class="flex items-center gap-3">
+<div class="ml-2 md:ml-4 mr-4 md:mr-8 mb-3 flex items-center justify-between gap-3">
+  <div class="flex items-center gap-3 min-w-0">
     <h1 class="text-2xl font-bold text-ra-slate">Corte de Caja</h1>
+
+    @if (esAdmin) {
+      <ra-gimnasio-filter label="Gimnasio"></ra-gimnasio-filter>
+    }
 
     @if (corte?.idCorte != null) {
       <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-ra-slate ring-1 ring-black/10">
@@ -10,29 +14,58 @@
     }
   </div>
 
-  <div class="flex items-center gap-2">
+  <div class="flex items-center gap-2 shrink-0">
     @if (!estaAbierto) {
       <div class="relative w-44">
-        <input type="number" min="0" step="0.01" [(ngModel)]="fondoCajaInicial" class="input-filled pl-4"
-          placeholder="Fondo inicial*" />
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          [(ngModel)]="fondoCajaInicial"
+          class="input-filled pl-4"
+          placeholder="Fondo inicial*"
+          [disabled]="requiereSeleccionGimnasio"
+        />
       </div>
     }
 
-    <button type="button" (click)="abrirCorte()" [disabled]="estaAbierto || cargando" class="btn-green">
+    <button
+      type="button"
+      (click)="abrirCorte()"
+      [disabled]="requiereSeleccionGimnasio || estaAbierto || cargando"
+      class="btn-green"
+    >
       Abrir corte
     </button>
-    <button type="button" (click)="cerrarCorte()" [disabled]="!estaAbierto || cargando" class="btn-red">
+
+    <button
+      type="button"
+      (click)="cerrarCorte()"
+      [disabled]="requiereSeleccionGimnasio || !estaAbierto || cargando"
+      class="btn-red"
+    >
       Cerrar corte
     </button>
 
     <!-- ✅ Botón Movimientos -->
     @if (estaAbierto) {
-      <button type="button" class="rcm-btn rcm-btn--blue" (click)="abrirModalMovimientos()">
+      <button
+        type="button"
+        class="rcm-btn rcm-btn--blue"
+        (click)="abrirModalMovimientos()"
+        [disabled]="requiereSeleccionGimnasio"
+      >
         Ver movimientos
       </button>
     }
   </div>
 </div>
+
+@if (requiereSeleccionGimnasio) {
+  <div class="mx-4 md:mx-8 my-3 summary-box border-amber-300 bg-amber-50 text-amber-800">
+    Como ADMIN, selecciona un gimnasio para ver/operar el corte de caja.
+  </div>
+}
 
 @if (cargando) {
   <div class="mx-4 md:mx-8 my-3 summary-box">Cargando…</div>
@@ -44,15 +77,18 @@
 }
 
 <!-- Resumen principal -->
-<div class="card">
+<div class="card" [class.opacity-60]="requiereSeleccionGimnasio">
   <div class="card-header flex items-center justify-between">
     <div class="flex items-center gap-3">
       <div class="text-lg font-semibold text-ra-slate">Resumen</div>
       @if (corte?.estado) {
-        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" [ngClass]="{
-              'bg-emerald-100 text-emerald-700': estaAbierto,
-              'bg-gray-200 text-gray-700': !estaAbierto
-            }">
+        <span
+          class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+          [ngClass]="{
+            'bg-emerald-100 text-emerald-700': estaAbierto,
+            'bg-gray-200 text-gray-700': !estaAbierto
+          }"
+        >
           {{ corte?.estado }}
         </span>
       }
@@ -129,17 +165,17 @@
 
 <!-- Panel LIVE (solo si abierto) -->
 @if (estaAbierto) {
-  <div class="card">
+  <div class="card" [class.opacity-60]="requiereSeleccionGimnasio">
     <div class="card-header flex items-center justify-between">
       <div class="text-lg font-semibold text-ra-slate">Previsualización en vivo</div>
 
-      <!-- ✅ dejamos SOLO refrescarPreview (quitamos actualizar movimientos/desglose) -->
       <div class="flex items-center gap-2">
-        <button class="rcm-btn rcm-btn--blue" (click)="refrescarPreview()">Actualizar</button>
+        <button class="rcm-btn rcm-btn--blue" (click)="refrescarPreview()" [disabled]="requiereSeleccionGimnasio">
+          Actualizar
+        </button>
       </div>
     </div>
 
-    <!-- ✅ ahora mostramos también TOTAL GENERAL (todas las formas de pago) -->
     <div class="px-6 py-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
       <div class="summary-box">
         <div class="font-semibold text-ra-slate mb-1">Fondo inicial</div>
@@ -208,7 +244,7 @@
       </div>
     </div>
 
-    <!-- Formas de pago (agrupadas por tipo, LIVE) -->
+    <!-- Formas de pago -->
     <div class="px-6 pb-6">
       <div class="font-semibold text-ra-slate mb-2">Formas de pago (todas las fuentes)</div>
       <div class="overflow-x-auto">
@@ -243,19 +279,19 @@
 
 <!-- Salidas de efectivo -->
 @if (estaAbierto) {
-  <div class="card min-h-0">
+  <div class="card min-h-0" [class.opacity-60]="requiereSeleccionGimnasio">
     <div class="card-header text-lg font-semibold text-ra-slate">Salidas de efectivo</div>
 
     <div class="px-6 pb-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
       <div class="relative">
-        <input class="input-filled pl-4" [(ngModel)]="salidaConcepto" placeholder="Concepto*" />
+        <input class="input-filled pl-4" [(ngModel)]="salidaConcepto" placeholder="Concepto*" [disabled]="requiereSeleccionGimnasio" />
       </div>
 
       <div class="relative">
-        <input type="number" min="0" step="0.01" class="input-filled pl-4" [(ngModel)]="salidaMonto" placeholder="0.00" />
+        <input type="number" min="0" step="0.01" class="input-filled pl-4" [(ngModel)]="salidaMonto" placeholder="0.00" [disabled]="requiereSeleccionGimnasio" />
       </div>
 
-      <button class="btn-primary-red" (click)="registrarSalida()" [disabled]="cargando">
+      <button class="btn-primary-red" (click)="registrarSalida()" [disabled]="requiereSeleccionGimnasio || cargando">
         Registrar salida
       </button>
     </div>
@@ -295,26 +331,28 @@
 
 <!-- Cierre -->
 @if (estaAbierto) {
-  <div class="card">
+  <div class="card" [class.opacity-60]="requiereSeleccionGimnasio">
     <div class="card-header text-lg font-semibold text-ra-slate">Cerrar corte</div>
     <div class="px-6 pb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="relative">
         <input type="number" min="0" step="0.01" class="input-filled pl-4" [(ngModel)]="efectivoEntregado"
-          placeholder="Efectivo entregado*" />
+          placeholder="Efectivo entregado*" [disabled]="requiereSeleccionGimnasio" />
       </div>
       <div class="relative">
         <input type="number" min="0" step="0.01" class="input-filled pl-4" [(ngModel)]="efectivoEnCajaConteo"
-          placeholder="Efectivo en caja (conteo)*" />
+          placeholder="Efectivo en caja (conteo)*" [disabled]="requiereSeleccionGimnasio" />
       </div>
       <div class="flex items-end">
-        <button class="btn-red" (click)="cerrarCorte()">Confirmar cierre</button>
+        <button class="btn-red" (click)="cerrarCorte()" [disabled]="requiereSeleccionGimnasio">
+          Confirmar cierre
+        </button>
       </div>
     </div>
   </div>
 }
 
 <!-- Desglose por pagos (del CORTE) -->
-<div class="card">
+<div class="card" [class.opacity-60]="requiereSeleccionGimnasio">
   <div class="card-header">
     <div class="text-lg font-semibold text-ra-slate">Desglose por Origen y Tipo de pago (Corte)</div>
   </div>
@@ -363,5 +401,6 @@
   [cargando]="cargandoDesglose"
   [movimientos]="movimientos"
   (cerrar)="cerrarModalMovimientos()"
+  (refrescar)="refrescarDesgloseActual()"
 >
 </app-corte-caja-modal>

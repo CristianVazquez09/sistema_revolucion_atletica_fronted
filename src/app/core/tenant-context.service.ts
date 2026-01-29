@@ -1,61 +1,84 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { JwtHelperService } from '@auth0/angular-jwt';
-
-export type TenantId = number | null;
+import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class TenantContextService {
   private jwt = inject(JwtHelperService);
 
-  // Derivados del token
-  readonly homeTenantId: number | null;
-  readonly isAdmin: boolean;
+  // ===== VIEW tenant (selector admin) =====
+  private viewTenant$ = new BehaviorSubject<number | null>(null);
+  viewTenantChanges$ = this.viewTenant$.asObservable();
 
-  // Ámbito de lectura: null = TODOS; number = filtrar por ese gimnasio
-  private viewTenantIdSub = new BehaviorSubject<TenantId>(null);
-  viewTenantId$ = this.viewTenantIdSub.asObservable();
-
-  // Destino de escritura: por defecto usa viewTenantId si no se especifica en formularios
-  // (puedes decidir usar SIEMPRE el valor del formulario y dejar este como fallback)
-  private writeTenantIdSub = new BehaviorSubject<TenantId>(null);
-  writeTenantId$ = this.writeTenantIdSub.asObservable();
-
-  constructor() {
-    const raw = sessionStorage.getItem('auth_token') ?? '';
-    let decoded: any = {};
-    try { decoded = this.jwt.decodeToken(raw) || {}; } catch {}
-
-    // id del gimnasio “hogar” (para no-admin y como fallback)
-    this.homeTenantId = Number(decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId ?? NaN) || null;
-
-    // detección robusta de rol admin (ajusta a tu token real)
-    const roles: string[] = [
-      ...(decoded?.roles ?? []),
-      ...(decoded?.authorities ?? []),
-      ...((decoded?.realm_access?.roles ?? []) as string[])
-    ].map(String);
-
-    this.isAdmin = roles.some(r => ['ADMIN'].includes(r));
-
-    // Estado inicial
-    this.viewTenantIdSub.next(this.isAdmin ? null : this.homeTenantId);
-    this.writeTenantIdSub.next(this.isAdmin ? null : this.homeTenantId);
+  get viewTenantId(): number | null {
+    return this.viewTenant$.value;
   }
 
-  setViewTenant(id: TenantId) { this.viewTenantIdSub.next(id); }
-  setWriteTenant(id: TenantId) { this.writeTenantIdSub.next(id); }
+  // ✅ compat con tu código viejo
+  getViewTenantId(): number | null {
+    return this.viewTenantId;
+  }
 
-  /** Decide un tenant destino de escritura:
-   *  1) si admin y se especificó en form -> ese
-   *  2) si admin y NO hay en form -> usa writeTenantId (o lanza error si es null)
-   *  3) si no-admin -> homeTenantId
-   */
-  resolveWriteTenant(explicit?: TenantId): number | null {
-    if (this.isAdmin) {
-      if (explicit != null) return explicit;
-      return this.writeTenantIdSub.value;
+  setViewTenant(id: number | null) {
+    this.viewTenant$.next(id);
+
+    if (id == null) sessionStorage.removeItem('viewTenantId');
+    else sessionStorage.setItem('viewTenantId', String(id));
+  }
+
+  // ===== ADMIN flag (reactivo) =====
+  private isAdmin$ = new BehaviorSubject<boolean>(false);
+  isAdminChanges$ = this.isAdmin$.asObservable();
+
+  get isAdmin(): boolean {
+    return this.isAdmin$.value;
+  }
+
+  /** Llamar al iniciar sesión / app init */
+  initFromToken() {
+    const token = this.readToken();
+    if (!token) {
+      this.isAdmin$.next(false);
+      this.setViewTenant(null);
+      return;
     }
-    return this.homeTenantId;
+
+    const d: any = this.jwt.decodeToken(token) || {};
+    const admin = this.hasRole(d, 'ADMIN');
+    this.isAdmin$.next(admin);
+
+    if (admin) {
+      // ✅ ADMIN: por default "Todos" (null) => NO header => backend ve todo
+      this.setViewTenant(null);
+      return;
+    }
+
+    // ✅ NO admin: forzamos tenant del token
+    const tid = d?.tenantId ?? d?.gimnasioId ?? d?.id_gimnasio ?? null;
+    this.setViewTenant(tid != null ? Number(tid) : null);
+  }
+
+  private hasRole(decoded: any, role: string): boolean {
+    const auths = decoded?.authorities ?? decoded?.roles ?? [];
+    const arr = Array.isArray(auths) ? auths : [auths];
+
+    return arr.some((x: any) => {
+      // soporta: "ROLE_ADMIN"  o  { authority: "ROLE_ADMIN" }
+      const raw = (typeof x === 'string') ? x : (x?.authority ?? x?.name ?? x?.rol ?? '');
+      const s = String(raw ?? '').trim().toUpperCase();
+      return s === role || s === `ROLE_${role}`;
+    });
+  }
+
+  private readToken(): string {
+    const keys = [environment.TOKEN_NAME, 'access_token', 'token', 'id_token']
+      .filter(Boolean) as string[];
+
+    for (const k of keys) {
+      const raw = (sessionStorage.getItem(k) ?? localStorage.getItem(k) ?? '').trim();
+      if (raw) return raw.replace(/^Bearer\s+/i, '').trim();
+    }
+    return '';
   }
 }

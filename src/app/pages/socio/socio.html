@@ -38,6 +38,9 @@
 
   <!-- Contenedor de filtros -->
   <div class="flex flex-wrap items-center gap-3 text-[11px] sm:text-xs md:text-sm">
+     @if (isAdmin) {
+    <ra-gimnasio-filter label="Gimnasio"></ra-gimnasio-filter>
+  }
     <!-- Filtro por tipo de paquete vigente -->
     <div class="flex items-center gap-2">
       <span class="text-ra-slate/80 whitespace-nowrap">Tipo de paquete vigente:</span>
@@ -320,7 +323,7 @@
                         </svg>
                       </button>
 
-                      @if (isAdmin) {
+                      @if (puedeEditarEliminar) {
                         <button
                           (click)="abrirModalParaEditar(s)"
                           class="h-7 w-7 sm:h-8 sm:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40 shrink-0"

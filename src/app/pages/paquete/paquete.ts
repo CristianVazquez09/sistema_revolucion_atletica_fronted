@@ -1,6 +1,7 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { finalize } from 'rxjs';
+import { finalize, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { PaqueteService } from '../../services/paquete-service';
 import { PaqueteData } from '../../model/paquete-data';
@@ -21,16 +22,21 @@ import { MenuService } from 'src/app/services/menu-service';
   styleUrl: './paquete.css',
 })
 export class Paquete implements OnInit {
-
   private notificacion = inject(NotificacionService);
   private servicioPaquetes = inject(PaqueteService);
   private jwt = inject(JwtHelperService);
   private menuSrv = inject(MenuService);
-    menuAbierto = this.menuSrv.menuAbierto;
-    
+
+  private destroyRef = inject(DestroyRef);
+  private busqueda$ = new Subject<string>();
+
+  menuAbierto = this.menuSrv.menuAbierto;
 
   // Rol
   isAdmin = false;
+
+  // ✅ Buscador
+  busqueda = signal('');
 
   // Estado de pantalla
   listaPaquetes: PaqueteData[] = [];
@@ -43,6 +49,23 @@ export class Paquete implements OnInit {
 
   ngOnInit(): void {
     this.isAdmin = this.esAdminDesdeToken();
+
+    // ✅ debounce del buscador
+    this.busqueda$
+      .pipe(
+        debounceTime(250),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((term) => {
+        const t = (term ?? '').trim();
+        if (!t) {
+          this.cargarPaquetes();
+          return;
+        }
+        this.buscarPaquetesPorNombre(t);
+      });
+
     this.cargarPaquetes();
   }
 
@@ -58,10 +81,23 @@ export class Paquete implements OnInit {
       ]
         .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
         .map(r => String(r).toUpperCase());
+
       return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     } catch {
       return false;
     }
+  }
+
+  // ✅ handlers buscador
+  onBuscarInput(ev: Event): void {
+    const value = (ev.target as HTMLInputElement)?.value ?? '';
+    this.busqueda.set(value);
+    this.busqueda$.next(value);
+  }
+
+  limpiarBusqueda(): void {
+    this.busqueda.set('');
+    this.busqueda$.next('');
   }
 
   // Acciones
@@ -74,7 +110,30 @@ export class Paquete implements OnInit {
       .pipe(finalize(() => (this.estaCargando = false)))
       .subscribe({
         next: (data) => {
-          // Solo activos, y aseguramos tipoPaquete (default: GIMNASIO)
+          this.listaPaquetes = (data ?? [])
+            .filter(p => p?.activo !== false)
+            .map(p => ({
+              ...p,
+              tipoPaquete: p.tipoPaquete ?? TipoPaquete.GIMNASIO,
+            }))
+            .sort((a, b) => (a?.nombre ?? '').localeCompare(b?.nombre ?? '', 'es', { sensitivity: 'base' }));
+        },
+        error: () => {
+          this.mensajeError = 'No se pudo cargar la lista de paquetes.';
+        },
+      });
+  }
+
+  private buscarPaquetesPorNombre(nombre: string): void {
+    this.estaCargando = true;
+    this.mensajeError = null;
+
+    // ✅ activo=true para mantener el comportamiento actual
+    this.servicioPaquetes
+      .buscarPorNombre(nombre, true)
+      .pipe(finalize(() => (this.estaCargando = false)))
+      .subscribe({
+        next: (data) => {
           this.listaPaquetes = (data ?? [])
             .filter(p => p?.activo !== false)
             .map(p => ({
@@ -82,7 +141,9 @@ export class Paquete implements OnInit {
               tipoPaquete: p.tipoPaquete ?? TipoPaquete.GIMNASIO,
             }));
         },
-        error: () => { this.mensajeError = 'No se pudo cargar la lista de paquetes.'; },
+        error: () => {
+          this.mensajeError = 'No se pudo buscar paquetes.';
+        },
       });
   }
 
@@ -102,7 +163,10 @@ export class Paquete implements OnInit {
 
   despuesDeGuardar(): void {
     this.cerrarModalPaquete();
-    this.cargarPaquetes();
+    // respeta si había búsqueda activa
+    const t = (this.busqueda() ?? '').trim();
+    if (t) this.buscarPaquetesPorNombre(t);
+    else this.cargarPaquetes();
   }
 
   desactivarPaquete(paquete: PaqueteData): void {
@@ -117,7 +181,9 @@ export class Paquete implements OnInit {
     this.servicioPaquetes.actualizar(paquete.idPaquete, actualizado).subscribe({
       next: () => {
         this.notificacion.exito('Paquete desactivado.');
-        this.cargarPaquetes();
+        const t = (this.busqueda() ?? '').trim();
+        if (t) this.buscarPaquetesPorNombre(t);
+        else this.cargarPaquetes();
       },
       error: () => this.notificacion.error('No se pudo desactivar el paquete.'),
     });
@@ -126,7 +192,7 @@ export class Paquete implements OnInit {
   displayGimnasio(p: PaqueteData): string {
     const g: any = p?.gimnasio ?? {};
     const nombre = g?.nombre as string | undefined;
-    const id = (g?.idGimnasio ?? g?.id) as number | undefined; // backend a veces manda id, a veces idGimnasio
+    const id = (g?.idGimnasio ?? g?.id) as number | undefined;
     if (nombre && nombre.trim().length) return nombre;
     if (id != null) return `#${id}`;
     return '—';
@@ -144,5 +210,4 @@ export class Paquete implements OnInit {
         return 'Gimnasio';
     }
   }
-
 }

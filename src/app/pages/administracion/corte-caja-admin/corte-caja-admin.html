@@ -27,6 +27,11 @@
     >
       <!-- Estado (si falta ancho: scroll horizontal) -->
       <div class="flex flex-nowrap items-center gap-2 xl:gap-3 overflow-x-auto [-webkit-overflow-scrolling:touch]">
+        @if (esAdmin) {
+  <ra-gimnasio-filter label="Gimnasio"></ra-gimnasio-filter>
+  <div class="w-px h-5 xl:h-6 bg-gray-200 mx-2 shrink-0"></div>
+}
+
         <label class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">
           Estado
         </label>
