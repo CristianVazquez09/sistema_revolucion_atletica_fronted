@@ -1,3 +1,5 @@
+// src/app/pages/reinscripcion/reinscripcion.ts
+
 import {
   Component,
   OnInit,
@@ -18,6 +20,7 @@ import { PaqueteService } from '../../services/paquete-service';
 
 import { SocioData } from '../../model/socio-data';
 import { PagoData } from '../../model/membresia-data';
+import { PaqueteData } from '../../model/paquete-data';
 
 import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
@@ -51,7 +54,7 @@ import {
   selectPaqueteId,
 } from './state/reinscripcion-selectors';
 
-// ✅ Asesoría nutricional (nuevo endpoint estado)
+// ✅ Asesoría nutricional
 import {
   AsesoriaNutricionalService,
   AsesoriaNutricionalEstadoDTO,
@@ -99,6 +102,7 @@ type EstudiantilCheck = {
   styleUrl: './reinscripcion.css',
 })
 export class Reinscripcion implements OnInit {
+  
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -145,6 +149,20 @@ export class Reinscripcion implements OnInit {
 
   socioBuscarIdCtrl = this.fb.nonNullable.control<number>(0, [Validators.min(1)]);
 
+  // =========================
+  // ✅ BUSCADOR DE PAQUETES (NUEVO)
+  // =========================
+  paqueteBusquedaSig = signal<string>('');
+  paqueteDropdownAbiertoSig = signal<boolean>(false);
+  paqueteIdSig = signal<number>(0);
+
+  private setPaqueteId(id: number, emitEvent = true): void {
+    const v = Number(id ?? 0);
+    this.paqueteIdSig.set(v);
+    this.form.controls.paqueteId.setValue(v, { emitEvent });
+    this.form.controls.paqueteId.updateValueAndValidity({ emitEvent });
+  }
+
   // ✅ Estado asesoría por socio (SOLO se muestra si existe asesoría)
   estadoAsesoriaBySocioIdSig = signal<Record<string, AsesoriaNutricionalEstadoDTO>>({});
   cargandoEstadoAsesoriaSig = signal(false);
@@ -170,6 +188,33 @@ export class Reinscripcion implements OnInit {
   private keyOf(id: number | null | undefined): string {
     return String(id ?? '');
   }
+
+  // ✅ normalización para búsqueda (sin acentos)
+  private norm(s: any): string {
+    return String(s ?? '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
+  // ✅ Lista COMPLETA de paquetes (sin filtrar activos en init)
+  listaPaquetesSig = this.store.selectSignal(selectListaPaquetes);
+
+  // ✅ paquetes ACTIVOS filtrados por búsqueda
+  paquetesSugeridosSig = computed(() => {
+    const q = this.norm(this.paqueteBusquedaSig());
+    const lista = (this.listaPaquetesSig() ?? []).filter((p: any) => p?.activo !== false);
+
+    if (!q) return lista.slice(0, 12);
+
+    return lista
+      .filter((p: any) => {
+        const nombre = this.norm(p?.nombre);
+        return nombre.includes(q);
+      })
+      .slice(0, 25);
+  });
 
   private promoEsValidaParaReinscripcion(p: PromocionData): boolean {
     if (!p) return false;
@@ -279,7 +324,6 @@ export class Reinscripcion implements OnInit {
   });
 
   // Store signals
-  listaPaquetesSig = this.store.selectSignal(selectListaPaquetes);
   paqueteActualSig = this.store.selectSignal(selectPaqueteActual);
   precioPaqueteSig = this.store.selectSignal(selectPrecioPaquete);
   totalVistaSig = this.store.selectSignal(selectTotalVista);
@@ -298,15 +342,22 @@ export class Reinscripcion implements OnInit {
   }
 
   constructor() {
+    // ✅ init signal
+    this.paqueteIdSig.set(Number(this.form.controls.paqueteId.value ?? 0));
+
     // form -> store
     this.form.controls.paqueteId.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((id) => {
         const pid = Number(id ?? 0);
+        this.paqueteIdSig.set(pid);
         this.store.dispatch(ReinscripcionActions.setPaqueteId({ paqueteId: pid }));
 
         // ✅ cargar promo para reinscripción
         this.cargarPromoDePaquete(pid);
+
+        // ✅ sincronizar texto del buscador
+        this.syncPaqueteBusquedaConSeleccion();
       });
 
     this.form.controls.descuento.valueChanges
@@ -404,6 +455,78 @@ export class Reinscripcion implements OnInit {
   descuentoTotalSig = computed(() => {
     return this.round2(this.num(this.descuentoSelSig() ?? 0) + this.descuentoPromoSig());
   });
+
+  // =========================
+  // ✅ Buscador Paquetes (helpers)
+  // =========================
+  private paqueteLabel(p: PaqueteData | null): string {
+    if (!p) return '';
+    return String((p as any)?.nombre ?? '').trim();
+  }
+
+  private syncPaqueteBusquedaConSeleccion(): void {
+    if (this.paqueteDropdownAbiertoSig()) return;
+
+    const id = Number(this.form.controls.paqueteId.value ?? 0);
+    if (!id) {
+      this.paqueteBusquedaSig.set('');
+      return;
+    }
+
+    const lista = this.listaPaquetesSig() ?? [];
+    const sel = lista.find((x: any) => Number(x?.idPaquete) === id) ?? null;
+    this.paqueteBusquedaSig.set(this.paqueteLabel(sel));
+  }
+
+  abrirDropdownPaquetes(): void {
+    if (this.paqueteBloqueadoSig() || this.cargandoPaquetes) return;
+    this.paqueteDropdownAbiertoSig.set(true);
+  }
+
+  cerrarDropdownPaquetes(): void {
+    const wasOpen = this.paqueteDropdownAbiertoSig();
+    this.paqueteDropdownAbiertoSig.set(false);
+    if (!wasOpen) return;
+
+    // al cerrar, revertimos al seleccionado actual
+    this.syncPaqueteBusquedaConSeleccion();
+  }
+
+  onPaqueteBusquedaChange(v: string): void {
+    if (this.paqueteBloqueadoSig() || this.cargandoPaquetes) return;
+
+    this.paqueteBusquedaSig.set(v);
+    this.paqueteDropdownAbiertoSig.set(true);
+  }
+
+  seleccionarPaqueteDesdeBusqueda(p: PaqueteData, evt?: Event): void {
+    evt?.stopPropagation();
+    if (this.paqueteBloqueadoSig() || this.cargandoPaquetes) return;
+
+    const id = Number((p as any)?.idPaquete ?? 0);
+    if (!id) {
+      this.notify.aviso('No se pudo seleccionar el paquete (id inválido).');
+      return;
+    }
+
+    // ✅ dispara valueChanges -> store + promo
+    this.setPaqueteId(id, true);
+
+    // sincroniza texto
+    this.paqueteBusquedaSig.set(this.paqueteLabel(p));
+
+    // cierra dropdown
+    this.paqueteDropdownAbiertoSig.set(false);
+  }
+
+  limpiarPaqueteSeleccionado(evt?: Event): void {
+    evt?.stopPropagation();
+    if (this.paqueteBloqueadoSig() || this.cargandoPaquetes) return;
+
+    this.setPaqueteId(0, true);
+    this.paqueteBusquedaSig.set('');
+    this.paqueteDropdownAbiertoSig.set(false);
+  }
 
   // =========================
   // ✅ ¿Cuándo validar asesoría?
@@ -694,14 +817,12 @@ export class Reinscripcion implements OnInit {
       error: () => this.notify.error('No se pudo cargar el socio.'),
     });
 
-    // Cargar paquetes
+    // Cargar paquetes (SIN filtrar activos)
     this.cargandoPaquetes = true;
     this.errorPaquetes = null;
 
     this.paqueteSrv.buscarTodos().subscribe({
       next: (lista) => {
-        // ✅ IMPORTANTE: NO filtrar activos aquí.
-        // Si el último paquete está inactivo y lo filtras, el select jamás podrá seleccionarlo.
         const normalizados = (lista ?? []).map((p: any) => ({
           ...p,
           idPaquete: Number(p?.idPaquete ?? 0),
@@ -848,14 +969,12 @@ export class Reinscripcion implements OnInit {
   }
 
   // =========================
-  // ✅ Paquete anterior auto (FIX COMPLETO)
+  // ✅ Paquete anterior auto
   // =========================
   private cargarPaqueteAnteriorDelSocio(idSocio: number): void {
     const socioId = Number(idSocio ?? 0);
     if (!socioId) return;
 
-    // ✅ Tip: muchos paginados son 0-based; page=1 puede venir vacío.
-    // Traemos varias y elegimos la más reciente nosotros.
     this.membresiaSrv.buscarMembresiasPorSocio(socioId, 0, 50).subscribe({
       next: (page: any) => {
         const rows: any[] = page?.content ?? page?.items ?? page?.data ?? [];
@@ -870,7 +989,6 @@ export class Reinscripcion implements OnInit {
 
         const existe = (this.listaPaquetesSig() ?? []).some((p: any) => Number(p?.idPaquete) === Number(idPaquete));
         if (!existe) {
-          // Si por alguna razón el paquete no está en lista, no lo bloqueamos.
           this.form.controls.paqueteId.setValue(0, { emitEvent: false });
           this.form.controls.paqueteId.enable({ emitEvent: false });
           this.paqueteBloqueadoSig.set(false);
@@ -881,8 +999,11 @@ export class Reinscripcion implements OnInit {
         this.form.controls.paqueteId.disable({ emitEvent: false });
         this.paqueteBloqueadoSig.set(true);
 
-        // ✅ promo (por si valueChanges no emitiera en algún caso)
+        // ✅ promo
         this.cargarPromoDePaquete(Number(idPaquete));
+
+        // ✅ sincroniza texto del buscador
+        this.syncPaqueteBusquedaConSeleccion();
 
         this.guardarDraft();
       },
@@ -932,6 +1053,10 @@ export class Reinscripcion implements OnInit {
 
     this.form.controls.paqueteId.enable({ emitEvent: false });
     this.paqueteBloqueadoSig.set(false);
+
+    // ✅ abre dropdown para facilitar cambio
+    this.paqueteDropdownAbiertoSig.set(true);
+
     this.notify.aviso('Paquete desbloqueado.');
   }
 
@@ -1255,6 +1380,10 @@ export class Reinscripcion implements OnInit {
 
     // ✅ bloqueo reset
     this.paqueteBloqueadoSig.set(false);
+
+    // ✅ buscador reset
+    this.paqueteBusquedaSig.set('');
+    this.paqueteDropdownAbiertoSig.set(false);
 
     sessionStorage.removeItem(STORAGE_KEY_REINSCRIPCION_GRUPAL);
     this.store.dispatch(ReinscripcionActions.reset());

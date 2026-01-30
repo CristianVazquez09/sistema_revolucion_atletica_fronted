@@ -3,10 +3,8 @@
   <div class="mx-4 md:mx-8 my-3 flex items-center justify-between">
     <h1 class="text-xl font-semibold text-[color:var(--color-ra-slate)]">Reinscripción adelantada</h1>
 
-    <a
-      [routerLink]="['/pages/socio']"
-      class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 bg-white text-sm hover:bg-gray-50"
-    >
+    <a [routerLink]="['/pages/socio']"
+      class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 bg-white text-sm hover:bg-gray-50">
       ← Volver
     </a>
   </div>
@@ -16,152 +14,124 @@
     <div class="flex flex-col sm:flex-row gap-2 sm:items-end">
       <div class="flex-1">
         <label class="block text-sm font-medium mb-1">Buscar socio principal por ID</label>
-        <input
-          type="number"
-          class="input-filled"
-          [formControl]="formBuscar.controls.idSocio"
-          placeholder="Ej. 123"
-        />
+        <input type="number" class="input-filled" [formControl]="formBuscar.controls.idSocio" placeholder="Ej. 123" />
       </div>
 
-      <button
-        type="button"
-        class="btn-primary-red sm:w-[220px]"
-        (click)="buscarPrincipalPorId()"
-        [disabled]="cargandoSocio"
-      >
+      <button type="button" class="btn-primary-red sm:w-[220px]" (click)="buscarPrincipalPorId()"
+        [disabled]="cargandoSocio">
         {{ cargandoSocio ? 'Buscando…' : 'Buscar' }}
       </button>
 
-      <button
-        type="button"
-        class="px-4 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 sm:w-[160px]"
-        (click)="abrirHuellaPrincipal()"
-        [disabled]="cargandoSocio"
-      >
+      <button type="button" class="px-4 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 sm:w-[160px]"
+        (click)="abrirHuellaPrincipal()" [disabled]="cargandoSocio">
         Por huella
       </button>
     </div>
 
     @if (vigentePrincipalSig()?.fechaFin) {
-      <div class="summary-box mt-3">
-        <div class="flex items-center justify-between">
-          <div class="font-semibold">
-            Membresía vigente ({{ modalidadVigenteSig() }})
-            @if (esGrupalSig()) {
-              <span class="text-xs text-ra-slate/70"> · Integrantes: {{ requeridoSig() }}</span>
-            }
-          </div>
-          <div class="text-sm text-gray-700">
-            Vence:
-            <span class="font-semibold">{{ vigentePrincipalSig()?.fechaFin | date: 'dd/MM/yyyy' }}</span>
-          </div>
+    <div class="summary-box mt-3">
+      <div class="flex items-center justify-between">
+        <div class="font-semibold">
+          Membresía vigente ({{ modalidadVigenteSig() }})
+          @if (esGrupalSig()) {
+          <span class="text-xs text-ra-slate/70"> · Integrantes: {{ requeridoSig() }}</span>
+          }
         </div>
-
-        <div class="text-sm text-gray-600 mt-1">
-          Días restantes: <span class="font-semibold">{{ diasRestantesPrincipalSig() }}</span>
-          · Nuevo inicio: <span class="font-semibold">{{ fechaInicioNuevaDateSig() | date: 'dd/MM/yyyy' }}</span>
-          · Nuevo vence: <span class="font-semibold">{{ fechaFinNuevaDateSig() | date: 'dd/MM/yyyy' }}</span>
+        <div class="text-sm text-gray-700">
+          Vence:
+          <span class="font-semibold">{{ vigentePrincipalSig()?.fechaFin | date: 'dd/MM/yyyy' }}</span>
         </div>
-
-        <div class="text-xs text-ra-slate/70 mt-1">
-          En reinscripción adelantada no se permite cambiar de modalidad.
-        </div>
-
-        <!-- ✅ Estado asesoría nutricional: SOLO SI existe -->
-        @if (socioPrincipalSig().idSocio && estadoAsesoriaDe(socioPrincipalSig()!.idSocio!)) {
-          @let est = estadoAsesoriaDe(socioPrincipalSig()!.idSocio!)!;
-
-          <div class="mt-2 rounded-xl2 border border-gray-200 bg-white p-3">
-            <div class="flex items-center justify-between gap-2">
-              <div class="text-sm font-semibold text-ra-slate">Asesoría nutricional (Roberto)</div>
-
-              @if (est.estado === 'VIGENTE') {
-                <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">Vigente</span>
-              } @else if (est.estado === 'VENCIDA') {
-                <span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-800">Vencida</span>
-              } @else if (est.estado === 'DESACTIVADA') {
-                <span class="text-xs px-2 py-1 rounded-full bg-gray-200 text-ra-slate/80">Desactivada</span>
-              } @else if (est.estado === 'PROGRAMADA') {
-                <span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">Programada</span>
-              } @else {
-                <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-ra-slate/70">—</span>
-              }
-            </div>
-
-            <div class="mt-1 text-xs text-ra-slate/70">
-              @if (est.fechaInicio && est.fechaFin) {
-                Vigencia:
-                <span class="font-semibold">{{ est.fechaInicio }}</span>
-                →
-                <span class="font-semibold">{{ est.fechaFin }}</span>
-              } @else {
-                Sin fechas registradas.
-              }
-            </div>
-          </div>
-        }
       </div>
+
+      <div class="text-sm text-gray-600 mt-1">
+        Días restantes: <span class="font-semibold">{{ diasRestantesPrincipalSig() }}</span>
+        · Nuevo inicio: <span class="font-semibold">{{ fechaInicioNuevaDateSig() | date: 'dd/MM/yyyy' }}</span>
+        · Nuevo vence: <span class="font-semibold">{{ fechaFinNuevaDateSig() | date: 'dd/MM/yyyy' }}</span>
+      </div>
+
+      <div class="text-xs text-ra-slate/70 mt-1">
+        En reinscripción adelantada no se permite cambiar de modalidad.
+      </div>
+
+      <!-- ✅ Estado asesoría nutricional: SOLO SI existe -->
+      @if (socioPrincipalSig().idSocio && estadoAsesoriaDe(socioPrincipalSig()!.idSocio!)) {
+      @let est = estadoAsesoriaDe(socioPrincipalSig()!.idSocio!)!;
+
+      <div class="mt-2 rounded-xl2 border border-gray-200 bg-white p-3">
+        <div class="flex items-center justify-between gap-2">
+          <div class="text-sm font-semibold text-ra-slate">Asesoría nutricional (Roberto)</div>
+
+          @if (est.estado === 'VIGENTE') {
+          <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">Vigente</span>
+          } @else if (est.estado === 'VENCIDA') {
+          <span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-800">Vencida</span>
+          } @else if (est.estado === 'DESACTIVADA') {
+          <span class="text-xs px-2 py-1 rounded-full bg-gray-200 text-ra-slate/80">Desactivada</span>
+          } @else if (est.estado === 'PROGRAMADA') {
+          <span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">Programada</span>
+          } @else {
+          <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-ra-slate/70">—</span>
+          }
+        </div>
+
+        <div class="mt-1 text-xs text-ra-slate/70">
+          @if (est.fechaInicio && est.fechaFin) {
+          Vigencia:
+          <span class="font-semibold">{{ est.fechaInicio }}</span>
+          →
+          <span class="font-semibold">{{ est.fechaFin }}</span>
+          } @else {
+          Sin fechas registradas.
+          }
+        </div>
+      </div>
+      }
+    </div>
     }
   </div>
 
   <!-- Card principal -->
   <div
-    class="mx-4 md:mx-8 rounded-xl2 bg-[color:var(--color-ra-white)] ring-1 ring-black/10 shadow-card overflow-hidden"
-  >
+    class="mx-4 md:mx-8 rounded-xl2 bg-[color:var(--color-ra-white)] ring-1 ring-black/10 shadow-card overflow-hidden">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4">
       <!-- Socio principal -->
       <section class="rounded-xl2 border border-gray-200 bg-gray-50 p-4">
         @if (!socioPrincipalSig()) {
-          <div class="text-center text-gray-600 py-8">Busca un socio para continuar…</div>
+        <div class="text-center text-gray-600 py-8">Busca un socio para continuar…</div>
         } @else {
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="row-span-3">
-              <div class="w-24 h-24 rounded-xl bg-gray-200 grid place-items-center text-gray-500">
-                <svg
-                  viewBox="0 0 24 24"
-                  class="w-10 h-10"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <circle cx="12" cy="8" r="4"></circle>
-                  <path
-                    d="M4 20c2.5-3 5-4 8-4s5.5 1 8 4"
-                    stroke-linecap="round"
-                  ></path>
-                </svg>
-              </div>
-            </div>
-
-            <input class="input-filled" [value]="socioPrincipalSig()!.nombre" readonly />
-            <input class="input-filled" [value]="socioPrincipalSig()!.apellido" readonly />
-            <input class="input-filled" [value]="socioPrincipalSig()!.telefono" readonly />
-            <input class="input-filled" [value]="socioPrincipalSig()!.email || '—'" readonly />
-            <input class="input-filled" [value]="socioPrincipalSig()!.direccion || '—'" readonly />
-
-            <div class="input-filled select-none text-gray-700">
-              {{ socioPrincipalSig()!.fechaNacimiento | date: 'dd/MM/yyyy' }}
-            </div>
-            <div class="input-filled select-none text-gray-700">
-              Sexo: {{ socioPrincipalSig()!.genero }}
-            </div>
-
-            <textarea
-              class="input-filled min-h-[80px] sm:col-span-2"
-              [value]="socioPrincipalSig()!.comentarios || '—'"
-              readonly
-            ></textarea>
-
-            <div class="sm:col-span-2">
-              <a
-                [routerLink]="['/pages/socio', socioPrincipalSig()!.idSocio, 'historial']"
-                class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 bg-white text-sm hover:bg-gray-50"
-              >
-                Ver historial →
-              </a>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="row-span-3">
+            <div class="w-24 h-24 rounded-xl bg-gray-200 grid place-items-center text-gray-500">
+              <svg viewBox="0 0 24 24" class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="8" r="4"></circle>
+                <path d="M4 20c2.5-3 5-4 8-4s5.5 1 8 4" stroke-linecap="round"></path>
+              </svg>
             </div>
           </div>
+
+          <input class="input-filled" [value]="socioPrincipalSig()!.nombre" readonly />
+          <input class="input-filled" [value]="socioPrincipalSig()!.apellido" readonly />
+          <input class="input-filled" [value]="socioPrincipalSig()!.telefono" readonly />
+          <input class="input-filled" [value]="socioPrincipalSig()!.email || '—'" readonly />
+          <input class="input-filled" [value]="socioPrincipalSig()!.direccion || '—'" readonly />
+
+          <div class="input-filled select-none text-gray-700">
+            {{ socioPrincipalSig()!.fechaNacimiento | date: 'dd/MM/yyyy' }}
+          </div>
+          <div class="input-filled select-none text-gray-700">
+            Sexo: {{ socioPrincipalSig()!.genero }}
+          </div>
+
+          <textarea class="input-filled min-h-[80px] sm:col-span-2" [value]="socioPrincipalSig()!.comentarios || '—'"
+            readonly></textarea>
+
+          <div class="sm:col-span-2">
+            <a [routerLink]="['/pages/socio', socioPrincipalSig()!.idSocio, 'historial']"
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 bg-white text-sm hover:bg-gray-50">
+              Ver historial →
+            </a>
+          </div>
+        </div>
         }
       </section>
 
@@ -175,273 +145,239 @@
         </div>
 
         @if (!vigentePrincipalSig()?.fechaFin) {
-          <div class="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-xl2 p-3">
-            Necesitas una membresía vigente para usar la reinscripción adelantada.
-          </div>
+        <div class="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-xl2 p-3">
+          Necesitas una membresía vigente para usar la reinscripción adelantada.
+        </div>
         } @else {
-          <form [formGroup]="form" class="space-y-3">
-            <!-- ✅ Paquete con buscador -->
-            <div (click)="$event.stopPropagation()">
-              <input type="hidden" formControlName="paqueteId" />
+        <form [formGroup]="form" class="space-y-3">
+          <!-- ✅ Paquete con buscador -->
+          <div (click)="$event.stopPropagation()">
+            <input type="hidden" formControlName="paqueteId" />
 
-              <label class="block text-sm font-medium mb-1">
-                Paquete (misma modalidad: {{ modalidadVigenteSig() }})
-              </label>
+            <label class="block text-sm font-medium mb-1">
+              Paquete (misma modalidad: {{ modalidadVigenteSig() }})
+            </label>
 
-              <div class="relative">
-                <input
-                  type="text"
-                  class="input-filled w-full pr-10"
-                  placeholder="Escribe para buscar paquete…"
-                  [value]="paqueteBusquedaSig()"
-                  (focus)="abrirDropdownPaquetes()"
-                  (input)="onPaqueteBusquedaChange($any($event.target).value)"
-                  [disabled]="paqueteBloqueadoSig() || cargandoPaquetes"
-                />
+            <div class="relative">
+              <input type="text" class="input-filled w-full pr-10" placeholder="Escribe para buscar paquete…"
+                [value]="paqueteBusquedaSig()" (focus)="abrirDropdownPaquetes()"
+                (input)="onPaqueteBusquedaChange($any($event.target).value)"
+                [disabled]="paqueteBloqueadoSig() || cargandoPaquetes" />
 
-                @if (!paqueteBloqueadoSig() && !cargandoPaquetes && paqueteBusquedaSig()) {
-                  <button
-                    type="button"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 grid place-items-center rounded-md hover:bg-gray-100"
-                    title="Limpiar"
-                    (click)="limpiarPaqueteSeleccionado($event)"
-                  >
-                    ✕
-                  </button>
-                }
-
-                @if (paqueteDropdownAbiertoSig() && !paqueteBloqueadoSig() && !cargandoPaquetes) {
-                  <div class="absolute z-50 mt-1 w-full rounded-xl2 border border-gray-200 bg-white shadow-card overflow-hidden">
-                    <div class="max-h-[280px] overflow-auto">
-                      @if (paquetesSugeridosSig().length === 0) {
-                        <div class="px-3 py-2 text-sm text-ra-slate/70">Sin resultados.</div>
-                      } @else {
-                        @for (p of paquetesSugeridosSig(); track p.idPaquete) {
-                          <button
-                            type="button"
-                            class="w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                            (click)="seleccionarPaqueteDesdeBusqueda(p, $event)"
-                          >
-                            <div class="flex items-start justify-between gap-2">
-                              <div class="min-w-0">
-                                <div class="font-semibold text-ra-slate truncate">
-                                  {{ p.nombre }}
-                                </div>
-                                <div class="text-[11px] text-ra-slate/70 mt-0.5">
-                                  {{ p.tiempo | tiempoPlan }}
-                                </div>
-                              </div>
-
-                              <div class="text-sm font-semibold text-ra-slate whitespace-nowrap">
-                                ${{ (p.precio || 0) | number: '1.2-2' }}
-                              </div>
-                            </div>
-                          </button>
-                        }
-                      }
-                    </div>
-                  </div>
-                }
-              </div>
-
-              @if (paqueteBloqueadoSig()) {
-                <div class="mt-1 flex items-center justify-between">
-                  <div class="text-xs text-ra-slate/70">
-                    Paquete seleccionado automáticamente por la membresía vigente. (Bloqueado)
-                  </div>
-                  <button
-                    type="button"
-                    class="text-xs underline text-ra-slate/80 hover:text-ra-slate"
-                    (click)="desbloquearPaquete()"
-                  >
-                    Cambiar paquete
-                  </button>
-                </div>
-              } @else {
-                <div class="mt-1 text-xs text-ra-slate/70">
-                  Solo se muestran paquetes compatibles con modalidad: <span class="font-semibold">{{ modalidadVigenteSig() }}</span>.
-                </div>
+              @if (!paqueteBloqueadoSig() && !cargandoPaquetes && paqueteBusquedaSig()) {
+              <button type="button"
+                class="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 grid place-items-center rounded-md hover:bg-gray-100"
+                title="Limpiar" (click)="limpiarPaqueteSeleccionado($event)">
+                ✕
+              </button>
               }
-            </div>
 
-            <!-- Info del paquete -->
-            @if (paqueteActualSig()) {
-              <div class="summary-box">
-                <div class="flex items-center justify-between">
-                  <div class="font-semibold">{{ paqueteActualSig()!.nombre }}</div>
-                  <div>${{ precioPaqueteSig() | number: '1.2-2' }}</div>
-                </div>
-                <div class="text-sm text-gray-600 mt-1">
-                  Tiempo: {{ paqueteActualSig()!.tiempo | tiempoPlan }}
-                </div>
-              </div>
-            }
-
-            <!-- Descuento -->
-            <div>
-              <label class="block text-sm font-medium mb-1">Descuento (por integrante)</label>
-              <input
-                type="number"
-                step="0.01"
-                formControlName="descuento"
-                class="input-filled"
-                placeholder="0.00"
-              />
-            </div>
-
-            <!-- Fechas -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-sm font-medium mb-1">Fecha de inicio</label>
-                <input type="date" class="input-filled" formControlName="fechaInicio" />
-              </div>
-
-              <div>
-                <label class="block text-sm font-medium mb-1">Nuevo vence</label>
-                <div class="input-filled bg-gray-100 pointer-events-none select-none">
-                  {{ fechaFinNuevaDateSig() | date: 'dd/MM/yyyy' }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Integrantes (solo grupal) -->
-            @if (esGrupalSig()) {
-              <div class="rounded-xl2 border border-gray-200 bg-gray-50 p-3">
-                <div class="flex items-center justify-between gap-3">
-                  <div>
-                    <div class="text-sm font-semibold text-ra-slate">Integrantes del paquete</div>
-                    <div class="text-xs text-ra-slate/70">
-                      Deben tener <span class="font-semibold">misma modalidad</span> y
-                      <span class="font-semibold">misma fecha de vencimiento</span> que el socio principal.
-                    </div>
-                  </div>
-
-                  <div class="text-xs text-ra-slate/70 whitespace-nowrap">
-                    Faltan: <span class="font-semibold">{{ faltanIntegrantesSig() }}</span>
-                    · Sin pago: <span class="font-semibold">{{ faltanPagosSig() }}</span>
-                  </div>
-                </div>
-
-                <div class="mt-3 grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2 items-stretch">
-                  <input
-                    type="number"
-                    min="1"
-                    [formControl]="miembroBuscarIdCtrl"
-                    class="input-filled"
-                    placeholder="ID del integrante (ej. 123)"
-                  />
-
-                  <button type="button" class="btn-primary-red" (click)="agregarMiembroPorId()">
-                    Agregar por ID
-                  </button>
-
-                  <button
-                    type="button"
-                    class="px-4 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50"
-                    (click)="abrirHuellaMiembro()"
-                  >
-                    Por huella
-                  </button>
-                </div>
-
-                <div class="mt-3 space-y-2">
-                  @for (m of miembrosSig(); track m.socio.idSocio) {
-                    <div
-                      class="flex items-center justify-between gap-2 rounded-lg bg-white border border-gray-200 px-3 py-2"
-                    >
+              @if (paqueteDropdownAbiertoSig() && !paqueteBloqueadoSig() && !cargandoPaquetes) {
+              <div
+                class="absolute z-50 mt-1 w-full rounded-xl2 border border-gray-200 bg-white shadow-card overflow-hidden">
+                <div class="max-h-[280px] overflow-auto">
+                  @if (paquetesSugeridosSig().length === 0) {
+                  <div class="px-3 py-2 text-sm text-ra-slate/70">Sin resultados.</div>
+                  } @else {
+                  @for (p of paquetesSugeridosSig(); track p.idPaquete) {
+                  <button type="button"
+                    class="w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                    (click)="seleccionarPaqueteDesdeBusqueda(p, $event)">
+                    <div class="flex items-start justify-between gap-2">
                       <div class="min-w-0">
-                        <div class="text-sm font-semibold text-ra-slate truncate">
-                          {{ m.socio.nombre }} {{ m.socio.apellido }}
-                          @if (m.principal) {
-                            <span class="text-xs font-normal text-ra-slate/60"> (principal)</span>
-                          }
+                        <div class="font-semibold text-ra-slate truncate">
+                          {{ p.nombre }}
                         </div>
-
-                        <div class="text-xs text-ra-slate/70">
-                          ID: {{ m.socio.idSocio }}
-                          · Vence: {{ m.vigente?.fechaFin | date: 'dd/MM/yyyy' }}
+                        <div class="text-[11px] text-ra-slate/70 mt-0.5">
+                          {{ p.tiempo | tiempoPlan }}
                         </div>
-
-                        @if (estadoAsesoriaDe(m.socio.idSocio!)) {
-                          @let e = estadoAsesoriaDe(m.socio.idSocio!)!;
-                          <div class="mt-1 text-[11px] text-ra-slate/70">
-                            Asesoría:
-                            @if (e.estado === 'VIGENTE') {
-                              <span class="font-semibold text-green-700">Vigente</span>
-                            } @else if (e.estado === 'VENCIDA') {
-                              <span class="font-semibold text-red-700">Vencida</span>
-                            } @else if (e.estado === 'DESACTIVADA') {
-                              <span class="font-semibold text-ra-slate/70">Desactivada</span>
-                            } @else if (e.estado === 'PROGRAMADA') {
-                              <span class="font-semibold text-amber-700">Programada</span>
-                            } @else {
-                              <span class="font-semibold">—</span>
-                            }
-
-                            @if (e.fechaFin) {
-                              <span class="ml-1">· Fin: {{ e.fechaFin }}</span>
-                            }
-                          </div>
-                        }
                       </div>
 
-                      <div class="flex items-center gap-2">
-                        @if (m.pagos?.length) {
-                          <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">Pago ✓</span>
-                        } @else {
-                          <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-ra-slate/70">Sin pago</span>
-                        }
-
-                        <button
-                          type="button"
-                          class="px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 text-sm"
-                          (click)="abrirResumenParaIndex($index)"
-                        >
-                          @if (m.pagos?.length) { Editar pago } @else { Cobrar }
-                        </button>
-
-                        <button
-                          type="button"
-                          class="px-3 py-1.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
-                          (click)="quitarMiembro(m.socio.idSocio!)"
-                          [disabled]="m.principal"
-                        >
-                          Quitar
-                        </button>
+                      <div class="text-sm font-semibold text-ra-slate whitespace-nowrap">
+                        ${{ (p.precio || 0) | number: '1.2-2' }}
                       </div>
                     </div>
+                  </button>
+                  }
                   }
                 </div>
               </div>
-            }
+              }
+            </div>
 
-            <!-- Total -->
-            <div class="summary-box">
-              <div class="flex items-center justify-between">
-                <div class="font-semibold">Total (por integrante)</div>
-                <div class="font-bold">${{ totalPorSocioSig() | number: '1.2-2' }}</div>
+            @if (paqueteBloqueadoSig()) {
+            <div class="mt-1 flex items-center justify-between">
+              <div class="text-xs text-ra-slate/70">
+                Paquete seleccionado automáticamente por la membresía vigente. (Bloqueado)
+              </div>
+              <button type="button" class="text-xs underline text-ra-slate/80 hover:text-ra-slate"
+                (click)="desbloquearPaquete()">
+                Cambiar paquete
+              </button>
+            </div>
+            } @else {
+            <div class="mt-1 text-xs text-ra-slate/70">
+              Solo se muestran paquetes compatibles con modalidad: <span class="font-semibold">{{ modalidadVigenteSig()
+                }}</span>.
+            </div>
+            }
+          </div>
+
+          <!-- Info del paquete -->
+          @if (paqueteActualSig()) {
+          <div class="summary-box">
+            <div class="flex items-center justify-between">
+              <div class="font-semibold">{{ paqueteActualSig()!.nombre }}</div>
+              <div>${{ precioPaqueteSig() | number: '1.2-2' }}</div>
+            </div>
+            <div class="text-sm text-gray-600 mt-1">
+              Tiempo: {{ paqueteActualSig()!.tiempo | tiempoPlan }}
+            </div>
+          </div>
+          }
+
+          <!-- Descuento -->
+          <div>
+            <label class="block text-sm font-medium mb-1">Descuento (por integrante)</label>
+            <input type="number" step="0.01" formControlName="descuento" class="input-filled" placeholder="0.00"
+              (input)="onDescuentoInput($any($event.target).value)"
+              (blur)="onDescuentoInput($any($event.target).value)" />
+
+          </div>
+
+          <!-- Fechas -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">Fecha de inicio</label>
+              <input type="date" class="input-filled" formControlName="fechaInicio" />
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium mb-1">Nuevo vence</label>
+              <div class="input-filled bg-gray-100 pointer-events-none select-none">
+                {{ fechaFinNuevaDateSig() | date: 'dd/MM/yyyy' }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Integrantes (solo grupal) -->
+          @if (esGrupalSig()) {
+          <div class="rounded-xl2 border border-gray-200 bg-gray-50 p-3">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="text-sm font-semibold text-ra-slate">Integrantes del paquete</div>
+                <div class="text-xs text-ra-slate/70">
+                  Deben tener <span class="font-semibold">misma modalidad</span> y
+                  <span class="font-semibold">misma fecha de vencimiento</span> que el socio principal.
+                </div>
+              </div>
+
+              <div class="text-xs text-ra-slate/70 whitespace-nowrap">
+                Faltan: <span class="font-semibold">{{ faltanIntegrantesSig() }}</span>
+                · Sin pago: <span class="font-semibold">{{ faltanPagosSig() }}</span>
               </div>
             </div>
 
-            @if (mensajeError) {
-              <div class="text-sm text-red-600">{{ mensajeError }}</div>
-            }
+            <div class="mt-3 grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2 items-stretch">
+              <input type="number" min="1" [formControl]="miembroBuscarIdCtrl" class="input-filled"
+                placeholder="ID del integrante (ej. 123)" />
 
-            @if (bloqueoAntesDeCobrarSig()) {
-              <div class="text-sm text-red-600">{{ bloqueoAntesDeCobrarSig() }}</div>
-            }
+              <button type="button" class="btn-primary-red" (click)="agregarMiembroPorId()">
+                Agregar por ID
+              </button>
 
-            <div class="pt-2">
-              <button
-                type="button"
-                class="btn-primary-red w-full"
-                (click)="abrirResumen()"
-                [disabled]="guardando || validandoAsesoriaSig() || !!bloqueoAntesDeCobrarSig()"
-              >
-                {{ validandoAsesoriaSig() ? 'Validando asesoría…' : 'Continuar con el pago' }}
+              <button type="button" class="px-4 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50"
+                (click)="abrirHuellaMiembro()">
+                Por huella
               </button>
             </div>
-          </form>
+
+            <div class="mt-3 space-y-2">
+              @for (m of miembrosSig(); track m.socio.idSocio) {
+              <div class="flex items-center justify-between gap-2 rounded-lg bg-white border border-gray-200 px-3 py-2">
+                <div class="min-w-0">
+                  <div class="text-sm font-semibold text-ra-slate truncate">
+                    {{ m.socio.nombre }} {{ m.socio.apellido }}
+                    @if (m.principal) {
+                    <span class="text-xs font-normal text-ra-slate/60"> (principal)</span>
+                    }
+                  </div>
+
+                  <div class="text-xs text-ra-slate/70">
+                    ID: {{ m.socio.idSocio }}
+                    · Vence: {{ m.vigente?.fechaFin | date: 'dd/MM/yyyy' }}
+                  </div>
+
+                  @if (estadoAsesoriaDe(m.socio.idSocio!)) {
+                  @let e = estadoAsesoriaDe(m.socio.idSocio!)!;
+                  <div class="mt-1 text-[11px] text-ra-slate/70">
+                    Asesoría:
+                    @if (e.estado === 'VIGENTE') {
+                    <span class="font-semibold text-green-700">Vigente</span>
+                    } @else if (e.estado === 'VENCIDA') {
+                    <span class="font-semibold text-red-700">Vencida</span>
+                    } @else if (e.estado === 'DESACTIVADA') {
+                    <span class="font-semibold text-ra-slate/70">Desactivada</span>
+                    } @else if (e.estado === 'PROGRAMADA') {
+                    <span class="font-semibold text-amber-700">Programada</span>
+                    } @else {
+                    <span class="font-semibold">—</span>
+                    }
+
+                    @if (e.fechaFin) {
+                    <span class="ml-1">· Fin: {{ e.fechaFin }}</span>
+                    }
+                  </div>
+                  }
+                </div>
+
+                <div class="flex items-center gap-2">
+                  @if (m.pagos?.length) {
+                  <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">Pago ✓</span>
+                  } @else {
+                  <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-ra-slate/70">Sin pago</span>
+                  }
+
+                  <button type="button" class="px-3 py-1.5 rounded-md bg-red-600 text-white hover:bg-red-700 text-sm"
+                    (click)="abrirResumenParaIndex($index)">
+                    @if (m.pagos?.length) { Editar pago } @else { Cobrar }
+                  </button>
+
+                  <button type="button"
+                    class="px-3 py-1.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
+                    (click)="quitarMiembro(m.socio.idSocio!)" [disabled]="m.principal">
+                    Quitar
+                  </button>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+          }
+
+          <!-- Total -->
+          <div class="summary-box">
+            <div class="flex items-center justify-between">
+              <div class="font-semibold">Total (por integrante)</div>
+              <div class="font-bold">${{ totalPorSocioSig() | number: '1.2-2' }}</div>
+            </div>
+          </div>
+
+          @if (mensajeError) {
+          <div class="text-sm text-red-600">{{ mensajeError }}</div>
+          }
+
+          @if (bloqueoAntesDeCobrarSig()) {
+          <div class="text-sm text-red-600">{{ bloqueoAntesDeCobrarSig() }}</div>
+          }
+
+          <div class="pt-2">
+            <button type="button" class="btn-primary-red w-full" (click)="abrirResumen()"
+              [disabled]="guardando || validandoAsesoriaSig() || !!bloqueoAntesDeCobrarSig()">
+              {{ validandoAsesoriaSig() ? 'Validando asesoría…' : 'Continuar con el pago' }}
+            </button>
+          </div>
+        </form>
         }
       </section>
     </div>
@@ -449,32 +385,24 @@
 
   <!-- Modal resumen -->
   @if (mostrarResumen()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center" (click)="cerrarResumen()">
-      <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
+  <div class="fixed inset-0 z-50 flex items-center justify-center" (click)="cerrarResumen()">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
 
-      <div class="relative z-10 w-full max-w-[560px] mx-4" (click)="$event.stopPropagation()">
-        @let slot = socioCobrandoSig();
-        @if (slot) {
-          <app-resumen-compra
-            [socioNombre]="socioCobrandoNombreSig()"
-            [fechaPago]="finNuevoDate(slot) ?? todayDate"
-            [concepto]="conceptoResumenSig()"
-            [montoPaquete]="precioPaqueteSig()"
-            [montoInscripcion]="0"
-            [descuento]="form.controls.descuento.value"
-            [total]="totalPorSocioSig()"
-            [guardando]="guardando"
-            (cancelar)="cerrarResumen()"
-            (confirmar)="confirmarPago($event)"
-          >
-          </app-resumen-compra>
-        }
-      </div>
+    <div class="relative z-10 w-full max-w-[560px] mx-4" (click)="$event.stopPropagation()">
+      @let slot = socioCobrandoSig();
+      @if (slot) {
+      <app-resumen-compra [socioNombre]="socioCobrandoNombreSig()" [fechaPago]="finNuevoDate(slot) ?? todayDate"
+        [concepto]="conceptoResumenSig()" [montoPaquete]="precioPaqueteSig()" [montoInscripcion]="0"
+        [descuento]="form.controls.descuento.value" [total]="totalPorSocioSig()" [guardando]="guardando"
+        (cancelar)="cerrarResumen()" (confirmar)="confirmarPago($event)">
+      </app-resumen-compra>
+      }
     </div>
+  </div>
   }
 
   <!-- Modal huella -->
   @if (mostrarModalHuella()) {
-    <app-huella-modal (cancelar)="cerrarHuella()" (confirmar)="confirmarHuella($event)"></app-huella-modal>
+  <app-huella-modal (cancelar)="cerrarHuella()" (confirmar)="confirmarHuella($event)"></app-huella-modal>
   }
 </div>

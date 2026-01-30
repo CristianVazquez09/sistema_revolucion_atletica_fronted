@@ -1,5 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  OnDestroy,
+  ElementRef,
+  ViewChild,
+  inject,
+  signal,
+  computed,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -9,16 +19,16 @@ import { PagoData } from 'src/app/model/membresia-data';
 import { EntrenadorData } from 'src/app/model/entrenador-data';
 
 import { EntrenadorService } from 'src/app/services/entrenador-service';
+import { MenuService } from 'src/app/services/menu-service';
 
 @Component({
   selector: 'app-entrenador-info-asesoria',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './entrenador-info-asesoria.html',
-  styleUrl: './entrenador-info-asesoria.css'
+  styleUrl: './entrenador-info-asesoria.css',
 })
-export class EntrenadorInfoAsesoria implements OnInit {
-
+export class EntrenadorInfoAsesoria implements OnInit, AfterViewInit, OnDestroy {
   idEntrenador!: number;
 
   // header
@@ -26,30 +36,130 @@ export class EntrenadorInfoAsesoria implements OnInit {
   entrenadorTelefono: string | null = null;
 
   // data
-  private asesoriasAll: AsesoriaContratoData[] = []; // 👈 todas (sin paginar)
-  asesorias: AsesoriaContratoData[] = [];            // 👈 página visible
+  private asesoriasAll: AsesoriaContratoData[] = []; // todas (sin paginar)
+  asesorias: AsesoriaContratoData[] = []; // página visible
 
   // UI
   cargando = true;
   error: string | null = null;
 
   // paginación (client-side)
-  pagina = 0;          // 0-based
+  pagina = 0; // 0-based
   tamanio = 10;
   totalPaginas = 0;
   totalElementos = 0;
   tamaniosDisponibles = [5, 10, 20, 50];
 
-  constructor(
-    private route: ActivatedRoute,
-    private entrenadorSrv: EntrenadorService
-  ) {}
+  
+
+
+    // ✅ menu
+  private menuSrv = inject(MenuService);
+  menuAbierto = this.menuSrv.menuAbierto;
+
+  // ✅ breakpoint 2XL (2xl = 1536px). "XL para abajo" => !es2xlUp()
+es2xlUp = signal(
+  typeof window !== 'undefined'
+    ? window.matchMedia('(min-width: 1536px)').matches
+    : false
+);
+
+
+  // ✅ Ocultar Pagos SOLO en XL para abajo, y solo si menú está abierto
+mostrarPagosCol = computed(() => {
+  if (this.es2xlUp()) return true;     // 2XL+ => nunca ocultar
+  return !this.menuAbierto();          // XL- => ocultar cuando menú abierto
+});
+
+
+  get tablaMinWidth(): string {
+  return this.mostrarPagosCol() ? 'min-w-[1100px]' : 'min-w-[850px]';
+}
+
+
+  // ===================== ZOOM / LAYOUT =====================
+  @ViewChild('zoomOuter', { static: true }) zoomOuter!: ElementRef<HTMLElement>;
+
+  uiZoom = 1;
+  asesoriasMaxH = 650;
+  private ro?: ResizeObserver;
+
+  private readonly MIN_ZOOM = 0.78;
+  private readonly MAX_ZOOM = 1.0;
+
+  // ...tu código existente...
+
+  private applyLayout = (): void => {
+    if (typeof window === 'undefined') return;
+
+    // ✅ refrescar breakpoint
+    this.es2xlUp.set(window.matchMedia('(min-width: 1536px)').matches);
+
+
+    // Mobile: no encoger
+    const isMdUp = window.matchMedia('(min-width: 768px)').matches;
+    if (!isMdUp) {
+      this.uiZoom = 1;
+      const offsetMobile = 220;
+      const available = window.innerHeight - offsetMobile;
+      this.asesoriasMaxH = Math.max(420, Math.floor(available));
+      return;
+    }
+
+    const w = this.zoomOuter.nativeElement.clientWidth;
+    const design = 1500;
+    const z = Math.min(this.MAX_ZOOM, Math.max(this.MIN_ZOOM, w / design));
+    this.uiZoom = Math.round(z * 100) / 100;
+
+    const offsetDesktop = 260;
+    const available = window.innerHeight - offsetDesktop;
+    this.asesoriasMaxH = Math.max(420, Math.floor(available / this.uiZoom));
+  };
+
+  constructor(private route: ActivatedRoute, private entrenadorSrv: EntrenadorService) {}
 
   ngOnInit(): void {
     this.idEntrenador = Number(this.route.snapshot.paramMap.get('idEntrenador'));
     this.cargarHeaderEntrenador();
     this.cargar();
   }
+
+  ngAfterViewInit(): void {
+    this.applyLayout();
+
+    if (typeof ResizeObserver !== 'undefined') {
+      this.ro = new ResizeObserver(() => this.applyLayout());
+      this.ro.observe(this.zoomOuter.nativeElement);
+    }
+
+    window.addEventListener('resize', this.applyLayout);
+  }
+
+  ngOnDestroy(): void {
+    this.ro?.disconnect();
+    window.removeEventListener('resize', this.applyLayout);
+  }
+
+  private clamp(n: number, min: number, max: number): number {
+    return Math.min(max, Math.max(min, n));
+  }
+
+  private round2(n: number): number {
+    return Math.round(n * 100) / 100;
+  }
+
+  private isMdUp(): boolean {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(min-width: 768px)').matches;
+  }
+
+  private getDesignWidth(): number {
+    // Ajusta este número si quieres que encoga más/menos.
+    // Entre más alto, más reduce el zoom en pantallas pequeñas.
+    return 1500;
+  }
+
+ 
 
   /* =================== Header (nombre/teléfono) =================== */
 
@@ -59,12 +169,10 @@ export class EntrenadorInfoAsesoria implements OnInit {
     this.entrenadorNombre =
       nombre || (e?.idEntrenador ? `Entrenador ${e.idEntrenador}` : this.entrenadorNombre);
 
-    // OJO: si tu entrenador no tiene teléfono, esto quedará en '—' en el HTML
     this.entrenadorTelefono = e?.telefono ?? this.entrenadorTelefono ?? null;
   }
 
   private cargarHeaderEntrenador(): void {
-    // Si tu GenericService expone getById/obtenerPorId, úsalo. Si no, no pasa nada.
     const req =
       (this.entrenadorSrv as any).obtenerPorId?.(this.idEntrenador) ??
       (this.entrenadorSrv as any).getById?.(this.idEntrenador) ??
@@ -73,7 +181,9 @@ export class EntrenadorInfoAsesoria implements OnInit {
     if (req?.subscribe) {
       req.subscribe({
         next: (e: EntrenadorData) => this.setHeaderFromEntrenador(e),
-        error: () => { /* silencioso */ }
+        error: () => {
+          /* silencioso */
+        },
       });
     }
   }
@@ -96,26 +206,22 @@ export class EntrenadorInfoAsesoria implements OnInit {
     this.cargando = true;
     this.error = null;
 
-    // ✅ Método real del service (regresa arreglo)
-    this.entrenadorSrv.listarAsesoriasActivas(this.idEntrenador)
-      .pipe(finalize(() => this.cargando = false))
+    this.entrenadorSrv
+      .listarAsesoriasActivas(this.idEntrenador)
+      .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (data: AsesoriaContratoData[]) => {
           this.asesoriasAll = data ?? [];
 
           this.totalElementos = this.asesoriasAll.length;
-          this.totalPaginas = this.tamanio > 0
-            ? Math.ceil(this.totalElementos / this.tamanio)
-            : 0;
+          this.totalPaginas = this.tamanio > 0 ? Math.ceil(this.totalElementos / this.tamanio) : 0;
 
-          // Ajuste de página si queda fuera de rango
           if (this.totalPaginas === 0) {
             this.pagina = 0;
           } else if (this.pagina >= this.totalPaginas) {
             this.pagina = this.totalPaginas - 1;
           }
 
-          // Fallback header desde data (si no pegó el endpoint getById)
           if (!this.entrenadorNombre) {
             const e: any = this.asesoriasAll[0]?.entrenador;
             if (e) this.setHeaderFromEntrenador(e);
@@ -126,7 +232,7 @@ export class EntrenadorInfoAsesoria implements OnInit {
         error: (err: unknown) => {
           console.error(err);
           this.error = 'No se pudieron cargar las asesorías del entrenador.';
-        }
+        },
       });
   }
 
@@ -142,16 +248,26 @@ export class EntrenadorInfoAsesoria implements OnInit {
     this.tamanio = Number(nuevo);
     this.pagina = 0;
 
-    this.totalPaginas = this.tamanio > 0
-      ? Math.ceil(this.totalElementos / this.tamanio)
-      : 0;
+    this.totalPaginas = this.tamanio > 0 ? Math.ceil(this.totalElementos / this.tamanio) : 0;
 
     this.aplicarPaginacion();
   }
 
-  irPrimera(): void { if (this.pagina === 0) return; this.pagina = 0; this.aplicarPaginacion(); }
-  irAnterior(): void { if (this.pagina === 0) return; this.pagina--; this.aplicarPaginacion(); }
-  irSiguiente(): void { if (this.pagina + 1 >= this.totalPaginas) return; this.pagina++; this.aplicarPaginacion(); }
+  irPrimera(): void {
+    if (this.pagina === 0) return;
+    this.pagina = 0;
+    this.aplicarPaginacion();
+  }
+  irAnterior(): void {
+    if (this.pagina === 0) return;
+    this.pagina--;
+    this.aplicarPaginacion();
+  }
+  irSiguiente(): void {
+    if (this.pagina + 1 >= this.totalPaginas) return;
+    this.pagina++;
+    this.aplicarPaginacion();
+  }
   irUltima(): void {
     if (this.totalPaginas === 0) return;
     if (this.pagina === this.totalPaginas - 1) return;
@@ -172,19 +288,23 @@ export class EntrenadorInfoAsesoria implements OnInit {
     return String(t ?? '')
       .replace(/_/g, ' ')
       .toLowerCase()
-      .replace(/\b\w/g, c => c.toUpperCase());
+      .replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
   pagosConMonto(pagos?: PagoData[] | null): PagoData[] {
-    return (pagos ?? []).filter(p => Number(p?.monto) > 0);
+    return (pagos ?? []).filter((p) => Number(p?.monto) > 0);
   }
 
   labelPago(tipo: PagoData['tipoPago'] | string): string {
     switch (tipo) {
-      case 'EFECTIVO': return 'Efectivo';
-      case 'TARJETA': return 'Tarjeta';
-      case 'TRANSFERENCIA': return 'Transferencia';
-      default: return String(tipo);
+      case 'EFECTIVO':
+        return 'Efectivo';
+      case 'TARJETA':
+        return 'Tarjeta';
+      case 'TRANSFERENCIA':
+        return 'Transferencia';
+      default:
+        return String(tipo);
     }
   }
 
@@ -204,4 +324,6 @@ export class EntrenadorInfoAsesoria implements OnInit {
     const s = a.socio as any;
     return s?.email || '—';
   }
+
+  
 }

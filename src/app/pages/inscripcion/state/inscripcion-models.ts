@@ -1,11 +1,11 @@
-// src/app/pages/inscripcion/state/inscripcion.models.ts
+// src/app/pages/inscripcion/state/inscripcion-models.ts
 import { PaqueteData } from '../../../model/paquete-data';
 
 export interface InscripcionState {
   listaPaquetes: PaqueteData[];
-  paqueteId: number;       // seleccionado
-  descuento: number;       // %
-  fechaInicio: string;     // ISO (YYYY-MM-DD)
+  paqueteId: number;   // seleccionado
+  descuento: number;   // ✅ MONTO
+  fechaInicio: string; // ISO (YYYY-MM-DD)
 }
 
 export const initialInscripcionState: InscripcionState = {

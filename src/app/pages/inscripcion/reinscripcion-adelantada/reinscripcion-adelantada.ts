@@ -1,3 +1,5 @@
+// src/app/pages/reinscripcion-adelantada/reinscripcion-adelantada.ts
+
 import {
   Component,
   DestroyRef,
@@ -143,18 +145,43 @@ export class ReinscripcionAdelantada implements OnInit {
   paqueteBloqueadoSig = signal<boolean>(false);
 
   // =========================
-  // ✅ BUSCADOR DE PAQUETES (NUEVO)
+  // ✅ BUSCADOR DE PAQUETES
   // =========================
   paqueteBusquedaSig = signal<string>('');
   paqueteDropdownAbiertoSig = signal<boolean>(false);
   paqueteIdSig = signal<number>(0);
 
-private setPaqueteId(id: number, emitEvent = true): void {
-  const v = Number(id ?? 0);
-  this.paqueteIdSig.set(v);
-  this.form.controls.paqueteId.setValue(v, { emitEvent });
-}
+  private setPaqueteId(id: number, emitEvent = true): void {
+    const v = Number(id ?? 0);
+    this.paqueteIdSig.set(v);
+    this.form.controls.paqueteId.setValue(v, { emitEvent });
+    this.form.controls.paqueteId.updateValueAndValidity({ emitEvent });
+  }
 
+  // =========================
+  // ✅ DESCUENTO (EN CALIENTE)
+  // =========================
+  descuentoUiSig = signal<number>(0);
+
+  private normalizarMonto(raw: any): number {
+    const n = Number(raw);
+    return Number.isFinite(n) ? Math.max(0, n) : 0;
+  }
+
+  /** Se llama desde (input) y (blur) del <input type="number"> */
+  onDescuentoInput(raw: any): void {
+    const val = this.normalizarMonto(raw);
+
+    // 🔥 set al form SIN esperar blur
+    this.form.controls.descuento.setValue(val, { emitEvent: false });
+    this.form.controls.descuento.updateValueAndValidity({ emitEvent: false });
+
+    // ✅ fuente única para cálculos
+    this.descuentoUiSig.set(val);
+
+    // ✅ si cambia total, invalida pagos capturados
+    this.limpiarPagos();
+  }
 
   // ===================== Controls =====================
   formBuscar = this.fb.group({
@@ -211,9 +238,9 @@ private setPaqueteId(id: number, emitEvent = true): void {
   esGrupalSig = computed(() => this.requeridoSig() > 1);
 
   paqueteActualSig = computed(() => {
-  const id = Number(this.paqueteIdSig() ?? 0);
-  return (this.listaPaquetesSig() ?? []).find(p => Number((p as any)?.idPaquete) === id) ?? null;
-});
+    const id = Number(this.paqueteIdSig() ?? 0);
+    return (this.listaPaquetesSig() ?? []).find(p => Number((p as any)?.idPaquete) === id) ?? null;
+  });
 
   modalidadSeleccionadaSig = computed<Modalidad>(() => this.modalidadPaquete(this.paqueteActualSig()));
 
@@ -268,7 +295,9 @@ private setPaqueteId(id: number, emitEvent = true): void {
   fechaFinNuevaDateSig = computed(() => parseLocalDate(this.fechaFinNuevaIsoSig()));
 
   precioPaqueteSig = computed(() => Number(this.paqueteActualSig()?.precio ?? 0));
-  descuentoSig = computed(() => Number(this.form.controls.descuento.value ?? 0));
+
+  // ✅ descuento SIEMPRE desde signal (no depende del blur del input number)
+  descuentoSig = computed(() => this.descuentoUiSig());
 
   totalPorSocioSig = computed(() => {
     const total = this.precioPaqueteSig() - this.descuentoSig();
@@ -286,7 +315,7 @@ private setPaqueteId(id: number, emitEvent = true): void {
   });
 
   // =====================
-  // ✅ BLOQUEOS SEPARADOS (FIX)
+  // ✅ BLOQUEOS SEPARADOS
   // =====================
   bloqueoAntesDeCobrarSig = computed(() => {
     const principal = this.vigentePrincipalSig();
@@ -463,7 +492,9 @@ private setPaqueteId(id: number, emitEvent = true): void {
           const socio = slots[i].socio;
           const dto = arr[i];
 
-          const nombre = `${socio?.nombre ?? ''} ${socio?.apellido ?? ''}`.trim() || `ID ${socio?.idSocio ?? ''}`;
+          const nombre =
+            `${socio?.nombre ?? ''} ${socio?.apellido ?? ''}`.trim() ||
+            `ID ${socio?.idSocio ?? ''}`;
 
           if (!dto?.asesorado) {
             this.mensajeError = `El socio "${nombre}" no tiene asesoría nutricional registrada con Roberto. No se puede continuar.`;
@@ -521,7 +552,6 @@ private setPaqueteId(id: number, emitEvent = true): void {
 
     this.paqueteBusquedaSig.set(v);
     this.paqueteDropdownAbiertoSig.set(true);
-
     // si el usuario borra todo, no cambiamos paquete automáticamente
   }
 
@@ -535,8 +565,8 @@ private setPaqueteId(id: number, emitEvent = true): void {
       return;
     }
 
-    // ✅ setValue con emitEvent true para disparar enforce/limpiar pagos
-    this.form.controls.paqueteId.setValue(id, { emitEvent: true });
+    // ✅ dispara enforce/limpiar pagos
+    this.setPaqueteId(id, true);
 
     // sincroniza texto
     this.paqueteBusquedaSig.set(this.paqueteLabel(p));
@@ -550,18 +580,24 @@ private setPaqueteId(id: number, emitEvent = true): void {
     if (this.paqueteBloqueadoSig() || this.cargandoPaquetes) return;
 
     this.setPaqueteId(0, true);
-this.paqueteBusquedaSig.set('');
-this.paqueteDropdownAbiertoSig.set(false);
-
+    this.paqueteBusquedaSig.set('');
+    this.paqueteDropdownAbiertoSig.set(false);
   }
 
   // ===================== Lifecycle =====================
   ngOnInit(): void {
     this.cargarContextoDesdeToken();
 
+    // ✅ init signals
+    this.paqueteIdSig.set(Number(this.form.controls.paqueteId.value ?? 0));
+    this.descuentoUiSig.set(this.normalizarMonto(this.form.controls.descuento.value ?? 0));
+
+    // ✅ paqueteId changes (UNA SOLA VEZ)
     this.form.controls.paqueteId.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
+      .subscribe((v) => {
+        this.paqueteIdSig.set(Number(v ?? 0));
+
         this.enforceModalidadSeleccionada();
         this.limpiarPagos();
         this.refrescarEstadosAsesoria();
@@ -570,28 +606,18 @@ this.paqueteDropdownAbiertoSig.set(false);
         this.syncPaqueteBusquedaConSeleccion();
       });
 
-      // ✅ inicializa signal con el valor actual del form
-this.paqueteIdSig.set(Number(this.form.controls.paqueteId.value ?? 0));
-
-this.form.controls.paqueteId.valueChanges
-  .pipe(takeUntilDestroyed(this.destroyRef))
-  .subscribe((v) => {
-    this.paqueteIdSig.set(Number(v ?? 0));
-
-    this.enforceModalidadSeleccionada();
-    this.limpiarPagos();
-    this.refrescarEstadosAsesoria();
-    this.syncPaqueteBusquedaConSeleccion();
-  });
-
-
+    // ✅ respaldo: cambios programáticos con emitEvent:true
     this.form.controls.descuento.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.limpiarPagos());
+      .subscribe((v) => {
+        this.descuentoUiSig.set(this.normalizarMonto(v));
+        this.limpiarPagos();
+      });
 
     // Cargar paquetes
     this.cargandoPaquetes = true;
     this.errorPaquetes = null;
+
     this.paqueteSrv.buscarTodos().subscribe({
       next: (lista) => {
         const activos = (lista ?? []).filter((p: any) => p?.activo !== false);
@@ -706,7 +732,10 @@ this.form.controls.paqueteId.valueChanges
     // ✅ resetea asesorías (UI limpia si no hay)
     this.estadoAsesoriaBySocioIdSig.set({});
 
+    // ✅ reset descuento (form + signal)
     this.form.controls.descuento.setValue(0, { emitEvent: false });
+    this.descuentoUiSig.set(0);
+
     this.form.controls.fechaInicio.setValue(this.hoyISO(), { emitEvent: false });
     this.setPaqueteId(0, false);
 
@@ -716,7 +745,6 @@ this.form.controls.paqueteId.valueChanges
 
     this.paqueteBloqueadoSig.set(false);
     this.form.controls.paqueteId.enable({ emitEvent: false });
-    
 
     this.cargarVigenteParaSlot(0, Number(s.idSocio));
     this.refrescarEstadosAsesoria();
@@ -724,10 +752,16 @@ this.form.controls.paqueteId.valueChanges
 
   private resetFlujo(): void {
     this.miembrosSig.set([]);
+
     this.form.controls.descuento.setValue(0, { emitEvent: false });
+    this.descuentoUiSig.set(0);
+
     this.form.controls.paqueteId.setValue(0, { emitEvent: false });
+    this.paqueteIdSig.set(0);
+
     this.form.controls.paqueteId.enable({ emitEvent: false });
     this.paqueteBloqueadoSig.set(false);
+
     this.mensajeError = null;
     this.mostrarResumen.set(false);
     this.cobrandoIndexSig.set(0);
@@ -747,9 +781,14 @@ this.form.controls.paqueteId.valueChanges
     this.membresiaSrv.buscarMembresiasVigentesPorSocio(idSocio).subscribe({
       next: (list) => {
         const vigentes = (list ?? []).filter(m => !!m?.fechaFin);
+
         if (!vigentes.length) {
           if (index === 0) {
-            this.setSlot(0, { cargando: false, vigente: null, error: 'No tiene membresía vigente. Adelantada no aplica.' });
+            this.setSlot(0, {
+              cargando: false,
+              vigente: null,
+              error: 'No tiene membresía vigente. Adelantada no aplica.',
+            });
             this.notify.aviso('Este socio no tiene membresía vigente. La reinscripción adelantada no aplica.');
             return;
           }
@@ -771,16 +810,17 @@ this.form.controls.paqueteId.valueChanges
           this.form.controls.fechaInicio.setValue(inicio, { emitEvent: false });
 
           const idPaqueteVigente = Number((max as any)?.paquete?.idPaquete ?? 0);
-          const existe = (this.listaPaquetesSig() ?? []).some(p => Number((p as any)?.idPaquete) === idPaqueteVigente);
+          const existe = (this.listaPaquetesSig() ?? []).some(
+            p => Number((p as any)?.idPaquete) === idPaqueteVigente
+          );
 
           if (existe && idPaqueteVigente > 0) {
             this.setPaqueteId(idPaqueteVigente, true);
-this.form.controls.paqueteId.disable({ emitEvent: false });
-this.paqueteBloqueadoSig.set(true);
-this.syncPaqueteBusquedaConSeleccion();
 
+            this.form.controls.paqueteId.disable({ emitEvent: false });
+            this.paqueteBloqueadoSig.set(true);
 
-            // ✅ pinta texto (por si paquetes ya cargaron)
+            // pinta texto
             this.syncPaqueteBusquedaConSeleccion();
           } else {
             this.form.controls.paqueteId.enable({ emitEvent: false });
@@ -870,17 +910,18 @@ this.syncPaqueteBusquedaConSeleccion();
 
     if (modSel !== modVig) {
       this.notify.aviso(`No puedes cambiar de modalidad en adelantada. Debe ser ${modVig}.`);
+
       const vigenteId = Number((principal as any)?.paquete?.idPaquete ?? 0);
-      const existe = (this.listaPaquetesSig() ?? []).some(x => Number((x as any)?.idPaquete) === vigenteId);
+      const existe = (this.listaPaquetesSig() ?? []).some(
+        x => Number((x as any)?.idPaquete) === vigenteId
+      );
 
       const fallback = existe ? vigenteId : 0;
 
-      // OJO: emitEvent false para evitar loop
+      // emitEvent false para evitar loop
       this.setPaqueteId(fallback, false);
-this.syncPaqueteBusquedaConSeleccion();
 
-
-      // ✅ sincroniza texto del buscador al fallback
+      // sincroniza texto del buscador al fallback
       this.syncPaqueteBusquedaConSeleccion();
     }
   }
@@ -1146,7 +1187,7 @@ this.syncPaqueteBusquedaConSeleccion();
     }
 
     const miembros = this.miembrosSig();
-    const descuento = Number(this.form.controls.descuento.value ?? 0);
+    const descuento = Number(this.descuentoUiSig() ?? 0);
 
     const payloads = miembros.map(m => ({
       socio: { idSocio: m.socio.idSocio },
@@ -1177,7 +1218,11 @@ this.syncPaqueteBusquedaConSeleccion();
             if (principalId > 0) this.router.navigate(['/pages/socio', principalId, 'historial']);
           },
           error: (e) => {
-            const msg = e?.error?.detail || e?.error?.message || e?.error?.title || 'No se pudo guardar la adelantada grupal.';
+            const msg =
+              e?.error?.detail ||
+              e?.error?.message ||
+              e?.error?.title ||
+              'No se pudo guardar la adelantada grupal.';
             this.notify.error(msg);
           },
         });
@@ -1198,21 +1243,24 @@ this.syncPaqueteBusquedaConSeleccion();
           if (principalId > 0) this.router.navigate(['/pages/socio', principalId, 'historial']);
         },
         error: (e) => {
-          const msg = e?.error?.detail || e?.error?.message || e?.error?.title || 'No se pudo completar la reinscripción adelantada.';
+          const msg =
+            e?.error?.detail ||
+            e?.error?.message ||
+            e?.error?.title ||
+            'No se pudo completar la reinscripción adelantada.';
           this.notify.error(msg);
         },
       });
   }
 
   private imprimirTicket(
-  ctx: VentaContexto,
-  resp: any,
-  socio: SocioData,
-  pagos: PagoData[],
-  paquete: PaqueteData | null,
-  descuento: number
-): void {
-
+    ctx: VentaContexto,
+    resp: any,
+    socio: SocioData,
+    pagos: PagoData[],
+    paquete: PaqueteData | null,
+    descuento: number
+  ): void {
     const pagosDet = (pagos ?? [])
       .filter(p => (Number(p.monto) || 0) > 0)
       .map(p => ({ metodo: p.tipoPago, monto: Number(p.monto) || 0 }));
@@ -1220,21 +1268,20 @@ this.syncPaqueteBusquedaConSeleccion();
     const folioTicket = resp?.folio;
 
     const paqueteNombreFinal = resp?.paquete?.nombre ?? paquete?.nombre ?? 'Paquete';
-const precioFinal = Number(resp?.paquete?.precio ?? paquete?.precio ?? 0);
+    const precioFinal = Number(resp?.paquete?.precio ?? paquete?.precio ?? 0);
 
-this.ticket.imprimirMembresiaDesdeContexto({
-  ctx,
-  folio: folioTicket,
-  fecha: new Date(),
-  socioNombre: `${socio.nombre ?? ''} ${socio.apellido ?? ''}`.trim(),
-  paqueteNombre: paqueteNombreFinal,
-  precioPaquete: precioFinal,
-  descuento: Number(resp?.descuento ?? descuento ?? 0),
-  costoInscripcion: 0,
-  pagos: pagosDet,
-  referencia: resp?.referencia,
-});
-
+    this.ticket.imprimirMembresiaDesdeContexto({
+      ctx,
+      folio: folioTicket,
+      fecha: new Date(),
+      socioNombre: `${socio.nombre ?? ''} ${socio.apellido ?? ''}`.trim(),
+      paqueteNombre: paqueteNombreFinal,
+      precioPaquete: precioFinal,
+      descuento: Number(resp?.descuento ?? descuento ?? 0),
+      costoInscripcion: 0,
+      pagos: pagosDet,
+      referencia: resp?.referencia,
+    });
   }
 
   // ===================== Helpers =====================
