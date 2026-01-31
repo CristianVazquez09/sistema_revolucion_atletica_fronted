@@ -169,12 +169,31 @@ export class Inscripcion implements OnInit {
   paqueteBloqueadoSig = signal(false);
   private paqueteBuscar$ = new Subject<string>();
 
-  paquetesSugeridosSig = computed<PaqueteUI[]>(() => {
-    const q = (this.paqueteBusquedaSig() ?? '').trim();
-    const lista = this.listaPaquetesSig() ?? [];
-    if (q.length < 2) return lista.slice(0, 12);
-    return this.paquetesResultadosSig() ?? [];
-  });
+  // ✅ Usaremos el pipe también en TS para que "UNA_SEMANA" -> "1 semana"
+private tiempoPlanPipe = new TiempoPlanLabelPipe();
+
+paquetesSugeridosSig = computed<PaqueteUI[]>(() => {
+  const qRaw = (this.paqueteBusquedaSig() ?? '').trim();
+  const lista = this.listaPaquetesSig() ?? [];
+  const remote = this.paquetesResultadosSig() ?? [];
+
+  // Sin texto: muestra top
+  if (!qRaw) return lista.slice(0, 12);
+
+  // ✅ Filtrado local robusto (incluye tiempo/modalidad/estudiantil)
+  const localMatches = lista
+    .filter((p) => this.matchPaquete(p, qRaw))
+    .slice(0, 30);
+
+  // ✅ Merge con resultados remotos (por si tu endpoint trae algo extra)
+  const remoteMatches = remote
+    .map((x) => this.normalizePaquete(x))
+    .filter((p) => this.matchPaquete(p, qRaw))
+    .slice(0, 30);
+
+  return this.mergeUniquePaquetes([...localMatches, ...remoteMatches]).slice(0, 30);
+});
+
 
   mostrarModalResumen = signal(false);
   mostrarModalHuella = signal(false);
@@ -1774,5 +1793,54 @@ onDescuentoInput(raw: any): void {
   this.guardarBorradorEnStorage();
   this.bumpFormTick();
 }
+private normText(v: any): string {
+  const s = String(v ?? '').toLowerCase().trim();
+  // quitar acentos (si el runtime lo soporta)
+  try {
+    return s
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  } catch {
+    return s.replace(/\s+/g, ' ').trim();
+  }
+}
+
+private paqueteSearchText(p: PaqueteUI): string {
+  const nombre = String(p?.nombre ?? '');
+
+  // tiempo puede venir como: p.tiempo, p.tiempoPlan, etc.
+  const tiempoRaw = (p as any)?.tiempo ?? (p as any)?.tiempoPlan ?? '';
+  const tiempo = this.tiempoPlanPipe.transform(tiempoRaw);
+
+  const modalidad = this.modalidadTexto((p as any)?.modalidad);
+  const est = (p as any)?.estudiantil ? 'estudiantil estudiante' : '';
+
+  // ✅ Texto completo que sí contiene "1 semana" aunque no esté en el nombre
+  return this.normText(`${nombre} ${tiempo} ${modalidad} ${est}`);
+}
+
+private matchPaquete(p: PaqueteUI, qRaw: string): boolean {
+  const haystack = this.paqueteSearchText(p);
+  const tokens = this.normText(qRaw).split(' ').filter(Boolean);
+
+  // ✅ Match por tokens: "1 seman" -> ["1","seman"] y matchea "1 semana"
+  return tokens.every((t) => haystack.includes(t));
+}
+
+private mergeUniquePaquetes(items: PaqueteUI[]): PaqueteUI[] {
+  const seen = new Set<number>();
+  const out: PaqueteUI[] = [];
+
+  for (const p of items) {
+    const id = this.getPaqueteId(p);
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(p);
+  }
+  return out;
+}
+
 
 }
