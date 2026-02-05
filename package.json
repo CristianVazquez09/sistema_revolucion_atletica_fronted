@@ -1,6 +1,6 @@
 {
   "name": "revolucion-atletica-frontend",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "main": "electron/main.js",
 
   "repository": {
