@@ -1842,5 +1842,22 @@ private mergeUniquePaquetes(items: PaqueteUI[]): PaqueteUI[] {
   return out;
 }
 
+onVigenciaEstudianteInput(raw: any): void {
+  const v = String(raw ?? '').trim();
+  const val: string | null = v ? v : null;
+
+  // fuerza el valor en el form control INMEDIATO
+  this.formularioInscripcion.controls.credencialEstudianteVigencia.setValue(val, {
+    emitEvent: false,
+  });
+  this.formularioInscripcion.controls.credencialEstudianteVigencia.updateValueAndValidity({
+    emitEvent: false,
+  });
+
+  // persist + recompute signals
+  this.guardarBorradorEnStorage();
+  this.bumpFormTick();
+}
+
 
 }

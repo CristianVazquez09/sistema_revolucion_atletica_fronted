@@ -169,12 +169,16 @@
               Vigencia credencial estudiante*
             </label>
             <input
-              type="date"
-              formControlName="credencialEstudianteVigencia"
-              class="input-filled"
-              aria-label="Vigencia credencial estudiante"
-              title="Vigencia credencial estudiante"
-            />
+  type="date"
+  formControlName="credencialEstudianteVigencia"
+  class="input-filled"
+  aria-label="Vigencia credencial estudiante"
+  title="Vigencia credencial estudiante"
+  (input)="onVigenciaEstudianteInput($any($event.target).value)"
+  (change)="onVigenciaEstudianteInput($any($event.target).value)"
+  (blur)="onVigenciaEstudianteInput($any($event.target).value)"
+/>
+
           </div>
           <div class="text-xs text-ra-slate/70">
             Se valida: edad ≤ 22 años y vigencia ≥ hoy.
