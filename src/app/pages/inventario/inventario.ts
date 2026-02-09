@@ -318,7 +318,6 @@ export class Inventario implements OnInit {
   }
 
   cerrarTurno() {
-    if (!this.puedeCerrar) return;
     if (this.cerrado()) return;
 
     const fecha = this.fecha();

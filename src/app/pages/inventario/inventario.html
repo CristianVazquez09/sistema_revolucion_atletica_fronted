@@ -51,7 +51,7 @@
       <img src="iconos/actualizar.svg" class="w-5 h-5" alt="Refrescar" />
     </button>
 
-    @if (puedeCerrar && !cerrado()) {
+    @if (!cerrado()) {
       <button
         (click)="cerrarTurno()"
         class="inline-flex items-center justify-center rounded-md bg-ra-rojo-oscuro text-white hover:bg-red-700 shadow-card
