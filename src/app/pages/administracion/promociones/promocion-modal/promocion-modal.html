@@ -10,6 +10,10 @@
         <p class="mt-1 text-[12px] text-ra-slate/70">
           Administra aquí los paquetes vinculados y también puedes renovar la promoción.
         </p>
+      } @else {
+        <p class="mt-1 text-[12px] text-ra-slate/70">
+          Si la promo es solo <b>“Sin costo de inscripción”</b>, usa <b>“Solo restricciones”</b>.
+        </p>
       }
     </div>
 
@@ -90,6 +94,9 @@
           <option [ngValue]="TipoPromocion.DESCUENTO_PORCENTAJE">{{ labelTipo(TipoPromocion.DESCUENTO_PORCENTAJE) }}</option>
           <option [ngValue]="TipoPromocion.DESCUENTO_MONTO">{{ labelTipo(TipoPromocion.DESCUENTO_MONTO) }}</option>
           <option [ngValue]="TipoPromocion.MESES_GRATIS">{{ labelTipo(TipoPromocion.MESES_GRATIS) }}</option>
+
+          <!-- ✅ NUEVO -->
+          <option [ngValue]="TipoPromocion.SIN_BENEFICIO">{{ labelTipo(TipoPromocion.SIN_BENEFICIO) }}</option>
         </select>
       </div>
 

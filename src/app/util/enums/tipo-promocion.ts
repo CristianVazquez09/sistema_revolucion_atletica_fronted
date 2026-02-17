@@ -2,6 +2,7 @@ export enum TipoPromocion {
   DESCUENTO_PORCENTAJE = 'DESCUENTO_PORCENTAJE',
   DESCUENTO_MONTO = 'DESCUENTO_MONTO',
   MESES_GRATIS = 'MESES_GRATIS',
+  SIN_BENEFICIO = 'SIN_BENEFICIO'
 }
 
 export function labelTipoPromocion(tipo?: TipoPromocion | string | null): string {

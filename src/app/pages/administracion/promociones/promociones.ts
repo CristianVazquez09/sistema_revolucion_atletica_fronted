@@ -278,7 +278,6 @@ export class Promociones {
       return;
     }
 
-    // ✅ Ya NO depende del selector de tabla
     this.editando.set(null);
     this.modalAbierto.set(true);
   }
@@ -394,8 +393,50 @@ export class Promociones {
 
   trackById = (_: number, it: PromocionData) => (it as any)?.idPromocion ?? _;
 
-  labelTipo(tipo?: TipoPromocion | string | null): string {
-    return labelTipoPromocion(tipo);
+  // ✅ Badge bonito por tipo (incluye SIN_BENEFICIO)
+  tipoBadge(tipo?: TipoPromocion | string | null): { texto: string; clase: string } {
+    const raw = String(tipo ?? '').toUpperCase();
+
+    if (raw === 'SIN_BENEFICIO') {
+      return {
+        texto: 'Sin beneficio',
+        clase: 'bg-slate-100 text-slate-700 ring-slate-200',
+      };
+    }
+
+    if (raw === String(TipoPromocion.DESCUENTO_PORCENTAJE)) {
+      return {
+        texto: labelTipoPromocion(TipoPromocion.DESCUENTO_PORCENTAJE),
+        clase: 'bg-blue-50 text-blue-700 ring-blue-200',
+      };
+    }
+
+    if (raw === String(TipoPromocion.DESCUENTO_MONTO)) {
+      return {
+        texto: labelTipoPromocion(TipoPromocion.DESCUENTO_MONTO),
+        clase: 'bg-sky-50 text-sky-700 ring-sky-200',
+      };
+    }
+
+    if (raw === String(TipoPromocion.MESES_GRATIS)) {
+      return {
+        texto: labelTipoPromocion(TipoPromocion.MESES_GRATIS),
+        clase: 'bg-violet-50 text-violet-700 ring-violet-200',
+      };
+    }
+
+    if (raw === 'MIXTA') {
+      return {
+        texto: 'Mixta',
+        clase: 'bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-200',
+      };
+    }
+
+    // fallback
+    return {
+      texto: labelTipoPromocion(tipo),
+      clase: 'bg-ra-grayLight/40 text-ra-slate ring-black/10',
+    };
   }
 
   restricciones(row: PromocionData): string[] {
@@ -410,14 +451,22 @@ export class Promociones {
     return rs.length ? rs.join(', ') : '—';
   }
 
+  // ✅ Beneficio: para SIN_BENEFICIO muestra algo útil (en vez de —)
   labelBeneficio(row: PromocionData): string {
-    const t = (row as any)?.tipo;
-    if (t === TipoPromocion.DESCUENTO_PORCENTAJE) return `-${(row as any)?.descuentoPorcentaje ?? 0}%`;
-    if (t === TipoPromocion.DESCUENTO_MONTO) return `-$${Number((row as any)?.descuentoMonto ?? 0).toFixed(2)}`;
-    if (t === TipoPromocion.MESES_GRATIS) {
+    const t = String((row as any)?.tipo ?? '').toUpperCase();
+
+    if (t === String(TipoPromocion.DESCUENTO_PORCENTAJE)) return `-${(row as any)?.descuentoPorcentaje ?? 0}%`;
+    if (t === String(TipoPromocion.DESCUENTO_MONTO)) return `-$${Number((row as any)?.descuentoMonto ?? 0).toFixed(2)}`;
+    if (t === String(TipoPromocion.MESES_GRATIS)) {
       const v = (row as any)?.mesesGratis ?? 0;
       return `+${v} mes${v === 1 ? '' : 'es'}`;
     }
+
+    if (t === 'SIN_BENEFICIO') {
+      const rs = this.restricciones(row);
+      return rs.length ? rs.join(' + ') : 'Sin beneficio';
+    }
+
     return '—';
   }
 

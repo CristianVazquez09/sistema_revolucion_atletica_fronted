@@ -1,5 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, EventEmitter, Input, Output, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  EventEmitter,
+  Input,
+  Output,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, of, switchMap } from 'rxjs';
@@ -46,7 +55,7 @@ export class PromocionModal {
 
   titulo = computed(() => (this.esEdicion() ? 'Editar promoción' : 'Agregar promoción'));
 
-  // ✅ puente: FormControl gimnasioId -> Signal (para que computed reaccione)
+  // puente: FormControl gimnasioId -> Signal (para que computed reaccione)
   gimnasioIdSig = signal<number | null>(null);
 
   // estado local de paquetes vinculados
@@ -144,7 +153,7 @@ export class PromocionModal {
     return (this.paquetes ?? []).filter((p: any) => this.promoIdsFromPaquete(p).includes(idPromo));
   }
 
-  // ✅ ahora sí: filtra por gimnasio usando la SIGNAL (reactiva)
+  // filtra por gimnasio usando la SIGNAL (reactiva)
   private paquetesFiltradosPorGymComputed = computed(() => {
     const base = (this.paquetes ?? []).filter((p: any) => p?.activo !== false);
 
@@ -157,7 +166,6 @@ export class PromocionModal {
   });
 
   paquetesDisponiblesParaAgregar = computed(() => {
-    // dependencia explícita para que se recalculen al cambiar gym
     const base = this.paquetesFiltradosPorGymComputed();
 
     const vinculadosIds = new Set(
@@ -173,7 +181,7 @@ export class PromocionModal {
   });
 
   ngOnInit(): void {
-    // ✅ inicializa paquetes vinculados
+    // inicializa paquetes vinculados
     this.paquetesVinculados.set(this.resolverPaquetesVinculadosDesdeInputs());
 
     if (this.isAdmin) {
@@ -187,10 +195,9 @@ export class PromocionModal {
 
       if (fallback != null) {
         this.form.controls['gimnasioId'].setValue(fallback);
-        this.gimnasioIdSig.set(fallback); // ✅ set inicial para computed
+        this.gimnasioIdSig.set(fallback);
       }
 
-      // ✅ cada cambio del select actualiza la SIGNAL (y se recalcula el computed)
       this.form.get('gimnasioId')?.valueChanges
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((val) => {
@@ -200,7 +207,7 @@ export class PromocionModal {
           if (this.esEdicion() && (this.paquetesVinculados() ?? []).length) {
             const actual = this.getGymIdFromPromocion(this.promocion);
             this.form.get('gimnasioId')?.setValue(actual, { emitEvent: false });
-            this.gimnasioIdSig.set(actual); // ✅ mantener sincronizado
+            this.gimnasioIdSig.set(actual);
             this.noti.error('Para cambiar el gimnasio primero desvincula todos los paquetes (o crea una nueva promoción).');
             return;
           }
@@ -215,12 +222,11 @@ export class PromocionModal {
             }
           }
 
-          // si el select "Agregar paquete" traía un id previo, límpialo
           this.form.get('paqueteAddId')?.setValue(null, { emitEvent: false });
         });
     }
 
-    // ✅ precarga datos si viene edición
+    // precarga datos si viene edición
     if (this.promocion) {
       this.form.patchValue({
         nombre: (this.promocion as any)?.nombre ?? '',
@@ -371,7 +377,22 @@ export class PromocionModal {
     const nuevoIni = this.formatDate(hoy);
     const nuevoFin = this.formatDate(this.addDays(hoy, dur));
 
-    const tipo = this.form.get('tipo')?.value as TipoPromocion | string;
+    let tipo = this.form.get('tipo')?.value as TipoPromocion | string;
+
+    const soloNuevos = !!this.form.get('soloNuevos')?.value;
+    const sinInscripcion = !!this.form.get('sinCostoInscripcion')?.value;
+
+    const pctRaw = this.toNum(this.form.get('descuentoPorcentaje')?.value);
+    const montoRaw = this.toNum(this.form.get('descuentoMonto')?.value);
+    const mesesRaw = this.toNum(this.form.get('mesesGratis')?.value);
+
+    const tieneBeneficio = (pctRaw ?? 0) > 0 || (montoRaw ?? 0) > 0 || (mesesRaw ?? 0) > 0;
+
+    // ✅ si no hay beneficio pero sí restricciones -> SIN_BENEFICIO
+    if (!tieneBeneficio && (soloNuevos || sinInscripcion)) {
+      tipo = TipoPromocion.SIN_BENEFICIO;
+    }
+
     const gymId = this.isAdmin ? this.gimnasioIdSig() : null;
 
     const payload: PromocionUpsertData = {
@@ -383,12 +404,12 @@ export class PromocionModal {
 
       tipo: String(tipo),
 
-      descuentoPorcentaje: tipo === TipoPromocion.DESCUENTO_PORCENTAJE ? Number(this.form.get('descuentoPorcentaje')?.value) : null,
-      descuentoMonto: tipo === TipoPromocion.DESCUENTO_MONTO ? Number(this.form.get('descuentoMonto')?.value) : null,
-      mesesGratis: tipo === TipoPromocion.MESES_GRATIS ? Number(this.form.get('mesesGratis')?.value) : null,
+      descuentoPorcentaje: tipo === TipoPromocion.DESCUENTO_PORCENTAJE ? (pctRaw != null ? Number(pctRaw) : null) : null,
+      descuentoMonto: tipo === TipoPromocion.DESCUENTO_MONTO ? (montoRaw != null ? Number(montoRaw) : null) : null,
+      mesesGratis: tipo === TipoPromocion.MESES_GRATIS ? (mesesRaw != null ? Number(mesesRaw) : null) : null,
 
-      soloNuevos: !!this.form.get('soloNuevos')?.value,
-      sinCostoInscripcion: !!this.form.get('sinCostoInscripcion')?.value,
+      soloNuevos,
+      sinCostoInscripcion: sinInscripcion,
 
       activo: true,
       ...(this.isAdmin ? { gimnasio: { id: gymId as number } } : {}),
@@ -425,209 +446,217 @@ export class PromocionModal {
       });
   }
 
-  // ======= Guardar (igual que ya lo tenías; si quieres lo integramos también) =======
+  // ======= Guardar (✅ YA PERMITE solo sinCostoInscripcion) =======
   guardar(): void {
-  if (this.guardando() || this.gestionPaquetesBusy()) return;
+    if (this.guardando() || this.gestionPaquetesBusy()) return;
 
-  // 1) Validación general del form
-  this.form.markAllAsTouched();
+    this.form.markAllAsTouched();
 
-  // Admin: gimnasio obligatorio
-  if (this.isAdmin) {
-    const gymId = this.toNum(this.form.get('gimnasioId')?.value);
-    if (!gymId) {
-      this.noti.error('Selecciona un gimnasio.');
+    // Admin: gimnasio obligatorio
+    if (this.isAdmin) {
+      const gymId = this.toNum(this.form.get('gimnasioId')?.value);
+      if (!gymId) {
+        this.noti.error('Selecciona un gimnasio.');
+        return;
+      }
+    }
+
+    const nombre = String(this.form.get('nombre')?.value ?? '').trim();
+    if (!nombre) {
+      this.noti.error('El nombre es requerido.');
       return;
     }
-  }
 
-  const nombre = String(this.form.get('nombre')?.value ?? '').trim();
-  if (!nombre) {
-    this.noti.error('El nombre es requerido.');
-    return;
-  }
+    const fechaInicioStr = String(this.form.get('fechaInicio')?.value ?? '').trim();
+    const fechaFinStr = String(this.form.get('fechaFin')?.value ?? '').trim();
 
-  const fechaInicioStr = String(this.form.get('fechaInicio')?.value ?? '').trim();
-  const fechaFinStr = String(this.form.get('fechaFin')?.value ?? '').trim();
+    const ini = this.toLocalDate(fechaInicioStr);
+    const fin = this.toLocalDate(fechaFinStr);
 
-  const ini = this.toLocalDate(fechaInicioStr);
-  const fin = this.toLocalDate(fechaFinStr);
-
-  if (!ini) {
-    this.noti.error('Fecha inicio inválida.');
-    return;
-  }
-  if (!fin) {
-    this.noti.error('Fecha fin inválida.');
-    return;
-  }
-  if (fin.getTime() < ini.getTime()) {
-    this.noti.error('La fecha fin no puede ser anterior a la fecha inicio.');
-    return;
-  }
-
-  const tipo = this.form.get('tipo')?.value as TipoPromocion | string;
-  if (!tipo) {
-    this.noti.error('Selecciona el tipo de promoción.');
-    return;
-  }
-
-  // 2) Normalizar campos según tipo (limpia los que no aplican)
-  this.normalizeByTipo();
-
-  // 3) Validación por tipo
-  const pctRaw = this.toNum(this.form.get('descuentoPorcentaje')?.value);
-  const montoRaw = this.toNum(this.form.get('descuentoMonto')?.value);
-  const mesesRaw = this.toNum(this.form.get('mesesGratis')?.value);
-
-  if (tipo === TipoPromocion.DESCUENTO_PORCENTAJE) {
-    const pct = Number(pctRaw ?? 0);
-    if (!Number.isFinite(pct) || pct <= 0) {
-      this.noti.error('El descuento porcentaje debe ser mayor a 0.');
+    if (!ini) {
+      this.noti.error('Fecha inicio inválida.');
       return;
     }
-    if (pct > 100) {
-      this.noti.error('El descuento porcentaje no puede ser mayor a 100.');
+    if (!fin) {
+      this.noti.error('Fecha fin inválida.');
       return;
     }
-  }
-
-  if (tipo === TipoPromocion.DESCUENTO_MONTO) {
-    const m = Number(montoRaw ?? 0);
-    if (!Number.isFinite(m) || m <= 0) {
-      this.noti.error('El descuento monto debe ser mayor a 0.');
+    if (fin.getTime() < ini.getTime()) {
+      this.noti.error('La fecha fin no puede ser anterior a la fecha inicio.');
       return;
     }
-  }
 
-  if (tipo === TipoPromocion.MESES_GRATIS) {
-    const mg = Number(mesesRaw ?? 0);
-    if (!Number.isFinite(mg) || mg <= 0) {
-      this.noti.error('Meses gratis debe ser mayor a 0.');
+    const soloNuevos = !!this.form.get('soloNuevos')?.value;
+    const sinInscripcion = !!this.form.get('sinCostoInscripcion')?.value;
+
+    let tipo = this.form.get('tipo')?.value as TipoPromocion | string;
+    if (!tipo) {
+      this.noti.error('Selecciona el tipo de promoción.');
       return;
     }
-    // si quieres permitir solo enteros:
-    if (!Number.isInteger(mg)) {
-      this.noti.error('Meses gratis debe ser un número entero.');
+
+    // normaliza (limpia campos que no aplican)
+    this.normalizeByTipo();
+
+    const pctRaw = this.toNum(this.form.get('descuentoPorcentaje')?.value);
+    const montoRaw = this.toNum(this.form.get('descuentoMonto')?.value);
+    const mesesRaw = this.toNum(this.form.get('mesesGratis')?.value);
+
+    const tienePct = (pctRaw ?? 0) > 0;
+    const tieneMonto = (montoRaw ?? 0) > 0;
+    const tieneMeses = (mesesRaw ?? 0) > 0;
+
+    const tieneBeneficioNumerico = tienePct || tieneMonto || tieneMeses;
+
+    // ✅ clave: si NO hay beneficio pero sí restricciones, cambia a SIN_BENEFICIO
+    if (!tieneBeneficioNumerico && (soloNuevos || sinInscripcion)) {
+      tipo = TipoPromocion.SIN_BENEFICIO;
+      this.form.get('tipo')?.setValue(tipo, { emitEvent: false });
+      this.normalizeByTipo();
+    }
+
+    // Validación por tipo
+    if (tipo === TipoPromocion.SIN_BENEFICIO) {
+      if (!soloNuevos && !sinInscripcion) {
+        this.noti.error('En "Solo restricciones", activa al menos "Solo nuevos" o "Sin costo de inscripción".');
+        return;
+      }
+    }
+
+    if (tipo === TipoPromocion.DESCUENTO_PORCENTAJE) {
+      const pct = Number(pctRaw ?? 0);
+      if (!Number.isFinite(pct) || pct <= 0) {
+        this.noti.error('El descuento porcentaje debe ser mayor a 0.');
+        return;
+      }
+      if (pct > 100) {
+        this.noti.error('El descuento porcentaje no puede ser mayor a 100.');
+        return;
+      }
+    }
+
+    if (tipo === TipoPromocion.DESCUENTO_MONTO) {
+      const m = Number(montoRaw ?? 0);
+      if (!Number.isFinite(m) || m <= 0) {
+        this.noti.error('El descuento monto debe ser mayor a 0.');
+        return;
+      }
+    }
+
+    if (tipo === TipoPromocion.MESES_GRATIS) {
+      const mg = Number(mesesRaw ?? 0);
+      if (!Number.isFinite(mg) || mg <= 0) {
+        this.noti.error('Meses gratis debe ser mayor a 0.');
+        return;
+      }
+      if (!Number.isInteger(mg)) {
+        this.noti.error('Meses gratis debe ser un número entero.');
+        return;
+      }
+    }
+
+    const paquetesIds = (this.paquetesVinculados() ?? [])
+      .map((p) => this.paqId(p))
+      .filter((x): x is number => typeof x === 'number');
+
+    if (!paquetesIds.length) {
+      this.noti.error('Vincula al menos un paquete a la promoción.');
       return;
     }
-  }
 
-  // 4) Construir payload
-  const gymId = this.isAdmin ? this.gimnasioIdSig() : null;
+    const gymId = this.isAdmin ? this.gimnasioIdSig() : null;
 
-  const payload: PromocionUpsertData = {
-    nombre,
-    descripcion: String(this.form.get('descripcion')?.value ?? '').trim() || null,
+    const payload: PromocionUpsertData = {
+      nombre,
+      descripcion: String(this.form.get('descripcion')?.value ?? '').trim() || null,
 
-    fechaInicio: fechaInicioStr,
-    fechaFin: fechaFinStr,
+      fechaInicio: fechaInicioStr,
+      fechaFin: fechaFinStr,
 
-    tipo: String(tipo),
+      tipo: String(tipo),
 
-    descuentoPorcentaje:
-      tipo === TipoPromocion.DESCUENTO_PORCENTAJE ? Number(pctRaw) : null,
-    descuentoMonto:
-      tipo === TipoPromocion.DESCUENTO_MONTO ? Number(montoRaw) : null,
-    mesesGratis:
-      tipo === TipoPromocion.MESES_GRATIS ? Number(mesesRaw) : null,
+      descuentoPorcentaje: tipo === TipoPromocion.DESCUENTO_PORCENTAJE ? (pctRaw != null ? Number(pctRaw) : null) : null,
+      descuentoMonto: tipo === TipoPromocion.DESCUENTO_MONTO ? (montoRaw != null ? Number(montoRaw) : null) : null,
+      mesesGratis: tipo === TipoPromocion.MESES_GRATIS ? (mesesRaw != null ? Number(mesesRaw) : null) : null,
 
-    soloNuevos: !!this.form.get('soloNuevos')?.value,
-    sinCostoInscripcion: !!this.form.get('sinCostoInscripcion')?.value,
+      soloNuevos,
+      sinCostoInscripcion: sinInscripcion,
 
-    activo: true,
+      activo: true,
+      ...(this.isAdmin ? { gimnasio: { id: gymId as number } } : {}),
+    };
 
-    ...(this.isAdmin ? { gimnasio: { id: gymId as number } } : {}),
-  };
+    this.guardando.set(true);
 
-  // Paquetes seleccionados (solo importan para CREAR o para validar que haya al menos 1 si tú quieres)
-  const paquetesIds = (this.paquetesVinculados() ?? [])
-    .map((p) => this.paqId(p))
-    .filter((x): x is number => typeof x === 'number');
+    const idPromo = this.idPromocion();
 
-  // Si quieres exigir al menos 1 paquete vinculado:
-  if (!paquetesIds.length) {
-    this.noti.error('Vincula al menos un paquete a la promoción.');
-    return;
-  }
+    // === EDITAR ===
+    if (this.esEdicion() && idPromo) {
+      this.servicio.actualizarPromocion(idPromo, payload)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.guardando.set(false);
+            this.noti.exito('Promoción actualizada.');
+            this.guardado.emit();
+          },
+          error: (err) => {
+            console.error(err);
+            this.guardando.set(false);
+            this.noti.error('No se pudo actualizar la promoción.');
+          },
+        });
 
-  // 5) Crear vs editar
-  this.guardando.set(true);
+      return;
+    }
 
-  const idPromo = this.idPromocion();
+    // === CREAR ===
+    this.servicio.crear(payload)
+      .pipe(
+        switchMap((resp) => {
+          const newId =
+            this.toNum((resp as any)?.idPromocion) ??
+            this.toNum((resp as any)?.id);
 
-  // === EDITAR ===
-  if (this.esEdicion() && idPromo) {
-    // Nota: aquí NO hacemos “sync total” de paquetes porque tu UX ya vincula/desvincula con botones.
-    // Solo actualizamos datos de la promo.
-    this.servicio.actualizarPromocion(idPromo, payload)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+          if (!newId) return of(resp);
+          if (!paquetesIds.length) return of(resp);
+
+          this.gestionPaquetesBusy.set(true);
+
+          return forkJoin(paquetesIds.map((idPaq) => this.servicio.vincularPaquete(newId, idPaq)))
+            .pipe(switchMap(() => of(resp)));
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
       .subscribe({
         next: () => {
           this.guardando.set(false);
-          this.noti.exito('Promoción actualizada.');
+          this.gestionPaquetesBusy.set(false);
+          this.noti.exito('Promoción creada.');
           this.guardado.emit();
         },
         error: (err) => {
           console.error(err);
           this.guardando.set(false);
-          this.noti.error('No se pudo actualizar la promoción.');
+          this.gestionPaquetesBusy.set(false);
+          this.noti.error('No se pudo guardar la promoción.');
         },
       });
-
-    return;
   }
-
-  // === CREAR ===
-  this.servicio.crear(payload)
-    .pipe(
-      switchMap((resp) => {
-        const newId =
-          this.toNum((resp as any)?.idPromocion) ??
-          this.toNum((resp as any)?.id);
-
-        if (!newId) {
-          // si el backend no devuelve id, igual emitimos guardado y ya
-          return of(resp);
-        }
-
-        if (!paquetesIds.length) return of(resp);
-
-        // Vincular todos los paquetes seleccionados
-        this.gestionPaquetesBusy.set(true);
-
-        return forkJoin(paquetesIds.map((idPaq) => this.servicio.vincularPaquete(newId, idPaq)))
-          .pipe(
-            switchMap(() => of(resp))
-          );
-      }),
-      takeUntilDestroyed(this.destroyRef)
-    )
-    .subscribe({
-      next: () => {
-        this.guardando.set(false);
-        this.gestionPaquetesBusy.set(false);
-        this.noti.exito('Promoción creada.');
-        this.guardado.emit();
-      },
-      error: (err) => {
-        console.error(err);
-        this.guardando.set(false);
-        this.gestionPaquetesBusy.set(false);
-        this.noti.error('No se pudo guardar la promoción.');
-      },
-    });
-}
-
 
   mostrarPorcentaje(): boolean {
-    return this.form.get('tipo')?.value === TipoPromocion.DESCUENTO_PORCENTAJE;
+    const t = this.form.get('tipo')?.value;
+    return t === TipoPromocion.DESCUENTO_PORCENTAJE;
   }
+
   mostrarMonto(): boolean {
-    return this.form.get('tipo')?.value === TipoPromocion.DESCUENTO_MONTO;
+    const t = this.form.get('tipo')?.value;
+    return t === TipoPromocion.DESCUENTO_MONTO;
   }
+
   mostrarMeses(): boolean {
-    return this.form.get('tipo')?.value === TipoPromocion.MESES_GRATIS;
+    const t = this.form.get('tipo')?.value;
+    return t === TipoPromocion.MESES_GRATIS;
   }
 
   private normalizeByTipo(): void {
@@ -642,6 +671,11 @@ export class PromocionModal {
     } else if (tipo === TipoPromocion.MESES_GRATIS) {
       this.form.get('descuentoPorcentaje')?.setValue(null);
       this.form.get('descuentoMonto')?.setValue(null);
+    } else if (tipo === TipoPromocion.SIN_BENEFICIO) {
+      // ✅ nuevo: no aplica ningún beneficio numérico
+      this.form.get('descuentoPorcentaje')?.setValue(null);
+      this.form.get('descuentoMonto')?.setValue(null);
+      this.form.get('mesesGratis')?.setValue(null);
     }
   }
 

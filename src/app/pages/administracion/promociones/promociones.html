@@ -33,77 +33,82 @@
       </div>
 
       <!-- Controles -->
-      <div class="w-full 2xl:w-auto flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-end gap-2 xl:gap-3 text-[11px] xl:text-[12px] leading-none min-w-0">
-        <div class="w-full flex flex-wrap 2xl:flex-nowrap items-center gap-2 xl:gap-3 min-w-0">
-          <div class="w-full sm:w-auto flex items-center gap-2 min-w-0">
-            <label class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">
-              Buscar
-            </label>
+<div class="w-full 2xl:w-auto flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-end gap-2 xl:gap-3 text-[11px] xl:text-[12px] leading-none min-w-0">
+  <div class="w-full flex flex-wrap 2xl:flex-nowrap items-center gap-2 xl:gap-3 min-w-0">
+    <div class="w-full sm:w-auto flex items-center gap-2 min-w-0">
+      <label class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">
+        Buscar
+      </label>
 
-            <input
-              type="text"
-              class="w-[260px] xl:w-[300px] h-8 xl:h-9 rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
-              placeholder="Nombre, tipo, paquete, restricciones…"
-              [ngModel]="termino()"
-              (ngModelChange)="termino.set($event)"
-            />
+      <input
+        type="text"
+        class="w-[260px] xl:w-[300px] h-8 xl:h-9 rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+        placeholder="Nombre, tipo, paquete, restricciones…"
+        [ngModel]="termino()"
+        (ngModelChange)="termino.set($event)"
+      />
 
-            <button
-              type="button"
-              class="h-8 xl:h-9 px-3 rounded-md border text-[11px] xl:text-[12px] shrink-0"
-              (click)="termino.set('')"
-              [disabled]="!(termino() || '').trim().length"
-            >
-              Limpiar
-            </button>
-          </div>
+      <button
+        type="button"
+        class="h-8 xl:h-9 px-3 rounded-md border text-[11px] xl:text-[12px] shrink-0"
+        (click)="termino.set('')"
+        [disabled]="!(termino() || '').trim().length"
+      >
+        Limpiar
+      </button>
+    </div>
 
-          <div class="w-full sm:w-auto flex items-center gap-3 min-w-0">
-            <label class="inline-flex items-center gap-2 text-[11px] xl:text-[12px] text-ra-slate">
-              <input
-                type="checkbox"
-                class="h-4 w-4"
-                [ngModel]="soloVigentes()"
-                (ngModelChange)="soloVigentes.set($event)"
-              />
-              <span>Solo vigentes</span>
-            </label>
+    <div class="w-full sm:w-auto flex flex-wrap items-center gap-3 min-w-0">
+      <label class="inline-flex items-center gap-2 text-[11px] xl:text-[12px] text-ra-slate">
+        <input
+          type="checkbox"
+          class="h-4 w-4"
+          [ngModel]="soloVigentes()"
+          (ngModelChange)="soloVigentes.set($event)"
+        />
+        <span>Solo vigentes</span>
+      </label>
 
-            <label class="inline-flex items-center gap-2 text-[11px] xl:text-[12px] text-ra-slate">
-              <input
-                type="checkbox"
-                class="h-4 w-4"
-                [ngModel]="soloActivas()"
-                (ngModelChange)="soloActivas.set($event)"
-              />
-              <span>Solo activas</span>
-            </label>
+      <label class="inline-flex items-center gap-2 text-[11px] xl:text-[12px] text-ra-slate">
+        <input
+          type="checkbox"
+          class="h-4 w-4"
+          [ngModel]="soloActivas()"
+          (ngModelChange)="soloActivas.set($event)"
+        />
+        <span>Solo activas</span>
+      </label>
 
-            <button
-              type="button"
-              class="h-8 xl:h-9 px-3 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-[11px] xl:text-[12px] shrink-0"
-              (click)="recargar()"
-            >
-              Recargar
-            </button>
-          </div>
-        </div>
+      <button
+        type="button"
+        class="h-8 xl:h-9 px-3 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-[11px] xl:text-[12px] shrink-0"
+        (click)="recargar()"
+      >
+        Recargar
+      </button>
 
-        <button
-          (click)="nuevo()"
-          class="
-            inline-flex items-center gap-2 rounded-md bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card
-            px-2.5 py-1.5 text-xs
-            lg:px-3 lg:py-1.5 lg:text-sm
-            xl:px-3.5 xl:py-2 xl:text-sm
-            2xl:px-4 2xl:py-2 2xl:text-base
-            whitespace-nowrap
-          "
-        >
-          <img src="iconos/agregar.svg" alt="" class="shrink-0 w-4 h-4 lg:w-[18px] lg:h-[18px] xl:w-5 xl:h-5" />
-          <span>Agregar promoción</span>
-        </button>
-      </div>
+      <!-- ✅ Agregar promoción: justo después de Recargar -->
+      <button
+        type="button"
+        (click)="nuevo()"
+        class="
+          h-8 xl:h-9
+          inline-flex items-center gap-2 rounded-md bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card
+          px-3 xl:px-3.5
+          text-[11px] xl:text-[12px]
+          whitespace-nowrap
+          w-fit
+          shrink-0
+        "
+      >
+        <img src="iconos/agregar.svg" alt="" class="shrink-0 w-4 h-4 xl:w-[18px] xl:h-[18px]" />
+        <span>Agregar promoción</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+      
     </div>
 
     <!-- Tabla -->
@@ -158,10 +163,14 @@
                       }
                     </td>
 
-                    <!-- Tipo -->
+                    <!-- ✅ Tipo (badge bonito incluyendo SIN_BENEFICIO) -->
                     <td class="py-2 xl:py-3 px-2 xl:px-4 text-center">
-                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-ra-grayLight/40 text-[10px] xl:text-[11px] font-semibold text-ra-slate">
-                        {{ labelTipo(p.tipo) }}
+                      @let tb = tipoBadge(p.tipo);
+                      <span
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] xl:text-[11px] font-semibold ring-1"
+                        [ngClass]="tb.clase"
+                      >
+                        {{ tb.texto }}
                       </span>
                     </td>
 
@@ -216,51 +225,65 @@
                       </span>
                     </td>
 
-                    <!-- Acciones: SOLO 3 (Editar, On/Off, Eliminar) -->
-                    <td class="py-2 xl:py-2 px-2 xl:px-0">
-                      <div class="flex items-center justify-center gap-1 flex-wrap">
-                        <button
-                          (click)="editar(p)"
-                          class="p-1.5 rounded hover:bg-ra-grayLight/40"
-                          title="Editar (aquí gestionas paquetes y renovar)"
-                        >
-                          <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5 xl:w-8 xl:h-8" />
-                        </button>
+                    <!-- Acciones (estilo Asesorías Nutricionales) -->
+<td class="py-2 xl:py-2 px-2 xl:px-0">
+  <div class="flex items-center justify-center gap-1">
+    <button
+      (click)="editar(p)"
+      class="p-1.5 rounded hover:bg-ra-grayLight/40"
+      title="Editar (aquí gestionas paquetes y renovar)"
+    >
+      <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5 xl:w-8 xl:h-8" />
+    </button>
 
-                        @if (p.activo !== false) {
-                          <button
-                            (click)="desactivar(p)"
-                            class="p-1.5 rounded hover:bg-ra-grayLight/40 disabled:opacity-50"
-                            [disabled]="busyDesactivarId() === idRow(p)"
-                            title="Desactivar"
-                          >
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">
-                              Off
-                            </span>
-                          </button>
-                        } @else {
-                          <button
-                            (click)="activar(p)"
-                            class="p-1.5 rounded hover:bg-ra-grayLight/40 disabled:opacity-50"
-                            [disabled]="busyDesactivarId() === idRow(p)"
-                            title="Activar"
-                          >
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-semibold">
-                              On
-                            </span>
-                          </button>
-                        }
+    @if (p.activo !== false) {
+      <button
+        (click)="desactivar(p)"
+        class="p-1.5 rounded hover:bg-amber-50 disabled:opacity-50"
+        [disabled]="busyDesactivarId() === idRow(p)"
+        title="Desactivar"
+      >
+        @if (busyDesactivarId() === idRow(p)) {
+          <span class="text-xs font-semibold text-amber-700">…</span>
+        } @else {
+          <svg viewBox="0 0 24 24" class="w-5 h-5 xl:w-8 xl:h-8 text-amber-700" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 6v12M16 6v12"></path>
+          </svg>
+        }
+      </button>
+    } @else {
+      <button
+        (click)="activar(p)"
+        class="p-1.5 rounded hover:bg-emerald-50 disabled:opacity-50"
+        [disabled]="busyDesactivarId() === idRow(p)"
+        title="Activar"
+      >
+        @if (busyDesactivarId() === idRow(p)) {
+          <span class="text-xs font-semibold text-emerald-700">…</span>
+        } @else {
+          <svg viewBox="0 0 24 24" class="w-5 h-5 xl:w-8 xl:h-8 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 12l2 2 4-4"></path>
+            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"></path>
+          </svg>
+        }
+      </button>
+    }
 
-                        <button
-                          (click)="eliminar(p)"
-                          class="p-1.5 rounded hover:bg-ra-grayLight/40 disabled:opacity-50"
-                          [disabled]="busyEliminarId() === idRow(p)"
-                          title="Eliminar"
-                        >
-                          <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5 xl:w-8 xl:h-8" />
-                        </button>
-                      </div>
-                    </td>
+    <button
+      (click)="eliminar(p)"
+      class="p-1.5 rounded hover:bg-red-50 disabled:opacity-50"
+      [disabled]="busyEliminarId() === idRow(p)"
+      title="Eliminar"
+    >
+      @if (busyEliminarId() === idRow(p)) {
+        <span class="text-xs font-semibold text-red-700">…</span>
+      } @else {
+        <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5 xl:w-8 xl:h-8" />
+      }
+    </button>
+  </div>
+</td>
+
                   </tr>
                 }
               }
@@ -284,7 +307,6 @@
                 [gimnasios]="gimnasios()"
                 [isAdmin]="esAdmin()"
                 [gimnasioIdSeleccionado]="null"
-
                 (cancelar)="cerrarModal()"
                 (guardado)="onGuardado()"
               />
