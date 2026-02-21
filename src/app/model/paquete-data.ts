@@ -25,4 +25,7 @@ export interface PaqueteData {
 
   // ✅ NUEVO: paquete estudiantil
   estudiantil?: boolean;
+
+  // ✅ NUEVO: paquete Revolución Atlética (requiere entrenador RA en inscripción)
+  esRA?: boolean;
 }

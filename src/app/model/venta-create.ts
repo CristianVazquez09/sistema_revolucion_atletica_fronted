@@ -10,4 +10,5 @@ export interface DetalleVentaCreate {
 export interface VentaCreateRequest {
   pagos: PagoData[];                 // 👈 múltiple método de pago
   detalles: DetalleVentaCreate[];
+  descuento?: number;                // descuento opcional (0 = sin descuento)
 }

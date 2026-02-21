@@ -197,6 +197,27 @@
         </button>
       </div>
 
+      <!-- Descuento -->
+      <div class="rounded-xl2 bg-ra-white shadow-card ring-1 ring-black/10 p-4">
+        <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-end">
+          <div>
+            <label class="block text-sm font-semibold text-ra-slate mb-1.5">Descuento ($)</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              class="w-full sm:w-48 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 shadow-inner text-sm"
+              [value]="descuento()"
+              (input)="descuento.set(($any($event.target).valueAsNumber ?? 0) || 0)">
+          </div>
+          <div class="text-sm text-ra-slate/70 pb-2">
+            Subtotal: <strong>{{ subtotalVista() | currency:'MXN':'symbol-narrow':'1.2-2' }}</strong>
+            &nbsp;→&nbsp;
+            Total a pagar: <strong class="text-emerald-700">{{ totalCalculadoVista() | currency:'MXN':'symbol-narrow':'1.2-2' }}</strong>
+          </div>
+        </div>
+      </div>
+
       <!-- Pagos + Resumen -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-2">
         <div class="rounded-xl2 bg-ra-white shadow-card ring-1 ring-black/10 p-4">
@@ -242,11 +263,11 @@
           <div class="text-sm font-semibold text-ra-slate mb-2">Resumen</div>
 
           <div class="text-sm flex justify-between">
-            <span>Total calculado (vista)</span>
-            <span class="font-semibold">{{ totalCalculadoVista() | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+            <span>Total a pagar</span>
+            <span class="font-semibold text-emerald-700">{{ totalCalculadoVista() | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
           </div>
 
-          <div class="text-sm flex justify-between">
+          <div class="text-sm flex justify-between mt-1">
             <span>Suma de pagos</span>
             <span class="font-semibold">{{ sumaPagos() | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
           </div>

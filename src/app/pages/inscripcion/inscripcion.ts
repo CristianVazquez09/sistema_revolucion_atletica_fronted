@@ -34,11 +34,13 @@ import { MembresiaService } from '../../services/membresia-service';
 import { NotificacionService } from '../../services/notificacion-service';
 import { GimnasioService } from '../../services/gimnasio-service';
 import { TicketService, VentaContexto } from '../../services/ticket-service';
+import { EntrenadorService } from '../../services/entrenador-service';
 
 import { PaqueteData } from '../../model/paquete-data';
 import { SocioData } from '../../model/socio-data';
 import { MembresiaData, PagoData } from '../../model/membresia-data';
 import { GimnasioData } from '../../model/gimnasio-data';
+import { EntrenadorData } from '../../model/entrenador-data';
 
 import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
 import { TipoPago } from '../../util/enums/tipo-pago';
@@ -59,6 +61,7 @@ import {
 
 type MembresiaPayload = Omit<MembresiaData, 'paquete' | 'total' | 'fechaFin'> & {
   paquete: { idPaquete: number };
+  idEntrenadorRA?: number;
 };
 
 // === Borrador en sessionStorage ===
@@ -143,9 +146,19 @@ export class Inscripcion implements OnInit {
   private ticket = inject(TicketService);
   private jwt = inject(JwtHelperService);
   private store = inject(Store);
+  private entrenadorSrv = inject(EntrenadorService);
 
   gym: GimnasioData | null = null;
   cajero = 'Cajero';
+
+  // =========================
+  // ✅ Entrenador RA
+  // =========================
+  entrenadoresRASig = signal<EntrenadorData[]>([]);
+  cargandoEntrenadoresSig = signal(false);
+  entrenadorRAIdSig = signal<number | null>(null);
+
+  esPaqueteRASig = computed(() => Boolean((this.paqueteActualSig() as any)?.esRA === true));
 
   // =====================================================
   // ✅ tick signal para forzar recomputes en apps zoneless
@@ -460,6 +473,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
     this.cargarContextoDesdeToken();
     this.cargarBorradorDesdeStorage(); // ✅ rehidrata FORM + STORE
     this.cargarPaquetes();
+    this.cargarEntrenadoresRA();
 
     // ✅ si el store tiene paqueteId, sincronízalo al FORM
     effect(() => {
@@ -741,6 +755,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
 
     this.promocionesVigentesSig.set([]);
     this.promoErrorSig.set(null);
+    this.entrenadorRAIdSig.set(null);
 
     // ✅ persistencia inmediata
     this.guardarBorradorEnStorage();
@@ -807,6 +822,38 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
         this.bumpFormTick();
       },
     });
+  }
+
+  private cargarEntrenadoresRA(): void {
+    this.cargandoEntrenadoresSig.set(true);
+    this.entrenadorSrv.buscarTodos().subscribe({
+      next: (lista) => {
+        const seen = new Set<number>();
+        const activos = (lista ?? [])
+          .filter((e: any) => e?.activo !== false)
+          .map((e: any) => ({
+            idEntrenador: Number(e?.idEntrenador ?? e?.id ?? 0),
+            nombre: String(e?.nombre ?? ''),
+            apellido: String(e?.apellido ?? ''),
+            activo: e?.activo !== false,
+            gimnasio: e?.gimnasio,
+          } as EntrenadorData))
+          .filter((e) => {
+            if (!e.idEntrenador) return false;
+            if (seen.has(e.idEntrenador)) return false;
+            seen.add(e.idEntrenador);
+            return true;
+          });
+        this.entrenadoresRASig.set(activos);
+        this.cargandoEntrenadoresSig.set(false);
+      },
+      error: () => this.cargandoEntrenadoresSig.set(false),
+    });
+  }
+
+  onEntrenadorRAChange(value: string): void {
+    const id = Number(value);
+    this.entrenadorRAIdSig.set(id > 0 ? id : null);
   }
 
   socioNombreActual(): string {
@@ -886,6 +933,10 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
     const esEst = this.esPaqueteEstudiantilSig();
     if (esEst) {
       if (!c.credencialEstudianteVigencia.value) f.push('Vigencia credencial estudiante');
+    }
+
+    if (this.esPaqueteRASig() && !this.entrenadorRAIdSig()) {
+      f.push('Entrenador RA');
     }
 
     return f;
@@ -1287,6 +1338,14 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
       socioPayload.huellaDigital = this.huellaDigitalBase64;
     }
 
+    const entrenadorRAId = this.esPaqueteRASig() ? this.entrenadorRAIdSig() : null;
+    const entrenadorRAObj = entrenadorRAId
+      ? this.entrenadoresRASig().find((e) => e.idEntrenador === entrenadorRAId)
+      : null;
+    const entrenadorRANombre = entrenadorRAObj
+      ? `${entrenadorRAObj.nombre} ${entrenadorRAObj.apellido}`.trim()
+      : undefined;
+
     const cuerpo: MembresiaPayload = {
       socio: socioPayload as SocioData,
       paquete: { idPaquete: paquete.idPaquete },
@@ -1294,6 +1353,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
       movimiento: this.formularioInscripcion.controls.movimiento.value!,
       pagos,
       descuento: snap.descuentoTotal, // ✅ descuento TOTAL (manual+promo+insc gratis)
+      ...(entrenadorRAId ? { idEntrenadorRA: entrenadorRAId } : {}),
     };
 
     const socioNombre = this.socioNombreActual();
@@ -1333,6 +1393,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
             costoInscripcion: Number((paquete as any)?.costoInscripcion ?? 0),
             pagos: pagosDet,
             referencia: resp?.referencia,
+            entrenadorNombre: entrenadorRANombre,
           });
 
           this.cerrarModalResumen();
@@ -1340,6 +1401,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
           this.huellaDigitalBase64 = null;
           this.fotoArchivo = null;
           this.fotoPreviewUrl = null;
+          this.entrenadorRAIdSig.set(null);
 
           sessionStorage.removeItem(STORAGE_KEY_INSCRIPCION);
 
@@ -1421,6 +1483,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
             costoInscripcion: Number(resp?.paquete?.costoInscripcion ?? this.costoInscripcionUiSig() ?? 0),
             pagos: pagosDet,
             referencia: resp?.referencia,
+            entrenadorNombre: entrenadorRANombre,
           });
         }
 
@@ -1433,6 +1496,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
         this.huellaDigitalBase64 = null;
         this.fotoArchivo = null;
         this.fotoPreviewUrl = null;
+        this.entrenadorRAIdSig.set(null);
 
         sessionStorage.removeItem(STORAGE_KEY_INSCRIPCION);
 

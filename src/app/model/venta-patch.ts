@@ -6,6 +6,7 @@ export type VentaPatchAction =
   | { op: 'REEMPLAZAR_PAGOS'; pagos: PagoData[] }
   | { op: 'REEMPLAZAR_PRODUCTO'; idDetalle: number; idProductoNuevo: number; cantidad: number }
   | { op: 'AGREGAR_DETALLE'; idProducto: number; cantidad: number }
+  | { op: 'CAMBIAR_DESCUENTO'; nuevoDescuento: number }
   | { op: 'ANULAR' };
 
 export interface VentaPatchRequest {

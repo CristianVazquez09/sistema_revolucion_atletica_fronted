@@ -1,8 +1,8 @@
-<div class="mx-auto w-full max-w-[560px] rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
+<div class="w-full rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
 
   <!-- Header -->
-  <div class="flex items-start justify-between px-6 pt-5">
-    <h2 class="text-[20px] font-bold text-ra-slate leading-none">
+  <div class="flex items-start justify-between px-4 sm:px-6 pt-4 sm:pt-5">
+    <h2 class="text-lg sm:text-[20px] font-bold text-ra-slate leading-none">
       {{ titulo() }}
     </h2>
 
@@ -17,7 +17,7 @@
   </div>
 
   <!-- Body / Form -->
-  <form class="px-6 pb-6 pt-4 space-y-4" (submit)="guardar()" [formGroup]="fb">
+  <form class="px-4 sm:px-6 pb-5 sm:pb-6 pt-3 sm:pt-4 space-y-4" (submit)="guardar()" [formGroup]="fb">
 
     <!-- SOLO ADMIN: Gimnasio -->
     @if (isAdmin) {
@@ -53,12 +53,12 @@
     <!-- Tipo de paquete -->
     <div>
       <label class="block text-sm font-semibold text-ra-slate mb-1.5">Tipo de paquete</label>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+      <div class="grid grid-cols-1 min-[380px]:grid-cols-3 gap-2">
         @for (tipo of tiposPaquete; track tipo) {
-          <label class="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 cursor-pointer hover:border-ra-green">
+          <label class="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 cursor-pointer hover:border-ra-green transition-colors">
             <input
               type="radio"
-              class="h-4 w-4"
+              class="h-4 w-4 flex-shrink-0"
               [value]="tipo"
               formControlName="tipoPaquete">
             <span class="text-sm text-ra-slate">{{ labelTipoPaquete(tipo) }}</span>
@@ -70,23 +70,21 @@
       }
     </div>
 
-    <!-- NUEVO: Modalidad -->
+    <!-- Modalidad -->
     <div>
       <label class="block text-sm font-semibold text-ra-slate mb-1.5">Modalidad</label>
-
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div class="grid grid-cols-2 min-[380px]:grid-cols-4 gap-2">
         @for (m of modalidades; track m) {
-          <label class="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 cursor-pointer hover:border-ra-green">
+          <label class="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 cursor-pointer hover:border-ra-green transition-colors">
             <input
               type="radio"
-              class="h-4 w-4"
+              class="h-4 w-4 flex-shrink-0"
               [value]="m"
               formControlName="modalidad">
             <span class="text-sm text-ra-slate">{{ labelModalidad(m) }}</span>
           </label>
         }
       </div>
-
       @if ((intentoGuardar || fb.get('modalidad')?.touched) && fb.get('modalidad')?.invalid) {
         <p class="text-sm text-red-600 mt-1">Selecciona la modalidad.</p>
       }
@@ -132,36 +130,48 @@
           <p class="text-sm text-red-600 mt-1">Indica un número de visitas válido.</p>
         }
         <p class="text-xs text-ra-slate/70 mt-1">
-          Sugerencia automática: 10 para “10 visitas” y 15 para “15 visitas”.
+          Sugerencia automática: 10 para "10 visitas" y 15 para "15 visitas".
         </p>
       </div>
     }
 
-    <div class="flex items-center gap-3 mt-2">
-      <input id="soloFines" type="checkbox" formControlName="soloFinesDeSemana" class="h-5 w-5 rounded border-gray-300">
-      <label for="soloFines" class="text-sm text-ra-slate select-none">
-        Solo permitir acceso viernes, sábado y domingo
+    <!-- Opciones de acceso y tipo especial -->
+    <div class="space-y-2">
+
+      <!-- Solo fines de semana -->
+      <label class="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-ra-green transition-colors">
+        <input id="soloFines" type="checkbox" formControlName="soloFinesDeSemana"
+          class="h-5 w-5 flex-shrink-0 rounded border-gray-300 accent-[#0B2C4A]">
+        <div>
+          <span class="text-sm font-semibold text-ra-slate">Solo fines de semana</span>
+          <p class="text-xs text-ra-slate/60 mt-0.5">Acceso permitido únicamente Vie / Sáb / Dom</p>
+        </div>
       </label>
+
+      <!-- Paquete estudiantil -->
+      <label class="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-ra-green transition-colors">
+        <input type="checkbox" formControlName="estudiantil"
+          class="h-5 w-5 flex-shrink-0 rounded border-gray-300 accent-[#0B2C4A]">
+        <div>
+          <span class="text-sm font-semibold text-ra-slate">Paquete estudiantil</span>
+          <p class="text-xs text-ra-slate/60 mt-0.5">Aplica condiciones especiales para alumnos</p>
+        </div>
+      </label>
+
+      <!-- Paquete RA -->
+      <label class="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-ra-green transition-colors">
+        <input type="checkbox" formControlName="esRA"
+          class="h-5 w-5 flex-shrink-0 rounded border-gray-300 accent-[#0B2C4A]">
+        <div>
+          <span class="text-sm font-semibold text-ra-slate">Paquete Revolución Atlética (RA)</span>
+          <p class="text-xs text-ra-slate/60 mt-0.5">Requiere asignar un entrenador RA al inscribir o reinscribir</p>
+        </div>
+      </label>
+
     </div>
-    <!-- ✅ NUEVO: Estudiantil -->
-<div class="mt-3">
-  <label class="inline-flex items-center gap-2 text-sm text-ra-slate">
-    <input type="checkbox" formControlName="estudiantil" class="accent-red-600">
-    <span class="font-semibold">Paquete estudiantil</span>
-  </label>
-
-
-</div>
-
-
-    @if (fb.controls['soloFinesDeSemana'].value) {
-      <div class="mt-1 text-xs text-gray-600">
-        Este paquete se validará en check-in para permitir entrada únicamente Vie/Sáb/Dom.
-      </div>
-    }
 
     <!-- Precio / Inscripción -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-semibold text-ra-slate mb-1.5">Precio</label>
         <input
@@ -194,18 +204,18 @@
     }
 
     <!-- Footer -->
-    <div class="flex items-center justify-end gap-2 pt-2">
+    <div class="flex items-center justify-end gap-2 pt-1">
       <button
         type="button"
         (click)="cancelar.emit()"
-        class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100">
+        class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm">
         Cancelar
       </button>
 
       <button
         type="submit"
         [disabled]="guardando"
-        class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60">
+        class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60 text-sm">
         {{ guardando ? 'Guardando...' : 'Guardar' }}
       </button>
     </div>

@@ -25,11 +25,13 @@ import { NotificacionService } from 'src/app/services/notificacion-service';
 import { GimnasioService } from 'src/app/services/gimnasio-service';
 import { TicketService, VentaContexto } from 'src/app/services/ticket-service';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { EntrenadorService } from 'src/app/services/entrenador-service';
 
 import { SocioData } from 'src/app/model/socio-data';
 import { MembresiaData, PagoData } from 'src/app/model/membresia-data';
 import { PaqueteData } from 'src/app/model/paquete-data';
 import { GimnasioData } from 'src/app/model/gimnasio-data';
+import { EntrenadorData } from 'src/app/model/entrenador-data';
 
 import { TipoMovimiento } from 'src/app/util/enums/tipo-movimiento';
 import { crearContextoTicket } from 'src/app/util/ticket-contexto';
@@ -116,10 +118,20 @@ export class ReinscripcionAdelantada implements OnInit {
   private gymSrv = inject(GimnasioService);
   private ticket = inject(TicketService);
   private jwt = inject(JwtHelperService);
+  private entrenadorSrv = inject(EntrenadorService);
 
   // Contexto ticket
   gym: GimnasioData | null = null;
   cajero = 'Cajero';
+
+  // =========================
+  // ✅ Entrenador RA
+  // =========================
+  entrenadoresRASig = signal<EntrenadorData[]>([]);
+  cargandoEntrenadoresSig = signal(false);
+  entrenadorRAIdSig = signal<number | null>(null);
+
+  esPaqueteRASig = computed(() => Boolean((this.paqueteActualSig() as any)?.esRA === true));
 
   // UI general
   cargandoSocio = false;
@@ -326,6 +338,10 @@ export class ReinscripcionAdelantada implements OnInit {
     }
     if (this.esGrupalSig() && this.faltanIntegrantesSig() > 0) {
       return `Faltan ${this.faltanIntegrantesSig()} integrante(s) para completar el paquete ${this.modalidadVigenteSig()}.`;
+    }
+
+    if (this.esPaqueteRASig() && !this.entrenadorRAIdSig()) {
+      return 'Selecciona un entrenador RA para continuar.';
     }
 
     const principalFin = this.vigentePrincipalSig()?.fechaFin ?? null;
@@ -584,9 +600,43 @@ export class ReinscripcionAdelantada implements OnInit {
     this.paqueteDropdownAbiertoSig.set(false);
   }
 
+  // ===================== Entrenador RA =====================
+  private cargarEntrenadoresRA(): void {
+    this.cargandoEntrenadoresSig.set(true);
+    this.entrenadorSrv.buscarTodos().subscribe({
+      next: (lista) => {
+        const seen = new Set<number>();
+        const activos = (lista ?? [])
+          .filter((e: any) => e?.activo !== false)
+          .map((e: any) => ({
+            idEntrenador: Number(e?.idEntrenador ?? e?.id ?? 0),
+            nombre: String(e?.nombre ?? ''),
+            apellido: String(e?.apellido ?? ''),
+            activo: e?.activo !== false,
+            gimnasio: e?.gimnasio,
+          } as EntrenadorData))
+          .filter((e) => {
+            if (!e.idEntrenador) return false;
+            if (seen.has(e.idEntrenador)) return false;
+            seen.add(e.idEntrenador);
+            return true;
+          });
+        this.entrenadoresRASig.set(activos);
+        this.cargandoEntrenadoresSig.set(false);
+      },
+      error: () => this.cargandoEntrenadoresSig.set(false),
+    });
+  }
+
+  onEntrenadorRAChange(value: string): void {
+    const id = Number(value);
+    this.entrenadorRAIdSig.set(id > 0 ? id : null);
+  }
+
   // ===================== Lifecycle =====================
   ngOnInit(): void {
     this.cargarContextoDesdeToken();
+    this.cargarEntrenadoresRA();
 
     // ✅ init signals
     this.paqueteIdSig.set(Number(this.form.controls.paqueteId.value ?? 0));
@@ -736,6 +786,9 @@ export class ReinscripcionAdelantada implements OnInit {
     this.form.controls.descuento.setValue(0, { emitEvent: false });
     this.descuentoUiSig.set(0);
 
+    // ✅ reset entrenador RA
+    this.entrenadorRAIdSig.set(null);
+
     this.form.controls.fechaInicio.setValue(this.hoyISO(), { emitEvent: false });
     this.setPaqueteId(0, false);
 
@@ -768,6 +821,9 @@ export class ReinscripcionAdelantada implements OnInit {
 
     // ✅ limpia asesorías
     this.estadoAsesoriaBySocioIdSig.set({});
+
+    // ✅ limpia entrenador RA
+    this.entrenadorRAIdSig.set(null);
 
     // ✅ limpia buscador
     this.paqueteBusquedaSig.set('');
@@ -1189,12 +1245,21 @@ export class ReinscripcionAdelantada implements OnInit {
     const miembros = this.miembrosSig();
     const descuento = Number(this.descuentoUiSig() ?? 0);
 
+    const entrenadorRAId = this.esPaqueteRASig() ? this.entrenadorRAIdSig() : null;
+    const entrenadorRAObj = entrenadorRAId
+      ? this.entrenadoresRASig().find((e) => e.idEntrenador === entrenadorRAId)
+      : null;
+    const entrenadorRANombre = entrenadorRAObj
+      ? `${entrenadorRAObj.nombre} ${entrenadorRAObj.apellido}`.trim()
+      : undefined;
+
     const payloads = miembros.map(m => ({
       socio: { idSocio: m.socio.idSocio },
       paquete: { idPaquete: (paquete as any).idPaquete },
       movimiento: 'REINSCRIPCION',
       descuento,
       pagos: m.pagos ?? [],
+      ...(entrenadorRAId ? { idEntrenadorRA: entrenadorRAId } : {}),
     }));
 
     this.guardando = true;
@@ -1210,7 +1275,7 @@ export class ReinscripcionAdelantada implements OnInit {
             const lista = Array.isArray(respArr) ? respArr : [];
             for (let i = 0; i < miembros.length; i++) {
               const r = lista[i] ?? {};
-              this.imprimirTicket(ctx, r, miembros[i].socio, miembros[i].pagos ?? [], paquete, descuento);
+              this.imprimirTicket(ctx, r, miembros[i].socio, miembros[i].pagos ?? [], paquete, descuento, entrenadorRANombre);
             }
 
             this.notify.exito('Reinscripción adelantada grupal guardada.');
@@ -1236,7 +1301,7 @@ export class ReinscripcionAdelantada implements OnInit {
           const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
           const socio = miembros[0].socio;
           const pagos = miembros[0].pagos ?? [];
-          this.imprimirTicket(ctx, resp, socio, pagos, paquete, descuento);
+          this.imprimirTicket(ctx, resp, socio, pagos, paquete, descuento, entrenadorRANombre);
 
           this.notify.exito('Reinscripción adelantada guardada.');
           const principalId = Number(this.socioPrincipalSig()?.idSocio ?? 0);
@@ -1259,7 +1324,8 @@ export class ReinscripcionAdelantada implements OnInit {
     socio: SocioData,
     pagos: PagoData[],
     paquete: PaqueteData | null,
-    descuento: number
+    descuento: number,
+    entrenadorNombre?: string
   ): void {
     const pagosDet = (pagos ?? [])
       .filter(p => (Number(p.monto) || 0) > 0)
@@ -1281,6 +1347,7 @@ export class ReinscripcionAdelantada implements OnInit {
       costoInscripcion: 0,
       pagos: pagosDet,
       referencia: resp?.referencia,
+      entrenadorNombre,
     });
   }
 

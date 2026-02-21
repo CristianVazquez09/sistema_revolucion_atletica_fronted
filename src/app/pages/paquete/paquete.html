@@ -413,10 +413,12 @@
 
 <!-- Modal -->
 @if (mostrarModalPaquete()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/50" (click)="cerrarModalPaquete()"></div>
-    <div class="relative z-10 w-full max-w-lg mx-4">
-      <div class="bg-ra-white rounded-xl2 shadow-card ring-1 ring-black/5">
+  <!-- Backdrop -->
+  <div class="fixed inset-0 z-50 bg-black/50" (click)="cerrarModalPaquete()"></div>
+  <!-- Scroll container: permite hacer scroll cuando el viewport es pequeño o hay zoom -->
+  <div class="fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex min-h-full items-center justify-center p-4">
+      <div class="relative w-full max-w-lg">
         <app-paquete-modal
           [paquete]="paqueteEnEdicion"
           (cancelar)="cerrarModalPaquete()"

@@ -84,6 +84,9 @@ export class PaqueteModal implements OnInit, OnDestroy {
 
     // ✅ NUEVO: Paquete estudiantil
     estudiantil:       new FormControl<boolean>(false),
+
+    // ✅ NUEVO: Paquete RA (requiere entrenador RA al inscribir)
+    esRA:              new FormControl<boolean>(false),
   });
 
   // Bandera reactiva
@@ -202,6 +205,9 @@ export class PaqueteModal implements OnInit, OnDestroy {
 
       // ✅ NUEVO: estudiantil (default false)
       estudiantil:       (this.paquete as any).estudiantil === true,
+
+      // ✅ NUEVO: esRA (default false)
+      esRA:              (this.paquete as any).esRA === true,
     });
 
     if (this.isAdmin) {
@@ -277,6 +283,9 @@ export class PaqueteModal implements OnInit, OnDestroy {
 
       // ✅ NUEVO: estudiantil
       estudiantil: !!f.estudiantil,
+
+      // ✅ NUEVO: esRA
+      esRA: !!f.esRA,
     };
 
     const payloadCrear: any = {

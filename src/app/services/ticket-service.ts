@@ -55,6 +55,7 @@ export interface TicketMembresia extends TicketHeader {
   referencia?: string | number;  // REF:
   saldo?: number | string;
   estado?: 'PAGADO' | 'PENDIENTE';
+  entrenador?: string;           // entrenador RA asignado
 }
 
 export interface TicketEntrenador extends TicketHeader {
@@ -103,6 +104,7 @@ export interface VentaBackend {
   folio?: number | string;
   fecha?: string | Date;
   total?: number;
+  descuento?: number;
 
   pagos?: Array<{
     tipoPago?: string;   // EFECTIVO | TARJETA | TRANSFERENCIA | ...
@@ -204,6 +206,7 @@ export class TicketService {
     // ✅ si no te mandan pagos explícitos, intenta sacarlos del backend
     const pagosDet = (pagos && pagos.length) ? pagos : this.normalizarPagosVentaDesdeBackend(venta);
 
+    const descuento = Number(venta?.descuento) || 0;
     this.verVentaComoHtml({
       negocio: ctx.negocio,
       folio: venta?.folio ?? '',
@@ -213,7 +216,7 @@ export class TicketService {
       cajero: ctx.cajero,
       socio: ctx.socio,
       items,
-      totales: { subtotal, total },
+      totales: { subtotal, descuento, total },
       leyendaLateral: ctx.leyendaLateral ?? ctx.negocio.nombre,
       brandTitle: ctx.brandTitle,
       tipoPago,         // solo fallback
@@ -234,6 +237,7 @@ export class TicketService {
     // ✅ si no te mandan pagos explícitos, intenta sacarlos del backend
     const pagosDet = (pagos && pagos.length) ? pagos : this.normalizarPagosVentaDesdeBackend(venta);
 
+    const descuento = Number(venta?.descuento) || 0;
     this.imprimirVenta({
       negocio: ctx.negocio,
       folio: venta?.folio ?? '',
@@ -242,7 +246,7 @@ export class TicketService {
       cajero: ctx.cajero,
       socio: ctx.socio,
       items,
-      totales: { subtotal, total },
+      totales: { subtotal, descuento, total },
       leyendaLateral: ctx.leyendaLateral ?? ctx.negocio.nombre,
       brandTitle: ctx.brandTitle,
       tipoPago,         // solo fallback
@@ -257,11 +261,14 @@ export class TicketService {
     pagos?: TicketPagoDetalle[],
     folio?: string | number,
     fecha?: Date | string,
-    idVenta?: string | number
+    idVenta?: string | number,
+    descuento?: number
   ) {
     void idVenta; // compat, ya no se imprime
     const items = carrito.map(it => ({ nombre: it.nombre, cantidad: it.cantidad, precioUnit: it.precioUnit }));
     const subtotal = this.calcularSubtotal(items);
+    const desc = descuento || 0;
+    const total = Math.max(0, subtotal - desc);
 
     this.verVentaComoHtml({
       negocio: ctx.negocio,
@@ -270,7 +277,7 @@ export class TicketService {
       cajero: ctx.cajero,
       socio: ctx.socio,
       items,
-      totales: { subtotal, total: subtotal },
+      totales: { subtotal, descuento: desc, total },
       leyendaLateral: ctx.leyendaLateral ?? ctx.negocio.nombre,
       brandTitle: ctx.brandTitle,
       tipoPago,
@@ -285,11 +292,14 @@ export class TicketService {
     pagos?: TicketPagoDetalle[],
     folio?: string | number,
     fecha?: Date | string,
-    idVenta?: string | number
+    idVenta?: string | number,
+    descuento?: number
   ) {
     void idVenta; // compat, ya no se imprime
     const items = carrito.map(it => ({ nombre: it.nombre, cantidad: it.cantidad, precioUnit: it.precioUnit }));
     const subtotal = this.calcularSubtotal(items);
+    const desc = descuento || 0;
+    const total = Math.max(0, subtotal - desc);
 
     this.imprimirVenta({
       negocio: ctx.negocio,
@@ -298,7 +308,7 @@ export class TicketService {
       cajero: ctx.cajero,
       socio: ctx.socio,
       items,
-      totales: { subtotal, total: subtotal },
+      totales: { subtotal, descuento: desc, total },
       leyendaLateral: ctx.leyendaLateral ?? ctx.negocio.nombre,
       brandTitle: ctx.brandTitle,
       tipoPago,
@@ -318,6 +328,7 @@ export class TicketService {
     tipoPago?: string;                   // compat si no mandas pagos
     pagos?: TicketPagoDetalle[];         // desglose real
     referencia?: string | number;
+    entrenadorNombre?: string;           // entrenador RA
   }) {
     const base = (Number(p.precioPaquete) || 0) + (Number(p.costoInscripcion) || 0);
     const desc = Number(p.descuento) || 0;
@@ -347,6 +358,7 @@ export class TicketService {
       tipoPago: p.tipoPago,
       referencia: p.referencia,
       estado: 'PAGADO',
+      entrenador: p.entrenadorNombre,
     });
   }
 
@@ -357,6 +369,7 @@ export class TicketService {
     tipoPago?: string;                   // compat si no llegan pagos
     pagos?: TicketPagoDetalle[];         // desglose real (opcional)
     referencia?: string | number;        // opcional
+    entrenadorNombre?: string;           // entrenador RA
   }) {
     const base = (Number(p.precioPaquete) || 0) + (Number(p.costoInscripcion) || 0);
     const desc = Number(p.descuento) || 0;
@@ -380,6 +393,7 @@ export class TicketService {
       referencia: p.referencia,
       saldo: 0,
       estado: 'PAGADO',
+      entrenador: p.entrenadorNombre,
     };
 
     const html = this.htmlMembresia(data);
@@ -675,12 +689,12 @@ ${this.baseStyles()}
     <div class="mrow"><div class="k">FECHA:</div><div class="v">${this.fechaConSegundos(d.fecha)}</div></div>
     ${ d.cajero ? `<div class="mrow"><div class="k">CAJERO:</div><div class="v">${this.escape(String(d.cajero))}</div></div>` : '' }
     ${ d.socio  ? `<div class="mrow"><div class="k">SOCIO:</div><div class="v">${this.escape(String(d.socio))}</div></div>` : '' }
+    ${ d.entrenador ? `<div class="mrow"><div class="k">ENTRENADOR:</div><div class="v">${this.escape(String(d.entrenador))}</div></div>` : '' }
   </div>
 
   ${folioGrande}
 
-  <div class="sec">Suscripción</div>
-  <div class="subsec">${this.escape(String(d.concepto))}</div>
+  <div class="sec">${this.escape(String(d.concepto))}</div>
   ${ periodo ? `<div class="note">${this.escape(periodo)}</div>` : '' }
 
   <div class="hr"></div>
@@ -1064,7 +1078,7 @@ ${this.baseStyles()}
 <style>
   html,body { margin:0; padding:0; }
 
-  .ticket { --fs-brand:14px; --fs-head:11px; --fs-base:10.5px; --fs-small:10px; --fs-micro:9.2px; }
+  .ticket { --fs-brand:14px; --fs-head:11px; --fs-base:10px; --fs-small:9.5px; --fs-micro:8.8px; }
 
   .ticket {
     box-sizing:border-box;
@@ -1073,32 +1087,32 @@ ${this.baseStyles()}
     margin-left:${shift}mm;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size:var(--fs-base);
-    line-height:1.22;
+    line-height:1.25;
     position:relative;
   }
 
-  .brand    { text-align:center; font-weight:900; font-size: var(--fs-brand); letter-spacing:.4px; }
-  .bizline  { text-align:center; text-transform: uppercase; font-size: var(--fs-small); margin-top:1px; }
-  .info     { font-size: var(--fs-head); margin-top: 2px; }
+  .brand    { text-align:center; font-weight:900; font-size: var(--fs-brand); letter-spacing:.5px; }
+  .bizline  { text-align:center; text-transform: uppercase; font-size: var(--fs-micro); margin-top:1px; }
+  .info     { font-size: var(--fs-base); margin-top: 2px; }
   .center   { text-align:center; }
   .sp       { height: 4px; }
 
   /* Separador */
-  .hr { border-top:1px dotted #000; margin:5px 0; opacity:.95; }
+  .hr { border-top:1px dotted #000; margin:4px 0; opacity:.95; }
 
   /* Meta compacta */
-  .meta { margin-top:4px; font-size: var(--fs-head); }
-  .meta .mrow { display:flex; gap:2mm; margin:1px 0; }
+  .meta { margin-top:4px; font-size: var(--fs-base); }
+  .meta .mrow { display:flex; gap:2mm; margin:1px 0; align-items:flex-start; }
   .meta .k { flex:0 0 auto; font-weight:700; text-transform:uppercase; }
-  .meta .v { flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-transform:uppercase; }
+  .meta .v { flex:1 1 auto; min-width:0; word-break:break-word; overflow-wrap:break-word; text-transform:uppercase; }
 
   /* Secciones */
-  .sec { margin-top:5px; font-weight:900; text-transform:uppercase; font-size: var(--fs-small); letter-spacing:.2px; }
-  .subsec { margin-top:2px; font-weight:700; text-transform:uppercase; font-size: var(--fs-micro); opacity:.92; }
+  .sec { margin-top:5px; font-weight:900; text-transform:uppercase; font-size: var(--fs-head); letter-spacing:.3px; }
+  .subsec { margin-top:2px; font-weight:700; text-transform:uppercase; font-size: var(--fs-small); opacity:.9; }
 
   /* Folio grande */
-  .doc-id { text-align:center; font-weight:900; font-size:20px; margin:6px 0 6px; letter-spacing:.8px; }
-  .doc-id .lbl { display:block; font-size: var(--fs-micro); letter-spacing:.4px; margin-bottom:1px; opacity:.9; font-weight:700; text-transform:uppercase; }
+  .doc-id { text-align:center; font-weight:900; font-size:28px; margin:4px 0 6px; letter-spacing:1px; }
+  .doc-id .lbl { display:block; font-size: var(--fs-micro); letter-spacing:.4px; margin-bottom:1px; opacity:.85; font-weight:700; text-transform:uppercase; }
 
   /* Tabla de detalle */
   .tbl { margin-top:3px; font-size: var(--fs-small); }
@@ -1120,18 +1134,18 @@ ${this.baseStyles()}
   .tbl-qty { text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tbl-desc { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-transform:uppercase; }
   .tbl-amt { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  .note { margin-top:2px; font-size: var(--fs-micro); opacity:.9; text-transform:uppercase; }
+  .note { margin-top:2px; font-size: var(--fs-small); text-transform:uppercase; }
 
   /* Totales */
-  .totals { margin-top:2px; font-size: var(--fs-small); }
+  .totals { margin-top:2px; font-size: var(--fs-base); }
   .totals .r { display:flex; gap:2mm; margin:1px 0; align-items:baseline; }
-  .totals .k { flex:1 1 auto; min-width:0; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .totals .k { flex:1 1 auto; min-width:0; font-weight:700; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .totals .v { flex:0 0 ${amountW}mm; text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  .totals .r.total { font-weight:900; font-size:11.6px; margin-top:2px; }
+  .totals .r.total { font-weight:900; font-size:12px; margin-top:3px; }
 
   /* Footer + sello */
-  .footer { margin-top:6px; text-align:center; font-size: var(--fs-micro); text-transform:uppercase; opacity:.95; }
-  .stamp  { margin-top:4px; text-align:center; font-weight:900; text-transform:uppercase; letter-spacing:.5px; }
+  .footer { margin-top:6px; text-align:center; font-size: var(--fs-micro); text-transform:uppercase; opacity:.9; }
+  .stamp  { margin-top:6px; text-align:center; font-weight:900; font-size: var(--fs-head); text-transform:uppercase; letter-spacing:.6px; }
 
   /* Leyenda lateral */
   .lateral{
@@ -1396,14 +1410,14 @@ ${this.baseStyles()}
     if (list.length) {
       rows = list.map(p => {
         const label = this.pagoLabel(String(p.metodo ?? p.tipoPago ?? '')).toUpperCase();
-        return `<div class="r"><div class="k">PAGO ${this.escape(label)}</div><div class="v">${this.money(this.toNum(p.monto))}</div></div>`;
+        return `<div class="r"><div class="k">${this.escape(label)}</div><div class="v">${this.money(this.toNum(p.monto))}</div></div>`;
       }).join('');
     } else if (tipoPago) {
       const label = this.pagoLabel(tipoPago).toUpperCase();
       const amount = Number.isFinite(this.toNum(totalFallback))
         ? this.money(this.toNum(totalFallback))
         : '';
-      rows = `<div class="r"><div class="k">PAGO ${this.escape(label)}</div><div class="v">${amount}</div></div>`;
+      rows = `<div class="r"><div class="k">${this.escape(label)}</div><div class="v">${amount}</div></div>`;
     } else {
       return '';
     }

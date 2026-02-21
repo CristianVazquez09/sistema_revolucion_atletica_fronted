@@ -162,18 +162,6 @@ export class MembresiaModal implements OnInit {
     // total vista ya considera que si es REINSCRIPCION no cobra costoInscripcion
     const totalVista = this.totalCalculadoVista();
 
-    // pagos (ajustamos EFECTIVO si hace falta)
-    let ef = this.round2(this.efectivo() || 0);
-    let tj = selfRound2(this.tarjeta() || 0);
-    let tr = selfRound2(this.transferencia() || 0);
-    let suma = this.round2(ef + tj + tr);
-
-    if (Math.abs(suma - totalVista) > 0.009) {
-      const diff = this.round2(totalVista - suma);
-      ef = this.round2(ef + diff);
-      suma = this.round2(ef + tj + tr);
-    }
-
     // acciones
     const acciones: MembresiaPatchRequest['acciones'] = [];
 
@@ -196,12 +184,25 @@ export class MembresiaModal implements OnInit {
       acciones.push({ op: 'AJUSTAR_FECHAS', nuevaFechaInicio: yInicio, nuevaFechaFin: yFin });
     }
 
-    // REEMPLAZAR_PAGOS
-    const pagos: PagoData[] = [];
-    if (ef > 0) pagos.push({ tipoPago: 'EFECTIVO' as any, monto: ef });
-    if (tj > 0) pagos.push({ tipoPago: 'TARJETA'  as any, monto: tj });
-    if (tr > 0) pagos.push({ tipoPago: 'TRANSFERENCIA' as any, monto: tr });
-    acciones.push({ op: 'REEMPLAZAR_PAGOS', pagos });
+    // REEMPLAZAR_PAGOS — solo cuando el total > 0.
+    // Si el descuento es del 100 % (total = 0), el backend limpia los pagos automáticamente.
+    if (totalVista > 0.01) {
+      let ef = this.round2(this.efectivo() || 0);
+      let tj = selfRound2(this.tarjeta() || 0);
+      let tr = selfRound2(this.transferencia() || 0);
+      const suma = this.round2(ef + tj + tr);
+
+      if (Math.abs(suma - totalVista) > 0.009) {
+        const diff = this.round2(totalVista - suma);
+        ef = this.round2(ef + diff);
+      }
+
+      const pagos: PagoData[] = [];
+      if (ef > 0) pagos.push({ tipoPago: 'EFECTIVO' as any, monto: ef });
+      if (tj > 0) pagos.push({ tipoPago: 'TARJETA'  as any, monto: tj });
+      if (tr > 0) pagos.push({ tipoPago: 'TRANSFERENCIA' as any, monto: tr });
+      acciones.push({ op: 'REEMPLAZAR_PAGOS', pagos });
+    }
 
     const body: MembresiaPatchRequest = { acciones };
 

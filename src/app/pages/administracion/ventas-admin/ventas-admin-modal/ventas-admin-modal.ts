@@ -76,6 +76,9 @@ export class VentasAdminModal implements OnInit {
   detallesVisibles = computed(() => (this._detalles() ?? []).filter(d => !d._deleted));
   private newCtr = 0;
 
+  // descuento (signal)
+  descuento = signal(0);
+
   // pagos (signals)
   efectivo = signal(0);
   tarjeta = signal(0);
@@ -105,6 +108,7 @@ export class VentasAdminModal implements OnInit {
     this.srv.buscarPorId(this.idVenta).subscribe({
       next: (v) => {
         this.data = v;
+        this.descuento.set(this.round2(Number(v.descuento || 0)));
         this.mapDetallesDesdeVenta(v);
         this.mapPagosDesdeVenta(v);
         this.cargando = false;
@@ -174,8 +178,9 @@ export class VentasAdminModal implements OnInit {
   }
 
   private proposeIfEmpty() {
-    if ((this.efectivo() + this.tarjeta() + this.transferencia()) === 0) {
-      this.efectivo.set(this.totalCalculadoVista());
+    const total = this.totalCalculadoVista();
+    if ((this.efectivo() + this.tarjeta() + this.transferencia()) === 0 && total > 0) {
+      this.efectivo.set(total);
     }
   }
 
@@ -194,10 +199,14 @@ export class VentasAdminModal implements OnInit {
 
   /* --------------------------- Totales y validaciones --------------------------- */
 
-  totalCalculadoVista = computed(() =>
+  subtotalVista = computed(() =>
     this._detalles()
       .filter(d => !d._deleted)
       .reduce((acc, d) => acc + (Number(d.precioUnit) * this.toInt(d.cantidad)), 0)
+  );
+
+  totalCalculadoVista = computed(() =>
+    this.round2(Math.max(0, this.subtotalVista() - (this.descuento() || 0)))
   );
 
   sumaPagos = computed(() =>
@@ -212,12 +221,13 @@ export class VentasAdminModal implements OnInit {
       .some(d => !isFinite(Number(d.precioUnit)) || Number(d.precioUnit) <= 0)
   );
 
-  canSave = computed(() =>
-    !this.cargando &&
-    !this.guardando &&
-    !this.unknownPrice() &&
-    this.almostEq(this.sumaPagos(), this.totalCalculadoVista())
-  );
+  canSave = computed(() => {
+    if (this.cargando || this.guardando || this.unknownPrice()) return false;
+    const total = this.totalCalculadoVista();
+    // Con descuento al 100% (total = 0) no se necesitan pagos
+    if (Math.abs(total) <= 0.01) return true;
+    return this.almostEq(this.sumaPagos(), total);
+  });
 
   /* ----------------------------- Acciones de Detalle ----------------------------- */
 
@@ -338,7 +348,7 @@ export class VentasAdminModal implements OnInit {
 
   ajustarPagosAlTotal() {
     const total = this.totalCalculadoVista();
-    this.efectivo.set(total);
+    this.efectivo.set(total > 0 ? total : 0);
     this.tarjeta.set(0);
     this.transferencia.set(0);
   }
@@ -371,19 +381,10 @@ export class VentasAdminModal implements OnInit {
       return;
     }
 
-    // 3) Congelar totales/pagos para armar el PATCH
-    const totalVista = this.round2(this.totalCalculadoVista());
-    let ef = this.round2(this.efectivo());
-    let tj = this.round2(this.tarjeta());
-    let tr = this.round2(this.transferencia());
-    let suma = this.round2(ef + tj + tr);
-
-    // Ajuste fino: si no coincide exactamente con total, ajustar efectivo
-    if (Math.abs(suma - totalVista) > 0.009) {
-      const diff = this.round2(totalVista - suma);
-      ef = this.round2(ef + diff);
-      suma = this.round2(ef + tj + tr);
-    }
+    // 3) Congelar valores
+    const totalVista   = this.round2(this.totalCalculadoVista());
+    const descNuevo    = this.round2(this.descuento() || 0);
+    const descOriginal = this.round2(Number(this.data!.descuento || 0));
 
     // 4) Construir acciones de DETALLES
     const acciones: any[] = [];
@@ -426,18 +427,38 @@ export class VentasAdminModal implements OnInit {
       }
     }
 
-    // 5) Acción de PAGOS
-    const pagos: PagoData[] = [];
-    if (ef > 0) pagos.push({ tipoPago: 'EFECTIVO' as any, monto: ef });
-    if (tj > 0) pagos.push({ tipoPago: 'TARJETA' as any, monto: tj });
-    if (tr > 0) pagos.push({ tipoPago: 'TRANSFERENCIA' as any, monto: tr });
-    acciones.push({ op: 'REEMPLAZAR_PAGOS', pagos });
+    // 5) CAMBIAR_DESCUENTO (solo si cambió)
+    if (descNuevo !== descOriginal) {
+      acciones.push({ op: 'CAMBIAR_DESCUENTO', nuevoDescuento: descNuevo });
+    }
+
+    // 6) REEMPLAZAR_PAGOS — solo si el total es > 0 (con descuento al 100% el backend limpia los pagos)
+    if (totalVista > 0.01) {
+      let ef = this.round2(this.efectivo());
+      let tj = this.round2(this.tarjeta());
+      let tr = this.round2(this.transferencia());
+      const suma = this.round2(ef + tj + tr);
+
+      if (Math.abs(suma - totalVista) > 0.009) {
+        ef = this.round2(ef + this.round2(totalVista - suma));
+      }
+
+      const pagos: PagoData[] = [];
+      if (ef > 0) pagos.push({ tipoPago: 'EFECTIVO' as any, monto: ef });
+      if (tj > 0) pagos.push({ tipoPago: 'TARJETA' as any, monto: tj });
+      if (tr > 0) pagos.push({ tipoPago: 'TRANSFERENCIA' as any, monto: tr });
+      acciones.push({ op: 'REEMPLAZAR_PAGOS', pagos });
+    }
 
     // 6) PATCH
     this.guardando = true;
     this.srv.patch(this.data.idVenta, { acciones }).subscribe({
       next: (ventaActualizada) => {
         this.guardando = false;
+        this.data = ventaActualizada;
+        this.descuento.set(this.round2(Number(ventaActualizada.descuento || 0)));
+        this.mapDetallesDesdeVenta(ventaActualizada);
+        this.mapPagosDesdeVenta(ventaActualizada);
         this.guardado.emit(ventaActualizada);
       },
       error: (err) => {

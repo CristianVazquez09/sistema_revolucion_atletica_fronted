@@ -26,7 +26,7 @@ import { GimnasioData } from '../../model/gimnasio-data';
 import { environment } from '../../../environments/environment';
 import { CarritoItem, CarritoService } from '../../services/carrito-service';
 import { crearContextoTicket } from '../../util/ticket-contexto';
-import { PagoData } from '../../model/membresia-data'; // 👈 reutilizamos PagoData
+import { PagoData } from '../../model/membresia-data';
 
 @Component({
   selector: 'app-punto-venta',
@@ -82,6 +82,13 @@ export class PuntoVenta implements OnInit {
 
   // Carrito (servicio)
   cantidadParaAgregar = 1;
+
+  // Descuento
+  descuento = 0;
+
+  get totalConDescuento(): number {
+    return +Math.max(0, this.total - (this.descuento || 0)).toFixed(2);
+  }
 
   // Modal
   mostrarModalResumen = false;
@@ -315,6 +322,7 @@ export class PuntoVenta implements OnInit {
 
   cancelar(): void {
     this.carritoSrv.limpiar();
+    this.descuento = 0;
     this.productoSeleccionado = null;
     this.cantidadParaAgregar = 1;
     if (!this.categoriaActivaId && this.terminoBusqueda.length < 2) {
@@ -335,7 +343,7 @@ export class PuntoVenta implements OnInit {
     this.mostrarModalResumen = false;
   }
 
-  /** Ahora recibimos pagos[] desde el modal */
+  /** Recibimos pagos[] desde el modal (el descuento ya lo maneja el padre) */
   confirmarVentaDesdeModal(pagos: PagoData[]): void {
     if (this.realizandoPago) return;
     if (this.carrito.length === 0) {
@@ -343,15 +351,16 @@ export class PuntoVenta implements OnInit {
       return;
     }
 
-    // Validación de suma
+    // Validación de suma contra el total ya con descuento aplicado
     const suma = (pagos ?? []).reduce((a, p) => a + (Number(p.monto) || 0), 0);
-    if (Math.abs(suma - this.total) > 0.01) {
+    if (Math.abs(suma - this.totalConDescuento) > 0.01) {
       this.notificacion.aviso('La suma de los pagos no coincide con el total.');
       return;
     }
 
     const payload: VentaCreateRequest = {
       pagos,
+      descuento: (this.descuento || 0) > 0 ? this.descuento : undefined,
       detalles: this.carrito.map((it: CarritoItem) => ({
         idProducto: it.idProducto,
         cantidad: it.cantidad,
@@ -396,7 +405,8 @@ export class PuntoVenta implements OnInit {
             pagosDet, // ✅ pagos reales
             venta?.folio ?? '', // folio si lo tienes
             venta?.fecha ?? new Date(),
-            venta?.idVenta ?? '' // idVenta real
+            venta?.idVenta ?? '', // idVenta real
+            this.descuento // descuento aplicado
           );
         }
 

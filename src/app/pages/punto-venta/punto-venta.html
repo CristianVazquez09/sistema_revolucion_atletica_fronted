@@ -41,11 +41,33 @@
       </div>
     </div>
 
-    <!-- Total + acciones -->
+    <!-- Total + descuento + acciones -->
     <div class="px-3">
-      <div class="flex items-center justify-between rounded-lg bg-gray-100 border border-gray-200 px-3 py-2">
-        <div class="font-semibold text-[color:var(--color-ra-slate)]">TOTAL</div>
-        <div class="font-bold">{{ total | currency:'$':'symbol':'1.2-2' }}</div>
+
+      <!-- Fila subtotal (solo si hay descuento) -->
+      @if ((descuento || 0) > 0) {
+        <div class="flex items-center justify-between rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-600">
+          <div>Subtotal</div>
+          <div>{{ total | currency:'$':'symbol':'1.2-2' }}</div>
+        </div>
+      }
+
+      <!-- Descuento -->
+      <div class="mt-2">
+        <label class="block text-sm font-medium text-[color:var(--color-ra-slate)] mb-1">Descuento</label>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          class="input-filled"
+          [(ngModel)]="descuento"
+          placeholder="0.00">
+      </div>
+
+      <!-- Total a pagar -->
+      <div class="mt-2 flex items-center justify-between rounded-lg bg-gray-100 border border-gray-200 px-3 py-2">
+        <div class="font-semibold text-[color:var(--color-ra-slate)]">TOTAL A PAGAR</div>
+        <div class="font-bold">{{ totalConDescuento | currency:'$':'symbol':'1.2-2' }}</div>
       </div>
 
       <div class="mt-3 flex items-center gap-2">
@@ -211,10 +233,11 @@
       <app-resumen-venta
         [fecha]="fechaHoy"
         [items]="carrito"
-        [total]="total"
+        [total]="totalConDescuento"
+        [descuento]="descuento"
         [guardando]="realizandoPago"
         (cancelar)="cerrarModalResumen()"
-        (confirmar)="confirmarVentaDesdeModal($event)"><!-- 👈 ahora $event = PagoData[] -->
+        (confirmar)="confirmarVentaDesdeModal($event)">
       </app-resumen-venta>
     </div>
   </div>

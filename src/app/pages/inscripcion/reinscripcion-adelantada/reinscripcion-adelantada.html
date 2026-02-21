@@ -245,6 +245,28 @@
 
           </div>
 
+          <!-- Entrenador RA -->
+          @if (esPaqueteRASig()) {
+          <div>
+            <label class="block text-sm font-semibold text-ra-slate mb-1">
+              Entrenador RA <span class="text-red-500">*</span>
+            </label>
+            @if (cargandoEntrenadoresSig()) {
+              <div class="input-filled bg-gray-100 text-gray-400">Cargando entrenadores...</div>
+            } @else {
+              <select class="input-filled" [value]="entrenadorRAIdSig() ?? ''" (change)="onEntrenadorRAChange($any($event.target).value)">
+                <option value="">— Selecciona entrenador RA —</option>
+                @for (e of entrenadoresRASig(); track e.idEntrenador) {
+                  <option [value]="e.idEntrenador">{{ e.nombre }} {{ e.apellido }}</option>
+                }
+              </select>
+            }
+            @if (!entrenadorRAIdSig()) {
+              <p class="text-xs text-red-600 mt-1">Selecciona un entrenador RA para este paquete.</p>
+            }
+          </div>
+          }
+
           <!-- Fechas -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
