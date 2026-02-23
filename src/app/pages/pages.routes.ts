@@ -27,6 +27,11 @@ import { Inventario } from './inventario/inventario';
 import { operacionGuard } from '../guards/operacion-guards';
 
 export const pagesRoutes: Routes = [
+  {
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./home/home').then((m) => m.Home),
+  },
   { path: 'paquete', component: Paquete },
   { path: 'asistencia', component: Asistencia },
   { path: 'historial-asistencias', component: AsistenciaHistorial },
@@ -84,16 +89,16 @@ export const pagesRoutes: Routes = [
     data: {
       sectionTitle: 'Administración',
       allowed: [
-  'membresias',
-  'cortes',
-  'ventas',
-  'gimnasios',
-  'estadisticas',
-  'usuarios',
-  'promociones',
-  'asesoriasNutri',
-],
-
+        'membresias',
+        'cortes',
+        'ventas',
+        'gimnasios',
+        'estadisticas',
+        'reportes',
+        'usuarios',
+        'promociones',
+        'asesoriasNutri',
+      ],
     },
     children: [
       {
@@ -131,6 +136,12 @@ export const pagesRoutes: Routes = [
       {
         path: 'estadisticas',
         loadComponent: () =>
+          import('./administracion/estadisticas/estadisticas').then((m) => m.Estadisticas),
+        data: { title: 'Estadísticas' },
+      },
+      {
+        path: 'reportes',
+        loadComponent: () =>
           import('./administracion/reportes/reportes').then((m) => m.Reportes),
         data: { title: 'Reportes' },
       },
@@ -158,7 +169,7 @@ export const pagesRoutes: Routes = [
     canMatch: [gerenteGuard],
     data: {
       sectionTitle: 'Operación',
-      allowed: ['membresias', 'cortes', 'ventas', 'estadisticas', 'promociones'],
+      allowed: ['membresias', 'cortes', 'ventas', 'promociones'],
     },
     children: [
       {

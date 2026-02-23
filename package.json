@@ -1,12 +1,11 @@
 {
   "name": "revolucion-atletica-frontend",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "main": "electron/main.js",
-
   "repository": {
     "type": "git",
     "url": "https://github.com/CristianVazquez09/sistema_revolucion_atletica_fronted.git"
-},
+  },
   "build": {
     "appId": "com.revolucion.atletica",
     "productName": "Revolucion Atletica",
@@ -26,15 +25,12 @@
       "category": "public.app-category.productivity"
     },
     "publish": [
-    {
-       "provider": "github",
+      {
+        "provider": "github",
         "owner": "CristianVazquez09",
         "repo": "sistema_revolucion_atletica_fronted"
-    }
-    
-  ]
-  
-
+      }
+    ]
   },
   "scripts": {
     "ng": "ng",
@@ -49,7 +45,6 @@
     "make:ico": "node scripts/make-ico.mjs",
     "dist:win": "npm run make:ico && npm run build:web && electron-builder --win --publish never",
     "publish": "npm run dist:win"
-
   },
   "prettier": {
     "overrides": [
@@ -76,6 +71,9 @@
     "@ngrx/store": "^20.0.1",
     "@ngrx/store-devtools": "^20.0.1",
     "@tailwindcss/postcss": "^4.1.11",
+    "chart.js": "^4.5.1",
+    "electron-log": "^5.4.3",
+    "electron-updater": "^6.6.2",
     "heroicons": "^2.2.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.2",
@@ -84,10 +82,7 @@
     "tailwindcss": "^4.1.11",
     "tslib": "^2.3.0",
     "WebSdk": "file:src/shims/WebSdk",
-    "zone.js": "~0.15.0",
-    "electron-updater": "^6.6.2",
-    "electron-log": "^5.4.3"
-
+    "zone.js": "~0.15.0"
   },
   "devDependencies": {
     "@angular/build": "^20.1.5",

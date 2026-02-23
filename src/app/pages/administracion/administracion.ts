@@ -10,9 +10,10 @@ type AdminCard = {
     | 'ventas'
     | 'gimnasios'
     | 'estadisticas'
+    | 'reportes'
     | 'usuarios'
     | 'asesoriasNutri'
-    | 'promociones'; // ✅ NUEVO
+    | 'promociones';
   titulo: string;
   descripcion: string;
   ruta: string | any[];
@@ -37,7 +38,8 @@ export class Administracion {
     { key: 'cortes', titulo: 'Cortes de caja', descripcion: 'Movimientos y totales', ruta: ['corte-caja'], iconBg: 'bg-rose-100' },
     { key: 'ventas', titulo: 'Ventas', descripcion: 'POS · Detalles', ruta: ['ventas'], iconBg: 'bg-emerald-100' },
     { key: 'gimnasios', titulo: 'Gimnasios', descripcion: 'Sedes y sucursales', ruta: ['gimnasios'], iconBg: 'bg-indigo-100' },
-    { key: 'estadisticas', titulo: 'Estadísticas', descripcion: 'Indicadores y tendencias', ruta: ['estadisticas'], iconBg: 'bg-amber-100' },
+    { key: 'estadisticas', titulo: 'Estadísticas', descripcion: 'Dashboard · Gráficos · KPIs', ruta: ['estadisticas'], iconBg: 'bg-amber-100' },
+    { key: 'reportes', titulo: 'Reportes', descripcion: 'Exportar Excel · Movimientos', ruta: ['reportes'], iconBg: 'bg-teal-100' },
     { key: 'usuarios', titulo: 'Usuarios', descripcion: 'Roles y permisos', ruta: ['usuarios'], iconBg: 'bg-slate-100' },
 
     // ✅ PROMOCIONES (ADMIN y GERENTE; controlado por "allowed" en routes)
