@@ -34,7 +34,7 @@ import { GimnasioData } from 'src/app/model/gimnasio-data';
 import { EntrenadorData } from 'src/app/model/entrenador-data';
 
 import { TipoMovimiento } from 'src/app/util/enums/tipo-movimiento';
-import { crearContextoTicket } from 'src/app/util/ticket-contexto';
+import { crearContextoTicket, obtenerNombreCajero } from 'src/app/util/ticket-contexto';
 import { environment } from 'src/environments/environment';
 
 import { calcularFechaFin, hoyISO as hoyISOUtil } from 'src/app/util/fechas-precios';
@@ -1363,7 +1363,7 @@ export class ReinscripcionAdelantada implements OnInit {
 
     try {
       const decoded: any = this.jwt.decodeToken(token);
-      this.cajero = decoded?.preferred_username ?? decoded?.sub ?? this.cajero;
+      this.cajero = obtenerNombreCajero(decoded?.preferred_username ?? decoded?.sub);
 
       const idGym = decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
       if (idGym) {

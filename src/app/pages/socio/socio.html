@@ -125,7 +125,7 @@
             <col class="hidden xl:table-column w-[150px] 2xl:w-[160px]" />
           }
 
-          <col class="w-[112px]" />                    <!-- Acciones (compacto) -->
+          <col class="w-[56px]" />                     <!-- Acciones (compacto) -->
         </colgroup>
 
         <!-- Header sticky -->
@@ -159,7 +159,7 @@
               </th>
             }
 
-            <th class="py-2 xl:py-2 px-3 xl:px-2 2xl:px-2 text-center font-semibold uppercase">Acciones</th>
+            <th class="py-2 xl:py-2 px-1 xl:px-1 2xl:px-1 text-center" aria-label="Acciones"></th>
           </tr>
         </thead>
 
@@ -178,7 +178,7 @@
                 <td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td>
               </tr>
             } @else {
-              @for (s of listaSocios; track s.idSocio) {
+              @for (s of listaSocios; track s.idSocio; let i = $index) {
                 <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
                   <!-- ID -->
                   <td class="py-2 xl:py-2 px-3 xl:px-2 2xl:px-2 text-center align-top">
@@ -301,46 +301,64 @@
                   }
 
                   <!-- Acciones -->
-                  <td class="py-1.5 xl:py-2 px-3 xl:px-2 2xl:px-2 align-top">
-                    <div class="flex flex-nowrap items-center justify-center gap-1">
-                      <button
-                        (click)="verHistorial(s)"
-                        class="h-7 w-7 sm:h-8 sm:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40 shrink-0"
-                        title="Historial"
-                      >
-                        <img src="iconos/historial.svg" alt="Historial" class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                      </button>
+                  <td class="py-1.5 xl:py-2 px-1 xl:px-1 2xl:px-1 align-top text-center relative">
+                    <button
+                      (click)="$event.stopPropagation(); menuRowIdx = (menuRowIdx === i ? null : i)"
+                      class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                      title="Acciones"
+                    >
+                      <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
+                        <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                      </svg>
+                    </button>
 
-                      <button
-                        (click)="verAsesorias(s)"
-                        class="h-7 w-7 sm:h-8 sm:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40 shrink-0"
-                        title="Asesorías"
+                    @if (menuRowIdx === i) {
+                      <div
+                        class="absolute right-0 z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
+                        [class.top-full]="i < listaSocios.length - 2"
+                        [class.mt-1]="i < listaSocios.length - 2"
+                        [class.bottom-full]="i >= listaSocios.length - 2"
+                        [class.mb-1]="i >= listaSocios.length - 2"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                             class="w-4 h-4 sm:w-5 sm:h-5 shrink-0"
-                             fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M4 8v8M7 10v4M17 10v4M20 8v8M7 12h10" />
-                        </svg>
-                      </button>
-
-                      @if (puedeEditarEliminar) {
                         <button
-                          (click)="abrirModalParaEditar(s)"
-                          class="h-7 w-7 sm:h-8 sm:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40 shrink-0"
-                          title="Editar"
+                          (click)="menuRowIdx = null; verHistorial(s)"
+                          class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
                         >
-                          <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                          <img src="iconos/historial.svg" alt="Historial" class="w-4 h-4 shrink-0" />
+                          Historial
                         </button>
 
                         <button
-                          (click)="eliminarSocio(s)"
-                          class="h-7 w-7 sm:h-8 sm:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40 shrink-0"
-                          title="Eliminar"
+                          (click)="menuRowIdx = null; verAsesorias(s)"
+                          class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
                         >
-                          <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                               class="w-4 h-4 shrink-0"
+                               fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 8v8M7 10v4M17 10v4M20 8v8M7 12h10" />
+                          </svg>
+                          Asesorias
                         </button>
-                      }
-                    </div>
+
+                        @if (puedeEditarEliminar) {
+                          <button
+                            (click)="menuRowIdx = null; abrirModalParaEditar(s)"
+                            class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
+                          >
+                            <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                            Editar
+                          </button>
+
+                          <button
+                            (click)="menuRowIdx = null; eliminarSocio(s)"
+                            class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
+                          >
+                            <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                            Eliminar
+                          </button>
+                        }
+                      </div>
+                    }
                   </td>
                 </tr>
               }

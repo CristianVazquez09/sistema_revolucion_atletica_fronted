@@ -1,6 +1,6 @@
 // src/app/pages/entrenador/entrenador.ts
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, computed } from '@angular/core';
+import { Component, HostListener, OnInit, inject, computed } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -53,6 +53,7 @@ export class Entrenador implements OnInit {
   });
 
   guardando = false;
+  menuRowIdx: number | null = null;
 
   tituloForm = computed(() =>
     this.entrenadorEditando ? 'Editar entrenador' : 'Agregar entrenador'
@@ -240,4 +241,7 @@ export class Entrenador implements OnInit {
     const id = g.idGimnasio ?? g.id;
     return id != null ? `#${id}` : '';
   }
+
+  @HostListener('document:click')
+  closeMenuRows(): void { this.menuRowIdx = null; }
 }

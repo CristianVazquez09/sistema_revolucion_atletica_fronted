@@ -11,6 +11,7 @@ import { MembresiaService } from '../../services/membresia-service';
 import { NotificacionService } from '../../services/notificacion-service';
 import { GimnasioService } from '../../services/gimnasio-service';
 import { TicketService, VentaContexto } from '../../services/ticket-service';
+import { obtenerNombreCajero } from '../../util/ticket-contexto';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { SocioData } from '../../model/socio-data';
@@ -143,7 +144,7 @@ export class AgregarMembresia implements OnInit {
 
     try {
       const decoded: any = this.jwt.decodeToken(token);
-      this.cajero = decoded?.preferred_username ?? decoded?.sub ?? this.cajero;
+      this.cajero = obtenerNombreCajero(decoded?.preferred_username ?? decoded?.sub);
 
       const idGym = decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
       if (idGym) {

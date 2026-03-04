@@ -389,17 +389,22 @@ export class Estadisticas implements OnInit, OnDestroy {
   private chartEdad(): void {
     const canvas = this.edadCanvas?.nativeElement;
     if (!canvas) return;
-    const e = this.datos!.socios.porEdad;
+
+    const dist = (this.datos!.socios.distribucionEdades ?? [])
+      .slice()
+      .sort((a, b) => a.edad - b.edad);
+
+    if (dist.length === 0) return;
 
     const c = new Chart(canvas, {
       type: 'bar',
       data: {
-        labels: ['< 30 años', '30–59 años', '≥ 60 años'],
+        labels: dist.map((d) => `${d.edad}`),
         datasets: [
           {
-            data: [e.jovenes, e.adultos, e.terceraEdad],
-            backgroundColor: ['#6366F1', '#10B981', '#F97316'],
-            borderRadius: 5,
+            data: dist.map((d) => d.cantidad),
+            backgroundColor: 'rgba(99,102,241,0.8)',
+            borderRadius: 4,
             borderWidth: 0,
           },
         ],
@@ -414,7 +419,7 @@ export class Estadisticas implements OnInit, OnDestroy {
             ticks: { stepSize: 1, font: { size: 10 } },
             grid: { color: 'rgba(0,0,0,0.06)' },
           },
-          x: { ticks: { font: { size: 10 } }, grid: { display: false } },
+          x: { ticks: { font: { size: 9 }, maxRotation: 45 }, grid: { display: false } },
         },
       },
     });

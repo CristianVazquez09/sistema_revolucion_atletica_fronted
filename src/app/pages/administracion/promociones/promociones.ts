@@ -7,6 +7,7 @@ import {
   signal,
   computed,
   ChangeDetectorRef,
+  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -92,6 +93,7 @@ export class Promociones {
 
   modalAbierto = signal(false);
   editando = signal<PromocionData | null>(null);
+  menuRowIdx: number | null = null;
 
   busyDesactivarId = signal<number | null>(null);
   busyEliminarId = signal<number | null>(null);
@@ -249,6 +251,7 @@ export class Promociones {
   }
 
   private cargarPromociones(): void {
+    this.menuRowIdx = null;
     this.cargando.set(true);
 
     this.promoSrv
@@ -604,5 +607,10 @@ export class Promociones {
         // noop
       }
     });
+  }
+
+  @HostListener('document:click')
+  closeMenuRows(): void {
+    this.menuRowIdx = null;
   }
 }

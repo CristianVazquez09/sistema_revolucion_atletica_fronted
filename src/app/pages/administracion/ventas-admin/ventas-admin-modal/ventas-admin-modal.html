@@ -53,10 +53,10 @@
           <table class="w-full min-w-[860px] table-fixed text-[12px] md:text-[13px]">
             <colgroup>
               <col class="w-[12%]">
-              <col class="w-[36%]">
+              <col class="w-[46%]">
               <col class="w-[16%]">
               <col class="w-[18%]">
-              <col class="w-[18%]">
+              <col class="w-[8%]">
             </colgroup>
 
             <thead>
@@ -65,7 +65,7 @@
                 <th class="py-2.5 md:py-3 px-3 md:px-4 text-center text-ra-slate font-semibold uppercase">Producto</th>
                 <th class="py-2.5 md:py-3 px-3 md:px-4 text-center text-ra-slate font-semibold uppercase">Precio u.</th>
                 <th class="py-2.5 md:py-3 px-3 md:px-4 text-center text-ra-slate font-semibold uppercase">Cantidad</th>
-                <th class="py-2.5 md:py-3 px-3 md:px-4 text-center text-ra-slate font-semibold uppercase">Acciones</th>
+                <th class="py-2.5 md:py-3 px-1 md:px-1 text-center" aria-label="Acciones"></th>
               </tr>
             </thead>
 
@@ -77,7 +77,7 @@
                   </td>
                 </tr>
               } @else {
-                @for (d of detallesVisibles(); track d._key) {
+                @for (d of detallesVisibles(); track d._key; let i = $index) {
                   <tr class="border-t border-ra-grayLight/60">
                     <td class="py-2.5 md:py-3 px-3 md:px-4 text-center align-top">
                       <span class="inline-block min-w-[4ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700">
@@ -133,17 +133,37 @@
                       }
                     </td>
 
-                    <td class="py-2.5 md:py-3 px-3 md:px-4 align-top">
-                      <div class="flex items-center justify-center">
-                        <button
-                          type="button"
-                          class="p-2 rounded hover:bg-ra-grayLight/40"
-                          title="Eliminar detalle"
-                          (click)="eliminarDetalle(d)"
+                    <td class="py-2.5 md:py-3 px-1 md:px-1 align-top text-center relative">
+                      <button
+                        type="button"
+                        (click)="$event.stopPropagation(); menuRowIdx = (menuRowIdx === i ? null : i)"
+                        class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                        title="Acciones"
+                      >
+                        <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
+                          <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                        </svg>
+                      </button>
+
+                      @if (menuRowIdx === i) {
+                        <div
+                          class="absolute right-0 z-50 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
+                          [class.top-full]="i < detallesVisibles().length - 2"
+                          [class.mt-1]="i < detallesVisibles().length - 2"
+                          [class.bottom-full]="i >= detallesVisibles().length - 2"
+                          [class.mb-1]="i >= detallesVisibles().length - 2"
                         >
-                          <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
-                        </button>
-                      </div>
+                          <button
+                            type="button"
+                            class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
+                            title="Eliminar detalle"
+                            (click)="menuRowIdx = null; eliminarDetalle(d)"
+                          >
+                            <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                            Eliminar detalle
+                          </button>
+                        </div>
+                      }
                     </td>
                   </tr>
                 }

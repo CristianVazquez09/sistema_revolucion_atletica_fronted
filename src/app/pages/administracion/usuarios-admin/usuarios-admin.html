@@ -18,36 +18,46 @@
 <div class="shadow-card rounded-xl2 overflow-hidden mx-4 md:mx-10 bg-ra-white ring-1 ring-black/10">
   <table class="w-full table-fixed text-[13px]">
     <colgroup>
-      <col class="w-[8%]">   <!-- ID -->
-      <col class="w-[20%]">  <!-- Usuario -->
-      <col class="w-[16%]">  <!-- Rol -->
-      <col class="w-[24%]">  <!-- Gimnasio -->
+      <col class="w-[6%]">   <!-- ID -->
+      <col class="w-[25%]">  <!-- Nombre -->
+      <col class="w-[18%]">  <!-- Usuario -->
+      <col class="w-[14%]">  <!-- Rol -->
+      <col class="w-[20%]">  <!-- Gimnasio -->
       <col class="w-[12%]">  <!-- Activo -->
-      <col class="w-[12%]">  <!-- Acciones -->
+      <col class="w-[5%]">   <!-- Acciones -->
     </colgroup>
 
     <thead>
       <tr class="bg-ra-grayLight/40">
         <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">ID</th>
+        <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Nombre</th>
         <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Usuario</th>
         <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Rol</th>
         <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Gimnasio</th>
         <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Activo</th>
-        <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Acciones</th>
+        <th class="py-4 px-1 text-center" aria-label="Acciones"></th>
       </tr>
     </thead>
 
     <tbody>
       @if (cargando) {
-        <tr><td colspan="6" class="py-6 px-6 text-center text-ra-slate">Cargando…</td></tr>
+        <tr><td colspan="7" class="py-6 px-6 text-center text-ra-slate">Cargando…</td></tr>
       } @else if (error) {
-        <tr><td colspan="6" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
+        <tr><td colspan="7" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
       } @else if (!rows.length) {
-        <tr><td colspan="6" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td></tr>
+        <tr><td colspan="7" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td></tr>
       } @else {
-        @for (u of rows; track trackById($index, u)) {
+        @for (u of rows; track trackById($index, u); let i = $index) {
           <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
             <td class="py-3 px-4 text-center font-medium">#{{ u.id }}</td>
+
+            <td class="py-3 px-4">
+              @if (u.nombre || u.apellido) {
+                <div class="font-medium truncate">{{ u.nombre }} {{ u.apellido }}</div>
+              } @else {
+                <div class="text-ra-slate/40 text-xs">—</div>
+              }
+            </td>
 
             <td class="py-3 px-4">
               <div class="font-medium truncate">{{ u.nombreUsuario }}</div>
@@ -71,15 +81,34 @@
               </span>
             </td>
 
-            <td class="py-2 px-3">
-              <div class="flex items-center justify-center gap-2">
-                <button (click)="editar(u)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
-                  <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5" />
-                </button>
-                <button (click)="eliminar(u)" class="p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar">
-                  <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
-                </button>
-              </div>
+            <td class="py-2 px-1 text-center relative">
+              <button
+                (click)="$event.stopPropagation(); menuRowIdx = (menuRowIdx === i ? null : i)"
+                class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                title="Acciones"
+              >
+                <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
+                  <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                </svg>
+              </button>
+              @if (menuRowIdx === i) {
+                <div
+                  class="absolute right-0 z-50 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
+                  [class.top-full]="i < rows.length - 2"
+                  [class.mt-1]="i < rows.length - 2"
+                  [class.bottom-full]="i >= rows.length - 2"
+                  [class.mb-1]="i >= rows.length - 2"
+                >
+                  <button (click)="menuRowIdx = null; editar(u)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                    <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                    Editar
+                  </button>
+                  <button (click)="menuRowIdx = null; eliminar(u)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                    <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                    Eliminar
+                  </button>
+                </div>
+              }
             </td>
           </tr>
         }

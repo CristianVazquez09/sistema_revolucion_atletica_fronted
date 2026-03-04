@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, signal, DestroyRef, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, signal, DestroyRef, inject } from '@angular/core';
 import { Router, RouterLink, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -79,6 +79,7 @@ export class Producto implements OnInit, OnDestroy {
   mostrarStockModal = signal(false);
   stockProducto: (ProductoData & { gimnasio?: any }) | null = null;
   stockModo: StockModalModo = 'ENTRADA';
+  menuRowIdx: number | null = null;
 
   // ✅ buscador con debounce (>=3)
   terminoBusqueda = '';
@@ -200,6 +201,7 @@ export class Producto implements OnInit, OnDestroy {
   // Carga / búsqueda
   // =========================
   private cargarListadoBase(): void {
+    this.menuRowIdx = null;
     this.loading = true;
     this.error = null;
 
@@ -218,6 +220,7 @@ export class Producto implements OnInit, OnDestroy {
   }
 
   private refrescarListado(): void {
+    this.menuRowIdx = null;
     const txt = this.normalizarTermino(this.terminoBusqueda);
     if (txt.length >= this.minCaracteresBusqueda) {
       this.loading = true;
@@ -322,5 +325,10 @@ export class Producto implements OnInit, OnDestroy {
   onStockAplicado(): void {
     this.cerrarStockModal();
     this.refrescarListado();
+  }
+
+  @HostListener('document:click')
+  closeMenuRows(): void {
+    this.menuRowIdx = null;
   }
 }

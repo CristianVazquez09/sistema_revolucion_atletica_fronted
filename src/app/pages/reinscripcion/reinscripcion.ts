@@ -35,7 +35,7 @@ import { GimnasioService } from '../../services/gimnasio-service';
 import { TicketService, VentaContexto } from '../../services/ticket-service';
 import { GimnasioData } from '../../model/gimnasio-data';
 import { environment } from '../../../environments/environment';
-import { crearContextoTicket } from '../../util/ticket-contexto';
+import { crearContextoTicket, obtenerNombreCajero } from '../../util/ticket-contexto';
 
 // Huella
 import { HuellaModal } from '../huella-modal/huella-modal';
@@ -1508,7 +1508,7 @@ export class Reinscripcion implements OnInit {
 
     try {
       const decoded: any = this.jwt.decodeToken(token);
-      this.cajero = decoded?.preferred_username ?? decoded?.sub ?? this.cajero;
+      this.cajero = obtenerNombreCajero(decoded?.preferred_username ?? decoded?.sub);
 
       const idGym = decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
       if (idGym) {

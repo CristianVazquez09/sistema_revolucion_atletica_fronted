@@ -186,9 +186,7 @@
                   </th>
                 }
 
-                <th class="py-1.5 xl:py-4 px-2 xl:px-4 text-center text-ra-slate font-semibold uppercase w-[112px] min-w-[112px]">
-                  Acciones
-                </th>
+                <th class="py-1.5 xl:py-4 px-1 xl:px-1 text-center w-[56px] min-w-[56px]" aria-label="Acciones"></th>
               </tr>
             </thead>
 
@@ -206,7 +204,7 @@
                   <td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td>
                 </tr>
               } @else {
-                @for (m of rows; track trackById($index, m)) {
+                @for (m of rows; track trackById($index, m); let i = $index) {
                   <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
                     <td class="py-2 xl:py-3 px-2 xl:px-4 text-center font-medium">
                       <div class="truncate">#{{ m.folio ?? '—' }}</div>
@@ -276,29 +274,56 @@
                       </td>
                     }
 
-                    <td class="py-2 xl:py-2 px-2 xl:px-0">
-                      <div class="flex items-center justify-center gap-1">
-                        @if (!esRecep) {
-                          <button (click)="editar(m)" class="p-1.5 rounded hover:bg-ra-grayLight/40" title="Editar">
-                            <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5 xl:w-8 xl:h-8" />
-                          </button>
-                        }
+                    <td class="py-2 xl:py-2 px-1 xl:px-1 text-center relative">
+                      <button
+                        (click)="$event.stopPropagation(); menuRowIdx = (menuRowIdx === i ? null : i)"
+                        class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                        title="Acciones"
+                      >
+                        <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
+                          <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                        </svg>
+                      </button>
 
-                        <button
-                          (click)="reimprimir(m)"
-                          class="p-1.5 rounded hover:bg-ra-grayLight/40 disabled:opacity-50"
-                          [disabled]="reimprimiendo"
-                          title="Reimprimir ticket"
+                      @if (menuRowIdx === i) {
+                        <div
+                          class="absolute right-0 z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
+                          [class.top-full]="i < rows.length - 2"
+                          [class.mt-1]="i < rows.length - 2"
+                          [class.bottom-full]="i >= rows.length - 2"
+                          [class.mb-1]="i >= rows.length - 2"
                         >
-                          <img src="iconos/impresora.svg" alt="Reimprimir" class="w-5 h-5 xl:w-8 xl:h-8" />
-                        </button>
+                          @if (!esRecep) {
+                            <button
+                              (click)="menuRowIdx = null; editar(m)"
+                              class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
+                            >
+                              <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                              Editar
+                            </button>
+                          }
 
-                        @if (!esRecep) {
-                          <button (click)="eliminar(m)" class="p-1.5 rounded hover:bg-ra-grayLight/40" title="Eliminar">
-                            <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5 xl:w-8 xl:h-8" />
+                          <button
+                            (click)="menuRowIdx = null; reimprimir(m)"
+                            [disabled]="reimprimiendo"
+                            class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
+                            title="Reimprimir ticket"
+                          >
+                            <img src="iconos/impresora.svg" alt="Reimprimir" class="w-4 h-4 shrink-0" />
+                            Reimprimir
                           </button>
-                        }
-                      </div>
+
+                          @if (!esRecep) {
+                            <button
+                              (click)="menuRowIdx = null; eliminar(m)"
+                              class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
+                            >
+                              <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                              Eliminar
+                            </button>
+                          }
+                        </div>
+                      }
                     </td>
                   </tr>
                 }

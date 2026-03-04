@@ -1,6 +1,6 @@
 import {
   Component, EventEmitter, Input, OnInit, Output,
-  inject, signal, computed
+  inject, signal, computed, HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -75,6 +75,7 @@ export class VentasAdminModal implements OnInit {
   detalles = this._detalles;
   detallesVisibles = computed(() => (this._detalles() ?? []).filter(d => !d._deleted));
   private newCtr = 0;
+  menuRowIdx: number | null = null;
 
   // descuento (signal)
   descuento = signal(0);
@@ -466,6 +467,11 @@ export class VentasAdminModal implements OnInit {
         this.error = err?.error?.detail || 'No se pudo guardar.';
       }
     });
+  }
+
+  @HostListener('document:click')
+  closeMenuRows(): void {
+    this.menuRowIdx = null;
   }
 }
 

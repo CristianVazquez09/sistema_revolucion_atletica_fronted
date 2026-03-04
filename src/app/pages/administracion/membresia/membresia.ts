@@ -6,6 +6,7 @@ import {
   signal,
   computed,
   DestroyRef,
+  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -104,6 +105,7 @@ export class Membresia {
 
   mostrarModal = signal(false);
   idEditando: number | null = null;
+  menuRowIdx: number | null = null;
 
   uiZoom = 1;
   membresiasMaxH = 650;
@@ -197,6 +199,7 @@ export class Membresia {
   }
 
   cargar(pageUI: number): void {
+    this.menuRowIdx = null;
     this.error = null;
     this.cargando = true;
 
@@ -391,7 +394,8 @@ export class Membresia {
       telefono: gym?.telefono,
     };
 
-    const cajero = m.usuario?.nombreUsuario || '';
+    const u = m.usuario as any;
+    const cajero = [u?.nombre, u?.apellido].filter(Boolean).join(' ').trim() || u?.nombreUsuario || '';
     const socioNombre = `${m.socio?.nombre ?? ''} ${m.socio?.apellido ?? ''}`.trim();
 
     const desc = Number(m.descuento || 0);
@@ -496,4 +500,9 @@ export class Membresia {
 
     this.membresiasMaxH = Math.max(420, Math.floor(available / this.uiZoom));
   };
+
+  @HostListener('document:click')
+  closeMenuRows(): void {
+    this.menuRowIdx = null;
+  }
 }

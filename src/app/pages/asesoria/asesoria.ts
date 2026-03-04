@@ -26,7 +26,7 @@ import {
   VentaContexto,
 } from '../../services/ticket-service';
 import { ResumenVenta } from '../resumen-venta/resumen-venta';
-import { crearContextoTicket } from '../../util/ticket-contexto';
+import { crearContextoTicket, obtenerNombreCajero } from '../../util/ticket-contexto';
 import { AsesoriaCreateRequest } from '../../model/asesoria-data';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
 import { AsesoriaService } from '../../services/asesoria-service';
@@ -134,7 +134,7 @@ export class Asesoria implements OnInit {
     if (!token) return;
     try {
       const decoded: any = this.jwt.decodeToken(token);
-      this.cajero = decoded?.preferred_username ?? decoded?.sub ?? this.cajero;
+      this.cajero = obtenerNombreCajero(decoded?.preferred_username ?? decoded?.sub);
 
       const idGym =
         decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;

@@ -23,6 +23,23 @@
       <form [formGroup]="form" (ngSubmit)="guardar()" novalidate
             class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
+        <!-- Nombre -->
+        <div>
+          <label class="block text-sm font-semibold text-ra-slate mb-1.5">Nombre</label>
+          <input type="text" formControlName="nombre"
+                 class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 shadow-inner"
+                 placeholder="Nombre" />
+        </div>
+
+        <!-- Apellido -->
+        <div>
+          <label class="block text-sm font-semibold text-ra-slate mb-1.5">Apellido</label>
+          <input type="text" formControlName="apellido"
+                 class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 shadow-inner"
+                 placeholder="Apellido" />
+        </div>
+
+        <!-- Nombre de usuario -->
         <div>
           <label class="block text-sm font-semibold text-ra-slate mb-1.5">Nombre de usuario</label>
           <input type="text" formControlName="nombreUsuario"

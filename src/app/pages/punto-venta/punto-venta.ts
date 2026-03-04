@@ -25,7 +25,7 @@ import { VentaCreateRequest } from '../../model/venta-create';
 import { GimnasioData } from '../../model/gimnasio-data';
 import { environment } from '../../../environments/environment';
 import { CarritoItem, CarritoService } from '../../services/carrito-service';
-import { crearContextoTicket } from '../../util/ticket-contexto';
+import { crearContextoTicket, obtenerNombreCajero } from '../../util/ticket-contexto';
 import { PagoData } from '../../model/membresia-data';
 
 @Component({
@@ -152,7 +152,7 @@ export class PuntoVenta implements OnInit {
 
     try {
       const decoded: any = this.jwt.decodeToken(token);
-      this.cajero = decoded?.preferred_username ?? decoded?.sub ?? this.cajero;
+      this.cajero = obtenerNombreCajero(decoded?.preferred_username ?? decoded?.sub);
 
       const idGym =
         decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;

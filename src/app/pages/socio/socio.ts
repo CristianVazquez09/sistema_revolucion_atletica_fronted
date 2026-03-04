@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, signal, DestroyRef, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, DestroyRef, inject, HostListener } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
@@ -65,6 +65,7 @@ export class Socio implements OnInit, OnDestroy {
   // Modal
   modalSocioVisible = signal(false);
   socioActual: SocioData | null = null;
+  menuRowIdx: number | null = null;
 
   // ─────────── Paginación ───────────
   paginaActual = 0; // 0-based
@@ -255,6 +256,7 @@ export class Socio implements OnInit, OnDestroy {
   }
 
   cargarSocios(): void {
+    this.menuRowIdx = null;
     this.cargando = true;
     this.mensajeError = null;
 
@@ -388,6 +390,11 @@ export class Socio implements OnInit, OnDestroy {
   verAsesorias(s: SocioData): void {
     if (!s?.idSocio) return;
     this.router.navigate(['/pages/socio', s.idSocio, 'asesorias']);
+  }
+
+  @HostListener('document:click')
+  closeMenuRows(): void {
+    this.menuRowIdx = null;
   }
 
   // Mostrar gym con tolerancia a id ó idGimnasio

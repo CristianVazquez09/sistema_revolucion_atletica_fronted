@@ -118,7 +118,7 @@
             @if (isAdmin) {
               <col class="hidden lg:table-column w-[26%] xl:w-[24%]"><!-- Gimnasio (lg+) -->
             }
-            <col class="hidden lg:table-column w-[20%]"><!-- Acciones (lg+) -->
+            <col class="hidden lg:table-column w-[8%]"><!-- Acciones (lg+) -->
           </colgroup>
 
           <thead class="sticky top-0 z-10 bg-[color:var(--color-ra-grayLight)]/40 backdrop-blur">
@@ -132,9 +132,7 @@
                 </th>
               }
 
-              <th class="hidden lg:table-cell py-2 lg:py-3 px-3 lg:px-6 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">
-                Acciones
-              </th>
+              <th class="hidden lg:table-cell py-2 lg:py-3 px-1 lg:px-1 text-center text-[color:var(--color-ra-slate)]" aria-label="Acciones"></th>
             </tr>
           </thead>
 
@@ -158,7 +156,7 @@
                 </td>
               </tr>
             } @else {
-              @for (e of entrenadores; track e.idEntrenador) {
+              @for (e of entrenadores; track e.idEntrenador; let i = $index) {
                 <tr class="border-t border-[color:var(--color-ra-grayLight)]/60 hover:bg-[color:var(--color-ra-bg)]">
                   <!-- ID -->
                   <td class="py-2 px-3 lg:px-6 align-top">
@@ -233,32 +231,38 @@
                   }
 
                   <!-- Acciones (lg+) -->
-                  <td class="hidden lg:table-cell py-2 px-3 lg:px-6 align-top">
-                    <div class="flex items-center justify-center gap-2">
-                      <button
-                        (click)="verAsesorias(e)"
-                        class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
-                        title="Ver asesorías"
+                  <td class="hidden lg:table-cell py-2 px-1 lg:px-1 align-top text-center relative">
+                    <button
+                      (click)="$event.stopPropagation(); menuRowIdx = (menuRowIdx === i ? null : i)"
+                      class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                      title="Acciones"
+                    >
+                      <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
+                        <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                      </svg>
+                    </button>
+                    @if (menuRowIdx === i) {
+                      <div
+                        class="absolute right-0 z-50 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
+                        [class.top-full]="i < entrenadores.length - 2"
+                        [class.mt-1]="i < entrenadores.length - 2"
+                        [class.bottom-full]="i >= entrenadores.length - 2"
+                        [class.mb-1]="i >= entrenadores.length - 2"
                       >
-                        <img src="iconos/usuario_asesoria.svg" alt="Asesorías" class="w-5 h-5" />
-                      </button>
-
-                      <button
-                        (click)="editar(e)"
-                        class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
-                        title="Editar"
-                      >
-                        <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5" />
-                      </button>
-
-                      <button
-                        (click)="eliminar(e)"
-                        class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
-                        title="Eliminar"
-                      >
-                        <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
-                      </button>
-                    </div>
+                        <button (click)="menuRowIdx = null; verAsesorias(e)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                          <img src="iconos/usuario_asesoria.svg" alt="Ver asesorías" class="w-4 h-4 shrink-0" />
+                          Ver asesorías
+                        </button>
+                        <button (click)="menuRowIdx = null; editar(e)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                          <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                          Editar
+                        </button>
+                        <button (click)="menuRowIdx = null; eliminar(e)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                          <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                          Eliminar
+                        </button>
+                      </div>
+                    }
                   </td>
                 </tr>
               }

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, HostListener, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -24,6 +24,7 @@ export class UsuariosAdmin {
   // modal
   modalAbierto = signal(false);
   idEditando: number | null = null;
+  menuRowIdx: number | null = null;
 
   ngOnInit(): void { this.cargar(); }
 
@@ -60,4 +61,7 @@ export class UsuariosAdmin {
   }
 
   trackById = (_: number, it: UsuarioData) => it.id!;
+
+  @HostListener('document:click')
+  closeMenuRows(): void { this.menuRowIdx = null; }
 }

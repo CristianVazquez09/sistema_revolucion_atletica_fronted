@@ -10,8 +10,8 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 
 interface LoginResponse {
   access_token: string;
-  username: string; // <- viene en tu payload
-  authorities: string[]; // <- opcional
+  username: string;
+  authorities: string[];
 }
 
 @Component({
@@ -49,6 +49,8 @@ verClave = false;
         if (decoded?.tenantId != null) {
           sessionStorage.setItem('tenantId', String(decoded.tenantId));
         }
+        if (decoded?.nombre) sessionStorage.setItem('nombre', String(decoded.nombre));
+        if (decoded?.apellido) sessionStorage.setItem('apellido', String(decoded.apellido));
         this.router.navigate(['pages']);
       });
   }

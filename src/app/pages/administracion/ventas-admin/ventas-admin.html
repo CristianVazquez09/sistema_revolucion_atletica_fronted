@@ -150,16 +150,16 @@ AJUSTES:
               @if (menuAbierto()) {
                 <!-- Folio | Fecha | Producto | Total | Acciones -->
                 <col class="w-[12%]" />
-                <col class="w-[26%]" />
-                <col class="w-[32%]" />
-                <col class="w-[14%]" />
+                <col class="w-[25%]" />
+                <col class="w-[40%]" />
                 <col class="w-[16%]" />
+                <col class="w-[7%]" />
               } @else {
                 <!-- Folio | Fecha | Usuario | Producto | (Gimnasio 2XL admin) | Pagos | Total | Acciones -->
                 <col class="w-[11%]" />
                 <col class="w-[20%]" />
                 <col class="w-[18%]" />
-                <col class="w-[22%]" />
+                <col class="w-[24%]" />
 
                 @if (esAdmin) {
                   <col class="w-[17%] hidden 2xl:table-column" />
@@ -168,7 +168,7 @@ AJUSTES:
                 <col class="w-[20%] hidden lg:table-column" />
 
                 <col class="w-[12%]" />
-                <col class="w-[12%]" />
+                <col class="w-[6%]" />
               }
             </colgroup>
 
@@ -212,12 +212,9 @@ AJUSTES:
                 </th>
 
                 <th
-                  class="text-center text-ra-slate font-semibold uppercase py-1 xl:py-3 px-2 xl:px-4 2xl:px-6
-                         text-[10px] sm:text-[11px] xl:text-[12px]
-                         whitespace-nowrap min-w-[110px] sm:min-w-[120px]"
-                >
-                  Acciones
-                </th>
+                  class="text-center py-1 xl:py-3 px-1 xl:px-1 2xl:px-1 whitespace-nowrap min-w-[56px] sm:min-w-[56px]"
+                  aria-label="Acciones"
+                ></th>
               </tr>
             </thead>
 
@@ -241,7 +238,7 @@ AJUSTES:
                   </td>
                 </tr>
               } @else {
-                @for (v of rows; track trackById($index, v)) {
+                @for (v of rows; track trackById($index, v); let i = $index) {
                   <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg text-center">
                     <td class="py-1 xl:py-2.5 px-2 xl:px-4 2xl:px-6 font-medium">
                       <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-1.5 xl:px-2 py-0.5 text-[9px] sm:text-[10px] xl:text-xs font-mono text-gray-700">
@@ -300,32 +297,59 @@ AJUSTES:
 
                     <!-- Acciones: ancho mínimo + sin wrap + sin shrink -->
                     <td
-                      class="py-0.5 xl:py-2 px-1.5 sm:px-2 xl:px-4 2xl:px-6
+                      class="py-0.5 xl:py-2 px-1 xl:px-1 2xl:px-1
                              whitespace-nowrap overflow-visible
-                             min-w-[110px] sm:min-w-[120px]"
+                             min-w-[56px] sm:min-w-[56px] text-center relative"
                     >
-                      <div class="flex flex-nowrap items-center justify-center gap-1.5">
-                        @if (!esRecep) {
-                          <button (click)="ver(v)" class="shrink-0 p-1 xl:p-2 rounded hover:bg-ra-grayLight/40" title="Editar">
-                            <img src="iconos/editar.svg" alt="Editar" class="shrink-0 w-3.5 h-3.5 xl:w-5 xl:h-5" />
-                          </button>
-                        }
+                      <button
+                        (click)="$event.stopPropagation(); menuRowIdx = (menuRowIdx === i ? null : i)"
+                        class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                        title="Acciones"
+                      >
+                        <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
+                          <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                        </svg>
+                      </button>
 
-                        <button
-                          (click)="reimprimir(v)"
-                          class="shrink-0 p-1 xl:p-2 rounded hover:bg-ra-grayLight/40 disabled:opacity-50"
-                          [disabled]="reimprimiendo"
-                          title="Reimprimir ticket"
+                      @if (menuRowIdx === i) {
+                        <div
+                          class="absolute right-0 z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
+                          [class.top-full]="i < rows.length - 2"
+                          [class.mt-1]="i < rows.length - 2"
+                          [class.bottom-full]="i >= rows.length - 2"
+                          [class.mb-1]="i >= rows.length - 2"
                         >
-                          <img src="iconos/impresora.svg" alt="Reimprimir" class="shrink-0 w-3.5 h-3.5 xl:w-5 xl:h-5" />
-                        </button>
+                          @if (!esRecep) {
+                            <button
+                              (click)="menuRowIdx = null; ver(v)"
+                              class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
+                            >
+                              <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                              Editar
+                            </button>
+                          }
 
-                        @if (!esRecep) {
-                          <button (click)="eliminar(v)" class="shrink-0 p-1 xl:p-2 rounded hover:bg-ra-grayLight/40" title="Eliminar">
-                            <img src="iconos/eliminar.svg" alt="Eliminar" class="shrink-0 w-3.5 h-3.5 xl:w-5 xl:h-5" />
+                          <button
+                            (click)="menuRowIdx = null; reimprimir(v)"
+                            [disabled]="reimprimiendo"
+                            class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
+                            title="Reimprimir ticket"
+                          >
+                            <img src="iconos/impresora.svg" alt="Reimprimir" class="w-4 h-4 shrink-0" />
+                            Reimprimir
                           </button>
-                        }
-                      </div>
+
+                          @if (!esRecep) {
+                            <button
+                              (click)="menuRowIdx = null; eliminar(v)"
+                              class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
+                            >
+                              <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                              Eliminar
+                            </button>
+                          }
+                        </div>
+                      }
                     </td>
                   </tr>
                 }

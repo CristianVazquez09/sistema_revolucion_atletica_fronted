@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, DestroyRef } from '@angular/core';
+import { Component, HostListener, inject, OnInit, signal, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { finalize, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -46,6 +46,7 @@ export class Paquete implements OnInit {
   // Estado de modal
   mostrarModalPaquete = signal(false);
   paqueteEnEdicion: PaqueteData | null = null;
+  menuRowIdx: number | null = null;
 
   ngOnInit(): void {
     this.isAdmin = this.esAdminDesdeToken();
@@ -210,4 +211,7 @@ export class Paquete implements OnInit {
         return 'Gimnasio';
     }
   }
+
+  @HostListener('document:click')
+  closeMenuRows(): void { this.menuRowIdx = null; }
 }

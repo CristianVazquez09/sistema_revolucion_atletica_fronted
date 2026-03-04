@@ -25,7 +25,7 @@ export interface DashboardSocios {
   conMembresia: number;
   sinMembresia: number;
   nuevosEnPeriodo: number;
-  porEdad: { jovenes: number; adultos: number; terceraEdad: number };
+  distribucionEdades?: Array<{ edad: number; cantidad: number }>;
   porGenero: { masculino: number; femenino: number };
 }
 
@@ -36,6 +36,8 @@ export interface DashboardMembresias {
   porVencer15dias: number;
   porVencer30dias: number;
   activasPorTipoPaquete?: Array<{ tipoPaquete: string; cantidad: number }>;
+  paquetesMasVendidosEnPeriodo?: Array<{ nombre: string; tipoPaquete: string; cantidad: number }>;
+  paquetesMenosVendidosEnPeriodo?: Array<{ nombre: string; tipoPaquete: string; cantidad: number }>;
 }
 
 export interface AsistenciasDia {
@@ -49,8 +51,22 @@ export interface DashboardAsistencias {
 }
 
 export interface DashboardInventario {
-  topProductos?: Array<{ nombre: string; cantidad: number; ingreso: number }>;
+  topProductos?: Array<{ idProducto: number; nombre: string; cantidadVendida: number; totalIngreso: number }>;
+  productosMasVendidos?: Array<{ idProducto: number; nombre: string; cantidadVendida: number; totalIngreso: number }>;
   bajoStock?: Array<{ nombre: string; stock: number }>;
+  productosMenosVendidos?: Array<{ idProducto: number; nombre: string; cantidadVendida: number; totalIngreso: number }>;
+}
+
+export interface EntrenadorRanking {
+  idEntrenador: number;
+  nombre: string;
+  apellido: string;
+  totalEnPeriodo: number;
+  asesoriasActivas: number;
+}
+
+export interface DashboardEntrenadores {
+  ranking: EntrenadorRanking[];
 }
 
 export interface DashboardResponse {
@@ -59,6 +75,7 @@ export interface DashboardResponse {
   membresias: DashboardMembresias;
   asistencias: DashboardAsistencias;
   inventario: DashboardInventario;
+  entrenadores?: DashboardEntrenadores;
 }
 
 @Injectable({ providedIn: 'root' })

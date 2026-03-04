@@ -2,6 +2,7 @@ import {
   Component,
   inject,
   DestroyRef,
+  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -66,6 +67,7 @@ export class CorteCajaAdmin {
   // Modal de información
   mostrarInfo = false;
   corteSeleccionado: CorteCajaListado | null = null;
+  menuRowIdx: number | null = null;
 
   ngOnInit(): void {
     // ✅ igual que Membresías/Ventas
@@ -141,6 +143,7 @@ export class CorteCajaAdmin {
 
   // Carga
   cargar(pageUI: number): void {
+    this.menuRowIdx = null;
     this.error = null;
     this.cargando = true;
 
@@ -225,4 +228,9 @@ export class CorteCajaAdmin {
 
   // track
   trackById = (_: number, it: CorteCajaListado) => it.idCorte;
+
+  @HostListener('document:click')
+  closeMenuRows(): void {
+    this.menuRowIdx = null;
+  }
 }

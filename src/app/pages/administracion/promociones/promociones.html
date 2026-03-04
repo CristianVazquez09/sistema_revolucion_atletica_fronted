@@ -130,7 +130,7 @@
                 }
 
                 <th class="py-1.5 xl:py-4 px-2 xl:px-4 text-center font-semibold uppercase w-[10%]">Estado</th>
-                <th class="py-1.5 xl:py-4 px-2 xl:px-4 text-center font-semibold uppercase w-[160px] min-w-[160px]">Acciones</th>
+                <th class="py-1.5 xl:py-4 px-1 xl:px-1 text-center w-[56px] min-w-[56px]" aria-label="Acciones"></th>
               </tr>
             </thead>
 
@@ -144,7 +144,7 @@
                   <td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td>
                 </tr>
               } @else {
-                @for (p of filas(); track trackById($index, p)) {
+                @for (p of filas(); track trackById($index, p); let i = $index) {
                   <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
                     <!-- Promoción -->
                     <td class="py-2 xl:py-3 px-2 xl:px-4 min-w-0">
@@ -225,64 +225,73 @@
                       </span>
                     </td>
 
-                    <!-- Acciones (estilo Asesorías Nutricionales) -->
-<td class="py-2 xl:py-2 px-2 xl:px-0">
-  <div class="flex items-center justify-center gap-1">
-    <button
-      (click)="editar(p)"
-      class="p-1.5 rounded hover:bg-ra-grayLight/40"
-      title="Editar (aquí gestionas paquetes y renovar)"
-    >
-      <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5 xl:w-8 xl:h-8" />
-    </button>
+                    <td class="py-2 xl:py-2 px-1 xl:px-1 text-center relative">
+                      <button
+                        (click)="$event.stopPropagation(); menuRowIdx = (menuRowIdx === i ? null : i)"
+                        class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                        title="Acciones"
+                      >
+                        <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
+                          <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                        </svg>
+                      </button>
 
-    @if (p.activo !== false) {
-      <button
-        (click)="desactivar(p)"
-        class="p-1.5 rounded hover:bg-amber-50 disabled:opacity-50"
-        [disabled]="busyDesactivarId() === idRow(p)"
-        title="Desactivar"
-      >
-        @if (busyDesactivarId() === idRow(p)) {
-          <span class="text-xs font-semibold text-amber-700">…</span>
-        } @else {
-          <svg viewBox="0 0 24 24" class="w-5 h-5 xl:w-8 xl:h-8 text-amber-700" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M8 6v12M16 6v12"></path>
-          </svg>
-        }
-      </button>
-    } @else {
-      <button
-        (click)="activar(p)"
-        class="p-1.5 rounded hover:bg-emerald-50 disabled:opacity-50"
-        [disabled]="busyDesactivarId() === idRow(p)"
-        title="Activar"
-      >
-        @if (busyDesactivarId() === idRow(p)) {
-          <span class="text-xs font-semibold text-emerald-700">…</span>
-        } @else {
-          <svg viewBox="0 0 24 24" class="w-5 h-5 xl:w-8 xl:h-8 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 12l2 2 4-4"></path>
-            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"></path>
-          </svg>
-        }
-      </button>
-    }
+                      @if (menuRowIdx === i) {
+                        <div
+                          class="absolute right-0 z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
+                          [class.top-full]="i < filas().length - 2"
+                          [class.mt-1]="i < filas().length - 2"
+                          [class.bottom-full]="i >= filas().length - 2"
+                          [class.mb-1]="i >= filas().length - 2"
+                        >
+                          <button
+                            (click)="menuRowIdx = null; editar(p)"
+                            class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
+                            title="Editar (aqui gestionas paquetes y renovar)"
+                          >
+                            <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                            Editar
+                          </button>
 
-    <button
-      (click)="eliminar(p)"
-      class="p-1.5 rounded hover:bg-red-50 disabled:opacity-50"
-      [disabled]="busyEliminarId() === idRow(p)"
-      title="Eliminar"
-    >
-      @if (busyEliminarId() === idRow(p)) {
-        <span class="text-xs font-semibold text-red-700">…</span>
-      } @else {
-        <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5 xl:w-8 xl:h-8" />
-      }
-    </button>
-  </div>
-</td>
+                          @if (p.activo !== false) {
+                            <button
+                              (click)="menuRowIdx = null; desactivar(p)"
+                              [disabled]="busyDesactivarId() === idRow(p)"
+                              class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
+                              title="Desactivar"
+                            >
+                              <svg viewBox="0 0 24 24" class="w-4 h-4 text-amber-700 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M8 6v12M16 6v12"></path>
+                              </svg>
+                              Desactivar
+                            </button>
+                          } @else {
+                            <button
+                              (click)="menuRowIdx = null; activar(p)"
+                              [disabled]="busyDesactivarId() === idRow(p)"
+                              class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
+                              title="Activar"
+                            >
+                              <svg viewBox="0 0 24 24" class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4"></path>
+                                <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"></path>
+                              </svg>
+                              Activar
+                            </button>
+                          }
+
+                          <button
+                            (click)="menuRowIdx = null; eliminar(p)"
+                            [disabled]="busyEliminarId() === idRow(p)"
+                            class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
+                            title="Eliminar"
+                          >
+                            <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                            Eliminar
+                          </button>
+                        </div>
+                      }
+                    </td>
 
                   </tr>
                 }

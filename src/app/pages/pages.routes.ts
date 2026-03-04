@@ -61,6 +61,12 @@ export const pagesRoutes: Routes = [
   },
 
   {
+    path: 'mi-perfil',
+    loadComponent: () => import('./mi-perfil/mi-perfil').then((m) => m.MiPerfil),
+    data: { title: 'Mi perfil' },
+  },
+
+  {
     path: 'huella',
     loadComponent: () =>
       import('./huella-modal/huella-modal').then((m) => m.HuellaModal),

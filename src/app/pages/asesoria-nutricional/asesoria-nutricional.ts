@@ -3,6 +3,7 @@ import {
   DestroyRef,
   ElementRef,
   ViewChild,
+  HostListener,
   computed,
   inject,
   signal,
@@ -86,6 +87,7 @@ export class AsesoriaNutricional {
   // Busy por fila
   busyDesactivarId = signal<number | null>(null);
   busyEliminarId = signal<number | null>(null);
+  menuRowIdx: number | null = null;
 
   // Config “por vencer”
   private readonly UMBRAL_POR_VENCER_DIAS = 3;
@@ -173,6 +175,7 @@ export class AsesoriaNutricional {
 
   // ====== Cargar (SIN paginación) ======
   cargar(): void {
+    this.menuRowIdx = null;
     this.cargando = true;
     this.error = null;
 
@@ -519,4 +522,9 @@ export class AsesoriaNutricional {
 
     this.asesoriasMaxH = Math.max(420, Math.floor(available / this.uiZoom));
   };
+
+  @HostListener('document:click')
+  closeMenuRows(): void {
+    this.menuRowIdx = null;
+  }
 }

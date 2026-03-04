@@ -36,6 +36,8 @@ export class UsuariosAdminModal implements OnInit {
       nonNullable: true,
       validators: [Validators.required, Validators.minLength(3)]
     }),
+    nombre: new FormControl<string>('', { nonNullable: true }),
+    apellido: new FormControl<string>('', { nonNullable: true }),
     contrasenia: new FormControl<string>('', { nonNullable: true }), // requerida solo al crear
     activo: new FormControl<boolean>(true, { nonNullable: true }),
     rolNombre: new FormControl<string>('', {
@@ -126,6 +128,8 @@ export class UsuariosAdminModal implements OnInit {
 
         this.form.patchValue({
           nombreUsuario: u.nombreUsuario,
+          nombre: u.nombre ?? '',
+          apellido: u.apellido ?? '',
           contrasenia: '',
           activo: !!u.activo,
           rolNombre: (u.roles?.[0]?.nombre ?? this.roles?.[0]?.nombre ?? ''),
@@ -154,6 +158,8 @@ export class UsuariosAdminModal implements OnInit {
     if (this.esCrear) {
       const payload: any = {
         nombreUsuario: f.nombreUsuario!.trim(),
+        nombre:        f.nombre!.trim() || undefined,
+        apellido:      f.apellido!.trim() || undefined,
         contrasenia:   f.contrasenia!.trim(),
         activo:        !!f.activo,
         rol:           f.rolNombre!,
@@ -177,6 +183,8 @@ export class UsuariosAdminModal implements OnInit {
 
     const upd: any = {
       nombreUsuario: f.nombreUsuario!.trim(),
+      nombre:        f.nombre!.trim() || undefined,
+      apellido:      f.apellido!.trim() || undefined,
       activo:        !!f.activo,
       ...gimnasioPayload
     };

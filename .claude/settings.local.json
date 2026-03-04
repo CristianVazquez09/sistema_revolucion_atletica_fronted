@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx ng g c pages/mi-perfil --standalone --skip-tests --inline-style)"
+    ]
+  }
+}

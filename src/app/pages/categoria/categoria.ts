@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -53,6 +53,7 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
   });
 
   guardando = false;
+  menuRowIdx: number | null = null;
 
   // ===================== ZOOM / LAYOUT =====================
   @ViewChild('zoomOuter', { static: true }) zoomOuter!: ElementRef<HTMLElement>;
@@ -304,4 +305,7 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
   // --- Helpers de template ---
   get esEdicion(): boolean { return !!this.categoriaEditando; }
   get idEditando(): number | null { return this.categoriaEditando?.idCategoria ?? null; }
+
+  @HostListener('document:click')
+  closeMenuRows(): void { this.menuRowIdx = null; }
 }

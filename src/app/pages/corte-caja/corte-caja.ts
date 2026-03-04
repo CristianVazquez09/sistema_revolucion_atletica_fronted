@@ -20,6 +20,7 @@ import {
 } from '../../model/corte-caja-data';
 import { environment } from '../../../environments/environment';
 import { TicketService } from '../../services/ticket-service';
+import { obtenerNombreCajero } from '../../util/ticket-contexto';
 
 // ✅ Modal
 import { CorteCajaModal } from './corte-caja-modal/corte-caja-modal';
@@ -473,25 +474,14 @@ export class CorteCaja implements OnInit, OnDestroy {
 
   // ===== Usuario logueado =====
   private cargarUsuarioDesdeStorageYToken(): void {
-    const uStorage = (sessionStorage.getItem('username') ?? '').trim();
-    if (uStorage) { this.usuarioLogueado = uStorage; return; }
-
-    const token = this.tokenActual();
-    if (!token) { this.usuarioLogueado = ''; return; }
-
     try {
-      const d: any = this.jwt.decodeToken(token) || {};
-      this.usuarioLogueado = String(
-        d?.preferred_username ??
-        d?.nombreUsuario ??
-        d?.username ??
-        d?.name ??
-        d?.email ??
-        d?.sub ??
-        ''
-      ).trim();
+      const token = this.tokenActual();
+      const d: any = token ? (this.jwt.decodeToken(token) || {}) : {};
+      this.usuarioLogueado = obtenerNombreCajero(
+        d?.preferred_username ?? d?.nombreUsuario ?? d?.username ?? d?.name ?? d?.email ?? d?.sub
+      );
     } catch {
-      this.usuarioLogueado = '';
+      this.usuarioLogueado = obtenerNombreCajero();
     }
   }
 
@@ -629,8 +619,23 @@ export class CorteCaja implements OnInit, OnDestroy {
   }
 
   private imprimirSalidaDespuesDeRegistrar(req: RegistrarSalidaEfectivoRequest, resp: any): void {
-    // deja tu implementación si ya la tenías; aquí no afecta al filtrado
-    try { /* no-op */ } catch {}
+    try {
+      const gym: any = (this.corte as any)?.gimnasio ?? {};
+      const negocio = {
+        nombre:    gym?.nombre    || 'REVOLUCIÓN ATLÉTICA',
+        direccion: gym?.direccion || '',
+        telefono:  gym?.telefono  || '',
+      };
+      this.ticket.imprimirSalidaEfectivo({
+        negocio,
+        folio:    resp?.id ?? resp?.idSalida ?? resp?.folio ?? '',
+        fecha:    new Date(),
+        cajero:   (this.usuarioLogueado ?? '').trim(),
+        idCorte:  this.corte?.idCorte,
+        concepto: req.concepto,
+        monto:    req.monto,
+      });
+    } catch { /* noop */ }
   }
   get formasPagoAgrupadasPreview(): Array<{ tipo: string; operaciones: number; total: number }> {
   const map = new Map<string, { operaciones: number; total: number }>();

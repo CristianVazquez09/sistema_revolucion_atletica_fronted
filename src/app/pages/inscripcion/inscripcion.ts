@@ -8,6 +8,7 @@ import {
   DestroyRef,
   computed,
   effect,
+  Injector,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -46,7 +47,7 @@ import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
 import { TipoPago } from '../../util/enums/tipo-pago';
 import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
 import { calcularTotal, hoyISO } from '../../util/fechas-precios';
-import { crearContextoTicket } from '../../util/ticket-contexto';
+import { crearContextoTicket, obtenerNombreCajero } from '../../util/ticket-contexto';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
@@ -135,6 +136,7 @@ interface InscripcionDraft {
 export class Inscripcion implements OnInit {
   private fb = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
+  private injector = inject(Injector);
   private notificacion = inject(NotificacionService);
 
   constructor(
@@ -502,7 +504,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
 
         this.bumpFormTick();
       }
-    });
+    }, { injector: this.injector });
 
     // ✅ buscador paquetes (debounced)
     this.paqueteBuscar$
@@ -558,7 +560,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
         // ✅ persistimos también el texto (por UX)
         this.guardarBorradorEnStorage();
       }
-    });
+    }, { injector: this.injector });
 
     // paqueteId (si cambia por restore u otra UI)
     this.formularioInscripcion.controls.paqueteId.valueChanges
@@ -1725,7 +1727,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
 
     try {
       const decoded: any = this.jwt.decodeToken(token);
-      this.cajero = decoded?.preferred_username ?? decoded?.sub ?? this.cajero;
+      this.cajero = obtenerNombreCajero(decoded?.preferred_username ?? decoded?.sub);
 
       const idGym = decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
       if (idGym) {

@@ -118,7 +118,7 @@
           }
 
           <!-- Acciones -->
-          <col class="w-[108px] xl:w-[112px] 2xl:w-[120px]" />
+          <col class="w-[56px] xl:w-[60px] 2xl:w-[64px]" />
         </colgroup>
 
         <!-- Encabezado sticky -->
@@ -229,13 +229,11 @@
             <th
               class="
                 py-2 lg:py-1.5 2xl:py-2.5
-                px-3 sm:px-4 lg:px-3.5 2xl:px-6
-                text-center font-semibold uppercase
-                text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]
+                px-1 sm:px-1 lg:px-1 2xl:px-1
+                text-center
               "
-            >
-              Acciones
-            </th>
+              aria-label="Acciones"
+            ></th>
           </tr>
         </thead>
 
@@ -253,7 +251,7 @@
               <td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td>
             </tr>
           } @else {
-            @for (p of listaPaquetes; track p.idPaquete) {
+            @for (p of listaPaquetes; track p.idPaquete; let i = $index) {
               <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
                 <!-- Nombre -->
                 <td class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-left min-w-0">
@@ -383,24 +381,34 @@
                 }
 
                 <!-- Acciones (más compacto en lg+) -->
-                <td class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6">
-                  <div class="flex items-center justify-center gap-1.5">
-                    <button
-                      (click)="abrirModalParaEditar(p)"
-                      class="h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40"
-                      title="Editar"
+                <td class="py-2 lg:py-1.5 2xl:py-2.5 px-1 sm:px-1 lg:px-1 2xl:px-1 text-center relative">
+                  <button
+                    (click)="$event.stopPropagation(); menuRowIdx = (menuRowIdx === i ? null : i)"
+                    class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                    title="Acciones"
+                  >
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
+                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                    </svg>
+                  </button>
+                  @if (menuRowIdx === i) {
+                    <div
+                      class="absolute right-0 z-50 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
+                      [class.top-full]="i < listaPaquetes.length - 2"
+                      [class.mt-1]="i < listaPaquetes.length - 2"
+                      [class.bottom-full]="i >= listaPaquetes.length - 2"
+                      [class.mb-1]="i >= listaPaquetes.length - 2"
                     >
-                      <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5" />
-                    </button>
-
-                    <button
-                      (click)="desactivarPaquete(p)"
-                      class="h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40"
-                      title="Eliminar"
-                    >
-                      <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5" />
-                    </button>
-                  </div>
+                      <button (click)="menuRowIdx = null; abrirModalParaEditar(p)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                        <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                        Editar
+                      </button>
+                      <button (click)="menuRowIdx = null; desactivarPaquete(p)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                        <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                        Eliminar
+                      </button>
+                    </div>
+                  }
                 </td>
               </tr>
             }

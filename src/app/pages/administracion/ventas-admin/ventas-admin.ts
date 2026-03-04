@@ -5,6 +5,7 @@ import {
   signal,
   ViewChild,
   DestroyRef,
+  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -66,6 +67,7 @@ export class VentasAdmin {
   // --- modal ---
   mostrarModal = signal(false);
   idVer: number | null = null;
+  menuRowIdx: number | null = null;
 
   // --- búsqueda por folio ---
   folioBuscar: string = '';
@@ -160,6 +162,7 @@ export class VentasAdmin {
 
   // ============= Carga / paginación =============
   cargar(pageUI: number): void {
+    this.menuRowIdx = null;
     this.error = null;
 
     if (this.buscandoPorRango && this.fechaDesde && this.fechaHasta) {
@@ -331,7 +334,8 @@ export class VentasAdmin {
       telefono: (g as any).telefono,
     };
 
-    const cajero = v.usuario?.nombreUsuario || '';
+    const u = v.usuario as any;
+    const cajero = [u?.nombre, u?.apellido].filter(Boolean).join(' ').trim() || u?.nombreUsuario || '';
 
     const socioNombre = (
       `${(v as any).socio?.nombre ?? (v as any).cliente?.nombre ?? ''} ` +
@@ -467,4 +471,9 @@ export class VentasAdmin {
     const available = window.innerHeight - top - bottomReserve;
     this.ventasMaxH = Math.max(420, Math.floor(available / this.uiZoom));
   };
+
+  @HostListener('document:click')
+  closeMenuRows(): void {
+    this.menuRowIdx = null;
+  }
 }

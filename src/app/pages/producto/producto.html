@@ -140,7 +140,7 @@
             <col class="hidden xl:table-column xl:w-[180px] 2xl:w-[200px]" />
           }
 
-          <col class="w-[132px] xl:w-[140px] 2xl:w-[152px]" />
+          <col class="w-[56px] xl:w-[60px] 2xl:w-[64px]" />
         </colgroup>
 
         <thead class="sticky top-0 bg-ra-grayLight/40 z-10 backdrop-blur">
@@ -186,9 +186,7 @@
               </th>
             }
 
-            <th class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center font-semibold uppercase text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]">
-              Acciones
-            </th>
+            <th class="py-2 lg:py-1.5 2xl:py-2.5 px-1 sm:px-1 lg:px-1 2xl:px-1 text-center" aria-label="Acciones"></th>
           </tr>
         </thead>
 
@@ -206,7 +204,7 @@
               <td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td>
             </tr>
           } @else {
-            @for (p of productos; track p.idProducto ?? $index) {
+            @for (p of productos; track p.idProducto ?? $index; let i = $index) {
               <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
                 <td class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center align-top">
                   <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] sm:text-[11px] 2xl:text-xs font-mono text-gray-700">
@@ -300,44 +298,62 @@
                   </td>
                 }
 
-                <td class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 align-top">
-                  <div class="flex items-center justify-center gap-1.5">
-                    @if (puedeMoverStock) {
-                      <button
-                        (click)="abrirEntrada(p)"
-                        class="h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8 grid place-items-center rounded-md hover:bg-blue-100 active:scale-[0.98]"
-                        title="Entrada de stock"
-                      >
-                        <img src="iconos/agregar-negro.svg" alt="Entrada" class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5" />
-                      </button>
+                <td class="py-2 lg:py-1.5 2xl:py-2.5 px-1 sm:px-1 lg:px-1 2xl:px-1 align-top text-center relative">
+                  <button
+                    (click)="$event.stopPropagation(); menuRowIdx = (menuRowIdx === i ? null : i)"
+                    class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                    title="Acciones"
+                  >
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
+                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                    </svg>
+                  </button>
 
-                      <button
-                        (click)="abrirAjuste(p)"
-                        class="h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8 grid place-items-center rounded-md hover:bg-amber-100 active:scale-[0.98]"
-                        title="Ajustar stock"
-                      >
-                        <img src="iconos/actualizar.svg" alt="Ajuste" class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5" />
-                      </button>
-                    }
+                  @if (menuRowIdx === i) {
+                    <div
+                      class="absolute right-0 z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
+                      [class.top-full]="i < productos.length - 2"
+                      [class.mt-1]="i < productos.length - 2"
+                      [class.bottom-full]="i >= productos.length - 2"
+                      [class.mb-1]="i >= productos.length - 2"
+                    >
+                      @if (puedeMoverStock) {
+                        <button
+                          (click)="menuRowIdx = null; abrirEntrada(p)"
+                          class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
+                        >
+                          <img src="iconos/agregar-negro.svg" alt="Entrada" class="w-4 h-4 shrink-0" />
+                          Entrada de stock
+                        </button>
 
-                    @if (puedeCrudProducto) {
-                      <button
-                        (click)="editar(p)"
-                        class="h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40"
-                        title="Editar"
-                      >
-                        <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5" />
-                      </button>
+                        <button
+                          (click)="menuRowIdx = null; abrirAjuste(p)"
+                          class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
+                        >
+                          <img src="iconos/actualizar.svg" alt="Ajuste" class="w-4 h-4 shrink-0" />
+                          Ajustar stock
+                        </button>
+                      }
 
-                      <button
-                        (click)="desactivar(p)"
-                        class="h-8 w-8 lg:h-7 lg:w-7 2xl:h-8 2xl:w-8 grid place-items-center rounded hover:bg-ra-grayLight/40"
-                        title="Eliminar"
-                      >
-                        <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5" />
-                      </button>
-                    }
-                  </div>
+                      @if (puedeCrudProducto) {
+                        <button
+                          (click)="menuRowIdx = null; editar(p)"
+                          class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
+                        >
+                          <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                          Editar
+                        </button>
+
+                        <button
+                          (click)="menuRowIdx = null; desactivar(p)"
+                          class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
+                        >
+                          <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                          Eliminar
+                        </button>
+                      }
+                    </div>
+                  }
                 </td>
               </tr>
             }

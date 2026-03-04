@@ -88,9 +88,9 @@
             <table class="w-full table-fixed min-w-[700px]">
               <colgroup>
                 <col class="w-[14%]">
-                <col class="w-[48%]">
+                <col class="w-[58%]">
                 @if (isAdmin) { <col class="w-[20%]"> }
-                <col class="w-[18%]">
+                <col class="w-[8%]">
               </colgroup>
 
               <thead class="sticky top-0 z-10 bg-[color:var(--color-ra-grayLight)]/40">
@@ -100,7 +100,7 @@
                   @if (isAdmin) {
                     <th class="py-3 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">Gimnasio</th>
                   }
-                  <th class="py-3 px-6 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Acciones</th>
+                  <th class="py-3 px-1 text-center text-[color:var(--color-ra-slate)]" aria-label="Acciones"></th>
                 </tr>
               </thead>
 
@@ -124,7 +124,7 @@
                     </td>
                   </tr>
                 } @else {
-                  @for (c of categorias; track c.idCategoria ?? $index) {
+                  @for (c of categorias; track c.idCategoria ?? $index; let i = $index) {
                     <tr class="border-t border-[color:var(--color-ra-grayLight)]/60 hover:bg-[color:var(--color-ra-bg)]">
                       <td class="py-2.5 px-6">{{ c.idCategoria }}</td>
                       <td class="py-2.5 px-6 truncate">{{ c.nombre }}</td>
@@ -140,15 +140,34 @@
                         </td>
                       }
 
-                      <td class="py-1.5 px-6">
-                        <div class="flex items-center justify-center gap-2">
-                          <button (click)="editar(c)" class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40" title="Editar">
-                            <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5" />
-                          </button>
-                          <button (click)="desactivar(c)" class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40" title="Eliminar">
-                            <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
-                          </button>
-                        </div>
+                      <td class="py-1.5 px-1 text-center relative">
+                        <button
+                          (click)="$event.stopPropagation(); menuRowIdx = (menuRowIdx === i ? null : i)"
+                          class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                          title="Acciones"
+                        >
+                          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
+                            <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                          </svg>
+                        </button>
+                        @if (menuRowIdx === i) {
+                          <div
+                            class="absolute right-0 z-50 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
+                            [class.top-full]="i < categorias.length - 2"
+                            [class.mt-1]="i < categorias.length - 2"
+                            [class.bottom-full]="i >= categorias.length - 2"
+                            [class.mb-1]="i >= categorias.length - 2"
+                          >
+                            <button (click)="menuRowIdx = null; editar(c)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                              <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                              Editar
+                            </button>
+                            <button (click)="menuRowIdx = null; desactivar(c)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                              <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                              Eliminar
+                            </button>
+                          </div>
+                        }
                       </td>
                     </tr>
                   }
