@@ -66,6 +66,7 @@ export class Socio implements OnInit, OnDestroy {
   modalSocioVisible = signal(false);
   socioActual: SocioData | null = null;
   menuRowIdx: number | null = null;
+  menuDropUpIdx: number | null = null;
 
   // ─────────── Paginación ───────────
   paginaActual = 0; // 0-based
@@ -256,7 +257,7 @@ export class Socio implements OnInit, OnDestroy {
   }
 
   cargarSocios(): void {
-    this.menuRowIdx = null;
+    this.menuRowIdx = null; this.menuDropUpIdx = null;
     this.cargando = true;
     this.mensajeError = null;
 
@@ -394,7 +395,7 @@ export class Socio implements OnInit, OnDestroy {
 
   @HostListener('document:click')
   closeMenuRows(): void {
-    this.menuRowIdx = null;
+    this.menuRowIdx = null; this.menuDropUpIdx = null;
   }
 
   // Mostrar gym con tolerancia a id ó idGimnasio
@@ -406,4 +407,37 @@ export class Socio implements OnInit, OnDestroy {
     if (id != null) return `#${id}`;
     return '—';
   }
+
+  toggleMenuRow(i: number, event: MouseEvent): void {
+    event.stopPropagation();
+
+    if (this.menuRowIdx === i) {
+      this.menuRowIdx = null;
+      this.menuDropUpIdx = null;
+      return;
+    }
+
+    this.menuRowIdx = i;
+    this.menuDropUpIdx = this.shouldOpenMenuUp(event.currentTarget as HTMLElement | null)
+      ? i
+      : null;
+  }
+
+  private shouldOpenMenuUp(trigger: HTMLElement | null): boolean {
+    if (!trigger || typeof window === 'undefined') return false;
+
+    const rect = trigger.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const menuHeight = 220;
+    const gap = 8;
+
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    if (spaceBelow >= menuHeight + gap) return false;
+    if (spaceAbove >= menuHeight + gap) return true;
+    return spaceAbove > spaceBelow;
+  }
 }
+
+

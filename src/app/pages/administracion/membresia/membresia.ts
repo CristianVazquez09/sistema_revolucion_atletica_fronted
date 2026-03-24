@@ -106,6 +106,7 @@ export class Membresia {
   mostrarModal = signal(false);
   idEditando: number | null = null;
   menuRowIdx: number | null = null;
+  menuDropUpIdx: number | null = null;
 
   uiZoom = 1;
   membresiasMaxH = 650;
@@ -199,7 +200,7 @@ export class Membresia {
   }
 
   cargar(pageUI: number): void {
-    this.menuRowIdx = null;
+    this.menuRowIdx = null; this.menuDropUpIdx = null;
     this.error = null;
     this.cargando = true;
 
@@ -503,6 +504,39 @@ export class Membresia {
 
   @HostListener('document:click')
   closeMenuRows(): void {
-    this.menuRowIdx = null;
+    this.menuRowIdx = null; this.menuDropUpIdx = null;
+  }
+
+  toggleMenuRow(i: number, event: MouseEvent): void {
+    event.stopPropagation();
+
+    if (this.menuRowIdx === i) {
+      this.menuRowIdx = null;
+      this.menuDropUpIdx = null;
+      return;
+    }
+
+    this.menuRowIdx = i;
+    this.menuDropUpIdx = this.shouldOpenMenuUp(event.currentTarget as HTMLElement | null)
+      ? i
+      : null;
+  }
+
+  private shouldOpenMenuUp(trigger: HTMLElement | null): boolean {
+    if (!trigger || typeof window === 'undefined') return false;
+
+    const rect = trigger.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const menuHeight = 220;
+    const gap = 8;
+
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    if (spaceBelow >= menuHeight + gap) return false;
+    if (spaceAbove >= menuHeight + gap) return true;
+    return spaceAbove > spaceBelow;
   }
 }
+
+

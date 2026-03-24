@@ -300,7 +300,7 @@
 
                 <td class="py-2 lg:py-1.5 2xl:py-2.5 px-1 sm:px-1 lg:px-1 2xl:px-1 align-top text-center relative">
                   <button
-                    (click)="$event.stopPropagation(); menuRowIdx = (menuRowIdx === i ? null : i)"
+                    (click)="toggleMenuRow(i, $event)"
                     class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
                     title="Acciones"
                   >
@@ -312,10 +312,10 @@
                   @if (menuRowIdx === i) {
                     <div
                       class="absolute right-0 z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
-                      [class.top-full]="i < productos.length - 2"
-                      [class.mt-1]="i < productos.length - 2"
-                      [class.bottom-full]="i >= productos.length - 2"
-                      [class.mb-1]="i >= productos.length - 2"
+                      [class.top-full]="menuDropUpIdx !== i"
+                      [class.mt-1]="menuDropUpIdx !== i"
+                      [class.bottom-full]="menuDropUpIdx === i"
+                      [class.mb-1]="menuDropUpIdx === i"
                     >
                       @if (puedeMoverStock) {
                         <button
@@ -397,3 +397,5 @@
     </div>
   </div>
 }
+
+

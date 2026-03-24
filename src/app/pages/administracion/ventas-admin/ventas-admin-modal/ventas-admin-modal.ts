@@ -76,6 +76,7 @@ export class VentasAdminModal implements OnInit {
   detallesVisibles = computed(() => (this._detalles() ?? []).filter(d => !d._deleted));
   private newCtr = 0;
   menuRowIdx: number | null = null;
+  menuDropUpIdx: number | null = null;
 
   // descuento (signal)
   descuento = signal(0);
@@ -471,7 +472,38 @@ export class VentasAdminModal implements OnInit {
 
   @HostListener('document:click')
   closeMenuRows(): void {
-    this.menuRowIdx = null;
+    this.menuRowIdx = null; this.menuDropUpIdx = null;
+  }
+
+  toggleMenuRow(i: number, event: MouseEvent): void {
+    event.stopPropagation();
+
+    if (this.menuRowIdx === i) {
+      this.menuRowIdx = null;
+      this.menuDropUpIdx = null;
+      return;
+    }
+
+    this.menuRowIdx = i;
+    this.menuDropUpIdx = this.shouldOpenMenuUp(event.currentTarget as HTMLElement | null)
+      ? i
+      : null;
+  }
+
+  private shouldOpenMenuUp(trigger: HTMLElement | null): boolean {
+    if (!trigger || typeof window === 'undefined') return false;
+
+    const rect = trigger.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const menuHeight = 220;
+    const gap = 8;
+
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    if (spaceBelow >= menuHeight + gap) return false;
+    if (spaceAbove >= menuHeight + gap) return true;
+    return spaceAbove > spaceBelow;
   }
 }
 
@@ -484,3 +516,5 @@ function cryptoRandomKey(): string {
     return `${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
   }
 }
+
+

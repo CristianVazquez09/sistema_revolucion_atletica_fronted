@@ -80,6 +80,7 @@ export class Producto implements OnInit, OnDestroy {
   stockProducto: (ProductoData & { gimnasio?: any }) | null = null;
   stockModo: StockModalModo = 'ENTRADA';
   menuRowIdx: number | null = null;
+  menuDropUpIdx: number | null = null;
 
   // ✅ buscador con debounce (>=3)
   terminoBusqueda = '';
@@ -201,7 +202,7 @@ export class Producto implements OnInit, OnDestroy {
   // Carga / búsqueda
   // =========================
   private cargarListadoBase(): void {
-    this.menuRowIdx = null;
+    this.menuRowIdx = null; this.menuDropUpIdx = null;
     this.loading = true;
     this.error = null;
 
@@ -220,7 +221,7 @@ export class Producto implements OnInit, OnDestroy {
   }
 
   private refrescarListado(): void {
-    this.menuRowIdx = null;
+    this.menuRowIdx = null; this.menuDropUpIdx = null;
     const txt = this.normalizarTermino(this.terminoBusqueda);
     if (txt.length >= this.minCaracteresBusqueda) {
       this.loading = true;
@@ -329,6 +330,39 @@ export class Producto implements OnInit, OnDestroy {
 
   @HostListener('document:click')
   closeMenuRows(): void {
-    this.menuRowIdx = null;
+    this.menuRowIdx = null; this.menuDropUpIdx = null;
+  }
+
+  toggleMenuRow(i: number, event: MouseEvent): void {
+    event.stopPropagation();
+
+    if (this.menuRowIdx === i) {
+      this.menuRowIdx = null;
+      this.menuDropUpIdx = null;
+      return;
+    }
+
+    this.menuRowIdx = i;
+    this.menuDropUpIdx = this.shouldOpenMenuUp(event.currentTarget as HTMLElement | null)
+      ? i
+      : null;
+  }
+
+  private shouldOpenMenuUp(trigger: HTMLElement | null): boolean {
+    if (!trigger || typeof window === 'undefined') return false;
+
+    const rect = trigger.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const menuHeight = 220;
+    const gap = 8;
+
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    if (spaceBelow >= menuHeight + gap) return false;
+    if (spaceAbove >= menuHeight + gap) return true;
+    return spaceAbove > spaceBelow;
   }
 }
+
+

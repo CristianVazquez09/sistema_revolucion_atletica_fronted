@@ -184,6 +184,8 @@ export class Inscripcion implements OnInit {
   paqueteBloqueadoSig = signal(false);
   private paqueteBuscar$ = new Subject<string>();
 
+  private readonly esElectronApp = this.detectarElectron();
+
   // ✅ Usaremos el pipe también en TS para que "UNA_SEMANA" -> "1 semana"
 private tiempoPlanPipe = new TiempoPlanLabelPipe();
 
@@ -1165,7 +1167,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
   // =========================
   private cargarBorradorDesdeStorage(): void {
     try {
-      const raw = sessionStorage.getItem(STORAGE_KEY_INSCRIPCION);
+      const raw = this.leerBorradorRaw();
       if (!raw) return;
 
       const draft = JSON.parse(raw) as InscripcionDraft;
@@ -1215,10 +1217,16 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
     };
 
     try {
-      sessionStorage.setItem(STORAGE_KEY_INSCRIPCION, JSON.stringify(draft));
+      this.guardarBorradorRaw(JSON.stringify(draft));
     } catch {
       // noop
     }
+  }
+
+  get persistenciaHint(): string {
+    return this.esElectronApp
+      ? 'Persistencia activa (Electron): tus datos se conservan al cambiar de menu.'
+      : 'Persistencia activa: tus datos se conservan al cambiar de menu.';
   }
 
   // =========================
@@ -1405,7 +1413,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
           this.fotoPreviewUrl = null;
           this.entrenadorRAIdSig.set(null);
 
-          sessionStorage.removeItem(STORAGE_KEY_INSCRIPCION);
+          this.limpiarBorradorStorage();
 
           const hoy = hoyISO();
           this.formularioInscripcion.reset({
@@ -1500,7 +1508,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
         this.fotoPreviewUrl = null;
         this.entrenadorRAIdSig.set(null);
 
-        sessionStorage.removeItem(STORAGE_KEY_INSCRIPCION);
+        this.limpiarBorradorStorage();
 
         const hoy = hoyISO();
         this.formularioInscripcion.reset({
@@ -1908,7 +1916,7 @@ private mergeUniquePaquetes(items: PaqueteUI[]): PaqueteUI[] {
   return out;
 }
 
-onVigenciaEstudianteInput(raw: any): void {
+  onVigenciaEstudianteInput(raw: any): void {
   const v = String(raw ?? '').trim();
   const val: string | null = v ? v : null;
 
@@ -1924,6 +1932,36 @@ onVigenciaEstudianteInput(raw: any): void {
   this.guardarBorradorEnStorage();
   this.bumpFormTick();
 }
+
+  // =========================
+  // Storage borrador (Electron robusto)
+  // =========================
+  private leerBorradorRaw(): string | null {
+    const sessionRaw = sessionStorage.getItem(STORAGE_KEY_INSCRIPCION);
+    if (sessionRaw) return sessionRaw;
+    if (this.esElectronApp) return localStorage.getItem(STORAGE_KEY_INSCRIPCION);
+    return null;
+  }
+
+  private guardarBorradorRaw(raw: string): void {
+    sessionStorage.setItem(STORAGE_KEY_INSCRIPCION, raw);
+    if (this.esElectronApp) localStorage.setItem(STORAGE_KEY_INSCRIPCION, raw);
+  }
+
+  private limpiarBorradorStorage(): void {
+    sessionStorage.removeItem(STORAGE_KEY_INSCRIPCION);
+    if (this.esElectronApp) localStorage.removeItem(STORAGE_KEY_INSCRIPCION);
+  }
+
+  private detectarElectron(): boolean {
+    if (typeof window === 'undefined') return false;
+
+    const w = window as any;
+    if (Boolean(w?.electron)) return true;
+
+    const ua = String(navigator?.userAgent ?? '').toLowerCase();
+    return ua.includes('electron');
+  }
 
 
 }
