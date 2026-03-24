@@ -105,11 +105,8 @@
     <div class="overflow-x-hidden">
       <div
         class="relative overflow-auto
-               max-h-[240px]
-               md:max-h-[320px]
-               lg:max-h-[380px]
-               xl:max-h-[420px]
-               2xl:max-h-[480px]"
+               max-h-[calc(100vh-420px)]
+               min-h-[200px]"
       >
         <table class="w-full min-w-0 table-fixed text-[11px] sm:text-xs lg:text-sm">
           <colgroup>
@@ -233,7 +230,7 @@
                   <!-- Acciones (lg+) -->
                   <td class="hidden lg:table-cell py-2 px-1 lg:px-1 align-top text-center relative">
                     <button
-                      (click)="$event.stopPropagation(); menuRowIdx = (menuRowIdx === i ? null : i)"
+                      (click)="toggleMenuRow(i, $event)"
                       class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
                       title="Acciones"
                     >
@@ -243,11 +240,8 @@
                     </button>
                     @if (menuRowIdx === i) {
                       <div
-                        class="absolute right-0 z-50 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
-                        [class.top-full]="i < entrenadores.length - 2"
-                        [class.mt-1]="i < entrenadores.length - 2"
-                        [class.bottom-full]="i >= entrenadores.length - 2"
-                        [class.mb-1]="i >= entrenadores.length - 2"
+                        class="fixed z-50 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
+                        [ngStyle]="menuDropdownStyle"
                       >
                         <button (click)="menuRowIdx = null; verAsesorias(e)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
                           <img src="iconos/usuario_asesoria.svg" alt="Ver asesorías" class="w-4 h-4 shrink-0" />
@@ -273,3 +267,5 @@
     </div>
   </div>
 </div>
+
+

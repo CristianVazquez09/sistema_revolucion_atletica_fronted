@@ -85,7 +85,7 @@
                 <div class="rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
                   <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                      <div class="flex items-center gap-2">
+                      <div class="flex flex-wrap items-center gap-2">
                         <span class="inline-block rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700">
                           #{{ a.idAsesoriaPersonalizada }}
                         </span>
@@ -98,6 +98,16 @@
                           }"
                         >
                           {{ esVigente(a?.vigenteHasta) ? 'Vigente' : 'No vigente' }}
+                        </span>
+
+                        <!-- Tipo asesoría badge -->
+                        <span
+                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
+                          [ngClass]="a.tipoAsesoria === 'PAQUETE_RA'
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-blue-50 text-blue-700'"
+                        >
+                          {{ labelTipo(a.tipoAsesoria) }}
                         </span>
                       </div>
 
@@ -118,7 +128,6 @@
                   </div>
 
                   <div class="mt-3 flex flex-wrap items-center gap-2">
-                    <span class="text-xs text-gray-500">Tiempo:</span>
                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
                       {{ labelTiempo(a.tiempo) }}
                     </span>
@@ -152,15 +161,16 @@
               >
                 <colgroup>
                   <col class="w-[7%]">    <!-- ID -->
-                  <col class="w-[27%]">   <!-- Socio -->
-                  <col class="w-[14%]">   <!-- Tiempo -->
+                  <col class="w-[24%]">   <!-- Socio -->
+                  <col class="w-[12%]">   <!-- Tiempo -->
+                  <col class="w-[12%]">   <!-- Tipo -->
 
                   @if (mostrarPagosCol()) {
-                    <col class="w-[30%]"> <!-- Pagos -->
+                    <col class="w-[28%]"> <!-- Pagos -->
                   }
 
-                  <col class="w-[12%]">   <!-- Precio -->
-                  <col class="w-[10%]">   <!-- Vigente -->
+                  <col class="w-[10%]">   <!-- Precio -->
+                  <col class="w-[7%]">    <!-- Vigente -->
                 </colgroup>
 
                 <thead class="sticky top-0 bg-ra-grayLight/40 z-10 border-b border-ra-grayLight/60">
@@ -168,6 +178,7 @@
                     <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">ID</th>
                     <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Socio</th>
                     <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Tiempo</th>
+                    <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Tipo</th>
 
                     @if (mostrarPagosCol()) {
                       <th class="py-4 px-4 text-left text-ra-slate font-semibold uppercase">Pagos</th>
@@ -196,6 +207,17 @@
                       <td class="py-4 px-4">
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
                           {{ labelTiempo(a.tiempo) }}
+                        </span>
+                      </td>
+
+                      <td class="py-4 px-4">
+                        <span
+                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
+                          [ngClass]="a.tipoAsesoria === 'PAQUETE_RA'
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-blue-50 text-blue-700'"
+                        >
+                          {{ labelTipo(a.tipoAsesoria) }}
                         </span>
                       </td>
 

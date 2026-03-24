@@ -4,6 +4,8 @@ import { GimnasioData } from './gimnasio-data';
 import { PagoData } from './membresia-data';
 import { SocioData } from './socio-data';
 
+export type TipoAsesoria = 'INDIVIDUAL' | 'PAQUETE_RA';
+
 export interface AsesoriaContratoData {
   idAsesoriaPersonalizada: number;
   precio: number;
@@ -16,6 +18,7 @@ export interface AsesoriaContratoData {
   // Nuevo backend:
   fecha?: string | null;              // READ_ONLY en backend
   vigenteHasta?: string | null;       // READ_ONLY en backend (se usa para Vigente)
+  tipoAsesoria?: TipoAsesoria | null; // INDIVIDUAL | PAQUETE_RA
 
   // lo puedes dejar por compatibilidad, pero ya NO lo usaremos para pintar la tabla
   activo?: boolean;

@@ -57,24 +57,28 @@ export class EntrenadorInfoAsesoria implements OnInit, AfterViewInit, OnDestroy 
   private menuSrv = inject(MenuService);
   menuAbierto = this.menuSrv.menuAbierto;
 
-  // ✅ breakpoint 2XL (2xl = 1536px). "XL para abajo" => !es2xlUp()
-es2xlUp = signal(
-  typeof window !== 'undefined'
-    ? window.matchMedia('(min-width: 1536px)').matches
-    : false
-);
+  es2xlUp = signal(
+    typeof window !== 'undefined'
+      ? window.matchMedia('(min-width: 1536px)').matches
+      : false
+  );
 
+  esLgUp = signal(
+    typeof window !== 'undefined'
+      ? window.matchMedia('(min-width: 1024px)').matches
+      : false
+  );
 
-  // ✅ Ocultar Pagos SOLO en XL para abajo, y solo si menú está abierto
-mostrarPagosCol = computed(() => {
-  if (this.es2xlUp()) return true;     // 2XL+ => nunca ocultar
-  return !this.menuAbierto();          // XL- => ocultar cuando menú abierto
-});
-
+  // Pagos: visible en 2xl+ siempre; en lg-xl solo si menú cerrado; en md oculto siempre
+  mostrarPagosCol = computed(() => {
+    if (this.es2xlUp()) return true;
+    if (!this.esLgUp()) return false;
+    return !this.menuAbierto();
+  });
 
   get tablaMinWidth(): string {
-  return this.mostrarPagosCol() ? 'min-w-[1100px]' : 'min-w-[850px]';
-}
+    return this.mostrarPagosCol() ? 'min-w-[1100px]' : '';
+  }
 
 
   // ===================== ZOOM / LAYOUT =====================
@@ -92,8 +96,8 @@ mostrarPagosCol = computed(() => {
   private applyLayout = (): void => {
     if (typeof window === 'undefined') return;
 
-    // ✅ refrescar breakpoint
     this.es2xlUp.set(window.matchMedia('(min-width: 1536px)').matches);
+    this.esLgUp.set(window.matchMedia('(min-width: 1024px)').matches);
 
 
     // Mobile: no encoger
@@ -306,6 +310,11 @@ mostrarPagosCol = computed(() => {
       default:
         return String(tipo);
     }
+  }
+
+  labelTipo(tipo: string | null | undefined): string {
+    if (tipo === 'PAQUETE_RA') return 'Paquete RA';
+    return 'Individual';
   }
 
   nombreSocio(a: AsesoriaContratoData): string {

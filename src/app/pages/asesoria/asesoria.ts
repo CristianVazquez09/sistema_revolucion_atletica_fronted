@@ -417,6 +417,7 @@ export class Asesoria implements OnInit {
         ...p,
         fechaPago: new Date().toISOString(),
       })),
+      tipoAsesoria: 'INDIVIDUAL',
       ...(this.isAdmin
         ? {
             gimnasio: {

@@ -4,6 +4,7 @@ import { EntrenadorData } from './entrenador-data';
 import { GimnasioData } from './gimnasio-data';
 import { PagoData } from './membresia-data';
 import { SocioData } from './socio-data';
+import { TipoAsesoria } from './asesoria-contrato-data';
 
 export interface AsesoriaCreateRequest {
   precio: number;
@@ -12,16 +13,5 @@ export interface AsesoriaCreateRequest {
   socio: SocioData;
   pagos: PagoData[]; // { tipoPago: 'EFECTIVO'|'TARJETA'|'TRANSFERENCIA', monto: number, fechaPago?: string }
   gimnasio?: GimnasioData; // solo admin
+  tipoAsesoria?: TipoAsesoria;
 }
-
-
-
-export interface AsesoriaCreateRequest {
-  precio: number;
-  tiempo: TiempoPlan;
-  entrenador: EntrenadorData;
-  socio: SocioData;
-  pagos: PagoData[]; // { tipoPago: 'EFECTIVO'|'TARJETA'|'TRANSFERENCIA', monto: number, fechaPago?: string }
-  gimnasio?: GimnasioData; // solo admin
-}
-
