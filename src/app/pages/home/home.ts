@@ -28,10 +28,31 @@ export class Home implements OnInit, OnDestroy {
 
   username = '';
   rol: Rol = 'recepcionista';
-  version = 'v0.1.6';
+  version = 'v0.1.7';
   fraseHome = 'Esfuerzate y se valiente';
 
   readonly novedades: Novedad[] = [
+    {
+      titulo: 'Alertas de cierre de inventario',
+      descripcion: 'El sistema ahora avisa automáticamente a los 20, 10 y 5 minutos antes — y a la hora exacta — de que el turno de inventario debe cerrarse, con sonido incluido.',
+      roles: ['admin', 'gerente', 'recepcionista'],
+      color: 'amber',
+      iconPath: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+    },
+    {
+      titulo: 'Tipo de asesoría visible (Admin)',
+      descripcion: 'En la vista de entrenadores y en el Excel exportado, ahora se distingue si la asesoría es Individual o Paquete RA, tanto en la tabla como en las tarjetas mobile.',
+      roles: ['admin'],
+      color: 'violet',
+      iconPath: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z',
+    },
+    {
+      titulo: 'Droplets en entrenadores corregidos',
+      descripcion: 'Se corrigió el menú de acciones (tres puntos) en la tabla de entrenadores que quedaba oculto al estar dentro de un contenedor con overflow. Ahora se muestra correctamente sobre todo el contenido.',
+      roles: ['admin', 'gerente', 'recepcionista'],
+      color: 'teal',
+      iconPath: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+    },
     {
       titulo: 'Mi Perfil de Usuario',
       descripcion: 'Se agrega la vista Mi perfil desde el menú principal para consultar datos de cuenta y actualizar nombre/apellido de forma directa.',

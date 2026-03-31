@@ -22,6 +22,15 @@ import {
   TurnoInventario,
 } from '../../model/inventario-diario-data';
 
+// Horarios de cierre por turno (24h, "HH:mm") — ajusta según tu negocio
+const HORA_CIERRE_TURNO: Record<TurnoInventario, string> = {
+  MANANA: '14:00',
+  TARDE:  '22:00',
+  UNICO:  '21:00', // fallback; sábado y domingo tienen su propio horario abajo
+};
+const HORA_CIERRE_SABADO  = '16:00'; // turno ÚNICO sábado
+const HORA_CIERRE_DOMINGO = '14:00'; // turno ÚNICO domingo
+
 @Component({
   selector: 'app-inventario',
   standalone: true,
@@ -36,6 +45,8 @@ export class Inventario implements OnInit {
   private menuSrv = inject(MenuService);
   private notificacion = inject(NotificacionService);
   private destroyRef = inject(DestroyRef);
+
+  private alertTimers: ReturnType<typeof setTimeout>[] = [];
 
   menuAbierto = this.menuSrv.menuAbierto;
 
@@ -109,12 +120,106 @@ export class Inventario implements OnInit {
     this.isGerente = roles.has('GERENTE') || roles.has('ROLE_GERENTE');
     this.puedeCerrar = this.isAdmin || this.isGerente;
 
+    this.destroyRef.onDestroy(() => this.cancelarAlertasCierre());
+
     this.ajustarTurnoPorFecha();
 
     if (this.isAdmin) {
       this.cargarGimnasios(() => this.syncEstadoManana(() => this.cargar()));
     } else {
       this.syncEstadoManana(() => this.cargar());
+    }
+  }
+
+  // =========================
+  // Alertas de cierre de inventario
+  // =========================
+  /** Toca un tono de alerta usando Web Audio API */
+  private tocarSonidoAlerta(urgente = false): void {
+    try {
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.type = urgente ? 'square' : 'square';
+      osc.frequency.setValueAtTime(urgente ? 880 : 660, ctx.currentTime);
+      gain.gain.setValueAtTime(1.0, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.8);
+      osc.onended = () => ctx.close();
+    } catch {
+      // navegador sin Web Audio API — silencioso
+    }
+  }
+
+  /** TEMPORAL: dispara las 4 alertas en cadena para ver el diseño */
+  testAlertasCierre(): void {
+    const label = this.turnoLabel(this.turno());
+    const msgs = [
+      { msg: `Faltan 20 minutos para cerrar el inventario (turno ${label}).`,       dur: 8_000, urgente: false },
+      { msg: `Faltan 10 minutos para cerrar el inventario (turno ${label}).`,       dur: 8_000, urgente: false },
+      { msg: `¡Faltan solo 5 minutos para cerrar el inventario (turno ${label})!`,  dur: 8_000, urgente: false },
+      { msg: `¡Es hora de cerrar el inventario del turno ${label}!`,                dur: 8_000, urgente: true  },
+    ];
+    msgs.forEach((a, i) =>
+      setTimeout(() => {
+        this.notificacion.aviso(a.msg, { duracion: a.dur });
+        this.tocarSonidoAlerta(a.urgente);
+      }, i * 1_500)
+    );
+  }
+
+  private cancelarAlertasCierre(): void {
+    for (const t of this.alertTimers) clearTimeout(t);
+    this.alertTimers = [];
+  }
+
+  private iniciarAlertasCierre(): void {
+    this.cancelarAlertasCierre();
+
+    // Solo si es hoy y el turno está abierto
+    if (this.cerrado() || this.fecha() !== this.hoyMax) return;
+
+    const turno = this.turno();
+    const diaSemana = new Date(`${this.fecha()}T00:00:00`).getDay(); // 0=dom, 6=sab
+    let horaCierre = HORA_CIERRE_TURNO[turno];
+    if (turno === 'UNICO') {
+      if (diaSemana === 6) horaCierre = HORA_CIERRE_SABADO;
+      else if (diaSemana === 0) horaCierre = HORA_CIERRE_DOMINGO;
+    }
+    const [hh, mm] = horaCierre.split(':').map(Number);
+
+    const ahora  = new Date();
+    const cierre = new Date();
+    cierre.setHours(hh, mm, 0, 0);
+
+    const msCierre = cierre.getTime() - ahora.getTime();
+    if (msCierre <= 0) return; // ya pasó la hora de cierre
+
+    const label = this.turnoLabel(turno);
+    const alertas = [
+      { offsetMs: 20 * 60_000, msg: `Faltan 20 minutos para cerrar el inventario (turno ${label}).`,         dur: 30_000,  urgente: false },
+      { offsetMs: 10 * 60_000, msg: `Faltan 10 minutos para cerrar el inventario (turno ${label}).`,         dur: 30_000,  urgente: false },
+      { offsetMs:  5 * 60_000, msg: `¡Faltan solo 5 minutos para cerrar el inventario (turno ${label})!`,   dur: 60_000,  urgente: false },
+      { offsetMs:           0, msg: `¡Es hora de cerrar el inventario del turno ${label}!`,                 dur: 120_000, urgente: true  },
+    ];
+
+    for (const alerta of alertas) {
+      const delay = msCierre - alerta.offsetMs;
+      if (delay > 0) {
+        const t = setTimeout(() => {
+          if (!this.cerrado()) {
+            this.notificacion.aviso(alerta.msg, { duracion: alerta.dur });
+            this.tocarSonidoAlerta(alerta.urgente);
+          }
+        }, delay);
+        this.alertTimers.push(t);
+      }
     }
   }
 
@@ -334,6 +439,7 @@ export class Inventario implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
+          this.cancelarAlertasCierre();
           this.notificacion.exito('Turno cerrado con éxito.');
           this.syncEstadoManana(() => this.cargar());
         },
@@ -401,6 +507,7 @@ export class Inventario implements OnInit {
 
           this.filas.set(res?.items ?? []);
           this.loading.set(false);
+          this.iniciarAlertasCierre();
         },
         error: (err: HttpErrorResponse) => {
           const msg = this.extraerMensajeError(err) || 'No se pudo cargar el inventario.';
