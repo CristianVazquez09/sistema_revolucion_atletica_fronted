@@ -2,7 +2,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal, DestroyRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -157,24 +156,7 @@ export class Inventario implements OnInit {
     }
   }
 
-  /** TEMPORAL: dispara las 4 alertas en cadena para ver el diseño */
-  testAlertasCierre(): void {
-    const label = this.turnoLabel(this.turno());
-    const msgs = [
-      { msg: `Faltan 20 minutos para cerrar el inventario (turno ${label}).`,       dur: 8_000, urgente: false },
-      { msg: `Faltan 10 minutos para cerrar el inventario (turno ${label}).`,       dur: 8_000, urgente: false },
-      { msg: `¡Faltan solo 5 minutos para cerrar el inventario (turno ${label})!`,  dur: 8_000, urgente: false },
-      { msg: `¡Es hora de cerrar el inventario del turno ${label}!`,                dur: 8_000, urgente: true  },
-    ];
-    msgs.forEach((a, i) =>
-      setTimeout(() => {
-        this.notificacion.aviso(a.msg, { duracion: a.dur });
-        this.tocarSonidoAlerta(a.urgente);
-      }, i * 1_500)
-    );
-  }
-
-  private cancelarAlertasCierre(): void {
+private cancelarAlertasCierre(): void {
     for (const t of this.alertTimers) clearTimeout(t);
     this.alertTimers = [];
   }

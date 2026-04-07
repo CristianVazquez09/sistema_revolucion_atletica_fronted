@@ -1,59 +1,110 @@
-# RevolucionAtleticaFrontend
+# Sistema Revolución Atlética — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.5.
+Sistema de gestión integral para gimnasios, desarrollado con **Angular 20** y empaquetado como aplicación de escritorio con **Electron**. Pensado para operar sin conocimientos técnicos desde recepción, gerencia o administración central.
 
-## Development server
+---
 
-To start a local development server, run:
+## ¿Qué problema resuelve?
+
+Los gimnasios pequeños y medianos suelen gestionar sus operaciones con hojas de cálculo, cuadernos o sistemas genéricos que no se adaptan a su flujo de trabajo real. Esto genera:
+
+- Pérdida de control sobre el inventario de productos
+- Dificultad para rastrear membresías activas y vencidas
+- Falta de visibilidad sobre asesorías personalizadas por entrenador
+- Cortes de caja inconsistentes o incompletos
+- Ninguna forma de distinguir si una asesoría vino de un paquete o fue contratada individualmente
+
+**Sistema RA** resuelve estos problemas con un único panel centralizado adaptado al rol de cada usuario.
+
+---
+
+## Qué hace el sistema
+
+### Socios
+Registro completo de miembros del gimnasio. Permite buscar, filtrar y consultar el historial de membresías, asesorías y pagos de cada socio desde una sola vista.
+
+### Membresías e Inscripciones
+Control de altas, renovaciones y vencimientos. El sistema identifica visualmente membresías próximas a vencer o ya vencidas para agilizar la renovación en recepción.
+
+### Asesorías personalizadas
+Registro y seguimiento de asesorías de entrenamiento por entrenador. Se distingue el tipo de asesoría (Individual o Paquete RA) para saber si fue contratada de forma directa o incluida en un paquete.
+
+### Entrenadores
+Catálogo de entrenadores por gimnasio con acceso directo a sus asesorías activas. El menú de acciones funciona correctamente en cualquier tamaño de pantalla.
+
+### Paquetes RA
+Gestión de paquetes de servicios que combinan membresía y asesoría. Al comprar un paquete, la asesoría se vincula automáticamente como tipo `PAQUETE_RA`.
+
+### Inventario por turno
+Control de productos por turno (Mañana / Tarde / Único). Incluye alertas automáticas con sonido para recordar el cierre de inventario a los 20, 10 y 5 minutos antes — y a la hora exacta — según el turno activo.
+
+| Turno | Cierre |
+|-------|--------|
+| Mañana (Lun–Vie) | 14:00 |
+| Tarde (Lun–Vie) | 22:00 |
+| Único (Sábado) | 16:00 |
+| Único (Domingo) | 14:00 |
+
+### Corte de caja
+Apertura y cierre de cortes con desglose por tipo de pago (Efectivo, Tarjeta, Transferencia) y por origen (Venta, Membresía, Asesoría). Impresión de ticket de corte y registro de salidas de efectivo.
+
+### Punto de venta
+Registro de ventas de productos con soporte para descuentos y múltiples formas de pago. Genera ticket imprimible.
+
+### Administración (solo Admin)
+- Estadísticas y métricas: ranking de entrenadores, productos y paquetes más vendidos, distribución de edades
+- Gestión de usuarios del sistema
+- Gestión de promociones y membresías
+- Vista global de cortes y ventas por gimnasio
+- Exportación a Excel de asesorías con columna de tipo (Individual / Paquete RA)
+
+### Multi-gimnasio
+El sistema soporta operar múltiples sedes desde el mismo panel. El administrador puede alternar entre gimnasios; cada rol ve únicamente su sede asignada.
+
+---
+
+## Roles del sistema
+
+| Rol | Acceso |
+|-----|--------|
+| **Recepcionista** | Socios, membresías, ventas, inventario, asesorías |
+| **Gerente** | Todo lo anterior + descuentos, cortes de caja |
+| **Administrador** | Acceso completo + estadísticas, usuarios, multi-gimnasio |
+
+---
+
+## Stack tecnológico
+
+| Capa | Tecnología |
+|------|-----------|
+| Frontend | Angular 20 (standalone components, signals) |
+| Estilos | Tailwind CSS |
+| Escritorio | Electron |
+| Autenticación | JWT |
+| Backend | API REST (Spring Boot, Heroku) |
+
+---
+
+## Levantar en desarrollo
 
 ```bash
+npm install
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+La app queda disponible en `http://localhost:4200`.
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+## Compilar para escritorio (Electron)
 
 ```bash
 ng build
+npm run electron:build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Genera el instalador en la carpeta `dist/`.
 
-## Running unit tests
+---
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## Versión actual
 
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+`v0.1.7`
