@@ -1,22 +1,22 @@
 <div #zoomOuter class="overflow-x-hidden">
   <div class="origin-top-left overflow-x-hidden" [style.zoom]="uiZoom">
 
-    <!-- Encabezado -->
-    <div class="mx-2 md:mx-6 lg:mx-8 mb-4 flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-[color:var(--color-ra-slate)]">Categorías</h1>
+    <!-- Barra externa: título + volver -->
+    <div class="mx-1 mb-3 flex items-center justify-between">
+      <h1 class="text-base sm:text-lg font-semibold text-ra-slate">Categorías</h1>
       <a
         routerLink="/pages/productos"
-        class="px-4 py-2 rounded-md shadow-card text-white bg-[color:var(--color-ra-azul-fuerte)] hover:brightness-110"
+        class="px-4 py-2 rounded-md shadow-card text-white bg-[color:var(--color-ra-azul-fuerte)] hover:brightness-110 text-xs"
       >
         Volver a productos
       </a>
     </div>
 
     <!-- Card formulario -->
-    <div class="mx-2 md:mx-6 lg:mx-8 mb-4 card">
-      <div class="card-header flex items-center justify-between">
+    <div class="mx-1 mb-3 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <h2 class="text-xl font-semibold text-[color:var(--color-ra-slate)]">
+          <h2 class="text-base font-semibold text-ra-slate">
             {{ esEdicion ? 'Editar categoría' : 'Agregar categoría' }}
           </h2>
           @if (esEdicion) {
@@ -27,10 +27,10 @@
         </div>
       </div>
 
-      <form class="p-6 space-y-4" [formGroup]="form" (ngSubmit)="guardar()">
+      <form class="p-4 space-y-4" [formGroup]="form" (ngSubmit)="guardar()">
         @if (isAdmin) {
           <div>
-            <label class="block text-sm font-medium mb-1">Gimnasio</label>
+            <label class="block text-xs font-medium mb-1 text-ra-slate">Gimnasio</label>
             <select class="input-filled" formControlName="gimnasioId">
               @if (cargandoGimnasios) {
                 <option [ngValue]="null" disabled>Cargando gimnasios…</option>
@@ -45,16 +45,16 @@
               }
             </select>
             @if (form.controls.gimnasioId.touched && form.controls.gimnasioId.invalid) {
-              <div class="text-sm text-red-600 mt-1">Selecciona un gimnasio.</div>
+              <div class="text-xs text-red-600 mt-1">Selecciona un gimnasio.</div>
             }
           </div>
         }
 
         <div>
-          <label class="block text-sm font-medium mb-1">Nombre</label>
+          <label class="block text-xs font-medium mb-1 text-ra-slate">Nombre</label>
           <input formControlName="nombre" class="input-filled" placeholder="Nombre de la categoría*">
           @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
-            <div class="text-sm text-red-600 mt-1">El nombre es obligatorio (máx. 80).</div>
+            <div class="text-xs text-red-600 mt-1">El nombre es obligatorio (máx. 80).</div>
           }
         </div>
 
@@ -63,7 +63,7 @@
             <button
               type="button"
               (click)="cancelarEdicion()"
-              class="px-4 py-2 rounded-md border border-gray-300 bg-white text-[color:var(--color-ra-slate)] hover:bg-gray-50"
+              class="h-8 px-3 rounded-lg border border-gray-200 bg-white text-ra-slate hover:bg-gray-50 text-xs"
             >
               Cancelar
             </button>
@@ -71,7 +71,7 @@
           <button
             type="submit"
             [disabled]="guardando"
-            class="px-4 py-2 rounded-md bg-[color:var(--color-ra-azul-fuerte)] text-white hover:brightness-110"
+            class="h-8 px-3 rounded-lg bg-[color:var(--color-ra-azul-fuerte)] text-white hover:brightness-110 text-xs disabled:opacity-60"
           >
             {{ guardando ? 'Guardando…' : (esEdicion ? 'Actualizar' : 'Guardar') }}
           </button>
@@ -79,108 +79,98 @@
       </form>
     </div>
 
-    <!-- Tabla (scroll interno con maxHeight dinámico) -->
-    <div class="mx-2 md:mx-6 lg:mx-8">
-      <div class="shadow-card rounded-xl2 bg-white ring-1 ring-black/10 overflow-hidden">
-        <div class="overflow-x-auto">
-          <div class="relative overflow-auto" [style.maxHeight.px]="categoriasMaxH">
+    <!-- Card tabla -->
+    <div class="mx-1 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden">
 
-            <table class="w-full table-fixed min-w-[700px]">
-              <colgroup>
-                <col class="w-[14%]">
-                <col class="w-[58%]">
-                @if (isAdmin) { <col class="w-[20%]"> }
-                <col class="w-[8%]">
-              </colgroup>
+      <!-- TOOLBAR -->
+      <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
+        <h1 class="text-base sm:text-lg font-semibold text-ra-slate shrink-0">Listado</h1>
+      </div>
 
-              <thead class="sticky top-0 z-10 bg-[color:var(--color-ra-grayLight)]/40">
-                <tr>
-                  <th class="py-3 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">ID</th>
-                  <th class="py-3 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">Nombre</th>
-                  @if (isAdmin) {
-                    <th class="py-3 px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">Gimnasio</th>
-                  }
-                  <th class="py-3 px-1 text-center text-[color:var(--color-ra-slate)]" aria-label="Acciones"></th>
-                </tr>
-              </thead>
+      <!-- TABLA -->
+      <div class="overflow-x-auto">
+        <div>
+          <table class="w-full min-w-[500px] border-collapse table-fixed text-xs">
+            <colgroup>
+              <col class="w-[14%]">
+              <col [class]="isAdmin ? 'w-[64%]' : 'w-[80%]'">
+              @if (isAdmin) { <col class="w-[16%]"> }
+              <col class="w-[6%]">
+            </colgroup>
 
-              <tbody>
-                @if (loading) {
-                  <tr>
-                    <td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">
-                      Cargando…
-                    </td>
-                  </tr>
-                } @else if (error) {
-                  <tr>
-                    <td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-red-600">
-                      {{ error }}
-                    </td>
-                  </tr>
-                } @else if (categorias.length === 0) {
-                  <tr>
-                    <td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">
-                      Sin resultados.
-                    </td>
-                  </tr>
-                } @else {
-                  @for (c of categorias; track c.idCategoria ?? $index; let i = $index) {
-                    <tr class="border-t border-[color:var(--color-ra-grayLight)]/60 hover:bg-[color:var(--color-ra-bg)]">
-                      <td class="py-2.5 px-6">{{ c.idCategoria }}</td>
-                      <td class="py-2.5 px-6 truncate">{{ c.nombre }}</td>
-
-                      @if (isAdmin) {
-                        <td class="py-2.5 px-6">
-                          <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs">
-                            <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
-                              <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
-                            </svg>
-                            {{ gymLabel(c.gimnasio) }}
-                          </span>
-                        </td>
-                      }
-
-                      <td class="py-1.5 px-1 text-center relative">
-                        <button
-                          (click)="toggleMenuRow(i, $event)"
-                          class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
-                          title="Acciones"
-                        >
-                          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
-                            <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
-                          </svg>
-                        </button>
-                        @if (menuRowIdx === i) {
-                          <div
-                            class="absolute right-0 z-50 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
-                            [class.top-full]="menuDropUpIdx !== i"
-                            [class.mt-1]="menuDropUpIdx !== i"
-                            [class.bottom-full]="menuDropUpIdx === i"
-                            [class.mb-1]="menuDropUpIdx === i"
-                          >
-                            <button (click)="menuRowIdx = null; editar(c)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
-                              <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
-                              Editar
-                            </button>
-                            <button (click)="menuRowIdx = null; desactivar(c)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
-                              <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
-                              Eliminar
-                            </button>
-                          </div>
-                        }
-                      </td>
-                    </tr>
-                  }
+            <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+              <tr>
+                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">ID</th>
+                <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Nombre</th>
+                @if (isAdmin) {
+                  <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Gimnasio</th>
                 }
-              </tbody>
-            </table>
+                <th class="py-3 px-1 text-center text-ra-slate" aria-label="Acciones"></th>
+              </tr>
+            </thead>
 
-          </div>
+            <tbody>
+              @if (loading) {
+                <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Cargando…</td></tr>
+              } @else if (error) {
+                <tr><td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ error }}</td></tr>
+              } @else if (categorias.length === 0) {
+                <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Sin resultados.</td></tr>
+              } @else {
+                @for (c of categorias; track c.idCategoria ?? $index; let i = $index) {
+                  <tr class="border-t border-gray-100 hover:bg-gray-50/60">
+                    <td class="py-2.5 px-3 text-center text-[11px]">{{ c.idCategoria }}</td>
+                    <td class="py-2.5 px-3 text-[11px] truncate">{{ c.nombre }}</td>
+
+                    @if (isAdmin) {
+                      <td class="py-2.5 px-3 text-[11px]">
+                        <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-[10px]">
+                          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+                          </svg>
+                          {{ gymLabel(c.gimnasio) }}
+                        </span>
+                      </td>
+                    }
+
+                    <td class="py-2.5 px-1 text-center relative">
+                      <button
+                        (click)="toggleMenuRow(i, $event)"
+                        class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                        title="Acciones"
+                      >
+                        <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
+                          <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                        </svg>
+                      </button>
+                      @if (menuRowIdx === i) {
+                        <div
+                          class="absolute right-0 z-50 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
+                          [class.top-full]="menuDropUpIdx !== i"
+                          [class.mt-1]="menuDropUpIdx !== i"
+                          [class.bottom-full]="menuDropUpIdx === i"
+                          [class.mb-1]="menuDropUpIdx === i"
+                        >
+                          <button (click)="menuRowIdx = null; editar(c)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                            <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                            Editar
+                          </button>
+                          <button (click)="menuRowIdx = null; desactivar(c)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                            <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                            Eliminar
+                          </button>
+                        </div>
+                      }
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
         </div>
       </div>
+
     </div>
 
   </div>
 </div>
-
-

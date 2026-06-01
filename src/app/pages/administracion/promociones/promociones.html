@@ -1,21 +1,31 @@
 <div #zoomOuter class="overflow-x-hidden">
-  <div class="origin-top-left overflow-x-hidden" [style.zoom]="uiZoom">
+  <div class="origin-top-left" [style.zoom]="uiZoom">
 
-    <!-- Barra superior -->
-    <div class="mx-4 md:mx-10 mb-2 xl:mb-4 flex flex-col 2xl:flex-row 2xl:items-start 2xl:justify-between gap-2 xl:gap-3">
-      <div class="min-w-0">
-        <div class="text-base sm:text-lg xl:text-xl font-semibold text-ra-slate shrink-0">
-          Promociones
-        </div>
+    <!-- Barra externa: solo el botón Agregar -->
+    <div class="mx-1 mb-3 flex justify-end">
+      <button
+        type="button"
+        (click)="nuevo()"
+        class="inline-flex items-center gap-2 rounded-lg bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card h-8 px-3 text-xs whitespace-nowrap"
+      >
+        <img src="iconos/agregar.svg" alt="" class="shrink-0 w-4 h-4" />
+        <span>Agregar promoción</span>
+      </button>
+    </div>
+
+    <!-- CARD PRINCIPAL -->
+    <div class="mx-1 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden">
+
+      <!-- TOOLBAR -->
+      <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
+        <h1 class="text-base sm:text-lg font-semibold text-ra-slate shrink-0">Promociones</h1>
+        <div class="w-px h-5 bg-gray-200 shrink-0"></div>
 
         @if (esAdmin()) {
-          <div class="mt-2 flex items-center gap-2 min-w-0">
-            <span class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">
-              Gimnasio (solo tabla)
-            </span>
-
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="text-xs text-ra-slate/70 whitespace-nowrap">Gimnasio (tabla):</span>
             <select
-              class="h-8 xl:h-9 w-[220px] xl:w-[260px] rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+              class="h-8 w-[200px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
               [disabled]="cargandoGimnasios()"
               [ngModel]="gimnasioTablaId()"
               (ngModelChange)="onCambiarGimnasioTabla($event)"
@@ -24,208 +34,151 @@
                 <option [ngValue]="g.idGimnasio">{{ g.nombre }}</option>
               }
             </select>
-
-            @if (cargandoGimnasios()) {
-              <span class="text-[11px] xl:text-[12px] text-ra-slate/60">Cargando…</span>
-            }
           </div>
+          <div class="w-px h-5 bg-gray-200 shrink-0"></div>
         }
+
+        <!-- Buscador -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          <input
+            type="text"
+            class="w-[240px] h-8 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
+            placeholder="Nombre, tipo, paquete, restricciones…"
+            [ngModel]="termino()"
+            (ngModelChange)="termino.set($event)"
+          />
+          <button
+            type="button"
+            class="h-8 px-3 rounded-lg border border-gray-200 text-xs text-ra-slate hover:bg-gray-50 shrink-0 disabled:opacity-40"
+            (click)="termino.set('')"
+            [disabled]="!(termino() || '').trim().length"
+          >
+            Limpiar
+          </button>
+        </div>
+
+        <div class="w-px h-5 bg-gray-200 shrink-0"></div>
+
+        <!-- Filtros checkbox -->
+        <label class="inline-flex items-center gap-2 text-xs text-ra-slate shrink-0 cursor-pointer">
+          <input type="checkbox" class="h-4 w-4" [ngModel]="soloVigentes()" (ngModelChange)="soloVigentes.set($event)" />
+          <span>Solo vigentes</span>
+        </label>
+        <label class="inline-flex items-center gap-2 text-xs text-ra-slate shrink-0 cursor-pointer">
+          <input type="checkbox" class="h-4 w-4" [ngModel]="soloActivas()" (ngModelChange)="soloActivas.set($event)" />
+          <span>Solo activas</span>
+        </label>
+
+        <button
+          type="button"
+          class="h-8 px-3 rounded-lg bg-[#0B2C4A] text-white hover:brightness-110 text-xs shrink-0"
+          (click)="recargar()"
+        >
+          Recargar
+        </button>
       </div>
 
-      <!-- Controles -->
-<div class="w-full 2xl:w-auto flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-end gap-2 xl:gap-3 text-[11px] xl:text-[12px] leading-none min-w-0">
-  <div class="w-full flex flex-wrap 2xl:flex-nowrap items-center gap-2 xl:gap-3 min-w-0">
-    <div class="w-full sm:w-auto flex items-center gap-2 min-w-0">
-      <label class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap shrink-0">
-        Buscar
-      </label>
+      <!-- TABLA -->
+      <div class="overflow-x-auto">
+        <div>
+          <table class="w-full min-w-[700px] border-collapse table-fixed text-xs">
+            <colgroup>
+              <col [class]="mostrarGimnasioCol() ? 'w-[18%]' : 'w-[22%]'">
+              <col class="w-[9%]">
+              <col class="w-[8%]">
+              <col [class]="mostrarGimnasioCol() ? 'w-[12%]' : 'w-[16%]'">
+              <col class="w-[11%]">
+              <col class="w-[10%]">
+              @if (mostrarGimnasioCol()) { <col class="w-[10%]"> }
+              <col class="w-[8%]">
+              <col class="w-[4%]">
+            </colgroup>
 
-      <input
-        type="text"
-        class="w-[260px] xl:w-[300px] h-8 xl:h-9 rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
-        placeholder="Nombre, tipo, paquete, restricciones…"
-        [ngModel]="termino()"
-        (ngModelChange)="termino.set($event)"
-      />
-
-      <button
-        type="button"
-        class="h-8 xl:h-9 px-3 rounded-md border text-[11px] xl:text-[12px] shrink-0"
-        (click)="termino.set('')"
-        [disabled]="!(termino() || '').trim().length"
-      >
-        Limpiar
-      </button>
-    </div>
-
-    <div class="w-full sm:w-auto flex flex-wrap items-center gap-3 min-w-0">
-      <label class="inline-flex items-center gap-2 text-[11px] xl:text-[12px] text-ra-slate">
-        <input
-          type="checkbox"
-          class="h-4 w-4"
-          [ngModel]="soloVigentes()"
-          (ngModelChange)="soloVigentes.set($event)"
-        />
-        <span>Solo vigentes</span>
-      </label>
-
-      <label class="inline-flex items-center gap-2 text-[11px] xl:text-[12px] text-ra-slate">
-        <input
-          type="checkbox"
-          class="h-4 w-4"
-          [ngModel]="soloActivas()"
-          (ngModelChange)="soloActivas.set($event)"
-        />
-        <span>Solo activas</span>
-      </label>
-
-      <button
-        type="button"
-        class="h-8 xl:h-9 px-3 rounded-md bg-[#0B2C4A] text-white hover:brightness-110 shadow-card text-[11px] xl:text-[12px] shrink-0"
-        (click)="recargar()"
-      >
-        Recargar
-      </button>
-
-      <!-- ✅ Agregar promoción: justo después de Recargar -->
-      <button
-        type="button"
-        (click)="nuevo()"
-        class="
-          h-8 xl:h-9
-          inline-flex items-center gap-2 rounded-md bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card
-          px-3 xl:px-3.5
-          text-[11px] xl:text-[12px]
-          whitespace-nowrap
-          w-fit
-          shrink-0
-        "
-      >
-        <img src="iconos/agregar.svg" alt="" class="shrink-0 w-4 h-4 xl:w-[18px] xl:h-[18px]" />
-        <span>Agregar promoción</span>
-      </button>
-    </div>
-  </div>
-</div>
-
-      
-    </div>
-
-    <!-- Tabla -->
-    <div class="shadow-card rounded-xl2 mx-4 md:mx-10 bg-ra-white ring-1 ring-black/10 overflow-hidden">
-      <div class="overflow-x-hidden">
-        <div class="min-h-[50vh] overflow-y-auto overflow-x-hidden" [style.maxHeight.px]="promosMaxH">
-          <table class="w-full min-w-0 border-collapse table-fixed text-[10px] sm:text-[11px] lg:text-[12px] xl:text-[13px]">
-            <thead class="sticky top-0 bg-ra-grayLight/40 z-10 backdrop-blur">
-              <tr class="text-ra-slate">
-                <th class="py-1.5 xl:py-4 px-2 xl:px-4 text-left font-semibold uppercase w-[22%]">Promoción</th>
-                <th class="py-1.5 xl:py-4 px-2 xl:px-4 text-center font-semibold uppercase w-[11%]">Tipo</th>
-                <th class="py-1.5 xl:py-4 px-2 xl:px-4 text-center font-semibold uppercase w-[10%]">Beneficio</th>
-                <th class="py-1.5 xl:py-4 px-2 xl:px-4 text-left font-semibold uppercase w-[16%]">Paquete</th>
-                <th class="py-1.5 xl:py-4 px-2 xl:px-4 text-center font-semibold uppercase w-[13%]">Restricciones</th>
-                <th class="py-1.5 xl:py-4 px-2 xl:px-4 text-center font-semibold uppercase w-[12%]">Vigencia</th>
-
+            <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+              <tr>
+                <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Promoción</th>
+                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Tipo</th>
+                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Beneficio</th>
+                <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Paquete</th>
+                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Restricciones</th>
+                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Vigencia</th>
                 @if (mostrarGimnasioCol()) {
-                  <th class="py-1.5 xl:py-4 px-2 xl:px-4 text-left font-semibold uppercase w-[12%]">Gimnasio</th>
+                  <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Gimnasio</th>
                 }
-
-                <th class="py-1.5 xl:py-4 px-2 xl:px-4 text-center font-semibold uppercase w-[10%]">Estado</th>
-                <th class="py-1.5 xl:py-4 px-1 xl:px-1 text-center w-[56px] min-w-[56px]" aria-label="Acciones"></th>
+                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Estado</th>
+                <th class="py-3 px-1 text-center text-ra-slate" aria-label="Acciones"></th>
               </tr>
             </thead>
 
             <tbody>
               @if (cargando()) {
-                <tr>
-                  <td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Cargando…</td>
-                </tr>
+                <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Cargando…</td></tr>
               } @else if (filas().length === 0) {
-                <tr>
-                  <td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td>
-                </tr>
+                <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Sin resultados.</td></tr>
               } @else {
                 @for (p of filas(); track trackById($index, p); let i = $index) {
-                  <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
-                    <!-- Promoción -->
-                    <td class="py-2 xl:py-3 px-2 xl:px-4 min-w-0">
-                      <div class="font-medium truncate min-w-0" [title]="p.nombre">{{ p.nombre }}</div>
+                  <tr class="border-t border-gray-100 hover:bg-gray-50/60">
 
+                    <td class="py-2.5 px-3 min-w-0">
+                      <div class="font-medium truncate text-[11px] min-w-0" [title]="p.nombre">{{ p.nombre }}</div>
                       @if (p.descripcion) {
-                        <div class="text-[9px] sm:text-[10px] xl:text-xs text-ra-slate/70 truncate min-w-0" [title]="p.descripcion">
-                          {{ p.descripcion }}
-                        </div>
-                      }
-
-                      @if (esAdmin() && !mostrarGimnasioCol()) {
-                        <div class="mt-1 text-[10px] xl:text-[11px] text-ra-slate/70 truncate" [title]="promoGymNombre(p)">
-                          {{ promoGymNombre(p) }}
-                        </div>
+                        <div class="text-[10px] text-ra-slate/70 truncate min-w-0" [title]="p.descripcion">{{ p.descripcion }}</div>
                       }
                     </td>
 
-                    <!-- ✅ Tipo (badge bonito incluyendo SIN_BENEFICIO) -->
-                    <td class="py-2 xl:py-3 px-2 xl:px-4 text-center">
+                    <td class="py-2.5 px-3 text-center">
                       @let tb = tipoBadge(p.tipo);
                       <span
-                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] xl:text-[11px] font-semibold ring-1"
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1"
                         [ngClass]="tb.clase"
                       >
                         {{ tb.texto }}
                       </span>
                     </td>
 
-                    <!-- Beneficio -->
-                    <td class="py-2 xl:py-3 px-2 xl:px-4 text-center">
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] xl:text-[11px] font-semibold">
+                    <td class="py-2.5 px-3 text-center">
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
                         {{ labelBeneficio(p) }}
                       </span>
                     </td>
 
-                    <!-- Paquete -->
-                    <td class="py-2 xl:py-3 px-2 xl:px-4 min-w-0">
-                      <div class="font-medium truncate" [title]="paqueteLabel(p)">
-                        {{ paqueteLabel(p) }}
-                      </div>
+                    <td class="py-2.5 px-3 min-w-0">
+                      <div class="font-medium truncate text-[11px]" [title]="paqueteLabel(p)">{{ paqueteLabel(p) }}</div>
                     </td>
 
-                    <!-- Restricciones -->
-                    <td class="py-2 xl:py-3 px-2 xl:px-4 text-center min-w-0">
+                    <td class="py-2.5 px-3 text-center min-w-0">
                       @if (restricciones(p).length === 0) {
                         <span class="text-ra-slate/60">—</span>
                       } @else {
                         <div class="flex flex-wrap justify-center gap-1">
                           @for (r of restricciones(p); track r) {
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">
-                              {{ r }}
-                            </span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">{{ r }}</span>
                           }
                         </div>
                       }
                     </td>
 
-                    <!-- Vigencia: Inicio arriba / Fin abajo -->
-                    <td class="py-2 xl:py-3 px-2 xl:px-4 text-center whitespace-nowrap leading-tight">
-                      <div class="text-[10px] xl:text-[11px] text-ra-slate/70">Inicio</div>
+                    <td class="py-2.5 px-3 text-center whitespace-nowrap text-[11px] leading-tight">
+                      <div class="text-[10px] text-ra-slate/70">Inicio</div>
                       <div class="font-semibold">{{ p.fechaInicio }}</div>
-                      <div class="mt-1 text-[10px] xl:text-[11px] text-ra-slate/70">Fin</div>
+                      <div class="mt-0.5 text-[10px] text-ra-slate/70">Fin</div>
                       <div class="font-semibold">{{ p.fechaFin }}</div>
                     </td>
 
                     @if (mostrarGimnasioCol()) {
-                      <td class="py-2 xl:py-3 px-2 xl:px-4 text-left truncate" [title]="promoGymNombre(p)">
+                      <td class="py-2.5 px-3 text-[11px] truncate min-w-0" [title]="promoGymNombre(p)">
                         {{ promoGymNombre(p) }}
                       </td>
                     }
 
-                    <!-- Estado -->
-                    <td class="py-2 xl:py-3 px-2 xl:px-4 text-center">
+                    <td class="py-2.5 px-3 text-center">
                       @let st = estadoLabel(p);
-                      <span class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[10px] xl:text-[11px] font-semibold ring-1" [ngClass]="st.clase">
+                      <span class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1" [ngClass]="st.clase">
                         {{ st.texto }}
                       </span>
                     </td>
 
-                    <td class="py-2 xl:py-2 px-1 xl:px-1 text-center relative">
+                    <td class="py-2.5 px-1 text-center relative">
                       <button
                         (click)="toggleMenuRow(i, $event)"
                         class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
@@ -244,11 +197,7 @@
                           [class.bottom-full]="menuDropUpIdx === i"
                           [class.mb-1]="menuDropUpIdx === i"
                         >
-                          <button
-                            (click)="menuRowIdx = null; editar(p)"
-                            class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left"
-                            title="Editar (aqui gestionas paquetes y renovar)"
-                          >
+                          <button (click)="menuRowIdx = null; editar(p)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
                             <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
                             Editar
                           </button>
@@ -258,7 +207,6 @@
                               (click)="menuRowIdx = null; desactivar(p)"
                               [disabled]="busyDesactivarId() === idRow(p)"
                               class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
-                              title="Desactivar"
                             >
                               <svg viewBox="0 0 24 24" class="w-4 h-4 text-amber-700 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M8 6v12M16 6v12"></path>
@@ -270,7 +218,6 @@
                               (click)="menuRowIdx = null; activar(p)"
                               [disabled]="busyDesactivarId() === idRow(p)"
                               class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
-                              title="Activar"
                             >
                               <svg viewBox="0 0 24 24" class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M9 12l2 2 4-4"></path>
@@ -284,7 +231,6 @@
                             (click)="menuRowIdx = null; eliminar(p)"
                             [disabled]="busyEliminarId() === idRow(p)"
                             class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
-                            title="Eliminar"
                           >
                             <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
                             Eliminar
@@ -300,14 +246,14 @@
           </table>
         </div>
       </div>
+
     </div>
 
-    <!-- Modal principal -->
+    <!-- Modal -->
     @if (modalAbierto()) {
       <div class="fixed inset-0 z-50 overflow-y-auto">
         <div class="min-h-full flex items-start justify-center p-4 sm:p-6">
           <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModal()"></div>
-
           <div class="relative z-10 w-full max-w-[760px]">
             <div class="bg-ra-white rounded-xl2 shadow-card ring-1 ring-black/5">
               <app-promocion-modal
@@ -327,5 +273,3 @@
 
   </div>
 </div>
-
-

@@ -1,378 +1,118 @@
-<!-- Barra superior -->
-<div class="mx-4 md:mx-10 mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-  <div class="flex items-center gap-3 min-w-0">
-    <h1 class="text-2xl font-bold text-ra-slate shrink-0">Paquetes</h1>
+<!-- Barra externa: solo el botón Agregar -->
+<div class="mx-1 mb-3 flex justify-end">
+  <button
+    (click)="abrirModalParaCrear()"
+    class="inline-flex items-center gap-2 rounded-md bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card px-3 py-1.5 text-xs whitespace-nowrap"
+  >
+    <img src="iconos/agregar.svg" alt="" class="shrink-0 w-4 h-4" />
+    <span>Agregar paquete</span>
+  </button>
+</div>
 
-    <!-- ✅ Buscador -->
-    <div class="relative w-full sm:w-[280px] md:w-[340px] lg:w-[380px]">
+<!-- CARD PRINCIPAL -->
+<div class="mx-1 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden">
+
+  <!-- TOOLBAR -->
+  <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
+    <h1 class="text-base sm:text-lg font-semibold text-ra-slate shrink-0">Paquetes</h1>
+    <div class="w-px h-5 bg-gray-200 shrink-0"></div>
+    <div class="flex items-center gap-1.5 shrink-0">
       <input
         type="search"
-        class="
-          w-full rounded-md bg-ra-white ring-1 ring-black/10 shadow-card
-          px-3 py-2 pr-10
-          text-sm text-ra-slate
-          placeholder:text-ra-slate/50
-          focus:outline-none focus:ring-2 focus:ring-[color:var(--color-ra-azul-fuerte)]/40
-        "
+        class="w-[240px] h-8 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
         placeholder="Buscar paquete…"
         [value]="busqueda()"
         (input)="onBuscarInput($event)"
       />
-
       @if (busqueda()) {
         <button
           type="button"
-          class="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 grid place-items-center rounded-md hover:bg-ra-grayLight/40"
-          title="Limpiar"
+          class="h-8 px-3 rounded-lg border border-gray-200 text-xs text-ra-slate hover:bg-gray-50 shrink-0"
           (click)="limpiarBusqueda()"
         >
-          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 6L6 18"></path>
-            <path d="M6 6l12 12"></path>
-          </svg>
+          Limpiar
         </button>
       }
     </div>
   </div>
 
-  <!-- ✅ Botón -->
-  <button
-    (click)="abrirModalParaCrear()"
-    class="
-      inline-flex items-center gap-2 rounded-md bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card
-      px-2.5 py-1.5 text-xs
-      lg:px-3 lg:py-1.5 lg:text-sm
-      xl:px-3.5 xl:py-2 xl:text-sm
-      2xl:px-4 2xl:py-2 2xl:text-base
-      whitespace-nowrap
-    "
-  >
-    <img
-      src="iconos/agregar.svg"
-      alt=""
-      class="shrink-0 w-4 h-4 lg:w-[18px] lg:h-[18px] xl:w-5 xl:h-5"
-    />
-    <span>Agregar paquete</span>
-  </button>
-</div>
-
-
-<!-- Contenedor -->
-<div class="shadow-card rounded-xl2 mx-4 md:mx-10 bg-ra-white ring-1 ring-black/10 overflow-hidden">
-  <!-- <xl: sin scroll horizontal; xl+: permitido si realmente hace falta -->
-  <div class="overflow-x-hidden xl:overflow-x-auto">
-    <div
-      class="
-        overflow-y-auto
-        max-h-[calc(100dvh-220px)]
-        min-h-[320px]
-        sm:max-h-[calc(100dvh-230px)] sm:min-h-[340px]
-        md:max-h-[calc(100dvh-240px)] md:min-h-[360px]
-        lg:max-h-[calc(100dvh-250px)] lg:min-h-[380px]
-        xl:max-h-[calc(100dvh-270px)] xl:min-h-[420px]
-        2xl:max-h-[calc(100dvh-290px)] 2xl:min-h-[460px]
-        [@media(max-height:900px)]:max-h-[calc(100dvh-180px)]
-        [@media(max-height:820px)]:max-h-[calc(100dvh-140px)]
-      "
-    >
-      <!-- ✅ Entre xl y 2xl dejamos table-auto para que NO fuerce overflow si hay espacio.
-          ✅ En 2xl ya fijamos para que se vea “pro”. -->
-      <table
-        class="
-          w-full min-w-0
-          table-auto 2xl:table-fixed
-          text-[11px] sm:text-[12px]
-          lg:text-[10.5px] xl:text-[11px] 2xl:text-[12px]
-          2xl:min-w-[980px]
-        "
-      >
+  <!-- TABLA -->
+  <div class="overflow-x-auto">
+    <div>
+      <table class="w-full min-w-[700px] border-collapse table-fixed text-xs">
         <colgroup>
-          <!-- Nombre -->
-          <col class="w-auto xl:w-[280px] 2xl:w-[320px]" />
-
-          <!-- Tipo (lg+) -->
-          <col class="hidden lg:table-column lg:w-[130px] xl:w-[140px] 2xl:w-[150px]" />
-
-          <!-- Tiempo (lg+) -->
-          <col class="hidden lg:table-column lg:w-[120px] xl:w-[130px] 2xl:w-[140px]" />
-
-          <!-- Detalles (solo <lg) -->
-          <col class="lg:hidden w-[260px]" />
-
-          <!-- Precio (xl+) -->
-          <col class="hidden xl:table-column xl:w-[120px] 2xl:w-[140px]" />
-
-          <!-- Inscripción (xl+) -->
-          <col class="hidden xl:table-column xl:w-[120px] 2xl:w-[140px]" />
-
-          <!-- Costos (lg < xl) -->
-          <col class="hidden lg:table-column xl:hidden w-[180px]" />
-
-          <!-- Gimnasio (admin, xl+) -->
-          <!-- ✅ NUEVO: si es 2xl+ y el menú está abierto, ocultar esta columna -->
-          @if (isAdmin) {
-            <col
-              class="hidden xl:table-column xl:w-[160px] 2xl:w-[180px]"
-              [ngClass]="menuAbierto() ? '2xl:hidden' : ''"
-            />
-          }
-
-          <!-- Acciones -->
-          <col class="w-[56px] xl:w-[60px] 2xl:w-[64px]" />
+          <col [class]="isAdmin ? 'w-[25%]' : 'w-[37%]'">
+          <col [class]="isAdmin ? 'w-[12%]' : 'w-[15%]'">
+          <col [class]="isAdmin ? 'w-[12%]' : 'w-[14%]'">
+          <col [class]="isAdmin ? 'w-[12%]' : 'w-[14%]'">
+          <col [class]="isAdmin ? 'w-[12%]' : 'w-[14%]'">
+          @if (isAdmin) { <col class="w-[21%]"> }
+          <col class="w-[6%]">
         </colgroup>
 
-        <!-- Encabezado sticky -->
-        <thead class="sticky top-0 bg-ra-grayLight/40 z-10 backdrop-blur">
-          <tr class="text-ra-slate">
-            <th
-              class="
-                py-2 lg:py-1.5 2xl:py-2.5
-                px-3 sm:px-4 lg:px-3.5 2xl:px-6
-                text-left font-semibold uppercase
-                text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]
-              "
-            >
-              Nombre
-            </th>
-
-            <!-- lg+ -->
-            <th
-              class="
-                hidden lg:table-cell
-                py-2 lg:py-1.5 2xl:py-2.5
-                px-3 sm:px-4 lg:px-3.5 2xl:px-6
-                text-center font-semibold uppercase
-                text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]
-              "
-            >
-              Tipo
-            </th>
-
-            <th
-              class="
-                hidden lg:table-cell
-                py-2 lg:py-1.5 2xl:py-2.5
-                px-3 sm:px-4 lg:px-3.5 2xl:px-6
-                text-center font-semibold uppercase
-                text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]
-              "
-            >
-              Tiempo
-            </th>
-
-            <!-- <lg -->
-            <th
-              class="
-                lg:hidden
-                py-2
-                px-3 sm:px-4
-                text-left font-semibold uppercase
-                text-[10px] sm:text-[11px]
-              "
-            >
-              Detalles
-            </th>
-
-            <!-- xl+ -->
-            <th
-              class="
-                hidden xl:table-cell
-                py-2 lg:py-1.5 2xl:py-2.5
-                px-3 sm:px-4 lg:px-3.5 2xl:px-6
-                text-center font-semibold uppercase
-                text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]
-              "
-            >
-              Precio
-            </th>
-
-            <th
-              class="
-                hidden xl:table-cell
-                py-2 lg:py-1.5 2xl:py-2.5
-                px-3 sm:px-4 lg:px-3.5 2xl:px-6
-                text-center font-semibold uppercase
-                text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]
-              "
-            >
-              Inscripción
-            </th>
-
-            <!-- lg < xl -->
-            <th
-              class="
-                hidden lg:table-cell xl:hidden
-                py-2 lg:py-1.5
-                px-3 sm:px-4 lg:px-3.5
-                text-center font-semibold uppercase
-                text-[10px] sm:text-[11px] lg:text-[10px]
-              "
-            >
-              Costos
-            </th>
-
+        <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+          <tr>
+            <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Nombre</th>
+            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Tipo</th>
+            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Tiempo</th>
+            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Precio</th>
+            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Inscripción</th>
             @if (isAdmin) {
-              <th
-                class="
-                  hidden xl:table-cell
-                  py-2 lg:py-1.5 2xl:py-2.5
-                  px-3 sm:px-4 lg:px-3.5 2xl:px-6
-                  text-left font-semibold uppercase
-                  text-[10px] sm:text-[11px] lg:text-[10px] xl:text-[10.5px] 2xl:text-[12px]
-                "
-                [ngClass]="menuAbierto() ? '2xl:hidden' : ''"
-              >
-                Gimnasio
-              </th>
+              <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Gimnasio</th>
             }
-
-            <th
-              class="
-                py-2 lg:py-1.5 2xl:py-2.5
-                px-1 sm:px-1 lg:px-1 2xl:px-1
-                text-center
-              "
-              aria-label="Acciones"
-            ></th>
+            <th class="py-3 px-1 text-center text-ra-slate" aria-label="Acciones"></th>
           </tr>
         </thead>
 
         <tbody>
           @if (estaCargando) {
-            <tr>
-              <td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Cargando…</td>
-            </tr>
+            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Cargando…</td></tr>
           } @else if (mensajeError) {
-            <tr>
-              <td [attr.colspan]="99" class="py-6 px-6 text-center text-red-600">{{ mensajeError }}</td>
-            </tr>
+            <tr><td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ mensajeError }}</td></tr>
           } @else if (listaPaquetes.length === 0) {
-            <tr>
-              <td [attr.colspan]="99" class="py-6 px-6 text-center text-ra-slate">Sin resultados.</td>
-            </tr>
+            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Sin resultados.</td></tr>
           } @else {
             @for (p of listaPaquetes; track p.idPaquete; let i = $index) {
-              <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
-                <!-- Nombre -->
-                <td class="py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-left min-w-0">
-                  <div class="font-medium truncate" [title]="p.nombre">{{ p.nombre }}</div>
+              <tr class="border-t border-gray-100 hover:bg-gray-50/60">
 
-                  <!-- Admin: en <xl mantenemos Gimnasio dentro del nombre -->
-                  @if (isAdmin) {
-                    <div class="xl:hidden mt-1">
-                      <span
-                        class="
-                          inline-flex items-center gap-1 rounded-full
-                          bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)]
-                          px-2 py-0.5 text-[10px] font-semibold max-w-full
-                        "
-                        [title]="displayGimnasio(p)"
-                      >
-                        <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
-                        </svg>
-                        <span class="truncate">{{ displayGimnasio(p) }}</span>
-                      </span>
-                    </div>
-                  }
+                <!-- Nombre -->
+                <td class="py-2.5 px-3 text-[11px] min-w-0">
+                  <div class="font-medium truncate" [title]="p.nombre">{{ p.nombre }}</div>
                 </td>
 
-                <!-- Tipo (lg+) -->
-                <td class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center">
-                  <span
-                    class="
-                      inline-flex items-center justify-center rounded-full bg-ra-grayLight/50
-                      px-2 py-0.5
-                      text-[10px] xl:text-[10.5px] 2xl:text-[11px]
-                      font-semibold text-ra-slate
-                      max-w-full
-                    "
-                  >
+                <!-- Tipo -->
+                <td class="py-2.5 px-3 text-center text-[11px]">
+                  <span class="inline-flex items-center justify-center rounded-full bg-ra-grayLight/50 px-2 py-0.5 text-[10px] font-semibold text-ra-slate">
                     {{ displayTipoPaquete(p) }}
                   </span>
                 </td>
 
-                <!-- Tiempo (lg+) -->
-                <td class="hidden lg:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center">
+                <!-- Tiempo -->
+                <td class="py-2.5 px-3 text-center text-[11px]">
                   <div class="font-medium leading-tight">{{ p.tiempo | tiempoPlan }}</div>
                   @if (p.visitasMaximas != null) {
-                    <div class="text-[9.5px] xl:text-[10px] text-ra-slate/70 leading-tight">
-                      {{ p.visitasMaximas }} visitas
-                    </div>
+                    <div class="text-[10px] text-ra-slate/70 leading-tight">{{ p.visitasMaximas }} visitas</div>
                   }
                 </td>
 
-                <!-- Detalles (solo <lg): Tipo + Tiempo + Costos -->
-                <td class="lg:hidden py-2 px-3 sm:px-4 align-top">
-                  <div class="flex flex-col gap-1.5 min-w-0">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <span class="inline-flex items-center gap-1 rounded-full bg-ra-grayLight/40 px-2 py-0.5 text-[10px] font-semibold text-ra-slate">
-                        {{ displayTipoPaquete(p) }}
-                      </span>
-                      <span class="inline-flex items-center gap-1 rounded-full bg-ra-bg/70 px-2 py-0.5 text-[10px] font-semibold text-ra-slate">
-                        {{ p.tiempo | tiempoPlan }}
-                      </span>
-                      @if (p.visitasMaximas != null) {
-                        <span class="inline-flex items-center gap-1 rounded-full bg-ra-bg/70 px-2 py-0.5 text-[10px] font-semibold text-ra-slate/80">
-                          {{ p.visitasMaximas }} visitas
-                        </span>
-                      }
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-2">
-                      <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-700 px-2 py-0.5 text-[10px] font-semibold">
-                        <span class="text-emerald-700/70">Precio:</span>
-                        {{ p.precio | currency:'MXN':'symbol-narrow':'1.2-2' }}
-                      </span>
-
-                      <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 px-2 py-0.5 text-[10px] font-semibold">
-                        <span class="text-amber-700/70">Inscripción:</span>
-                        {{ p.costoInscripcion | currency:'MXN':'symbol-narrow':'1.2-2' }}
-                      </span>
-                    </div>
-                  </div>
-                </td>
-
-                <!-- Precio (xl+) -->
-                <td class="hidden xl:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center font-medium">
+                <!-- Precio -->
+                <td class="py-2.5 px-3 text-center font-medium text-[11px]">
                   {{ p.precio | currency:'MXN':'symbol-narrow':'1.2-2' }}
                 </td>
 
-                <!-- Inscripción (xl+) -->
-                <td class="hidden xl:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-center font-medium">
+                <!-- Inscripción -->
+                <td class="py-2.5 px-3 text-center font-medium text-[11px]">
                   {{ p.costoInscripcion | currency:'MXN':'symbol-narrow':'1.2-2' }}
                 </td>
 
-                <!-- Costos (lg < xl) -->
-                <td class="hidden lg:table-cell xl:hidden py-2 lg:py-1.5 px-3 sm:px-4 lg:px-3.5 text-center">
-                  <div class="flex flex-col items-center leading-tight">
-                    <div class="font-semibold text-[10.5px]">
-                      {{ p.precio | currency:'MXN':'symbol-narrow':'1.2-2' }}
-                    </div>
-                    <div class="text-[9.5px] text-ra-slate/70">
-                      Insc: {{ p.costoInscripcion | currency:'MXN':'symbol-narrow':'1.2-2' }}
-                    </div>
-                  </div>
-                </td>
-
-                <!-- Gimnasio (admin, xl+) -->
-                <!-- ✅ NUEVO: si es 2xl+ y el menú está abierto, ocultar columna -->
+                <!-- Gimnasio (admin) -->
                 @if (isAdmin) {
-                  <td
-                    class="hidden xl:table-cell py-2 lg:py-1.5 2xl:py-2.5 px-3 sm:px-4 lg:px-3.5 2xl:px-6 text-left min-w-0"
-                    [ngClass]="menuAbierto() ? '2xl:hidden' : ''"
-                  >
+                  <td class="py-2.5 px-3 text-[11px] min-w-0">
                     <span
-                      class="
-                        inline-flex items-center gap-1 rounded-full
-                        bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)]
-                        px-2 py-0.5
-                        text-[10.5px] xl:text-[11px] 2xl:text-xs
-                        font-semibold max-w-full
-                      "
+                      class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-[10px] max-w-full"
                       [title]="displayGimnasio(p)"
                     >
-                      <svg viewBox="0 0 24 24" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                      <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
                       </svg>
                       <span class="truncate">{{ displayGimnasio(p) }}</span>
@@ -380,8 +120,8 @@
                   </td>
                 }
 
-                <!-- Acciones (más compacto en lg+) -->
-                <td class="py-2 lg:py-1.5 2xl:py-2.5 px-1 sm:px-1 lg:px-1 2xl:px-1 text-center relative">
+                <!-- Acciones -->
+                <td class="py-2.5 px-1 text-center relative">
                   <button
                     (click)="toggleMenuRow(i, $event)"
                     class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
@@ -410,6 +150,7 @@
                     </div>
                   }
                 </td>
+
               </tr>
             }
           }
@@ -417,13 +158,12 @@
       </table>
     </div>
   </div>
+
 </div>
 
 <!-- Modal -->
 @if (mostrarModalPaquete()) {
-  <!-- Backdrop -->
   <div class="fixed inset-0 z-50 bg-black/50" (click)="cerrarModalPaquete()"></div>
-  <!-- Scroll container: permite hacer scroll cuando el viewport es pequeño o hay zoom -->
   <div class="fixed inset-0 z-50 overflow-y-auto">
     <div class="flex min-h-full items-center justify-center p-4">
       <div class="relative w-full max-w-lg">
@@ -437,5 +177,3 @@
     </div>
   </div>
 }
-
-
