@@ -1223,11 +1223,6 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
     }
   }
 
-  get persistenciaHint(): string {
-    return this.esElectronApp
-      ? 'Persistencia activa (Electron): tus datos se conservan al cambiar de menu.'
-      : 'Persistencia activa: tus datos se conservan al cambiar de menu.';
-  }
 
   // =========================
   // Batch controls
