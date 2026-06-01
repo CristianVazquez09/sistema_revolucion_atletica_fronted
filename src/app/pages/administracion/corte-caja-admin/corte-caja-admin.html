@@ -179,13 +179,7 @@
                   </button>
 
                   @if (menuRowIdx === i) {
-                    <div
-                      class="absolute right-0 z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
-                      [class.top-full]="menuDropUpIdx !== i"
-                      [class.mt-1]="menuDropUpIdx !== i"
-                      [class.bottom-full]="menuDropUpIdx === i"
-                      [class.mb-1]="menuDropUpIdx === i"
-                    >
+                    <div class="fixed z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left" [ngStyle]="menuDropdownStyle">
                       <button type="button" (click)="menuRowIdx = null; verInfo(c)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
                         <svg viewBox="0 0 24 24" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />

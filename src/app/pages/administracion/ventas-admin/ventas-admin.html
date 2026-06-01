@@ -167,13 +167,7 @@
                       </button>
 
                       @if (menuRowIdx === i) {
-                        <div
-                          class="absolute right-0 z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
-                          [class.top-full]="menuDropUpIdx !== i"
-                          [class.mt-1]="menuDropUpIdx !== i"
-                          [class.bottom-full]="menuDropUpIdx === i"
-                          [class.mb-1]="menuDropUpIdx === i"
-                        >
+                        <div class="fixed z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left" [ngStyle]="menuDropdownStyle">
                           @if (!esRecep) {
                             <button (click)="menuRowIdx = null; ver(v)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
                               <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" /> Editar
