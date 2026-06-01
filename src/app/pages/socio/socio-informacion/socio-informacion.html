@@ -1,9 +1,6 @@
 <!-- Encabezado compacto -->
-<div class="mx-2 md:mx-6 lg:mx-8 mt-3 mb-3">
-  <div
-    class="flex items-center justify-between bg-[color:var(--color-ra-white)] ring-1 ring-black/10 shadow-card rounded-xl2 px-4 py-3">
-
-    <!-- avatar + nombre + teléfono -->
+<div class="mx-1 mt-3 mb-3">
+  <div class="flex items-center justify-between bg-white ring-1 ring-black/10 shadow-card rounded-xl px-4 py-3">
     <div class="flex items-center gap-3">
       <div class="w-12 h-12 rounded-xl bg-gray-200 grid place-items-center text-gray-500">
         <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2">
@@ -12,20 +9,12 @@
         </svg>
       </div>
       <div>
-        <div class="font-semibold text-[color:var(--color-ra-slate)] leading-tight">
-          {{ socioNombre || ('Socio ' + idSocio) }}
-        </div>
-        <div class="text-sm text-[color:var(--color-ra-slate)]/70">
-          {{ socioTelefono || '—' }}
-        </div>
+        <div class="font-semibold text-ra-slate leading-tight">{{ socioNombre || ('Socio ' + idSocio) }}</div>
+        <div class="text-xs text-ra-slate/70">{{ socioTelefono || '—' }}</div>
       </div>
     </div>
-
-    <!-- badge + volver -->
     <div class="flex items-center gap-2">
-      <span
-        class="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium
-               bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] ring-1 ring-black/5">
+      <span class="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] ring-1 ring-black/5">
         Membresías
       </span>
       <a routerLink="/pages/socio"
@@ -36,17 +25,21 @@
         </svg>
       </a>
     </div>
-
   </div>
 </div>
 
+<!-- Card tabla -->
+<div class="mx-1 bg-white ring-1 ring-black/10 shadow-card rounded-xl overflow-hidden">
 
-<!-- Tabla con scroll interno adaptativo -->
-<div class="ml-2 md:ml-4 mr-4 md:mr-8 bg-ra-white shadow-card ring-1 ring-black/10 rounded-xl2 text-[13px]">
+  <!-- TOOLBAR -->
+  <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
+    <h1 class="text-base font-semibold text-ra-slate shrink-0">Historial de membresías</h1>
+  </div>
+
+  <!-- TABLA -->
   <div class="overflow-x-auto">
-    <!-- Crece libremente hasta este tope; cuando lo supera, aparece el scroll -->
-    <div class="max-h-[calc(100vh-240px)] overflow-auto">
-      <table class="w-full table-fixed min-w-[980px]">
+    <div>
+      <table class="w-full min-w-[860px] border-collapse table-fixed text-xs">
         <colgroup>
           <col class="w-[8%]">
           <col class="w-[12%]">
@@ -55,59 +48,55 @@
           <col class="w-[14%]">
           <col class="w-[9%]">
           <col class="w-[9%]">
-          <col class="w-[12%]">
-          <col class="w-[10%]">
+          <col class="w-[16%]">
         </colgroup>
 
-        <!-- Encabezado sticky -->
-        <thead class="sticky top-0 z-10 bg-[color:var(--color-ra-grayLight)]/40">
+        <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
           <tr>
-            <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">ID</th>
-            <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Movimiento</th>
-            <th class="py-2 px-3 text-left   font-semibold uppercase text-[color:var(--color-ra-slate)]">Paquete</th>
-            <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Fecha</th>
-            <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Fecha pago</th>
-            <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Importe</th>
-            <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Descuento</th>
-            <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Pagos</th>
-            <th class="py-2 px-3 text-center font-semibold uppercase text-[color:var(--color-ra-slate)]">Total</th>
+            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">ID</th>
+            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Movimiento</th>
+            <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Paquete</th>
+            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Fecha</th>
+            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Fecha pago</th>
+            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Importe</th>
+            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Descuento</th>
+            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Pagos</th>
           </tr>
         </thead>
 
         <tbody>
           @if (cargando) {
-            <tr><td colspan="9" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Cargando…</td></tr>
+            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Cargando…</td></tr>
           } @else if (error) {
-            <tr><td colspan="9" class="py-6 px-6 text-center text-red-600">{{ error }}</td></tr>
+            <tr><td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ error }}</td></tr>
           } @else if (movimientos.length === 0) {
-            <tr><td colspan="9" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">Sin movimientos.</td></tr>
+            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Sin movimientos.</td></tr>
           } @else {
             @for (m of movimientos; track m.idMembresia) {
-              <tr class="border-t border-[color:var(--color-ra-grayLight)]/60">
-                <td class="py-2 px-3 text-center">{{ m.idMembresia }}</td>
-                <td class="py-2 px-3 text-center truncate">{{ m.movimiento }}</td>
-                <td class="py-2 px-3 text-left truncate" [title]="m.paquete.nombre || ('#' + (m.paquete.idPaquete))">
+              <tr class="border-t border-gray-100 hover:bg-gray-50/60">
+                <td class="py-2.5 px-3 text-center text-[11px]">{{ m.idMembresia }}</td>
+                <td class="py-2.5 px-3 text-center text-[11px] truncate">{{ m.movimiento }}</td>
+                <td class="py-2.5 px-3 text-[11px] truncate" [title]="m.paquete.nombre || ('#' + (m.paquete.idPaquete))">
                   {{ m.paquete.nombre || ('#' + (m.paquete.idPaquete)) }}
                 </td>
-                <td class="py-2 px-3 text-center">{{ m.fechaInicio | date:'dd/MM/yyyy' }}</td>
-                <td class="py-2 px-3 text-center">{{ m.fechaFin    | date:'dd/MM/yyyy' }}</td>
-                <td class="py-2 px-3 text-center">{{ m.paquete.precio | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
-                <td class="py-2 px-3 text-center">{{ m.descuento        | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
-                <td class="py-2 px-3">
+                <td class="py-2.5 px-3 text-center text-[11px] whitespace-nowrap">{{ m.fechaInicio | date:'dd/MM/yyyy' }}</td>
+                <td class="py-2.5 px-3 text-center text-[11px] whitespace-nowrap">{{ m.fechaFin | date:'dd/MM/yyyy' }}</td>
+                <td class="py-2.5 px-3 text-center text-[11px]">{{ m.paquete.precio | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
+                <td class="py-2.5 px-3 text-center text-[11px]">{{ m.descuento | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
+                <td class="py-2.5 px-3">
                   @if (pagosConMonto(m.pagos).length) {
-                    <div class="flex flex-wrap gap-1.5 justify-center">
+                    <div class="flex flex-wrap gap-1 justify-center">
                       @for (p of pagosConMonto(m.pagos); track p.tipoPago) {
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 border border-gray-200">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-700 border border-gray-200">
                           <span class="font-medium">{{ labelPago(p.tipoPago) }}:</span>
                           <span>{{ p.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
                         </span>
                       }
                     </div>
                   } @else {
-                    <div class="text-center text-gray-500">—</div>
+                    <div class="text-center text-ra-slate/50">—</div>
                   }
                 </td>
-                <td class="py-2 px-3 text-center font-semibold">{{ m.total | currency:'MXN':'symbol-narrow':'1.0-0' }}</td>
               </tr>
             }
           }
@@ -116,31 +105,24 @@
     </div>
   </div>
 
-  <!-- Paginador (fuera del scroller) -->
-  <div class="pager text-[13px]">
-    <div class="pager-row">
-      <div class="pager-select">
-        <span class="text-[13px] text-[color:var(--color-ra-slate)]">Mostrar</span>
-        <select class="pager-select-el" [ngModel]="tamanio" (ngModelChange)="cambiarTamanioPagina($event)">
-          @for (t of tamaniosDisponibles; track t) { <option [ngValue]="t">{{ t }}</option> }
-        </select>
-        <span class="text-[13px] text-[color:var(--color-ra-slate)]">por página</span>
-      </div>
-
-      <nav class="pager-nav" aria-label="Paginación">
-        <button class="pager-btn pager-btn--ghost"   (click)="irPrimera()"  [disabled]="pagina === 0">«</button>
-        <button class="pager-btn pager-btn--ghost"   (click)="irAnterior()" [disabled]="pagina === 0">‹</button>
-        <button class="pager-btn pager-btn--primary" (click)="irSiguiente()" [disabled]="pagina + 1 >= totalPaginas">Siguiente ›</button>
-        <button class="pager-btn pager-btn--ghost"   (click)="irUltima()"   [disabled]="pagina + 1 >= totalPaginas">»</button>
-      </nav>
-
-      <div class="pager-info">
-        Mostrando <strong>{{ rangoDesde }}</strong>–<strong>{{ rangoHasta }}</strong>
-        de <strong>{{ totalElementos }}</strong>
-        @if (tamanio > 0 ) { <span>(Página {{ pagina + 1 }} de {{ totalPaginas }})</span> }
-      </div>
+  <!-- FOOTER -->
+  <div class="px-4 py-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+    <div class="flex items-center gap-2 text-ra-slate/70 shrink-0">
+      <span>Página <strong class="text-ra-slate">{{ pagina + 1 }}</strong> de <strong class="text-ra-slate">{{ totalPaginas }}</strong></span>
+      <span class="text-ra-slate/50">({{ totalElementos }} registros)</span>
+    </div>
+    <div class="flex items-center gap-2 overflow-x-auto">
+      <span class="text-ra-slate/60 whitespace-nowrap shrink-0">Por página</span>
+      <select class="h-8 w-[70px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner shrink-0"
+              [ngModel]="tamanio" (ngModelChange)="cambiarTamanioPagina($event)">
+        @for (t of tamaniosDisponibles; track t) { <option [ngValue]="t">{{ t }}</option> }
+      </select>
+      <div class="w-px h-4 bg-gray-200 shrink-0"></div>
+      <button class="h-8 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 text-xs shrink-0"
+              [disabled]="pagina === 0" (click)="irAnterior()">Anterior</button>
+      <button class="h-8 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 text-xs shrink-0"
+              [disabled]="pagina + 1 >= totalPaginas" (click)="irSiguiente()">Siguiente</button>
     </div>
   </div>
+
 </div>
-
-

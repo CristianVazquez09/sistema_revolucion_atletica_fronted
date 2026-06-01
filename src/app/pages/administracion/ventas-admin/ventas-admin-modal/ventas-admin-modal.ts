@@ -77,6 +77,7 @@ export class VentasAdminModal implements OnInit {
   private newCtr = 0;
   menuRowIdx: number | null = null;
   menuDropUpIdx: number | null = null;
+  menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
   // descuento (signal)
   descuento = signal(0);
@@ -472,38 +473,29 @@ export class VentasAdminModal implements OnInit {
 
   @HostListener('document:click')
   closeMenuRows(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null;
+    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
   }
 
   toggleMenuRow(i: number, event: MouseEvent): void {
     event.stopPropagation();
-
     if (this.menuRowIdx === i) {
       this.menuRowIdx = null;
       this.menuDropUpIdx = null;
+      this.menuDropdownStyle = null;
       return;
     }
-
-    this.menuRowIdx = i;
-    this.menuDropUpIdx = this.shouldOpenMenuUp(event.currentTarget as HTMLElement | null)
-      ? i
-      : null;
-  }
-
-  private shouldOpenMenuUp(trigger: HTMLElement | null): boolean {
-    if (!trigger || typeof window === 'undefined') return false;
-
+    const trigger = event.currentTarget as HTMLElement;
     const rect = trigger.getBoundingClientRect();
+    const menuHeight = 130;
+    const gap = 4;
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const menuHeight = 220;
-    const gap = 8;
-
     const spaceBelow = viewportHeight - rect.bottom;
-    const spaceAbove = rect.top;
-
-    if (spaceBelow >= menuHeight + gap) return false;
-    if (spaceAbove >= menuHeight + gap) return true;
-    return spaceAbove > spaceBelow;
+    const openUp = spaceBelow < menuHeight + gap;
+    this.menuRowIdx = i;
+    this.menuDropUpIdx = openUp ? i : null;
+    this.menuDropdownStyle = openUp
+      ? { bottom: `${viewportHeight - rect.top + gap}px`, right: `${window.innerWidth - rect.right}px` }
+      : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }
 

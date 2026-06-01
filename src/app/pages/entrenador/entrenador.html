@@ -1,76 +1,58 @@
 <!-- src/app/pages/entrenador/entrenador.html -->
 
-<!-- ENCABEZADO -->
-<div
-  class="mx-2 md:mx-6 lg:mx-8 mb-3
-         flex flex-col gap-2
-         md:flex-row md:items-center md:justify-between md:gap-3
-         min-w-0"
->
-  <h1 class="text-lg sm:text-xl lg:text-2xl font-bold text-[color:var(--color-ra-slate)] shrink-0">
-    Entrenadores
-  </h1>
-
+<!-- Barra externa: título + ir a socios -->
+<div class="mx-1 mb-3 flex items-center justify-between">
+  <h1 class="text-base sm:text-lg font-semibold text-ra-slate">Entrenadores</h1>
   <a
     routerLink="/pages/socio"
-    class="shrink-0 whitespace-nowrap
-           inline-flex items-center justify-center
-           px-3 py-2 md:px-3 md:py-2
-           rounded-md shadow-card
-           text-[11px] sm:text-xs md:text-sm
-           text-white bg-[color:var(--color-ra-azul-fuerte)] hover:brightness-110"
+    class="h-8 px-3 rounded-lg shadow-card text-xs text-white bg-[color:var(--color-ra-azul-fuerte)] hover:brightness-110 inline-flex items-center"
   >
     Ir a socios
   </a>
 </div>
 
-<!-- CARD FORM -->
-<div class="mx-2 md:mx-6 lg:mx-8 mb-4 card">
-  <div class="card-header flex items-center justify-between min-w-0">
-    <div class="flex items-center gap-2 min-w-0">
-      <h2 class="text-base sm:text-lg lg:text-xl font-semibold text-[color:var(--color-ra-slate)] truncate">
-        {{ esEdicion ? 'Editar entrenador' : 'Agregar entrenador' }}
-      </h2>
-
-      @if (esEdicion) {
-        <span class="inline-flex items-center px-2 py-0.5 text-[10px] sm:text-xs rounded-full bg-green-100 text-green-700 whitespace-nowrap">
-          Editando ID: {{ idEditando }}
-        </span>
-      }
-    </div>
+<!-- Card formulario -->
+<div class="mx-1 mb-3 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden">
+  <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-2 min-w-0">
+    <h2 class="text-base font-semibold text-ra-slate truncate">
+      {{ esEdicion ? 'Editar entrenador' : 'Agregar entrenador' }}
+    </h2>
+    @if (esEdicion) {
+      <span class="inline-flex items-center px-2 py-0.5 text-[10px] rounded-full bg-green-100 text-green-700 whitespace-nowrap">
+        Editando ID: {{ idEditando }}
+      </span>
+    }
   </div>
 
-  <form class="p-4 sm:p-5 lg:p-6 space-y-3" [formGroup]="form" (ngSubmit)="guardar()">
+  <form class="p-4 space-y-3" [formGroup]="form" (ngSubmit)="guardar()">
     @if (isAdmin) {
       <div>
-        <label class="block text-xs sm:text-sm font-medium mb-1">Gimnasio</label>
-        <select class="input-filled text-[11px] sm:text-sm" formControlName="gimnasioId">
+        <label class="block text-xs font-medium mb-1 text-ra-slate">Gimnasio</label>
+        <select class="input-filled text-xs" formControlName="gimnasioId">
           <option [ngValue]="null" disabled>Selecciona un gimnasio</option>
           @for (g of gimnasios; track g.idGimnasio) {
             <option [ngValue]="g.idGimnasio">{{ g.nombre }}</option>
           }
         </select>
-
         @if (form.controls.gimnasioId.touched && form.controls.gimnasioId.invalid) {
-          <div class="text-[11px] sm:text-sm text-red-600 mt-1">Selecciona un gimnasio.</div>
+          <div class="text-xs text-red-600 mt-1">Selecciona un gimnasio.</div>
         }
       </div>
     }
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       <div>
-        <label class="block text-xs sm:text-sm font-medium mb-1">Nombre</label>
-        <input formControlName="nombre" class="input-filled text-[11px] sm:text-sm" placeholder="Nombre*">
+        <label class="block text-xs font-medium mb-1 text-ra-slate">Nombre</label>
+        <input formControlName="nombre" class="input-filled text-xs" placeholder="Nombre*">
         @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
-          <div class="text-[11px] sm:text-sm text-red-600 mt-1">El nombre es obligatorio.</div>
+          <div class="text-xs text-red-600 mt-1">El nombre es obligatorio.</div>
         }
       </div>
-
       <div>
-        <label class="block text-xs sm:text-sm font-medium mb-1">Apellido</label>
-        <input formControlName="apellido" class="input-filled text-[11px] sm:text-sm" placeholder="Apellido*">
+        <label class="block text-xs font-medium mb-1 text-ra-slate">Apellido</label>
+        <input formControlName="apellido" class="input-filled text-xs" placeholder="Apellido*">
         @if (form.controls.apellido.touched && form.controls.apellido.invalid) {
-          <div class="text-[11px] sm:text-sm text-red-600 mt-1">El apellido es obligatorio.</div>
+          <div class="text-xs text-red-600 mt-1">El apellido es obligatorio.</div>
         }
       </div>
     </div>
@@ -80,18 +62,15 @@
         <button
           type="button"
           (click)="cancelarEdicion()"
-          class="px-3 py-2 rounded-md border border-gray-300 bg-white
-                 text-[11px] sm:text-sm text-[color:var(--color-ra-slate)] hover:bg-gray-50"
+          class="h-8 px-3 rounded-lg border border-gray-200 bg-white text-ra-slate hover:bg-gray-50 text-xs"
         >
           Cancelar
         </button>
       }
-
       <button
         type="submit"
         [disabled]="guardando"
-        class="px-3 py-2 rounded-md bg-[color:var(--color-ra-azul-fuerte)] text-white hover:brightness-110
-               text-[11px] sm:text-sm"
+        class="h-8 px-3 rounded-lg bg-[color:var(--color-ra-azul-fuerte)] text-white hover:brightness-110 text-xs disabled:opacity-60"
       >
         {{ guardando ? 'Guardando…' : (esEdicion ? 'Actualizar' : 'Guardar') }}
       </button>
@@ -99,173 +78,108 @@
   </form>
 </div>
 
-<!-- TABLA -->
-<div class="mx-2 md:mx-6 lg:mx-8 min-w-0">
-  <div class="shadow-card rounded-xl2 bg-white ring-1 ring-black/10 overflow-hidden min-w-0">
-    <div class="overflow-x-hidden">
-      <div
-        class="relative overflow-auto
-               max-h-[calc(100vh-420px)]
-               min-h-[200px]"
-      >
-        <table class="w-full min-w-0 table-fixed text-[11px] sm:text-xs lg:text-sm">
-          <colgroup>
-            <col class="w-14 sm:w-16 lg:w-[12%]"><!-- ID -->
-            <col class="w-auto"><!-- Entrenador -->
+<!-- Card tabla -->
+<div class="mx-1 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden">
+
+  <!-- TOOLBAR -->
+  <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
+    <h1 class="text-base sm:text-lg font-semibold text-ra-slate shrink-0">Listado</h1>
+  </div>
+
+  <!-- TABLA -->
+  <div class="overflow-x-auto">
+    <div>
+      <table class="w-full min-w-[700px] border-collapse table-fixed text-xs">
+        <colgroup>
+          <col class="w-[8%]">
+          <col [class]="isAdmin ? 'w-[55%]' : 'w-[86%]'">
+          @if (isAdmin) { <col class="w-[31%]"> }
+          <col class="w-[6%]">
+        </colgroup>
+
+        <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+          <tr>
+            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">ID</th>
+            <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Entrenador</th>
             @if (isAdmin) {
-              <col class="hidden lg:table-column w-[26%] xl:w-[24%]"><!-- Gimnasio (lg+) -->
+              <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Gimnasio</th>
             }
-            <col class="hidden lg:table-column w-[8%]"><!-- Acciones (lg+) -->
-          </colgroup>
+            <th class="py-3 px-1 text-center text-ra-slate" aria-label="Acciones"></th>
+          </tr>
+        </thead>
 
-          <thead class="sticky top-0 z-10 bg-[color:var(--color-ra-grayLight)]/40 backdrop-blur">
-            <tr>
-              <th class="py-2 lg:py-3 px-3 lg:px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">ID</th>
-              <th class="py-2 lg:py-3 px-3 lg:px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">Entrenador</th>
+        <tbody>
+          @if (loading) {
+            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Cargando…</td></tr>
+          } @else if (error) {
+            <tr><td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ error }}</td></tr>
+          } @else if (entrenadores.length === 0) {
+            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Sin resultados.</td></tr>
+          } @else {
+            @for (e of entrenadores; track e.idEntrenador; let i = $index) {
+              <tr class="border-t border-gray-100 hover:bg-gray-50/60">
 
-              @if (isAdmin) {
-                <th class="hidden lg:table-cell py-2 lg:py-3 px-3 lg:px-6 text-left font-semibold uppercase text-[color:var(--color-ra-slate)]">
-                  Gimnasio
-                </th>
-              }
-
-              <th class="hidden lg:table-cell py-2 lg:py-3 px-1 lg:px-1 text-center text-[color:var(--color-ra-slate)]" aria-label="Acciones"></th>
-            </tr>
-          </thead>
-
-          <tbody>
-            @if (loading) {
-              <tr>
-                <td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">
-                  Cargando…
+                <td class="py-2.5 px-3 text-center text-[11px]">
+                  <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] font-mono text-gray-700">
+                    {{ e.idEntrenador }}
+                  </span>
                 </td>
-              </tr>
-            } @else if (error) {
-              <tr>
-                <td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-red-600">
-                  {{ error }}
+
+                <td class="py-2.5 px-3 text-[11px] min-w-0">
+                  <div class="font-medium truncate">{{ e.nombre }} {{ e.apellido }}</div>
                 </td>
-              </tr>
-            } @else if (entrenadores.length === 0) {
-              <tr>
-                <td [attr.colspan]="isAdmin ? 4 : 3" class="py-6 px-6 text-center text-[color:var(--color-ra-slate)]">
-                  Sin resultados.
-                </td>
-              </tr>
-            } @else {
-              @for (e of entrenadores; track e.idEntrenador; let i = $index) {
-                <tr class="border-t border-[color:var(--color-ra-grayLight)]/60 hover:bg-[color:var(--color-ra-bg)]">
-                  <!-- ID -->
-                  <td class="py-2 px-3 lg:px-6 align-top">
-                    <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] sm:text-xs font-mono text-gray-700">
-                      {{ e.idEntrenador }}
+
+                @if (isAdmin) {
+                  <td class="py-2.5 px-3 text-[11px] min-w-0">
+                    <span
+                      class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-[10px] max-w-full"
+                      [title]="gymLabel(e.gimnasio)"
+                    >
+                      <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+                      </svg>
+                      <span class="truncate min-w-0">{{ gymLabel(e.gimnasio) }}</span>
                     </span>
                   </td>
+                }
 
-                  <!-- Entrenador -->
-                  <td class="py-2 px-3 lg:px-6 align-top min-w-0">
-                    <div class="font-medium truncate">
-                      {{ e.nombre }} {{ e.apellido }}
-                    </div>
-
-                    @if (isAdmin) {
-                      <div class="mt-1 lg:hidden">
-                        <span
-                          class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10
-                                 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-[10px] sm:text-xs max-w-full"
-                          [title]="gymLabel(e.gimnasio)"
-                        >
-                          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
-                          </svg>
-                          <span class="truncate min-w-0">{{ gymLabel(e.gimnasio) }}</span>
-                        </span>
-                      </div>
-                    }
-
-                    <!-- <lg: acciones abajo -->
-                    <div class="mt-2 flex items-center gap-2 lg:hidden">
-                      <button
-                        (click)="verAsesorias(e)"
-                        class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
-                        title="Ver asesorías"
-                      >
-                        <img src="iconos/usuario_asesoria.svg" alt="Asesorías" class="w-5 h-5" />
-                      </button>
-
-                      <button
-                        (click)="editar(e)"
-                        class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
-                        title="Editar"
-                      >
-                        <img src="iconos/editar.svg" alt="Editar" class="w-5 h-5" />
-                      </button>
-
-                      <button
-                        (click)="eliminar(e)"
-                        class="p-2 rounded hover:bg-[color:var(--color-ra-grayLight)]/40"
-                        title="Eliminar"
-                      >
-                        <img src="iconos/eliminar.svg" alt="Eliminar" class="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
-
-                  <!-- Gimnasio (lg+) -->
-                  @if (isAdmin) {
-                    <td class="hidden lg:table-cell py-2 px-3 lg:px-6 align-top min-w-0">
-                      <span
-                        class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10
-                               text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-xs max-w-full"
-                        [title]="gymLabel(e.gimnasio)"
-                      >
-                        <svg viewBox="0 0 24 24" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
-                        </svg>
-                        <span class="truncate min-w-0">{{ gymLabel(e.gimnasio) }}</span>
-                      </span>
-                    </td>
-                  }
-
-                  <!-- Acciones (lg+) -->
-                  <td class="hidden lg:table-cell py-2 px-1 lg:px-1 align-top text-center relative">
-                    <button
-                      (click)="toggleMenuRow(i, $event)"
-                      class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
-                      title="Acciones"
+                <td class="py-2.5 px-1 text-center relative">
+                  <button
+                    (click)="toggleMenuRow(i, $event)"
+                    class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                    title="Acciones"
+                  >
+                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
+                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                    </svg>
+                  </button>
+                  @if (menuRowIdx === i) {
+                    <div
+                      class="fixed z-50 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
+                      [ngStyle]="menuDropdownStyle"
                     >
-                      <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
-                        <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
-                      </svg>
-                    </button>
-                    @if (menuRowIdx === i) {
-                      <div
-                        class="fixed z-50 w-44 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left"
-                        [ngStyle]="menuDropdownStyle"
-                      >
-                        <button (click)="menuRowIdx = null; verAsesorias(e)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
-                          <img src="iconos/usuario_asesoria.svg" alt="Ver asesorías" class="w-4 h-4 shrink-0" />
-                          Ver asesorías
-                        </button>
-                        <button (click)="menuRowIdx = null; editar(e)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
-                          <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
-                          Editar
-                        </button>
-                        <button (click)="menuRowIdx = null; eliminar(e)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
-                          <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
-                          Eliminar
-                        </button>
-                      </div>
-                    }
-                  </td>
-                </tr>
-              }
+                      <button (click)="menuRowIdx = null; verAsesorias(e)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                        <img src="iconos/usuario_asesoria.svg" alt="Ver asesorías" class="w-4 h-4 shrink-0" />
+                        Ver asesorías
+                      </button>
+                      <button (click)="menuRowIdx = null; editar(e)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                        <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                        Editar
+                      </button>
+                      <button (click)="menuRowIdx = null; eliminar(e)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
+                        <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                        Eliminar
+                      </button>
+                    </div>
+                  }
+                </td>
+
+              </tr>
             }
-          </tbody>
-        </table>
-      </div>
+          }
+        </tbody>
+      </table>
     </div>
   </div>
+
 </div>
-
-

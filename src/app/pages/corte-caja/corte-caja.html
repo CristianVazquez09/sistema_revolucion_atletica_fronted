@@ -1,7 +1,7 @@
 <!-- Encabezado / acciones -->
-<div class="ml-2 md:ml-4 mr-4 md:mr-8 mb-3 flex items-center justify-between gap-3">
+<div class="mx-1 mb-3 flex items-center justify-between gap-3">
   <div class="flex items-center gap-3 min-w-0">
-    <h1 class="text-2xl font-bold text-ra-slate">Corte de Caja</h1>
+    <h1 class="text-base sm:text-lg font-semibold text-ra-slate">Corte de Caja</h1>
 
     @if (esAdmin) {
       <ra-gimnasio-filter label="Gimnasio"></ra-gimnasio-filter>
@@ -18,9 +18,7 @@
     @if (!estaAbierto) {
       <div class="relative w-44">
         <input
-          type="number"
-          min="0"
-          step="0.01"
+          type="number" min="0" step="0.01"
           [(ngModel)]="fondoCajaInicial"
           class="input-filled pl-4"
           placeholder="Fondo inicial*"
@@ -28,123 +26,60 @@
         />
       </div>
     }
-
-    <button
-      type="button"
-      (click)="abrirCorte()"
-      [disabled]="requiereSeleccionGimnasio || estaAbierto || cargando"
-      class="btn-green"
-    >
-      Abrir corte
-    </button>
-
-    <button
-      type="button"
-      (click)="cerrarCorte()"
-      [disabled]="requiereSeleccionGimnasio || !estaAbierto || cargando"
-      class="btn-red"
-    >
-      Cerrar corte
-    </button>
-
-    <!-- ✅ Botón Movimientos -->
+    <button type="button" (click)="abrirCorte()" [disabled]="requiereSeleccionGimnasio || estaAbierto || cargando" class="btn-green">Abrir corte</button>
+    <button type="button" (click)="cerrarCorte()" [disabled]="requiereSeleccionGimnasio || !estaAbierto || cargando" class="btn-red">Cerrar corte</button>
     @if (estaAbierto) {
-      <button
-        type="button"
-        class="rcm-btn rcm-btn--blue"
-        (click)="abrirModalMovimientos()"
-        [disabled]="requiereSeleccionGimnasio"
-      >
-        Ver movimientos
-      </button>
+      <button type="button" class="rcm-btn rcm-btn--blue" (click)="abrirModalMovimientos()" [disabled]="requiereSeleccionGimnasio">Ver movimientos</button>
     }
   </div>
 </div>
 
 @if (requiereSeleccionGimnasio) {
-  <div class="mx-4 md:mx-8 my-3 summary-box border-amber-300 bg-amber-50 text-amber-800">
+  <div class="mx-1 mb-3 summary-box border-amber-300 bg-amber-50 text-amber-800">
     Como ADMIN, selecciona un gimnasio para ver/operar el corte de caja.
   </div>
 }
 
 @if (cargando) {
-  <div class="mx-4 md:mx-8 my-3 summary-box">Cargando…</div>
+  <div class="mx-1 mb-3 summary-box">Cargando…</div>
 }
 @if (error) {
-  <div class="mx-4 md:mx-8 my-3 summary-box text-red-700 border-red-300 bg-red-50">
-    {{ error }}
-  </div>
+  <div class="mx-1 mb-3 summary-box text-red-700 border-red-300 bg-red-50">{{ error }}</div>
 }
 
 <!-- Resumen principal -->
-<div class="card" [class.opacity-60]="requiereSeleccionGimnasio">
-  <div class="card-header flex items-center justify-between">
+<div class="mx-1 mb-3 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden" [class.opacity-60]="requiereSeleccionGimnasio">
+  <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <div class="text-lg font-semibold text-ra-slate">Resumen</div>
+      <div class="text-base font-semibold text-ra-slate">Resumen</div>
       @if (corte?.estado) {
-        <span
-          class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
-          [ngClass]="{
-            'bg-emerald-100 text-emerald-700': estaAbierto,
-            'bg-gray-200 text-gray-700': !estaAbierto
-          }"
-        >
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold"
+              [ngClass]="{ 'bg-emerald-100 text-emerald-700': estaAbierto, 'bg-gray-200 text-gray-700': !estaAbierto }">
           {{ corte?.estado }}
         </span>
       }
     </div>
-
     @if (corte?.idCorte != null) {
-      <div class="text-sm text-ra-slate/80">
-        ID: <span class="font-semibold">{{ corte?.idCorte }}</span>
-      </div>
+      <div class="text-xs text-ra-slate/80">ID: <span class="font-semibold">{{ corte?.idCorte }}</span></div>
     }
   </div>
-
   <div class="px-6 py-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-    <!-- Fechas -->
     <div class="summary-box">
       <div class="font-semibold text-ra-slate mb-2">Apertura</div>
       <div class="text-sm">{{ corte?.apertura | date:'dd/MM/yyyy HH:mm:ss' }}</div>
-
       <div class="mt-4 font-semibold text-ra-slate mb-2">Cierre</div>
-      <div class="text-sm">
-        @if (corte?.cierre) {
-          {{ corte?.cierre | date:'dd/MM/yyyy HH:mm:ss' }}
-        } @else { — }
-      </div>
+      <div class="text-sm">@if (corte?.cierre) { {{ corte?.cierre | date:'dd/MM/yyyy HH:mm:ss' }} } @else { — }</div>
     </div>
-
-    <!-- Totales -->
     <div class="summary-box">
       <div class="font-semibold text-ra-slate mb-2">Totales</div>
-      <div class="flex items-center justify-between text-sm py-1">
-        <span>Ventas</span>
-        <span class="font-medium">
-          {{ (corte?.totalVentas ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-        </span>
-      </div>
-      <div class="flex items-center justify-between text-sm py-1">
-        <span>Membresías</span>
-        <span class="font-medium">
-          {{ (corte?.totalMembresias ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-        </span>
-      </div>
-      <div class="flex items-center justify-between text-sm py-1">
-        <span>Accesorías</span>
-        <span class="font-medium">
-          {{ (corte?.totalAccesorias ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-        </span>
-      </div>
+      <div class="flex items-center justify-between text-sm py-1"><span>Ventas</span><span class="font-medium">{{ (corte?.totalVentas ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}</span></div>
+      <div class="flex items-center justify-between text-sm py-1"><span>Membresías</span><span class="font-medium">{{ (corte?.totalMembresias ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}</span></div>
+      <div class="flex items-center justify-between text-sm py-1"><span>Accesorías</span><span class="font-medium">{{ (corte?.totalAccesorias ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}</span></div>
       <div class="mt-2 border-t pt-2 flex items-center justify-between">
         <span class="font-semibold">Total general</span>
-        <span class="font-bold text-ra-slate">
-          {{ (corte?.totalGeneral ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-        </span>
+        <span class="font-bold text-ra-slate">{{ (corte?.totalGeneral ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
       </div>
     </div>
-
-    <!-- Estado rápido -->
     <div class="summary-box">
       <div class="font-semibold text-ra-slate mb-2">Estado</div>
       <div class="text-sm">
@@ -165,77 +100,40 @@
 
 <!-- Panel LIVE (solo si abierto) -->
 @if (estaAbierto) {
-  <div class="card" [class.opacity-60]="requiereSeleccionGimnasio">
-    <div class="card-header flex items-center justify-between">
-      <div class="text-lg font-semibold text-ra-slate">Previsualización en vivo</div>
-
-      <div class="flex items-center gap-2">
-        <button class="rcm-btn rcm-btn--blue" (click)="refrescarPreview()" [disabled]="requiereSeleccionGimnasio">
-          Actualizar
-        </button>
-      </div>
+  <div class="mx-1 mb-3 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden" [class.opacity-60]="requiereSeleccionGimnasio">
+    <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div class="text-base font-semibold text-ra-slate">Previsualización en vivo</div>
+      <button class="rcm-btn rcm-btn--blue" (click)="refrescarPreview()" [disabled]="requiereSeleccionGimnasio">Actualizar</button>
     </div>
 
     <div class="px-6 py-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-      <div class="summary-box">
-        <div class="font-semibold text-ra-slate mb-1">Fondo inicial</div>
-        <div class="text-lg font-bold">
-          {{ (preview?.fondoCajaInicial ?? corte?.fondoCajaInicial ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-        </div>
-      </div>
-
-      <div class="summary-box">
-        <div class="font-semibold text-ra-slate mb-1">Ingresos (Efectivo)</div>
-        <div class="text-lg font-bold">
-          {{ (preview?.ingresosEfectivo ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-        </div>
-      </div>
-
-      <div class="summary-box">
-        <div class="font-semibold text-ra-slate mb-1">Salidas de efectivo</div>
-        <div class="text-lg font-bold">
-          {{ (preview?.totalSalidasEfectivo ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-        </div>
-      </div>
-
-      <div class="summary-box">
-        <div class="font-semibold text-ra-slate mb-1">Efectivo esperado</div>
-        <div class="text-lg font-bold">
-          {{ (preview?.efectivoEsperado ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
-        </div>
-      </div>
-
-      <div class="summary-box">
-        <div class="font-semibold text-ra-slate mb-1">Total general</div>
-        <div class="text-lg font-bold">
-          {{ totalGeneralLive | currency:'MXN':'symbol-narrow':'1.2-2' }}
-        </div>
-      </div>
+      <div class="summary-box"><div class="font-semibold text-ra-slate mb-1">Fondo inicial</div><div class="text-lg font-bold">{{ (preview?.fondoCajaInicial ?? corte?.fondoCajaInicial ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}</div></div>
+      <div class="summary-box"><div class="font-semibold text-ra-slate mb-1">Ingresos (Efectivo)</div><div class="text-lg font-bold">{{ (preview?.ingresosEfectivo ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}</div></div>
+      <div class="summary-box"><div class="font-semibold text-ra-slate mb-1">Salidas de efectivo</div><div class="text-lg font-bold">{{ (preview?.totalSalidasEfectivo ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}</div></div>
+      <div class="summary-box"><div class="font-semibold text-ra-slate mb-1">Efectivo esperado</div><div class="text-lg font-bold">{{ (preview?.efectivoEsperado ?? 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}</div></div>
+      <div class="summary-box"><div class="font-semibold text-ra-slate mb-1">Total general</div><div class="text-lg font-bold">{{ totalGeneralLive | currency:'MXN':'symbol-narrow':'1.2-2' }}</div></div>
     </div>
 
-    <!-- Tipos de ingreso -->
     <div class="px-6 pb-4">
-      <div class="font-semibold text-ra-slate mb-2">Tipos de ingreso</div>
+      <div class="font-semibold text-ra-slate mb-2 text-sm">Tipos de ingreso</div>
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[640px] text-[13px]">
-          <thead class="bg-ra-grayLight/40">
-            <tr class="text-ra-slate">
-              <th class="py-3 px-4 text-left font-semibold uppercase">Tipo</th>
-              <th class="py-3 px-4 text-center font-semibold uppercase">Operaciones</th>
-              <th class="py-3 px-4 text-right font-semibold uppercase">Total</th>
+        <table class="w-full min-w-[500px] border-collapse text-xs">
+          <thead class="bg-ra-grayLight/40 sticky top-0">
+            <tr>
+              <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Tipo</th>
+              <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Operaciones</th>
+              <th class="py-3 px-3 text-right text-ra-slate font-semibold uppercase text-[11px]">Total</th>
             </tr>
           </thead>
           <tbody>
             @if (!preview?.tiposDeIngreso?.length) {
-              <tr>
-                <td colspan="3" class="py-4 px-4 text-center text-ra-slate">Sin datos.</td>
-              </tr>
+              <tr><td colspan="3" class="py-6 px-3 text-center text-ra-slate">Sin datos.</td></tr>
             } @else {
               @for (t of preview?.tiposDeIngreso; track $index) {
-                <tr class="border-t">
-                  <td class="py-2 px-4">{{ t.tipo }}</td>
-                  <td class="py-2 px-4 text-center">{{ t.operaciones }}</td>
-                  <td class="py-2 px-4 text-right">{{ t.total | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+                <tr class="border-t border-gray-100 hover:bg-gray-50/60">
+                  <td class="py-2.5 px-3 text-[11px]">{{ t.tipo }}</td>
+                  <td class="py-2.5 px-3 text-center text-[11px]">{{ t.operaciones }}</td>
+                  <td class="py-2.5 px-3 text-right text-[11px]">{{ t.total | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
                 </tr>
               }
             }
@@ -244,29 +142,26 @@
       </div>
     </div>
 
-    <!-- Formas de pago -->
     <div class="px-6 pb-6">
-      <div class="font-semibold text-ra-slate mb-2">Formas de pago (todas las fuentes)</div>
+      <div class="font-semibold text-ra-slate mb-2 text-sm">Formas de pago (todas las fuentes)</div>
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[520px] text-[13px]">
+        <table class="w-full min-w-[440px] border-collapse text-xs">
           <thead class="bg-ra-grayLight/40">
-            <tr class="text-ra-slate">
-              <th class="py-3 px-4 text-left font-semibold uppercase">Forma de pago</th>
-              <th class="py-3 px-4 text-center font-semibold uppercase">Operaciones</th>
-              <th class="py-3 px-4 text-right font-semibold uppercase">Total</th>
+            <tr>
+              <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Forma de pago</th>
+              <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Operaciones</th>
+              <th class="py-3 px-3 text-right text-ra-slate font-semibold uppercase text-[11px]">Total</th>
             </tr>
           </thead>
           <tbody>
             @if (!formasPagoAgrupadasPreview.length) {
-              <tr>
-                <td colspan="3" class="py-4 px-4 text-center text-ra-slate">Sin datos.</td>
-              </tr>
+              <tr><td colspan="3" class="py-6 px-3 text-center text-ra-slate">Sin datos.</td></tr>
             } @else {
               @for (f of formasPagoAgrupadasPreview; track $index) {
-                <tr class="border-t">
-                  <td class="py-2 px-4">{{ f.tipo }}</td>
-                  <td class="py-2 px-4 text-center">{{ f.operaciones }}</td>
-                  <td class="py-2 px-4 text-right">{{ f.total | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+                <tr class="border-t border-gray-100 hover:bg-gray-50/60">
+                  <td class="py-2.5 px-3 text-[11px]">{{ f.tipo }}</td>
+                  <td class="py-2.5 px-3 text-center text-[11px]">{{ f.operaciones }}</td>
+                  <td class="py-2.5 px-3 text-right text-[11px]">{{ f.total | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
                 </tr>
               }
             }
@@ -279,45 +174,37 @@
 
 <!-- Salidas de efectivo -->
 @if (estaAbierto) {
-  <div class="card min-h-0" [class.opacity-60]="requiereSeleccionGimnasio">
-    <div class="card-header text-lg font-semibold text-ra-slate">Salidas de efectivo</div>
+  <div class="mx-1 mb-3 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden" [class.opacity-60]="requiereSeleccionGimnasio">
+    <div class="px-4 py-3 border-b border-gray-100">
+      <div class="text-base font-semibold text-ra-slate">Salidas de efectivo</div>
+    </div>
 
-    <div class="px-6 pb-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-      <div class="relative">
-        <input class="input-filled pl-4" [(ngModel)]="salidaConcepto" placeholder="Concepto*" [disabled]="requiereSeleccionGimnasio" />
-      </div>
-
-      <div class="relative">
-        <input type="number" min="0" step="0.01" class="input-filled pl-4" [(ngModel)]="salidaMonto" placeholder="0.00" [disabled]="requiereSeleccionGimnasio" />
-      </div>
-
-      <button class="btn-primary-red" (click)="registrarSalida()" [disabled]="requiereSeleccionGimnasio || cargando">
-        Registrar salida
-      </button>
+    <div class="px-6 py-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+      <input class="input-filled" [(ngModel)]="salidaConcepto" placeholder="Concepto*" [disabled]="requiereSeleccionGimnasio" />
+      <input type="number" min="0" step="0.01" class="input-filled" [(ngModel)]="salidaMonto" placeholder="0.00" [disabled]="requiereSeleccionGimnasio" />
+      <button class="btn-primary-red" (click)="registrarSalida()" [disabled]="requiereSeleccionGimnasio || cargando">Registrar salida</button>
     </div>
 
     <div class="px-6 pb-6">
       <div class="overflow-x-auto">
-        <div class="max-h-[60vh] md:max-h-[50vh] overflow-y-auto rounded-lg ring-1 ring-black/5">
-          <table class="w-full min-w-[640px] text-[13px]">
+        <div class="max-h-[50vh] overflow-y-auto rounded-lg ring-1 ring-black/5">
+          <table class="w-full min-w-[500px] border-collapse text-xs">
             <thead class="sticky top-0 bg-ra-grayLight/40 z-10">
-              <tr class="text-ra-slate">
-                <th class="py-3 px-4 text-left font-semibold uppercase">Fecha</th>
-                <th class="py-3 px-4 text-left font-semibold uppercase">Concepto</th>
-                <th class="py-3 px-4 text-right font-semibold uppercase">Monto</th>
+              <tr>
+                <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Fecha</th>
+                <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Concepto</th>
+                <th class="py-3 px-3 text-right text-ra-slate font-semibold uppercase text-[11px]">Monto</th>
               </tr>
             </thead>
             <tbody>
               @if (!salidas.length) {
-                <tr>
-                  <td colspan="3" class="py-4 px-4 text-center text-ra-slate">Sin salidas registradas.</td>
-                </tr>
+                <tr><td colspan="3" class="py-6 px-3 text-center text-ra-slate">Sin salidas registradas.</td></tr>
               } @else {
                 @for (s of salidas; track $index) {
-                  <tr class="border-t">
-                    <td class="py-2 px-4">{{ s.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
-                    <td class="py-2 px-4">{{ s.concepto }}</td>
-                    <td class="py-2 px-4 text-right">{{ s.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+                  <tr class="border-t border-gray-100 hover:bg-gray-50/60">
+                    <td class="py-2.5 px-3 text-[11px]">{{ s.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td class="py-2.5 px-3 text-[11px]">{{ s.concepto }}</td>
+                    <td class="py-2.5 px-3 text-right text-[11px]">{{ s.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
                   </tr>
                 }
               }
@@ -331,61 +218,56 @@
 
 <!-- Cierre -->
 @if (estaAbierto) {
-  <div class="card" [class.opacity-60]="requiereSeleccionGimnasio">
-    <div class="card-header text-lg font-semibold text-ra-slate">Cerrar corte</div>
-    <div class="px-6 pb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="relative">
-        <input type="number" min="0" step="0.01" class="input-filled pl-4" [(ngModel)]="efectivoEntregado"
-          placeholder="Efectivo entregado*" [disabled]="requiereSeleccionGimnasio" />
-      </div>
-      <div class="relative">
-        <input type="number" min="0" step="0.01" class="input-filled pl-4" [(ngModel)]="efectivoEnCajaConteo"
-          placeholder="Efectivo en caja (conteo)*" [disabled]="requiereSeleccionGimnasio" />
-      </div>
+  <div class="mx-1 mb-3 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden" [class.opacity-60]="requiereSeleccionGimnasio">
+    <div class="px-4 py-3 border-b border-gray-100">
+      <div class="text-base font-semibold text-ra-slate">Cerrar corte</div>
+    </div>
+    <div class="px-6 py-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <input type="number" min="0" step="0.01" class="input-filled" [(ngModel)]="efectivoEntregado" placeholder="Efectivo entregado*" [disabled]="requiereSeleccionGimnasio" />
+      <input type="number" min="0" step="0.01" class="input-filled" [(ngModel)]="efectivoEnCajaConteo" placeholder="Efectivo en caja (conteo)*" [disabled]="requiereSeleccionGimnasio" />
       <div class="flex items-end">
-        <button class="btn-red" (click)="cerrarCorte()" [disabled]="requiereSeleccionGimnasio">
-          Confirmar cierre
-        </button>
+        <button class="btn-red" (click)="cerrarCorte()" [disabled]="requiereSeleccionGimnasio">Confirmar cierre</button>
       </div>
     </div>
   </div>
 }
 
 <!-- Desglose por pagos (del CORTE) -->
-<div class="card" [class.opacity-60]="requiereSeleccionGimnasio">
-  <div class="card-header">
-    <div class="text-lg font-semibold text-ra-slate">Desglose por Origen y Tipo de pago (Corte)</div>
+<div class="mx-1 mb-3 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden" [class.opacity-60]="requiereSeleccionGimnasio">
+
+  <!-- TOOLBAR -->
+  <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
+    <h1 class="text-base sm:text-lg font-semibold text-ra-slate shrink-0">Desglose por Origen y Tipo de pago</h1>
   </div>
 
+  <!-- TABLA -->
   <div class="overflow-x-auto">
-    <div class="max-h-[calc(100vh-260px)] overflow-auto">
-      <table class="w-full table-fixed min-w-[900px] text-[13px]">
+    <div>
+      <table class="w-full min-w-[700px] border-collapse table-fixed text-xs">
         <colgroup>
-          <col class="w-[40%]">
-          <col class="w-[25%]">
-          <col class="w-[15%]">
-          <col class="w-[20%]">
+          <col class="w-[38%]">
+          <col class="w-[24%]">
+          <col class="w-[16%]">
+          <col class="w-[22%]">
         </colgroup>
-        <thead class="sticky top-0 bg-ra-grayLight/40 z-10">
-          <tr class="text-ra-slate">
-            <th class="py-3 px-4 text-left font-semibold uppercase">Origen</th>
-            <th class="py-3 px-4 text-left font-semibold uppercase">Tipo de pago</th>
-            <th class="py-3 px-4 text-center font-semibold uppercase">Operaciones</th>
-            <th class="py-3 px-4 text-right font-semibold uppercase">Total</th>
+        <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+          <tr>
+            <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Origen</th>
+            <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Tipo de pago</th>
+            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Operaciones</th>
+            <th class="py-3 px-3 text-right  text-ra-slate font-semibold uppercase text-[11px]">Total</th>
           </tr>
         </thead>
         <tbody>
           @if (!corte?.desgloses?.length) {
-            <tr>
-              <td colspan="4" class="py-6 px-4 text-center text-ra-slate">Sin datos para mostrar.</td>
-            </tr>
+            <tr><td colspan="4" class="py-10 px-3 text-center text-ra-slate">Sin datos para mostrar.</td></tr>
           } @else {
             @for (d of corte?.desgloses; track $index) {
-              <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
-                <td class="py-3 px-4 truncate">{{ d.origen }}</td>
-                <td class="py-3 px-4 truncate">{{ d.tipoPago }}</td>
-                <td class="py-3 px-4 text-center">{{ d.operaciones }}</td>
-                <td class="py-3 px-4 text-right">{{ d.total | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+              <tr class="border-t border-gray-100 hover:bg-gray-50/60">
+                <td class="py-2.5 px-3 text-[11px] truncate">{{ d.origen }}</td>
+                <td class="py-2.5 px-3 text-[11px] truncate">{{ d.tipoPago }}</td>
+                <td class="py-2.5 px-3 text-center text-[11px]">{{ d.operaciones }}</td>
+                <td class="py-2.5 px-3 text-right text-[11px]">{{ d.total | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
               </tr>
             }
           }
@@ -393,9 +275,10 @@
       </table>
     </div>
   </div>
+
 </div>
 
-<!-- ✅ Modal movimientos -->
+<!-- Modal movimientos -->
 <app-corte-caja-modal
   [open]="modalMovimientosAbierto"
   [cargando]="cargandoDesglose"
