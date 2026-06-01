@@ -1,13 +1,9 @@
 <div #zoomOuter class="overflow-x-hidden">
-  <div
-    #zoomInner
-    class="origin-top-left overflow-x-hidden"
-    [style.zoom]="uiZoom"
-  >
+  <div #zoomInner class="origin-top-left" [style.zoom]="uiZoom">
+
     <!-- Encabezado compacto -->
-    <div class="mx-2 md:mx-6 lg:mx-8 mt-3 mb-3">
-      <div class="flex items-center justify-between bg-[color:var(--color-ra-white)] ring-1 ring-black/10 shadow-card rounded-xl2 px-4 py-3">
-        <!-- avatar + nombre + teléfono -->
+    <div class="mx-1 mt-3 mb-3">
+      <div class="flex items-center justify-between bg-white ring-1 ring-black/10 shadow-card rounded-xl px-4 py-3">
         <div class="flex items-center gap-3 min-w-0">
           <div class="w-12 h-12 rounded-xl bg-gray-200 grid place-items-center text-gray-500 shrink-0">
             <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2">
@@ -15,30 +11,20 @@
               <path d="M4 20c2.5-3 5-4 8-4s5.5 1 8 4" stroke-linecap="round"></path>
             </svg>
           </div>
-
           <div class="min-w-0">
-            <div class="font-semibold text-[color:var(--color-ra-slate)] leading-tight truncate">
+            <div class="font-semibold text-ra-slate leading-tight truncate">
               {{ entrenadorNombre || ('Entrenador ' + idEntrenador) }}
             </div>
-            <div class="text-sm text-[color:var(--color-ra-slate)]/70 truncate">
-              {{ entrenadorTelefono || '—' }}
-            </div>
+            <div class="text-xs text-ra-slate/70 truncate">{{ entrenadorTelefono || '—' }}</div>
           </div>
         </div>
-
-        <!-- badge + volver -->
-        <div class="flex items-center gap-2">
-          <span
-            class="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium
-                   bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] ring-1 ring-black/5">
+        <div class="flex items-center gap-2 shrink-0">
+          <span class="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] ring-1 ring-black/5">
             Asesorías
           </span>
-
-          <a
-            routerLink="/pages/entrenador"
-            class="w-10 h-10 rounded-xl bg-[color:var(--color-ra-azul-fuerte)] text-white grid place-items-center hover:brightness-110"
-            title="Volver"
-          >
+          <a routerLink="/pages/entrenador"
+             class="w-10 h-10 rounded-xl bg-[color:var(--color-ra-azul-fuerte)] text-white grid place-items-center hover:brightness-110"
+             title="Volver">
             <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"></path>
             </svg>
@@ -47,246 +33,135 @@
       </div>
     </div>
 
-    <!-- Card / Contenido -->
-    <div class="rounded-xl2 ml-2 md:ml-4 mr-4 md:mr-8 bg-ra-white shadow-card ring-1 ring-black/10">
-      <div class="px-4 sm:px-6 pt-4 pb-3 border-b border-ra-grayLight/60">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-          <div class="text-[15px] font-semibold text-[color:var(--color-ra-slate)]">
-            Asesorías personalizadas
-          </div>
+    <!-- Card tabla -->
+    <div class="mx-1 bg-white ring-1 ring-black/10 shadow-card rounded-xl overflow-hidden">
 
-          <div class="text-xs text-[color:var(--color-ra-slate)]/70">
-            @if (totalElementos > 0) {
-              Mostrando {{ rangoDesde }}–{{ rangoHasta }} de {{ totalElementos }}
-            } @else {
-              —
-            }
-          </div>
-        </div>
+      <!-- TOOLBAR -->
+      <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 min-w-0">
+        <h1 class="text-base font-semibold text-ra-slate shrink-0">Asesorías personalizadas</h1>
+        @if (totalElementos > 0) {
+          <span class="text-xs text-ra-slate/60">Mostrando {{ rangoDesde }}–{{ rangoHasta }} de {{ totalElementos }}</span>
+        }
       </div>
 
-      <!-- Body scroll controlado por viewport -->
+      <!-- TABLA -->
       <div class="overflow-x-auto">
-        <div class="overflow-auto" [style.maxHeight.px]="asesoriasMaxH">
+        <div>
           @if (cargando) {
-            <div class="py-8 text-center text-[color:var(--color-ra-slate)]">Cargando…</div>
-          }
-          @else if (error) {
-            <div class="py-8 text-center text-red-600">{{ error }}</div>
-          }
-          @else if (!asesorias.length) {
-            <div class="py-8 text-center text-[color:var(--color-ra-slate)]">Sin asesorías.</div>
-          }
-          @else {
+            <div class="py-10 text-center text-ra-slate text-xs">Cargando…</div>
+          } @else if (error) {
+            <div class="py-10 text-center text-red-600 text-xs">{{ error }}</div>
+          } @else if (!asesorias.length) {
+            <div class="py-10 text-center text-ra-slate text-xs">Sin asesorías.</div>
+          } @else {
+            <table class="w-full border-collapse table-fixed text-xs" [ngClass]="tablaMinWidth">
+              <colgroup>
+                <col class="w-[7%]">
+                <col class="w-[24%]">
+                <col class="w-[12%]">
+                <col class="w-[12%]">
+                @if (mostrarPagosCol()) { <col class="w-[28%]"> }
+                <col class="w-[10%]">
+                <col class="w-[7%]">
+              </colgroup>
 
-            <!-- MOBILE (< md): tarjetas -->
-            <div class="grid gap-3 p-3 md:hidden">
-              @for (a of asesorias; track a.idAsesoriaPersonalizada) {
-                <div class="rounded-2xl border border-gray-200 bg-white shadow-sm p-4">
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0">
-                      <div class="flex flex-wrap items-center gap-2">
-                        <span class="inline-block rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700">
-                          #{{ a.idAsesoriaPersonalizada }}
-                        </span>
-
-                        <span
-                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
-                          [ngClass]="{
-                            'bg-emerald-100 text-emerald-700': esVigente(a?.vigenteHasta),
-                            'bg-gray-100 text-gray-700': !esVigente(a?.vigenteHasta)
-                          }"
-                        >
-                          {{ esVigente(a?.vigenteHasta) ? 'Vigente' : 'No vigente' }}
-                        </span>
-
-                        <!-- Tipo asesoría badge -->
-                        <span
-                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
-                          [ngClass]="a.tipoAsesoria === 'PAQUETE_RA'
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-blue-50 text-blue-700'"
-                        >
-                          {{ labelTipo(a.tipoAsesoria) }}
-                        </span>
-                      </div>
-
-                      <div class="mt-2 font-semibold text-[color:var(--color-ra-slate)] truncate">
-                        {{ nombreSocio(a) }}
-                      </div>
-
-                      <div class="mt-1 text-xs text-gray-500">Tel: {{ telefonoSocio(a) }}</div>
-                      <div class="text-xs text-gray-500 truncate">{{ emailSocio(a) }}</div>
-                    </div>
-
-                    <div class="text-right shrink-0">
-                      <div class="text-xs text-gray-500">Precio</div>
-                      <div class="font-semibold">
-                        {{ a.precio | currency:'MXN':'symbol-narrow':'1.2-2' }}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="mt-3 flex flex-wrap items-center gap-2">
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-                      {{ labelTiempo(a.tiempo) }}
-                    </span>
-                  </div>
-
-                  <!-- MOBILE: pagos siempre -->
-                  <div class="mt-3">
-                    <div class="text-xs text-gray-500 mb-1">Pagos:</div>
-                    @if (pagosConMonto(a.pagos).length) {
-                      <div class="flex flex-wrap gap-1.5">
-                        @for (p of pagosConMonto(a.pagos); track $index) {
-                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 border border-gray-200">
-                            <span class="font-medium">{{ labelPago(p.tipoPago) }}:</span>
-                            <span>{{ p.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
-                          </span>
-                        }
-                      </div>
-                    } @else {
-                      <span class="text-gray-400 text-xs">Sin pagos registrados.</span>
-                    }
-                  </div>
-                </div>
-              }
-            </div>
-
-            <!-- DESKTOP (md+): tabla -->
-            <div class="hidden md:block">
-              <table
-                class="w-full table-fixed text-[13px] lg:text-[14px]"
-                [ngClass]="tablaMinWidth"
-              >
-                <colgroup>
-                  <col class="w-[7%]">    <!-- ID -->
-                  <col class="w-[24%]">   <!-- Socio -->
-                  <col class="w-[12%]">   <!-- Tiempo -->
-                  <col class="w-[12%]">   <!-- Tipo -->
-
+              <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+                <tr>
+                  <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">ID</th>
+                  <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Socio</th>
+                  <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Tiempo</th>
+                  <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Tipo</th>
                   @if (mostrarPagosCol()) {
-                    <col class="w-[28%]"> <!-- Pagos -->
+                    <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Pagos</th>
                   }
+                  <th class="py-3 px-3 text-right  text-ra-slate font-semibold uppercase text-[11px]">Precio</th>
+                  <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Vigente</th>
+                </tr>
+              </thead>
 
-                  <col class="w-[10%]">   <!-- Precio -->
-                  <col class="w-[7%]">    <!-- Vigente -->
-                </colgroup>
+              <tbody>
+                @for (a of asesorias; track a.idAsesoriaPersonalizada) {
+                  <tr class="border-t border-gray-100 hover:bg-gray-50/60">
+                    <td class="py-2.5 px-3 text-center text-[11px]">
+                      <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] font-mono text-gray-700">
+                        {{ a.idAsesoriaPersonalizada }}
+                      </span>
+                    </td>
 
-                <thead class="sticky top-0 bg-ra-grayLight/40 z-10 border-b border-ra-grayLight/60">
-                  <tr>
-                    <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">ID</th>
-                    <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Socio</th>
-                    <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Tiempo</th>
-                    <th class="py-4 px-4 text-left   text-ra-slate font-semibold uppercase">Tipo</th>
+                    <td class="py-2.5 px-3 text-[11px] min-w-0">
+                      <div class="font-medium truncate">{{ nombreSocio(a) }}</div>
+                      <div class="text-[10px] text-ra-slate/60">Tel: {{ telefonoSocio(a) }}</div>
+                      <div class="text-[10px] text-ra-slate/60 truncate">{{ emailSocio(a) }}</div>
+                    </td>
+
+                    <td class="py-2.5 px-3">
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
+                        {{ labelTiempo(a.tiempo) }}
+                      </span>
+                    </td>
+
+                    <td class="py-2.5 px-3">
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                            [ngClass]="a.tipoAsesoria === 'PAQUETE_RA' ? 'bg-amber-100 text-amber-700' : 'bg-blue-50 text-blue-700'">
+                        {{ labelTipo(a.tipoAsesoria) }}
+                      </span>
+                    </td>
 
                     @if (mostrarPagosCol()) {
-                      <th class="py-4 px-4 text-left text-ra-slate font-semibold uppercase">Pagos</th>
+                      <td class="py-2.5 px-3">
+                        @if (pagosConMonto(a.pagos).length) {
+                          <div class="flex flex-wrap gap-1">
+                            @for (p of pagosConMonto(a.pagos); track $index) {
+                              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-700 border border-gray-200">
+                                <span class="font-medium">{{ labelPago(p.tipoPago) }}:</span>
+                                <span>{{ p.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
+                              </span>
+                            }
+                          </div>
+                        } @else {
+                          <span class="text-ra-slate/50">—</span>
+                        }
+                      </td>
                     }
 
-                    <th class="py-4 px-4 text-right  text-ra-slate font-semibold uppercase">Precio</th>
-                    <th class="py-4 px-4 text-center text-ra-slate font-semibold uppercase">Vigente</th>
+                    <td class="py-2.5 px-3 text-right text-[11px] font-semibold">
+                      {{ a.precio | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                    </td>
+
+                    <td class="py-2.5 px-3 text-center">
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                            [ngClass]="{ 'bg-emerald-100 text-emerald-700': esVigente(a?.vigenteHasta), 'bg-gray-100 text-gray-700': !esVigente(a?.vigenteHasta) }">
+                        {{ esVigente(a?.vigenteHasta) ? 'Sí' : 'No' }}
+                      </span>
+                    </td>
                   </tr>
-                </thead>
-
-                <tbody>
-                  @for (a of asesorias; track a.idAsesoriaPersonalizada) {
-                    <tr class="border-t border-ra-grayLight/60 hover:bg-ra-bg">
-                      <td class="py-4 px-4 text-center">
-                        <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-mono text-gray-700">
-                          {{ a.idAsesoriaPersonalizada }}
-                        </span>
-                      </td>
-
-                      <td class="py-4 px-4">
-                        <div class="font-medium truncate">{{ nombreSocio(a) }}</div>
-                        <div class="text-xs text-ra-slate/70">Tel: {{ telefonoSocio(a) }}</div>
-                        <div class="text-xs text-ra-slate/70 truncate">{{ emailSocio(a) }}</div>
-                      </td>
-
-                      <td class="py-4 px-4">
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-                          {{ labelTiempo(a.tiempo) }}
-                        </span>
-                      </td>
-
-                      <td class="py-4 px-4">
-                        <span
-                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
-                          [ngClass]="a.tipoAsesoria === 'PAQUETE_RA'
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-blue-50 text-blue-700'"
-                        >
-                          {{ labelTipo(a.tipoAsesoria) }}
-                        </span>
-                      </td>
-
-                      @if (mostrarPagosCol()) {
-                        <td class="py-4 px-4">
-                          @if (pagosConMonto(a.pagos).length) {
-                            <div class="flex flex-wrap gap-1.5">
-                              @for (p of pagosConMonto(a.pagos); track $index) {
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 border border-gray-200">
-                                  <span class="font-medium">{{ labelPago(p.tipoPago) }}:</span>
-                                  <span>{{ p.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}</span>
-                                </span>
-                              }
-                            </div>
-                          } @else {
-                            <span class="text-ra-slate/60">—</span>
-                          }
-                        </td>
-                      }
-
-                      <td class="py-4 px-4 text-right font-semibold">
-                        {{ a.precio | currency:'MXN':'symbol-narrow':'1.2-2' }}
-                      </td>
-
-                      <td class="py-4 px-4 text-center">
-                        <span
-                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
-                          [ngClass]="{
-                            'bg-emerald-100 text-emerald-700': esVigente(a?.vigenteHasta),
-                            'bg-gray-100 text-gray-700': !esVigente(a?.vigenteHasta)
-                          }"
-                        >
-                          {{ esVigente(a?.vigenteHasta) ? 'Sí' : 'No' }}
-                        </span>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
+                }
+              </tbody>
+            </table>
           }
         </div>
       </div>
 
-      <!-- Paginador -->
-      <div class="pager">
-        <div class="pager-row">
-          <div class="pager-select">
-            <span class="text-sm text-[color:var(--color-ra-slate)]">Mostrar</span>
-            <select class="pager-select-el" [ngModel]="tamanio" (ngModelChange)="cambiarTamanioPagina($event)">
-              @for (t of tamaniosDisponibles; track t) { <option [ngValue]="t">{{ t }}</option> }
-            </select>
-            <span class="text-sm text-[color:var(--color-ra-slate)]">por página</span>
-          </div>
-
-          <nav class="pager-nav" aria-label="Paginación">
-            <button class="pager-btn pager-btn--ghost"   (click)="irPrimera()"   [disabled]="pagina === 0"              title="Primera">«</button>
-            <button class="pager-btn pager-btn--ghost"   (click)="irAnterior()"  [disabled]="pagina === 0"              title="Anterior">‹</button>
-            <button class="pager-btn pager-btn--primary" (click)="irSiguiente()" [disabled]="pagina + 1 >= totalPaginas" title="Siguiente">Siguiente ›</button>
-            <button class="pager-btn pager-btn--ghost"   (click)="irUltima()"    [disabled]="pagina + 1 >= totalPaginas" title="Última">»</button>
-          </nav>
-
-          <div class="pager-info">
-            Mostrando <strong>{{ rangoDesde }}</strong>–<strong>{{ rangoHasta }}</strong>
-            de <strong>{{ totalElementos }}</strong>
-            @if (tamanio > 0) { <span>(Página {{ pagina + 1 }} de {{ totalPaginas || 1 }})</span> }
-          </div>
+      <!-- FOOTER -->
+      <div class="px-4 py-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2 text-ra-slate/70 shrink-0">
+          <span>Página <strong class="text-ra-slate">{{ pagina + 1 }}</strong> de <strong class="text-ra-slate">{{ totalPaginas || 1 }}</strong></span>
+          <span class="text-ra-slate/50">({{ totalElementos }} registros)</span>
+        </div>
+        <div class="flex items-center gap-2 overflow-x-auto">
+          <span class="text-ra-slate/60 whitespace-nowrap shrink-0">Por página</span>
+          <select class="h-8 w-[70px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner shrink-0"
+                  [ngModel]="tamanio" (ngModelChange)="cambiarTamanioPagina($event)">
+            @for (t of tamaniosDisponibles; track t) { <option [ngValue]="t">{{ t }}</option> }
+          </select>
+          <div class="w-px h-4 bg-gray-200 shrink-0"></div>
+          <button class="h-8 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 text-xs shrink-0"
+                  [disabled]="pagina === 0" (click)="irAnterior()">Anterior</button>
+          <button class="h-8 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 text-xs shrink-0"
+                  [disabled]="pagina + 1 >= totalPaginas" (click)="irSiguiente()">Siguiente</button>
         </div>
       </div>
+
     </div>
   </div>
 </div>
