@@ -1,25 +1,25 @@
-<div class="mx-4 md:mx-8 my-4 min-h-[calc(100vh-120px)] grid grid-cols-1 lg:grid-cols-[520px_1fr] gap-6">
+<div class="mx-1 my-3 min-h-[calc(100vh-120px)] grid grid-cols-1 lg:grid-cols-[520px_1fr] gap-4">
 
   <!-- ───────── CARRITO ───────── -->
-  <section class="rounded-xl2 bg-[color:var(--color-ra-white)] ring-1 ring-black/10 shadow-card flex flex-col">
-    <header class="px-4 py-3 border-b border-[color:var(--color-ra-grayLight)]/60">
-      <h2 class="font-semibold text-[color:var(--color-ra-slate)]">Lista</h2>
+  <section class="rounded-xl bg-white ring-1 ring-black/10 shadow-card flex flex-col overflow-hidden">
+    <header class="px-4 py-3 border-b border-gray-100">
+      <h2 class="text-base font-semibold text-ra-slate">Lista</h2>
     </header>
 
     <div class="p-3 flex-1">
-      <div class="rounded-lg border border-gray-200 bg-gray-50 h-full">
-        <table class="w-full text-sm">
-          <thead class="text-[color:var(--color-ra-slate)]/90">
-            <tr>
-              <th class="text-left px-3 py-2">Producto</th>
-              <th class="text-center px-3 py-2 w-[110px]">Cantidad</th>
-              <th class="text-right px-3 py-2 w-[120px]">Precio</th>
+      <div class="rounded-lg border border-gray-200 bg-gray-50 h-full overflow-auto">
+        <table class="w-full border-collapse text-xs">
+          <thead class="sticky top-0 bg-gray-100 z-10">
+            <tr class="text-ra-slate/90">
+              <th class="text-left px-3 py-2.5 font-semibold uppercase text-[11px]">Producto</th>
+              <th class="text-center px-3 py-2.5 font-semibold uppercase text-[11px] w-[110px]">Cantidad</th>
+              <th class="text-right px-3 py-2.5 font-semibold uppercase text-[11px] w-[120px]">Precio</th>
             </tr>
           </thead>
           <tbody>
             @if (carrito.length === 0) {
               <tr>
-                <td colspan="3" class="px-3 py-10 text-center text-[color:var(--color-ra-slate)]">
+                <td colspan="3" class="px-3 py-10 text-center text-ra-slate text-xs">
                   Selecciona una categoría o usa el buscador para ver productos.
                 </td>
               </tr>
@@ -28,9 +28,9 @@
                 <tr class="border-t border-gray-200 hover:bg-white/70 cursor-pointer"
                     [class.bg-red-50]="$index === indiceCarritoSeleccionado"
                     (click)="seleccionarLineaCarrito($index)">
-                  <td class="px-3 py-2 truncate">{{ linea.nombre }}</td>
-                  <td class="px-3 py-2 text-center">{{ linea.cantidad }}</td>
-                  <td class="px-3 py-2 text-right">
+                  <td class="px-3 py-2 truncate text-xs">{{ linea.nombre }}</td>
+                  <td class="px-3 py-2 text-center text-xs">{{ linea.cantidad }}</td>
+                  <td class="px-3 py-2 text-right text-xs">
                     {{ linea.precioUnit * linea.cantidad | currency:'$':'symbol':'1.2-2' }}
                   </td>
                 </tr>
@@ -43,38 +43,28 @@
 
     <!-- Total + descuento + acciones -->
     <div class="px-3">
-
-      <!-- Fila subtotal (solo si hay descuento) -->
       @if ((descuento || 0) > 0) {
-        <div class="flex items-center justify-between rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-600">
+        <div class="flex items-center justify-between rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-xs text-gray-600">
           <div>Subtotal</div>
           <div>{{ total | currency:'$':'symbol':'1.2-2' }}</div>
         </div>
       }
 
-      <!-- Descuento -->
       <div class="mt-2">
-        <label class="block text-sm font-medium text-[color:var(--color-ra-slate)] mb-1">Descuento</label>
-        <input
-          type="number"
-          min="0"
-          step="0.01"
-          class="input-filled"
-          [(ngModel)]="descuento"
-          placeholder="0.00">
+        <label class="block text-xs font-medium text-ra-slate mb-1">Descuento</label>
+        <input type="number" min="0" step="0.01" class="input-filled text-xs" [(ngModel)]="descuento" placeholder="0.00">
       </div>
 
-      <!-- Total a pagar -->
       <div class="mt-2 flex items-center justify-between rounded-lg bg-gray-100 border border-gray-200 px-3 py-2">
-        <div class="font-semibold text-[color:var(--color-ra-slate)]">TOTAL A PAGAR</div>
-        <div class="font-bold">{{ totalConDescuento | currency:'$':'symbol':'1.2-2' }}</div>
+        <div class="font-semibold text-ra-slate text-xs">TOTAL A PAGAR</div>
+        <div class="font-bold text-xs">{{ totalConDescuento | currency:'$':'symbol':'1.2-2' }}</div>
       </div>
 
       <div class="mt-3 flex items-center gap-2">
         <button class="icon-btn" (click)="sumar()" title="Sumar">+</button>
         <button class="icon-btn" (click)="restar()" title="Restar">−</button>
         <button
-          class="px-4 py-1.5 rounded-md bg-[color:var(--color-ra-rojo-oscuro)]/90 text-white hover:bg-[color:var(--color-ra-rojo-oscuro)]"
+          class="h-8 px-3 rounded-lg bg-ra-rojo-oscuro/90 text-white hover:bg-ra-rojo-oscuro text-xs"
           (click)="eliminarSeleccionado()">Eliminar</button>
       </div>
     </div>
@@ -86,21 +76,16 @@
   </section>
 
   <!-- ───────── PANEL DERECHO ───────── -->
-  <section class="rounded-xl2 bg-[color:var(--color-ra-white)] ring-1 ring-black/10 shadow-card p-4 flex flex-col gap-4">
+  <section class="rounded-xl bg-white ring-1 ring-black/10 shadow-card p-4 flex flex-col gap-4 overflow-hidden">
 
     <!-- Encabezado dinámico -->
     <div class="flex items-center justify-between">
       @if (modo === 'productos') {
-        <!-- Botón Volver (outline) -->
         <div class="flex items-center gap-2">
           <button type="button" (click)="volverACategorias()"
-                  class="group inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-300 bg-white
-                         text-sm font-medium text-[color:var(--color-ra-slate)] shadow-sm
-                         hover:bg-gray-50 hover:border-[color:var(--color-ra-rojo)] hover:text-[color:var(--color-ra-rojo)]
-                         focus:outline-none focus:ring-2 focus:ring-[color:var(--color-ra-rojo)]/40 transition">
-            <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4 transition-transform group-hover:-translate-x-0.5">
-              <path d="M15 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                    stroke-linejoin="round" />
+                  class="group inline-flex items-center gap-2 h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-ra-slate hover:bg-gray-50 focus:outline-none">
+            <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4">
+              <path d="M15 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
             Volver
           </button>
@@ -109,13 +94,9 @@
         <div></div>
       }
 
-      <!-- Buscador -->
       <div class="w-full max-w-[520px] ml-auto">
-        <div class="relative">
-          <input class="input-filled pr-10" placeholder="Buscar producto por nombre o código…"
-                 [ngModel]="terminoBusqueda" (ngModelChange)="onBuscarChange($event)">
-          <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-500">🔍</div>
-        </div>
+        <input class="input-filled text-xs" placeholder="Buscar producto por nombre o código…"
+               [ngModel]="terminoBusqueda" (ngModelChange)="onBuscarChange($event)">
       </div>
     </div>
 
@@ -140,7 +121,6 @@
           }
         </div>
 
-        <!-- Paginación del grid -->
         <div class="mt-3 flex items-center justify-end gap-2">
           <button class="pager-btn pager-btn--ghost" (click)="anteriorPaginaCategorias()" [disabled]="paginaCategorias === 0">←</button>
           <button class="pager-btn pager-btn--ghost" (click)="siguientePaginaCategorias()" [disabled]="paginaCategorias + 1 >= totalPagCats">→</button>
@@ -149,86 +129,69 @@
     }
 
     <!-- Vista PRODUCTOS -->
-    <!-- Vista PRODUCTOS -->
-@if (modo === 'productos') {
-  <!-- Contenedor con scroll horizontal si el viewport es angosto -->
-  <div class="rounded-lg border border-gray-200 bg-gray-50 overflow-x-auto flex-1">
-    <!-- Scroller vertical (aparece solo si hay muchos renglones) -->
-    <!-- Ajusta 300px si tu encabezado/buscador/botón Agregar ocupan más/menos alto -->
-    <div class="max-h-[calc(100vh-300px)] overflow-auto">
-      <table class="w-full min-w-[600px] text-sm">
-        <colgroup>
-          <col class="w-[60%]"> <!-- Producto -->
-          <col class="w-[20%]"> <!-- Stock -->
-          <col class="w-[20%]"> <!-- Precio -->
-        </colgroup>
-
-        <!-- Encabezado sticky dentro del scroller -->
-        <thead class="sticky top-0 bg-gray-100 text-[color:var(--color-ra-slate)]/90 z-10">
-          <tr>
-            <th class="px-3 py-2 text-left">Producto</th>
-            <th class="px-3 py-2 text-center">Stock</th>
-            <th class="px-3 py-2 text-right">Precio</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          @if (cargandoProductos) {
-            <tr>
-              <td colspan="3" class="px-3 py-8 text-center text-[color:var(--color-ra-slate)]">Cargando…</td>
-            </tr>
-          } @else if (productosFiltrados.length === 0) {
-            <tr>
-              <td colspan="3" class="px-3 py-8 text-center text-[color:var(--color-ra-slate)]">Sin resultados.</td>
-            </tr>
-          } @else {
-            @for (p of productosFiltrados; track p.idProducto) {
-              <tr class="border-t border-gray-200 cursor-pointer"
-                  [class.opacity-60]="toNumber(p.cantidad) <= 0"
-                  [class.text-red-600]="toNumber(p.cantidad) <= 0"
-                  [class.pointer-events-none]="toNumber(p.cantidad) <= 0"
-                  [class.bg-red-50]="productoSeleccionado?.idProducto === p.idProducto"
-                  (click)="seleccionarProducto(p)">
-                <td class="px-3 py-2 truncate" [title]="p.nombre">{{ p.nombre }}</td>
-                <td class="px-3 py-2 text-center">
-                  {{ toNumber(p.cantidad) }}
-                  @if (toNumber(p.cantidad) <= 0) {
-                    <span class="ml-1 text-xs font-semibold">(Sin stock)</span>
-                  }
-                </td>
-                <td class="px-3 py-2 text-right">
-                  {{ toNumber(p.precioVenta) | currency:'$':'symbol':'1.2-2' }}
-                </td>
+    @if (modo === 'productos') {
+      <div class="rounded-lg border border-gray-200 bg-gray-50 overflow-x-auto flex-1">
+        <div class="overflow-y-auto max-h-[calc(100vh-300px)]">
+          <table class="w-full min-w-[500px] border-collapse text-xs">
+            <colgroup>
+              <col class="w-[60%]">
+              <col class="w-[20%]">
+              <col class="w-[20%]">
+            </colgroup>
+            <thead class="sticky top-0 bg-gray-100 text-ra-slate/90 z-10">
+              <tr>
+                <th class="px-3 py-2.5 text-left font-semibold uppercase text-[11px]">Producto</th>
+                <th class="px-3 py-2.5 text-center font-semibold uppercase text-[11px]">Stock</th>
+                <th class="px-3 py-2.5 text-right font-semibold uppercase text-[11px]">Precio</th>
               </tr>
-            }
-          }
-        </tbody>
-      </table>
-    </div>
-  </div>
+            </thead>
+            <tbody>
+              @if (cargandoProductos) {
+                <tr><td colspan="3" class="px-3 py-8 text-center text-ra-slate">Cargando…</td></tr>
+              } @else if (productosFiltrados.length === 0) {
+                <tr><td colspan="3" class="px-3 py-8 text-center text-ra-slate">Sin resultados.</td></tr>
+              } @else {
+                @for (p of productosFiltrados; track p.idProducto) {
+                  <tr class="border-t border-gray-200 cursor-pointer"
+                      [class.opacity-60]="toNumber(p.cantidad) <= 0"
+                      [class.text-red-600]="toNumber(p.cantidad) <= 0"
+                      [class.pointer-events-none]="toNumber(p.cantidad) <= 0"
+                      [class.bg-red-50]="productoSeleccionado?.idProducto === p.idProducto"
+                      (click)="seleccionarProducto(p)">
+                    <td class="px-3 py-2 truncate" [title]="p.nombre">{{ p.nombre }}</td>
+                    <td class="px-3 py-2 text-center">
+                      {{ toNumber(p.cantidad) }}
+                      @if (toNumber(p.cantidad) <= 0) {
+                        <span class="ml-1 text-[10px] font-semibold">(Sin stock)</span>
+                      }
+                    </td>
+                    <td class="px-3 py-2 text-right">{{ toNumber(p.precioVenta) | currency:'$':'symbol':'1.2-2' }}</td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-  <!-- Agregar al carrito (se queda igual) -->
-  <div class="flex items-center justify-end gap-3 mt-3">
-    <label class="text-sm text-[color:var(--color-ra-slate)]">Cantidad:</label>
-    <input type="number" min="1" class="w-24 input-filled" [(ngModel)]="cantidadParaAgregar">
-    <button class="btn-red"
-            [disabled]="!productoSeleccionado || cantidadParaAgregar < 1 || stockDisponible(productoSeleccionado!) <= 0"
-            (click)="agregarAlCarrito()">
-      Agregar
-    </button>
-  </div>
-}
+      <div class="flex items-center justify-end gap-3 mt-1">
+        <label class="text-xs text-ra-slate">Cantidad:</label>
+        <input type="number" min="1" class="w-24 input-filled text-xs" [(ngModel)]="cantidadParaAgregar">
+        <button class="btn-red text-xs"
+                [disabled]="!productoSeleccionado || cantidadParaAgregar < 1 || stockDisponible(productoSeleccionado!) <= 0"
+                (click)="agregarAlCarrito()">
+          Agregar
+        </button>
+      </div>
+    }
 
   </section>
 </div>
-
-<!-- ... (toda tu vista arriba se queda igual; si quieres, cambia USD->MXN en precios/total) ... -->
 
 <!-- Modal Resumen de Venta -->
 @if (mostrarModalResumen) {
   <div class="fixed inset-0 z-50 flex items-center justify-center">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModalResumen()"></div>
-
     <div class="relative z-10 w-full max-w-[560px] mx-4" (click)="$event.stopPropagation()">
       <app-resumen-venta
         [fecha]="fechaHoy"
@@ -242,4 +205,3 @@
     </div>
   </div>
 }
-
