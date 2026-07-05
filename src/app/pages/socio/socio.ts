@@ -165,6 +165,15 @@ export class Socio implements OnInit, OnDestroy {
     // primera carga
     this.cargarSocios();
 
+    // si venimos desde asistencia con un socio a abrir, abrimos el modal
+    const navState = history.state;
+    if (navState?.abrirSocioId) {
+      this.socioService.buscarPorId(navState.abrirSocioId).subscribe({
+        next: (s) => this.abrirModalParaEditar(s),
+        error: () => {},
+      });
+    }
+
     // búsqueda con debounce
     this.subsBusqueda = this.busqueda$
       .pipe(

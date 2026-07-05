@@ -1,396 +1,405 @@
 <!-- src/app/pages/administracion/estadisticas/estadisticas.html -->
-<div class="mx-1 py-3">
+<div class="wrap">
 
   <!-- ── Filtros ──────────────────────────────────────────────────────── -->
-  <div class="bg-white rounded-xl ring-1 ring-black/10 shadow-card p-4 mb-4">
-    <div [formGroup]="form" class="flex flex-wrap items-end gap-3">
+  <div class="filterbar" [formGroup]="form">
 
-      @if (isAdmin && gimnasios.length > 0) {
-        <div class="flex flex-col gap-1">
-          <label class="text-xs font-semibold text-ra-slate uppercase tracking-wide">Gimnasio</label>
-          <select formControlName="idGimnasio"
-                  class="h-8 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-ra-slate focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white">
-            @for (g of gimnasios; track gymId(g)) {
-              <option [ngValue]="gymId(g)">{{ displayGym(g) }}</option>
-            }
-          </select>
-        </div>
-      }
-
-      <div class="flex flex-col gap-1">
-        <label class="text-xs font-semibold text-ra-slate uppercase tracking-wide">Desde</label>
-        <input type="date" formControlName="desde"
-               class="h-8 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-ra-slate focus:outline-none focus:ring-2 focus:ring-amber-400" />
+    @if (isAdmin && gimnasios.length > 0) {
+      <div class="fld">
+        <span class="flab">Gimnasio</span>
+        <select class="finp" formControlName="idGimnasio">
+          @for (g of gimnasios; track gymId(g)) {
+            <option [ngValue]="gymId(g)">{{ displayGym(g) }}</option>
+          }
+        </select>
       </div>
+    }
 
-      <div class="flex flex-col gap-1">
-        <label class="text-xs font-semibold text-ra-slate uppercase tracking-wide">Hasta</label>
-        <input type="date" formControlName="hasta"
-               class="h-8 rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-ra-slate focus:outline-none focus:ring-2 focus:ring-amber-400" />
-      </div>
-
-      <button (click)="consultar()" [disabled]="cargando"
-              class="flex items-center gap-2 h-8 px-4 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
-        @if (cargando) {
-          <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-          </svg>
-          Cargando...
-        } @else {
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-          </svg>
-          Consultar
-        }
-      </button>
+    <div class="fld">
+      <span class="flab">Desde</span>
+      <input class="finp" type="date" formControlName="desde">
     </div>
+
+    <div class="fld">
+      <span class="flab">Hasta</span>
+      <input class="finp" type="date" formControlName="hasta">
+    </div>
+
+    <button class="consult-btn" (click)="consultar()" [disabled]="cargando">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+           [class.spin]="cargando">
+        <path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>
+      </svg>
+      {{ cargando ? 'Cargando...' : 'Consultar' }}
+    </button>
   </div>
 
   <!-- ── Error ────────────────────────────────────────────────────────── -->
   @if (error) {
-    <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 mb-4 text-xs font-medium">{{ error }}</div>
+    <div class="errbox">{{ error }}</div>
   }
 
-  <!-- ── Skeleton cargando ─────────────────────────────────────────────── -->
+  <!-- ── Skeleton ─────────────────────────────────────────────────────── -->
   @if (cargando && !datos) {
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 animate-pulse">
+    <div class="kpigrid">
       @for (i of [1,2,3,4]; track i) {
-        <div class="bg-gray-200 rounded-xl h-28"></div>
+        <div class="skel" style="height:140px"></div>
       }
     </div>
-    <div class="bg-gray-200 rounded-xl h-60 mb-4 animate-pulse"></div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 animate-pulse">
-      <div class="md:col-span-2 bg-gray-200 rounded-xl h-52"></div>
-      <div class="bg-gray-200 rounded-xl h-52"></div>
+    <div class="skel" style="height:340px; margin-bottom:26px"></div>
+    <div class="dasb-grid g-3">
+      @for (i of [1,2,3]; track i) {
+        <div class="skel" style="height:260px"></div>
+      }
     </div>
   }
 
   @if (datos) {
 
     <!-- ── KPI Cards ──────────────────────────────────────────────────── -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-      <div class="bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl p-4 text-white shadow-sm">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wide opacity-90">Ingresos totales</span>
-          <div class="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <div class="kpigrid">
+
+      <!-- Hero: Ingresos -->
+      <div class="kpi kpi-hero">
+        <div class="kpitop">
+          <span class="kpilab">Ingresos totales</span>
+          <span class="ico">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
             </svg>
-          </div>
+          </span>
         </div>
-        <div class="text-2xl font-black tracking-tight">{{ money(datos.financieras.ingresoTotal) }}</div>
-        <div class="text-xs opacity-80 mt-1">Membresías + Ventas + Asesorías</div>
+        <div class="kpinum num">{{ money(datos.financieras.ingresoTotal) }}</div>
+        <div class="kpifoot">
+          <span class="delta delta-hero">Membresías · Ventas · Asesorías</span>
+        </div>
+        <div #sparkCanvas class="spark"></div>
       </div>
 
-      <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow-sm">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wide opacity-90">Total de socios</span>
-          <div class="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+      <!-- Socios -->
+      <div class="kpi">
+        <div class="kpitop">
+          <span class="kpilab">Total de socios</span>
+          <span class="ico tint-b">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="9" cy="8" r="3.2"/>
+              <path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/>
+              <path d="M16 6a3 3 0 0 1 0 6M21 20c0-2.6-1.5-4.3-4-4.8"/>
             </svg>
-          </div>
+          </span>
         </div>
-        <div class="text-2xl font-black">{{ datos.socios.totalActivos }}</div>
-        <div class="text-xs opacity-80 mt-1">+{{ datos.socios.nuevosEnPeriodo }} nuevos en el periodo</div>
+        <div class="kpinum num">{{ datos.socios.totalActivos }}</div>
+        <div class="kpifoot">
+          <span class="delta delta-up">+{{ datos.socios.nuevosEnPeriodo }}</span>
+          nuevos en el periodo
+        </div>
       </div>
 
-      <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-4 text-white shadow-sm">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wide opacity-90">Membresías activas</span>
-          <div class="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <!-- Membresías -->
+      <div class="kpi">
+        <div class="kpitop">
+          <span class="kpilab">Membresías activas</span>
+          <span class="ico tint-g">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 6L9 17l-5-5"/>
             </svg>
-          </div>
+          </span>
         </div>
-        <div class="text-2xl font-black">{{ datos.membresias.activasHoy }}</div>
-        <div class="text-xs opacity-80 mt-1">{{ datos.membresias.nuevasEnPeriodo }} nuevas en el periodo</div>
+        <div class="kpinum num">{{ datos.membresias.activasHoy }}</div>
+        <div class="kpifoot">
+          <span class="delta delta-up">+{{ datos.membresias.nuevasEnPeriodo }}</span>
+          nuevas en el periodo
+        </div>
       </div>
 
-      <div class="bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl p-4 text-white shadow-sm">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wide opacity-90">Asistencias</span>
-          <div class="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+      <!-- Asistencias -->
+      <div class="kpi">
+        <div class="kpitop">
+          <span class="kpilab">Asistencias</span>
+          <span class="ico tint-p">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
-          </div>
+          </span>
         </div>
-        <div class="text-2xl font-black">{{ datos.asistencias.totalEnPeriodo }}</div>
-        <div class="text-xs opacity-80 mt-1">Asistencias en el periodo</div>
+        <div class="kpinum num">{{ datos.asistencias.totalEnPeriodo }}</div>
+        <div class="kpifoot">
+          <span class="delta delta-up">En el periodo</span>
+        </div>
       </div>
+
     </div>
 
-    <!-- ── Ingresos por día ───────────────────────────────────────────── -->
-    <div class="bg-white rounded-xl ring-1 ring-black/10 shadow-card p-5 mb-4">
-      <h3 class="font-bold text-ra-slate text-sm mb-4">Ingresos por día</h3>
-      <div class="h-56"><canvas #ingresosCanvas></canvas></div>
-    </div>
+    <!-- ── Ingresos & retención ──────────────────────────────────────── -->
+    <div class="sec">Ingresos &amp; retención</div>
+    <div class="dasb-grid g-rev">
 
-    <!-- ── Asistencias + Género ──────────────────────────────────────── -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-      <div class="md:col-span-2 bg-white rounded-xl ring-1 ring-black/10 shadow-card p-5">
-        <h3 class="font-bold text-ra-slate text-sm mb-4">Asistencias por día</h3>
-        <div class="h-48"><canvas #asistenciasCanvas></canvas></div>
-      </div>
-      <div class="bg-white rounded-xl ring-1 ring-black/10 shadow-card p-5">
-        <h3 class="font-bold text-ra-slate text-sm mb-1">Por género</h3>
-        <div class="flex gap-4 text-xs text-ra-slate/60 mb-3">
-          <span>M {{ datos.socios.porGenero.masculino }} ({{ pct(datos.socios.porGenero.masculino, datos.socios.totalActivos) }})</span>
-          <span>F {{ datos.socios.porGenero.femenino }} ({{ pct(datos.socios.porGenero.femenino, datos.socios.totalActivos) }})</span>
+      <div class="card">
+        <div class="chd">
+          <div>
+            <div class="ctit">Ingresos por día</div>
+            <div class="csub">Desglose por origen · {{ periodoLabel() }}</div>
+          </div>
         </div>
-        <div class="h-40"><canvas #generoCanvas></canvas></div>
+        <div #revCanvas style="height:220px; width:100%"></div>
+        <div class="legend">
+          <span class="lg"><span class="dot" style="background:#E8502E"></span>Total</span>
+          <span class="lg"><span class="dot" style="background:#2E6BE6"></span>Membresías</span>
+          <span class="lg"><span class="dot" style="background:#14B8A6"></span>Ventas</span>
+          <span class="lg"><span class="dot" style="background:#7A4FE0"></span>Asesorías</span>
+        </div>
       </div>
+
+      <div class="card">
+        <div class="chd">
+          <div>
+            <div class="ctit">Membresías por vencer</div>
+            <div class="csub">Oportunidades de renovación</div>
+          </div>
+        </div>
+        <div class="vencrow vd">
+          <span class="venclab">
+            <span class="vendot" style="background:#DC2626"></span>En 7 días
+          </span>
+          <span class="vencval vred num">{{ datos.membresias.porVencer7dias }}</span>
+        </div>
+        <div class="vencrow vw">
+          <span class="venclab">
+            <span class="vendot" style="background:#F5A623"></span>En 15 días
+          </span>
+          <span class="vencval vamber num">{{ datos.membresias.porVencer15dias }}</span>
+        </div>
+        <div class="vencrow vw">
+          <span class="venclab">
+            <span class="vendot" style="background:#F5A623"></span>En 30 días
+          </span>
+          <span class="vencval vamber num">{{ datos.membresias.porVencer30dias }}</span>
+        </div>
+      </div>
+
     </div>
 
-    <!-- ── Membresías por tipo + Edad ──────────────────────────────── -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-      <div class="bg-white rounded-xl ring-1 ring-black/10 shadow-card p-5">
-        <h3 class="font-bold text-ra-slate text-sm mb-4">Membresías activas por tipo</h3>
+    <!-- ── Composición de socios ─────────────────────────────────────── -->
+    <div class="sec">Composición de socios</div>
+    <div class="dasb-grid g-3">
+
+      <div class="card">
+        <div class="chd"><div class="ctit">Distribución de edad</div></div>
+        @if ((datos.socios.distribucionEdades ?? []).length > 0) {
+          <div #ageCanvas style="height:200px; width:100%"></div>
+        } @else {
+          <p class="empty-txt">Sin datos</p>
+        }
+      </div>
+
+      <div class="card">
+        <div class="chd"><div class="ctit">Por género</div></div>
+        <div #genderCanvas style="height:170px; width:100%"></div>
+        <div class="legend" style="justify-content:center; margin-top:8px">
+          <span class="lg">
+            <span class="dot" style="background:#2E6BE6"></span>
+            Masculino {{ datos.socios.porGenero.masculino }} ({{ pct(datos.socios.porGenero.masculino, datos.socios.totalActivos) }})
+          </span>
+          <span class="lg">
+            <span class="dot" style="background:#EC4899"></span>
+            Femenino {{ datos.socios.porGenero.femenino }} ({{ pct(datos.socios.porGenero.femenino, datos.socios.totalActivos) }})
+          </span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="chd"><div class="ctit">Asistencias por día</div></div>
+        <div #attendCanvas style="height:200px; width:100%"></div>
+      </div>
+
+    </div>
+
+    <!-- ── Membresías & paquetes ─────────────────────────────────────── -->
+    <div class="sec">Membresías &amp; paquetes</div>
+    <div class="dasb-grid g-2">
+
+      <div class="card">
+        <div class="chd"><div class="ctit">Membresías activas por tipo</div></div>
         @if ((datos.membresias.activasPorTipoPaquete ?? []).length === 0) {
-          <p class="text-ra-slate/50 text-xs text-center py-8">Sin datos</p>
+          <p class="empty-txt">Sin datos</p>
         } @else {
-          <div class="h-48"><canvas #membresiasCanvas></canvas></div>
+          @for (t of datos.membresias.activasPorTipoPaquete; track t.tipoPaquete) {
+            <div class="prow">
+              <span class="chip">{{ t.tipoPaquete }}</span>
+              <div class="pbar">
+                <div class="pfill" [style.width.%]="tipoPct(t.cantidad)"></div>
+              </div>
+              <span class="pval">{{ t.cantidad }}</span>
+            </div>
+          }
         }
       </div>
-      <div class="bg-white rounded-xl ring-1 ring-black/10 shadow-card p-5">
-        <h3 class="font-bold text-ra-slate text-sm mb-4">Distribución de edad</h3>
-        @if ((datos.socios.distribucionEdades ?? []).length === 0) {
-          <p class="text-ra-slate/50 text-xs text-center py-8">Sin datos</p>
+
+      <div class="card">
+        <div class="chd">
+          <div>
+            <div class="ctit">Paquetes más vendidos</div>
+            <div class="csub">en el periodo</div>
+          </div>
+        </div>
+        @if ((datos.membresias.paquetesMasVendidosEnPeriodo ?? []).length === 0) {
+          <p class="empty-txt">Sin datos</p>
         } @else {
-          <div class="h-48"><canvas #edadCanvas></canvas></div>
+          @for (p of datos.membresias.paquetesMasVendidosEnPeriodo; track p.nombre; let i = $index) {
+            <div class="pkrow">
+              <span class="pk-rk">{{ i + 1 }}</span>
+              <div style="flex:1; min-width:0">
+                <div class="pk-name">{{ p.nombre }}</div>
+                @if (p.tipoPaquete) {
+                  <div class="pk-sub">{{ p.tipoPaquete }}</div>
+                }
+              </div>
+              <span class="pk-val">{{ p.cantidad }}</span>
+            </div>
+          }
         }
       </div>
+
     </div>
 
-    <!-- ── Alertas + Bajo stock ──────────────────────────────────────── -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-      <div class="bg-white rounded-xl ring-1 ring-black/10 shadow-card p-5">
-        <div class="flex items-center gap-2 mb-4">
-          <div class="w-7 h-7 bg-amber-100 rounded-lg flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h3 class="font-bold text-ra-slate text-sm">Membresías por vencer</h3>
-        </div>
-        <div class="space-y-3">
-          <div class="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
-            <span class="text-xs font-semibold text-red-700">En 7 días</span>
-            <span class="text-xl font-black text-red-600">{{ datos.membresias.porVencer7dias }}</span>
-          </div>
-          <div class="flex items-center justify-between p-3 bg-amber-50 rounded-xl border border-amber-100">
-            <span class="text-xs font-semibold text-amber-700">En 15 días</span>
-            <span class="text-xl font-black text-amber-600">{{ datos.membresias.porVencer15dias }}</span>
-          </div>
-          <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-xl border border-yellow-100">
-            <span class="text-xs font-semibold text-yellow-700">En 30 días</span>
-            <span class="text-xl font-black text-yellow-600">{{ datos.membresias.porVencer30dias }}</span>
-          </div>
-        </div>
-      </div>
+    <!-- ── Ventas de productos ───────────────────────────────────────── -->
+    @if ((datos.inventario.productosMasVendidos ?? datos.inventario.topProductos ?? []).length > 0 ||
+         (datos.inventario.productosMenosVendidos ?? []).length > 0) {
+      <div class="sec">Ventas de productos</div>
+      <div class="dasb-grid g-2">
 
-      <div class="bg-white rounded-xl ring-1 ring-black/10 shadow-card p-5">
-        <div class="flex items-center gap-2 mb-4">
-          <div class="w-7 h-7 bg-slate-100 rounded-lg flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
+        @if ((datos.inventario.productosMasVendidos ?? datos.inventario.topProductos ?? []).length > 0) {
+          <div class="card">
+            <div class="chd">
+              <div class="ctit" style="color:#0F8A4D">↗ Productos más vendidos</div>
+            </div>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Producto</th>
+                    <th>Uds.</th>
+                    <th>Ingreso</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (p of (datos.inventario.productosMasVendidos ?? datos.inventario.topProductos ?? []); track p.nombre; let i = $index) {
+                    <tr>
+                      <td class="t-rk">{{ i + 1 }}</td>
+                      <td class="t-name">{{ p.nombre }}</td>
+                      <td>{{ p.cantidadVendida }}</td>
+                      <td class="t-money">{{ money(p.totalIngreso) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
           </div>
-          <h3 class="font-bold text-ra-slate text-sm">Productos bajo stock (menores a 5)</h3>
-        </div>
-        @if ((datos.inventario.bajoStock ?? []).length === 0) {
-          <div class="flex items-center gap-2 text-emerald-600 text-xs font-medium py-4">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
-            Todo el inventario está bien surtido
+        }
+
+        @if ((datos.inventario.productosMenosVendidos ?? []).length > 0) {
+          <div class="card">
+            <div class="chd">
+              <div class="ctit" style="color:#C6362B">↘ Productos menos vendidos</div>
+            </div>
+            <div class="tbl-wrap">
+              <table class="tbl">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Producto</th>
+                    <th>Uds.</th>
+                    <th>Ingreso</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (p of datos.inventario.productosMenosVendidos; track p.idProducto; let i = $index) {
+                    <tr>
+                      <td class="t-rk">{{ i + 1 }}</td>
+                      <td class="t-name">{{ p.nombre }}</td>
+                      <td>{{ p.cantidadVendida }}</td>
+                      <td class="t-money">{{ money(p.totalIngreso) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
           </div>
-        } @else {
-          <div class="space-y-2 max-h-44 overflow-y-auto">
-            @for (p of (datos.inventario.bajoStock ?? []); track p.nombre) {
-              <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                <span class="text-xs text-ra-slate truncate mr-2">{{ p.nombre }}</span>
-                <span class="text-[10px] font-bold px-2 py-1 rounded-lg"
-                      [class]="p.stock === 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'">
+        }
+
+      </div>
+    }
+
+    <!-- ── Alertas de inventario ─────────────────────────────────────── -->
+    @if ((datos.inventario.bajoStock ?? []).length > 0) {
+      <div class="sec">Alertas de inventario</div>
+      <div class="dasb-grid">
+        <div class="card" style="max-width:600px">
+          <div class="chd">
+            <div>
+              <div class="ctit">Productos bajo stock</div>
+              <div class="csub">Menores a 5 unidades</div>
+            </div>
+          </div>
+          <div style="max-height:220px; overflow-y:auto">
+            @for (p of datos.inventario.bajoStock; track p.nombre) {
+              <div class="stockrow">
+                <span class="stockname">{{ p.nombre }}</span>
+                <span class="stockbadge" [class.stock-out]="p.stock === 0" [class.stock-low]="p.stock > 0">
                   {{ p.stock === 0 ? 'Agotado' : p.stock + ' uds.' }}
                 </span>
               </div>
             }
           </div>
-        }
-      </div>
-    </div>
-
-    <!-- ── Top & Bottom productos ───────────────────────────────────── -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-
-      @if ((datos.inventario.productosMasVendidos ?? datos.inventario.topProductos ?? []).length > 0) {
-        <div class="bg-white rounded-xl ring-1 ring-black/10 shadow-card p-5">
-          <div class="flex items-center gap-2 mb-4">
-            <div class="w-7 h-7 bg-emerald-100 rounded-lg flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <h3 class="font-bold text-ra-slate text-sm">Productos más vendidos</h3>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse text-xs">
-              <thead class="sticky top-0">
-                <tr class="border-b border-gray-100">
-                  <th class="text-left pb-2 text-ra-slate/60 text-[11px] font-semibold uppercase tracking-wide">#</th>
-                  <th class="text-left pb-2 text-ra-slate/60 text-[11px] font-semibold uppercase tracking-wide">Producto</th>
-                  <th class="text-right pb-2 text-ra-slate/60 text-[11px] font-semibold uppercase tracking-wide">Uds.</th>
-                  <th class="text-right pb-2 text-ra-slate/60 text-[11px] font-semibold uppercase tracking-wide">Ingreso</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (p of (datos.inventario.productosMasVendidos ?? datos.inventario.topProductos ?? []); track p.nombre; let i = $index) {
-                  <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
-                    <td class="py-2 pr-3 font-bold text-ra-slate/40 text-[10px]">{{ i + 1 }}</td>
-                    <td class="py-2 font-medium text-ra-slate text-[11px]">{{ p.nombre }}</td>
-                    <td class="py-2 text-right text-ra-slate/70 text-[11px]">{{ p.cantidadVendida }}</td>
-                    <td class="py-2 text-right font-semibold text-emerald-700 text-[11px]">{{ money(p.totalIngreso) }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
         </div>
-      }
-
-      @if ((datos.inventario.productosMenosVendidos ?? []).length > 0) {
-        <div class="bg-white rounded-xl ring-1 ring-black/10 shadow-card p-5">
-          <div class="flex items-center gap-2 mb-4">
-            <div class="w-7 h-7 bg-slate-100 rounded-lg flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-              </svg>
-            </div>
-            <h3 class="font-bold text-ra-slate text-sm">Productos menos vendidos</h3>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full border-collapse text-xs">
-              <thead>
-                <tr class="border-b border-gray-100">
-                  <th class="text-left pb-2 text-ra-slate/60 text-[11px] font-semibold uppercase tracking-wide">#</th>
-                  <th class="text-left pb-2 text-ra-slate/60 text-[11px] font-semibold uppercase tracking-wide">Producto</th>
-                  <th class="text-right pb-2 text-ra-slate/60 text-[11px] font-semibold uppercase tracking-wide">Uds.</th>
-                  <th class="text-right pb-2 text-ra-slate/60 text-[11px] font-semibold uppercase tracking-wide">Ingreso</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (p of datos.inventario.productosMenosVendidos; track p.idProducto; let i = $index) {
-                  <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
-                    <td class="py-2 pr-3 font-bold text-ra-slate/40 text-[10px]">{{ i + 1 }}</td>
-                    <td class="py-2 font-medium text-ra-slate text-[11px]">{{ p.nombre }}</td>
-                    <td class="py-2 text-right text-ra-slate/70 text-[11px]">{{ p.cantidadVendida }}</td>
-                    <td class="py-2 text-right font-semibold text-slate-600 text-[11px]">{{ money(p.totalIngreso) }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-      }
-    </div>
-
-    <!-- ── Paquetes más y menos vendidos en el periodo ────────────────── -->
-    @if ((datos.membresias.paquetesMasVendidosEnPeriodo ?? []).length > 0 ||
-         (datos.membresias.paquetesMenosVendidosEnPeriodo ?? []).length > 0) {
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-
-        @if ((datos.membresias.paquetesMasVendidosEnPeriodo ?? []).length > 0) {
-          <div class="bg-white rounded-xl ring-1 ring-black/10 shadow-card p-5">
-            <div class="flex items-center gap-2 mb-4">
-              <div class="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                </svg>
-              </div>
-              <h3 class="font-bold text-ra-slate text-sm">Paquetes más vendidos en el periodo</h3>
-            </div>
-            <div class="space-y-2">
-              @for (p of datos.membresias.paquetesMasVendidosEnPeriodo; track p.nombre; let i = $index) {
-                <div class="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-                  <span class="text-[10px] font-bold text-ra-slate/40 w-5 shrink-0">{{ i + 1 }}</span>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-xs font-semibold text-ra-slate truncate">{{ p.nombre }}</p>
-                    <p class="text-[10px] text-ra-slate/50">{{ p.tipoPaquete }}</p>
-                  </div>
-                  <span class="text-xs font-black text-blue-600 shrink-0">{{ p.cantidad }}</span>
-                </div>
-              }
-            </div>
-          </div>
-        }
-
-        @if ((datos.membresias.paquetesMenosVendidosEnPeriodo ?? []).length > 0) {
-          <div class="bg-white rounded-xl ring-1 ring-black/10 shadow-card p-5">
-            <div class="flex items-center gap-2 mb-4">
-              <div class="w-7 h-7 bg-orange-100 rounded-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-                </svg>
-              </div>
-              <h3 class="font-bold text-ra-slate text-sm">Paquetes menos vendidos en el periodo</h3>
-            </div>
-            <div class="space-y-2">
-              @for (p of datos.membresias.paquetesMenosVendidosEnPeriodo; track p.nombre; let i = $index) {
-                <div class="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-                  <span class="text-[10px] font-bold text-ra-slate/40 w-5 shrink-0">{{ i + 1 }}</span>
-                  <div class="flex-1 min-w-0">
-                    <p class="text-xs font-semibold text-ra-slate truncate">{{ p.nombre }}</p>
-                    <p class="text-[10px] text-ra-slate/50">{{ p.tipoPaquete }}</p>
-                  </div>
-                  <span class="text-xs font-black text-orange-500 shrink-0">{{ p.cantidad }}</span>
-                </div>
-              }
-            </div>
-          </div>
-        }
       </div>
     }
 
-    <!-- ── Ranking entrenadores ───────────────────────────────────────── -->
+    <!-- ── Equipo ────────────────────────────────────────────────────── -->
     @if ((datos.entrenadores?.ranking ?? []).length > 0) {
-      <div class="bg-white rounded-xl ring-1 ring-black/10 shadow-card p-5 mb-4">
-        <div class="flex items-center gap-2 mb-4">
-          <div class="w-7 h-7 bg-violet-100 rounded-lg flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
+      <div class="sec">Equipo</div>
+      <div class="dasb-grid">
+        <div class="card">
+          <div class="chd">
+            <div>
+              <div class="ctit">Ranking de entrenadores</div>
+              <div class="csub">por asesorías impartidas</div>
+            </div>
           </div>
-          <h3 class="font-bold text-ra-slate text-sm">Ranking de entrenadores</h3>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full border-collapse text-xs">
+          <div class="tbl-wrap">
+          <table class="tbl">
             <thead>
-              <tr class="border-b border-gray-100">
-                <th class="text-left pb-2 text-ra-slate/60 text-[11px] font-semibold uppercase tracking-wide">#</th>
-                <th class="text-left pb-2 text-ra-slate/60 text-[11px] font-semibold uppercase tracking-wide">Entrenador</th>
-                <th class="text-right pb-2 text-ra-slate/60 text-[11px] font-semibold uppercase tracking-wide">En el periodo</th>
-                <th class="text-right pb-2 text-ra-slate/60 text-[11px] font-semibold uppercase tracking-wide">Total de asesorías</th>
+              <tr>
+                <th>#</th>
+                <th>Entrenador</th>
+                <th>En el periodo</th>
+                <th>Total de asesorías</th>
               </tr>
             </thead>
             <tbody>
               @for (e of datos.entrenadores!.ranking; track e.idEntrenador; let i = $index) {
-                <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
-                  <td class="py-2 pr-3 font-bold text-ra-slate/40 text-[10px]">{{ i + 1 }}</td>
-                  <td class="py-2 font-medium text-ra-slate text-[11px]">{{ e.nombre }} {{ e.apellido }}</td>
-                  <td class="py-2 text-right font-black text-violet-600 text-[11px]">{{ e.totalEnPeriodo }}</td>
-                  <td class="py-2 text-right">
-                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                      {{ e.asesoriasActivas }} asesorías
-                    </span>
+                <tr>
+                  <td class="t-rk">{{ i + 1 }}</td>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:12px">
+                      <span class="avatar">{{ initials(e.nombre, e.apellido) }}</span>
+                      <span class="t-name">{{ e.nombre }} {{ e.apellido }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="num" style="font-size:15px; font-weight:700; color:#7A4FE0">{{ e.totalEnPeriodo }}</span>
+                  </td>
+                  <td>
+                    <span class="pill">{{ e.asesoriasActivas }} asesorías</span>
                   </td>
                 </tr>
               }
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     }

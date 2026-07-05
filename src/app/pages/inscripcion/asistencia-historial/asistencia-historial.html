@@ -60,18 +60,16 @@
     <div>
       <table class="w-full min-w-[700px] border-collapse table-fixed text-xs">
         <colgroup>
-          <col class="w-[6%]">
+          <col class="w-[16%]">
+          <col [class]="isAdmin ? 'w-[27%]' : 'w-[38%]'">
           <col class="w-[14%]">
-          <col [class]="isAdmin ? 'w-[22%]' : 'w-[28%]'">
           <col class="w-[12%]">
-          <col class="w-[10%]">
-          <col [class]="isAdmin ? 'w-[20%]' : 'w-[24%]'">
-          @if (isAdmin) { <col class="w-[16%]"> }
+          <col [class]="isAdmin ? 'w-[18%]' : 'w-[20%]'">
+          @if (isAdmin) { <col class="w-[13%]"> }
         </colgroup>
 
         <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
           <tr>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">ID</th>
             <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Fecha</th>
             <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Socio</th>
             <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Tel</th>
@@ -93,12 +91,6 @@
           } @else {
             @for (a of listaAsistencias; track a.idAsistencia) {
               <tr class="border-t border-gray-100 hover:bg-gray-50/60">
-                <td class="py-2.5 px-3 text-center text-[11px]">
-                  <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] font-mono text-gray-700">
-                    {{ a.idAsistencia }}
-                  </span>
-                </td>
-
                 <td class="py-2.5 px-3 text-[11px] min-w-0">
                   <div class="font-medium truncate">{{ a.fechaHora | date:'dd/MM/yyyy' }}</div>
                   <div class="text-[10px] text-ra-slate/60">{{ a.fechaHora | date:'HH:mm:ss' }}</div>
