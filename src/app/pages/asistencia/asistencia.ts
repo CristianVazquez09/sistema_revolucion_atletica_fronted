@@ -1,12 +1,13 @@
 import { Component, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { SocioService } from '../../services/socio-service';
+import { SocioData } from '../../model/socio-data';
 import { MembresiaService } from '../../services/membresia-service';
 import { NotificacionService } from '../../services/notificacion-service';
 import { AsistenciaStore } from './asistencia-store';
@@ -37,6 +38,7 @@ export class Asistencia implements OnInit {
   private readonly asistenciaStore = inject(AsistenciaStore);
   private readonly jwtHelper = inject(JwtHelperService);
   private readonly checkInService = inject(CheckInService);
+  private readonly router = inject(Router);
 
   formulario = this.formBuilder.nonNullable.group({
     idSocio: this.formBuilder.nonNullable.control<string>('', [
@@ -50,6 +52,12 @@ export class Asistencia implements OnInit {
   errorOperacion: string | null = null;
 
   mostrarHuellaModal = false;
+
+  // ── Búsqueda por nombre (migración temporal) ─────────────────
+  nombreBusqueda = '';
+  resultadosBusqueda: SocioData[] = [];
+  mostrarResultados = false;
+  buscandoPorNombre = false;
 
   socio = this.asistenciaStore.socio;
   membresias = this.asistenciaStore.membresias;
@@ -129,10 +137,52 @@ export class Asistencia implements OnInit {
 
   limpiar(): void {
     this.formulario.reset({ idSocio: '' });
+    this.nombreBusqueda = '';
+    this.resultadosBusqueda = [];
+    this.mostrarResultados = false;
     this.asistenciaStore.limpiar();
     this.limpiarIdSocioPersistidoDeTenant();
     this.error = null;
     this.errorOperacion = null;
+  }
+
+  buscarPorNombre(): void {
+    const nombre = this.nombreBusqueda.trim();
+    if (nombre.length < 2) {
+      this.resultadosBusqueda = [];
+      this.mostrarResultados = false;
+      return;
+    }
+    this.buscandoPorNombre = true;
+    this.socioService.buscarSociosPorNombre(nombre, 0, 8).subscribe({
+      next: (page) => {
+        this.resultadosBusqueda = page.contenido ?? [];
+        this.mostrarResultados = this.resultadosBusqueda.length > 0;
+        this.buscandoPorNombre = false;
+      },
+      error: () => {
+        this.resultadosBusqueda = [];
+        this.mostrarResultados = false;
+        this.buscandoPorNombre = false;
+      },
+    });
+  }
+
+  seleccionarSocioPorNombre(s: SocioData): void {
+    this.nombreBusqueda = `${s.nombre} ${s.apellido}`.trim();
+    this.mostrarResultados = false;
+    this.resultadosBusqueda = [];
+    this.cargarDatosDeSocioPorIdSoloConsulta(s.idSocio);
+  }
+
+  cerrarResultados(): void {
+    setTimeout(() => { this.mostrarResultados = false; }, 150);
+  }
+
+  irAActualizarSocio(): void {
+    const socio = this.socio();
+    if (!socio?.idSocio) return;
+    this.router.navigate(['/pages/socio'], { state: { abrirSocioId: socio.idSocio } });
   }
 
   idBonito(id?: number | null): string {

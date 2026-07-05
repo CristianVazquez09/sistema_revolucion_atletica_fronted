@@ -1,6 +1,6 @@
 {
   "name": "revolucion-atletica-frontend",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "main": "electron/main.js",
   "repository": {
     "type": "git",
@@ -72,6 +72,7 @@
     "@ngrx/store-devtools": "^20.0.1",
     "@tailwindcss/postcss": "^4.1.11",
     "chart.js": "^4.5.1",
+    "echarts": "^6.1.0",
     "electron-log": "^5.4.3",
     "electron-updater": "^6.6.2",
     "heroicons": "^2.2.0",
