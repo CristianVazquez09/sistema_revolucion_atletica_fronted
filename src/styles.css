@@ -176,10 +176,9 @@
 
 .pager-info{ font-size: .875rem; color: color-mix(in oklab, var(--color-ra-slate) 90%, black 0%); }
 
-/* Base global (déjalo si ya lo usabas; no toca nada del modal) */
 :root {
-  color: var(--color-brand-black);
-  background: var(--color-brand-bg);
+  color: var(--color-ra-negro);
+  background: var(--color-ra-bg);
 }
 
 
