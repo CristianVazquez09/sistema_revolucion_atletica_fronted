@@ -1,4 +1,3 @@
-// src/app/services/ticket-service.ts
 import { Injectable } from '@angular/core';
 
 type TicketItem = { nombre: string; cantidad: number; precioUnit: number };

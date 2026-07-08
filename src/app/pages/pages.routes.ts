@@ -22,7 +22,6 @@ import { ReinscripcionAdelantada } from './inscripcion/reinscripcion-adelantada/
 import { SocioInfoAsesoria } from './socio/socio-info-asesoria/socio-info-asesoria';
 import { EntrenadorInfoAsesoria } from './entrenador/entrenador-info-asesoria/entrenador-info-asesoria';
 
-// ✅ NUEVO
 import { Inventario } from './inventario/inventario';
 import { operacionGuard } from '../guards/operacion-guards';
 

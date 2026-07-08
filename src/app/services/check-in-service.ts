@@ -116,7 +116,7 @@ buscarPorNombreSocio(
     .pipe(map(raw => toPagedResponse<AsistenciaHistorialData>(raw)));
 }
 
-// ✅ NUEVO: filtros combinables (desde/hasta/nombre) -> GET {base}/buscar
+// filtros combinables (desde/hasta/nombre) -> GET {base}/buscar
 buscar(
   pagina: number,
   tamanio: number,

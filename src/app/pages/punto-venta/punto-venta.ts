@@ -397,7 +397,7 @@ export class PuntoVenta implements OnInit {
             pagosDet
           );
         } else {
-          // ✅ OJO: aquí estabas mandando mal los parámetros (tu 4° arg era pagos)
+          // OJO: el 4° arg es pagos, no tipoPago
           this.ticket.imprimirVentaDesdeCarrito(
             this.carrito,
             ctx,

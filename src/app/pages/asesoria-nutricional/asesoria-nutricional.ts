@@ -198,7 +198,7 @@ export class AsesoriaNutricional {
           this.cargando = false;
           this.error = 'No se pudieron cargar las asesorías nutricionales.';
 
-          // ✅ FIX TS: no pasar null
+          // no pasar null
           const msg = this.error || 'No se pudieron cargar las asesorías nutricionales.';
           this.noti.error(msg);
         },

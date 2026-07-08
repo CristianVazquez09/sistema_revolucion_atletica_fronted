@@ -162,7 +162,7 @@ export class Reinscripcion implements OnInit {
   socioBuscarIdCtrl = this.fb.nonNullable.control<number>(0, [Validators.min(1)]);
 
   // =========================
-  // ✅ BUSCADOR DE PAQUETES (NUEVO)
+  // BUSCADOR DE PAQUETES
   // =========================
   paqueteBusquedaSig = signal<string>('');
   paqueteDropdownAbiertoSig = signal<boolean>(false);

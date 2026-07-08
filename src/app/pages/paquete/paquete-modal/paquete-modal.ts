@@ -82,10 +82,10 @@ export class PaqueteModal implements OnInit, OnDestroy {
     // Modalidad (DEFAULT: INDIVIDUAL)
     modalidad:         new FormControl<ModalidadPaquete | null>(ModalidadPaquete.INDIVIDUAL, [Validators.required]),
 
-    // ✅ NUEVO: Paquete estudiantil
+    // Paquete estudiantil
     estudiantil:       new FormControl<boolean>(false),
 
-    // ✅ NUEVO: Paquete RA (requiere entrenador RA al inscribir)
+    // Paquete RA (requiere entrenador RA al inscribir)
     esRA:              new FormControl<boolean>(false),
   });
 
@@ -203,10 +203,10 @@ export class PaqueteModal implements OnInit, OnDestroy {
       // modalidad (fallback a INDIVIDUAL)
       modalidad:         (this.paquete as any).modalidad ?? ModalidadPaquete.INDIVIDUAL,
 
-      // ✅ NUEVO: estudiantil (default false)
+      // estudiantil (default false)
       estudiantil:       (this.paquete as any).estudiantil === true,
 
-      // ✅ NUEVO: esRA (default false)
+      // esRA (default false)
       esRA:              (this.paquete as any).esRA === true,
     });
 
@@ -281,10 +281,7 @@ export class PaqueteModal implements OnInit, OnDestroy {
       // modalidad
       modalidad: f.modalidad ?? ModalidadPaquete.INDIVIDUAL,
 
-      // ✅ NUEVO: estudiantil
       estudiantil: !!f.estudiantil,
-
-      // ✅ NUEVO: esRA
       esRA: !!f.esRA,
     };
 

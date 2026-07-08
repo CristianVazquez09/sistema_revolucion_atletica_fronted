@@ -6,9 +6,8 @@ import { PagedResponse, toPagedResponse } from '../model/paged-response';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable, map } from 'rxjs';
-import { MembresiaData } from '../model/membresia-data';
 import { AsesoriaContratoData } from '../model/asesoria-contrato-data';
-import { TipoPaquete } from '../util/enums/tipo-paquete'; // 👈 enum de tipo de paquete
+import { TipoPaquete } from '../util/enums/tipo-paquete';
 
 @Injectable({
   providedIn: 'root'

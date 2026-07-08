@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit, signal, DestroyRef, inject } from '@angular/core';
-import { Router, RouterLink, RouterModule } from '@angular/router';
+import { RouterLink, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -42,14 +42,13 @@ import { RaGimnasioFilterComponent } from 'src/app/shared/ra-app-zoom/ra-gimnasi
     ProductoModal,
     StockModal,
     RouterLink,
-    RaGimnasioFilterComponent, // ✅
+    RaGimnasioFilterComponent,
   ],
   templateUrl: './producto.html',
   styleUrl: './producto.css',
 })
 export class Producto implements OnInit, OnDestroy {
   private productoSrv = inject(ProductoService);
-  private router = inject(Router);
   private notificacion = inject(NotificacionService);
   private jwt = inject(JwtHelperService);
   private menuSrv = inject(MenuService);

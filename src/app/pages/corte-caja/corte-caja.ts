@@ -496,27 +496,6 @@ export class CorteCaja implements OnInit, OnDestroy {
     return '';
   }
 
-  // ✅ aquí definimos admin desde token (como tu TenantContextService)
-  private isAdminFromToken(): boolean {
-  const token = this.tokenActual();
-  if (!token) return false;
-
-  try {
-    const d: any = this.jwt.decodeToken(token) || {};
-    const auths = d?.authorities ?? d?.roles ?? [];
-    const arr = Array.isArray(auths) ? auths : [auths];
-
-    return arr.some((x: any) => {
-      const raw = (typeof x === 'string') ? x : (x?.authority ?? x?.name ?? x?.rol ?? '');
-      const r = String(raw ?? '').trim().toUpperCase();
-      return r === 'ADMIN' || r === 'ROLE_ADMIN';
-    });
-  } catch {
-    return false;
-  }
-}
-
-
   private fechaLocalDateTime(d = new Date()): string {
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`

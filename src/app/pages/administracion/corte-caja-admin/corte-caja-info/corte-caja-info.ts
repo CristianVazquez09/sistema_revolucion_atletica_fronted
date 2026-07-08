@@ -1,4 +1,3 @@
-// src/app/pages/corte-caja-info/corte-caja-info.ts
 import {
   AfterViewInit,
   Component,

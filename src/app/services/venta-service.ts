@@ -5,7 +5,7 @@ import { environment } from '../../environments/environment';
 import { GenericService } from './generic-service';
 import { VentaCreateRequest } from '../model/venta-create';
 import { map, Observable } from 'rxjs';
-import { VentaPatchAction, VentaPatchRequest } from '../model/venta-patch';
+import { VentaPatchRequest } from '../model/venta-patch';
 
 export type PageMeta = { size: number; number: number; totalElements: number; totalPages: number; };
 export interface VentaPageResponse { content: VentaData[]; page: PageMeta; }

@@ -313,7 +313,7 @@ export class AsesoriaNutriocionalModal implements OnInit, OnDestroy {
             this.error = 'No se pudo guardar la asesoría nutricional.';
           }
 
-          // ✅ FIX TS: garantizar string
+          // garantizar string
           const msg = this.error || 'No se pudo guardar la asesoría nutricional.';
           this.noti.error(msg);
         },

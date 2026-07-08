@@ -1,5 +1,3 @@
-// src/app/pages/reinscripcion-adelantada/reinscripcion-adelantada.ts
-
 import {
   Component,
   DestroyRef,

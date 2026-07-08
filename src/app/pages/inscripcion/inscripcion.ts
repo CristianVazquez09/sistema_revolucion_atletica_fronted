@@ -619,7 +619,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
         this.bumpFormTick();
       });
 
-    // ✅ FIX: valueChanges/statusChanges → tick + persist
+    // valueChanges/statusChanges → tick + persist
     this.formularioInscripcion.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {

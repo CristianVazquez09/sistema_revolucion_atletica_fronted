@@ -1,4 +1,3 @@
-// src/app/pages/entrenador/entrenador-modal.ts
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { EntrenadorData } from 'src/app/model/entrenador-data';

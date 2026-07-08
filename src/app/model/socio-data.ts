@@ -16,6 +16,6 @@ export interface SocioData {
 
   huellaDigital?: string;
 
-  // ✅ NUEVO: Vigencia de credencial de estudiante (opcional)
+  // Vigencia de credencial de estudiante (opcional)
   credencialEstudianteVigencia?: string | null;
 }

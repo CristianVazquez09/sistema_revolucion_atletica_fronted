@@ -1,4 +1,3 @@
-// src/app/core/auth.interceptor.ts
 import { HttpInterceptorFn } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 

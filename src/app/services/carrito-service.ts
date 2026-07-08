@@ -1,4 +1,3 @@
-// src/app/pages/punto-venta/carrito.service.ts
 import { Injectable, computed, signal } from '@angular/core';
 
 export interface CarritoItem {

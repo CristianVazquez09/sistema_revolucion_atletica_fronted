@@ -1,4 +1,3 @@
-// src/app/shared/huella/huella-reader-singleton.ts
 import { FingerprintReader } from '@digitalpersona/devices';
 
 /**

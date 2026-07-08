@@ -24,7 +24,7 @@ export class ProductoService extends GenericService<ProductoData> {
     return this.http.get<ProductoData[]>(`${this.url}/buscar/nombre/${nombreProducto}`);
   }
 
-  // ✅ NUEVO: entrada y ajuste de stock (solo Admin/Gerente en backend)
+  // entrada y ajuste de stock (solo Admin/Gerente en backend)
   registrarEntrada(idProducto: number, req: StockEntradaRequest) {
     return this.http.post<ProductoData>(`${this.url}/${idProducto}/stock/entrada`, req);
   }

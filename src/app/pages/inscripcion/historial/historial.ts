@@ -1,4 +1,3 @@
-// src/app/pages/historial/historial.ts
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { HistorialData } from '../../../model/historial-data';

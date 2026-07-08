@@ -1,5 +1,4 @@
-// src/app/shared/pipes/tiempo-plan-label.pipe.ts
-import { Pipe, PipeTransform } from '@angular/core'; // <- ojo la ruta
+import { Pipe, PipeTransform } from '@angular/core';
 import { TiempoPlan } from './enums/tiempo-plan';
 
 @Pipe({

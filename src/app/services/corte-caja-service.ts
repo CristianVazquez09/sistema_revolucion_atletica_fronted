@@ -89,7 +89,7 @@ export class CorteCajaService extends GenericService<CorteCajaResponseDTO> {
     return this.http.get<PagedResponse<CorteCajaListado>>(`${this.url}`, { params });
   }
 
-  // ✅ NUEVO: Desglose por ID (corte cerrado o abierto)
+  // Desglose por ID (corte cerrado o abierto)
 desglose(idCorte: number): Observable<CorteDesgloseDTO> {
   return this.http.get<CorteDesgloseDTO>(`${this.url}/${idCorte}/desglose`);
 }

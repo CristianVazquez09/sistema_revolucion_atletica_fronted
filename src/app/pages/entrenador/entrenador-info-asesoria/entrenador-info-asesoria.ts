@@ -144,27 +144,6 @@ export class EntrenadorInfoAsesoria implements OnInit, AfterViewInit, OnDestroy 
     window.removeEventListener('resize', this.applyLayout);
   }
 
-  private clamp(n: number, min: number, max: number): number {
-    return Math.min(max, Math.max(min, n));
-  }
-
-  private round2(n: number): number {
-    return Math.round(n * 100) / 100;
-  }
-
-  private isMdUp(): boolean {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(min-width: 768px)').matches;
-  }
-
-  private getDesignWidth(): number {
-    // Ajusta este número si quieres que encoga más/menos.
-    // Entre más alto, más reduce el zoom en pantallas pequeñas.
-    return 1500;
-  }
-
- 
-
   /* =================== Header (nombre/teléfono) =================== */
 
   private setHeaderFromEntrenador(e: any): void {

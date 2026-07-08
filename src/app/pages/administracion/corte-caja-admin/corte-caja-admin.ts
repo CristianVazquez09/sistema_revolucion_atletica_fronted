@@ -11,8 +11,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { CorteCajaService } from '../../../services/corte-caja-service';
 import { NotificacionService } from '../../../services/notificacion-service';
-import { JwtHelperService } from '@auth0/angular-jwt';
-import { environment } from '../../../../environments/environment';
 import { CorteCajaListado, PagedResponse, PageMeta } from '../../../model/corte-caja-data';
 import { TicketService } from '../../../services/ticket-service';
 import { CorteCajaInfo } from './corte-caja-info/corte-caja-info';
@@ -34,7 +32,6 @@ type DirOrden   = 'asc' | 'desc';
 export class CorteCajaAdmin {
 
   private srv    = inject(CorteCajaService);
-  private jwt    = inject(JwtHelperService);
   private noti   = inject(NotificacionService);
   private ticket = inject(TicketService);
 
@@ -98,25 +95,6 @@ export class CorteCajaAdmin {
     // ✅ CLAVE: reset a "Todos" al salir para no dejar filtro pegado
     if (this.esAdmin) {
       this.tenantCtx.setViewTenant(null);
-    }
-  }
-
-  // (opcional) lo dejo por si lo usas en otro lado, pero ya no se usa para esAdmin
-  private detectarAdmin(): boolean {
-    const raw = sessionStorage.getItem(environment.TOKEN_NAME) ?? '';
-    if (!raw) return false;
-    try {
-      const d: any = this.jwt.decodeToken(raw);
-      const roles: string[] = [
-        ...(Array.isArray(d?.roles) ? d.roles : []),
-        ...(Array.isArray(d?.authorities) ? d.authorities : []),
-        ...(Array.isArray(d?.realm_access?.roles) ? d.realm_access.roles : []),
-      ]
-        .concat([d?.role, d?.rol, d?.perfil].filter(Boolean) as string[])
-        .map(r => String(r).toUpperCase());
-      return d?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
-    } catch {
-      return false;
     }
   }
 
