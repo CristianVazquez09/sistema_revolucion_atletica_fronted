@@ -79,8 +79,6 @@
     @apply flex items-center justify-between py-3 mt-2 border-t-2 border-gray-300 text-[16px] font-bold;
   }
 
-  .rcm-paylabel { @apply block text-sm font-semibold mb-2 text-gray-800; }
-
   .rcm-select { @apply relative; }
   .rcm-select select {
     @apply w-full appearance-none rounded-md bg-red-600 text-white px-4 py-2.5
@@ -117,15 +115,6 @@
 }
 
 /* Paginador (usa mismo set del paginador que ya tenías) */
-.pager-btn{
-  height: 2.25rem; padding: 0 0.75rem;
-  border-radius: 0.75rem; border: 1px solid transparent;
-  font-size: .875rem; transition: .15s; user-select: none;
-}
-.pager-btn--ghost{
-  background:#fff; border-color:#d1d5db; color: color-mix(in oklab, var(--color-ra-slate) 90%, black 0%);
-}
-.pager-btn--ghost:hover{ background:#f3f4f6; }
 
 .pager{
   padding: 0.75rem 1rem;
