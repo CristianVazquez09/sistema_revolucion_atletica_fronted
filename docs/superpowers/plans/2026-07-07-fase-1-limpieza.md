@@ -73,9 +73,7 @@ Expected: éxito sin errores.
 
 ```bash
 git add -A
-git commit -m "chore(): eliminar carpeta administration vacia, app.css vacio e import sin uso en app.ts
-
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+git commit -m "chore(): eliminar carpeta administration vacia, app.css vacio e import sin uso en app.ts"
 ```
 
 ---
@@ -111,9 +109,7 @@ Expected: éxito sin errores.
 
 ```bash
 git add -A
-git commit -m "chore(): eliminar componente ra-app-zoom sin uso (se conserva ra-gimnasio-filter)
-
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+git commit -m "chore(): eliminar componente ra-app-zoom sin uso (se conserva ra-gimnasio-filter)"
 ```
 
 ---
@@ -148,9 +144,7 @@ Expected: éxito sin errores.
 
 ```bash
 git add -A
-git commit -m "chore(): eliminar fingerprint.service muerto (el lector real es huella-reader-singleton)
-
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+git commit -m "chore(): eliminar fingerprint.service muerto (el lector real es huella-reader-singleton)"
 ```
 
 ---
@@ -188,9 +182,7 @@ Expected: éxito sin errores.
 
 ```bash
 git add package.json package-lock.json
-git commit -m "chore(): quitar dependencias sin uso (chart.js, html2canvas, jspdf, heroicons)
-
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+git commit -m "chore(): quitar dependencias sin uso (chart.js, html2canvas, jspdf, heroicons)"
 ```
 
 ---
@@ -226,9 +218,7 @@ Expected: éxito sin errores.
 
 ```bash
 git add -A
-git commit -m "chore(): eliminar vite.config.ts (Angular no lo lee) y shim src/websdk.ts que apunta a carpeta inexistente
-
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+git commit -m "chore(): eliminar vite.config.ts (Angular no lo lee) y shim src/websdk.ts que apunta a carpeta inexistente"
 ```
 
 ---
@@ -284,9 +274,7 @@ Expected: éxito sin errores. **Si falla con algo relacionado a WebSdk:** restau
 
 ```bash
 git add -A
-git commit -m "chore(): eliminar shim duplicado src/shims/websdk.ts y su entrada paths en tsconfig.app.json
-
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+git commit -m "chore(): eliminar shim duplicado src/shims/websdk.ts y su entrada paths en tsconfig.app.json"
 ```
 
 ---
@@ -344,9 +332,7 @@ Expected: éxito. Luego `npm start` y revisar visualmente 2-3 pantallas (login, 
 
 ```bash
 git add -A
-git commit -m "chore(): eliminar tailwind.config.ts (Tailwind 4 usa @theme) y corregir variables sin definir en :root
-
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+git commit -m "chore(): eliminar tailwind.config.ts (Tailwind 4 usa @theme) y corregir variables sin definir en :root"
 ```
 
 ---
@@ -395,9 +381,7 @@ Expected: éxito. Con `npm start`, verificar el paginador de la tabla de socios 
 
 ```bash
 git add src/styles.css
-git commit -m "chore(): eliminar definiciones CSS duplicadas (pager-btn, rcm-paylabel)
-
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+git commit -m "chore(): eliminar definiciones CSS duplicadas (pager-btn, rcm-paylabel)"
 ```
 
 ---
@@ -448,9 +432,7 @@ Expected: éxito sin errores.
 
 ```bash
 git add -A
-git commit -m "chore(): barrido de imports sin uso, codigo comentado y comentarios-changelog
-
-Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+git commit -m "chore(): barrido de imports sin uso, codigo comentado y comentarios-changelog"
 ```
 
 ---
