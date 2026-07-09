@@ -1,4 +1,4 @@
-import { PaqueteData } from '../../../model/paquete-data';
+import { PaqueteData } from '../../../shared/models/paquete-data';
 
 export interface ReinscripcionState {
   listaPaquetes: PaqueteData[];

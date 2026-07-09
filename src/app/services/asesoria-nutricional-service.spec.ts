@@ -8,7 +8,7 @@ import {
   AsesoriaNutricionalVigenciaDTO,
 } from '../model/asesoria-nutricional-data';
 import { environment } from '../../environments/environment';
-import { SocioData } from '../model/socio-data';
+import { SocioData } from '../shared/models/socio-data';
 
 describe('AsesoriaNutricionalService', () => {
   const BASE = `${environment.HOST}/asesorias-nutricionales`;

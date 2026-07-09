@@ -30,8 +30,8 @@ import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 import { AsesoriaNutricionalService } from 'src/app/services/asesoria-nutricional-service';
 import { SocioService } from 'src/app/services/socio-service';
 
-import { SocioData } from 'src/app/model/socio-data';
-import { PagedResponse } from 'src/app/model/paged-response';
+import { SocioData } from 'src/app/shared/models/socio-data';
+import { PagedResponse } from 'src/app/shared/models/paged-response';
 
 import {
   AsesoriaNutricionalData,

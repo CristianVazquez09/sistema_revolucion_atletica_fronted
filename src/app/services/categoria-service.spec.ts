@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { CategoriaService } from './categoria-service';
-import { CategoriaData } from '../model/categoria-data';
+import { CategoriaData } from '../shared/models/categoria-data';
 import { environment } from '../../environments/environment';
 
 describe('CategoriaService', () => {

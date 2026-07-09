@@ -5,9 +5,9 @@ import { FormsModule } from '@angular/forms';
 import { MembresiaService } from '../../../../services/membresia-service';
 import { PaqueteService } from '../../../../services/paquete-service';
 
-import { MembresiaData, PagoData } from '../../../../model/membresia-data';
+import { MembresiaData, PagoData } from '../../../../shared/models/membresia-data';
 import { MembresiaPatchRequest } from '../../../../model/membresia-patch';
-import { PaqueteData } from '../../../../model/paquete-data';
+import { PaqueteData } from '../../../../shared/models/paquete-data';
 
 @Component({
   selector: 'app-membresia-modal',

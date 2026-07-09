@@ -1,4 +1,4 @@
-import { ProductoData } from './producto-data';
+import { ProductoData } from '../shared/models/producto-data';
 
 export interface DetalleVentaData {
   idDetalle?: number;

@@ -12,11 +12,11 @@ import { EntrenadorService } from '../../services/entrenador-service';
 import { SocioService } from '../../services/socio-service';
 import { GimnasioService } from '../../services/gimnasio-service';
 
-import { EntrenadorData } from '../../model/entrenador-data';
-import { SocioData } from '../../model/socio-data';
-import { GimnasioData } from '../../model/gimnasio-data';
+import { EntrenadorData } from '../../shared/models/entrenador-data';
+import { SocioData } from '../../shared/models/socio-data';
+import { GimnasioData } from '../../shared/models/gimnasio-data';
 import { TiempoPlan } from '../../shared/util/enums/tiempo-plan';
-import { PagoData } from '../../model/membresia-data';
+import { PagoData } from '../../shared/models/membresia-data';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';

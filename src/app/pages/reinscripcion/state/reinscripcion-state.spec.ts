@@ -9,7 +9,7 @@ import {
   selectTotalSinDescuento,
   selectFechaPagoVista,
 } from './reinscripcion-selectors';
-import { PaqueteData } from '../../../model/paquete-data';
+import { PaqueteData } from '../../../shared/models/paquete-data';
 import { TiempoPlan } from '../../../shared/util/enums/tiempo-plan';
 
 describe('Reinscripcion State', () => {

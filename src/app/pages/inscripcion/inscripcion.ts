@@ -37,11 +37,11 @@ import { GimnasioService } from '../../services/gimnasio-service';
 import { TicketService, VentaContexto } from '../../services/ticket-service';
 import { EntrenadorService } from '../../services/entrenador-service';
 
-import { PaqueteData } from '../../model/paquete-data';
-import { SocioData } from '../../model/socio-data';
-import { MembresiaData, PagoData } from '../../model/membresia-data';
-import { GimnasioData } from '../../model/gimnasio-data';
-import { EntrenadorData } from '../../model/entrenador-data';
+import { PaqueteData } from '../../shared/models/paquete-data';
+import { SocioData } from '../../shared/models/socio-data';
+import { MembresiaData, PagoData } from '../../shared/models/membresia-data';
+import { GimnasioData } from '../../shared/models/gimnasio-data';
+import { EntrenadorData } from '../../shared/models/entrenador-data';
 
 import { TipoMovimiento } from '../../shared/util/enums/tipo-movimiento';
 import { TipoPago } from '../../shared/util/enums/tipo-pago';

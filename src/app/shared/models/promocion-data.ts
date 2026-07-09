@@ -1,5 +1,5 @@
 // src/app/model/promocion-data.ts
-import { TipoPromocion } from '../shared/util/enums/tipo-promocion';
+import { TipoPromocion } from '../util/enums/tipo-promocion';
 import { GimnasioData } from './gimnasio-data';
 import { PaqueteData } from './paquete-data';
 

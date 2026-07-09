@@ -2,7 +2,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { PagedResponse, toPagedResponse } from '../model/paged-response';
+import { PagedResponse, toPagedResponse } from '../shared/models/paged-response';
 import { HistorialData } from '../model/historial-data';
 import { environment } from '../../environments/environment';
 

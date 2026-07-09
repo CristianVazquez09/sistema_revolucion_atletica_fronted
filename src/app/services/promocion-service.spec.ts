@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { PromocionService } from './promocion-service';
-import { PromocionData, PromocionUpsertData } from '../model/promocion-data';
+import { PromocionData, PromocionUpsertData } from '../shared/models/promocion-data';
 import { TipoPromocion } from '../shared/util/enums/tipo-promocion';
 import { environment } from '../../environments/environment';
 

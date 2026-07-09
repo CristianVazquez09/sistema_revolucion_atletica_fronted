@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { GimnasioData } from '../model/gimnasio-data';
+import { GimnasioData } from '../shared/models/gimnasio-data';
 
 @Injectable({ providedIn: 'root' })
 export class ReportesService {

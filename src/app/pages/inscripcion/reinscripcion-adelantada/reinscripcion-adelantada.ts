@@ -25,11 +25,11 @@ import { TicketService, VentaContexto } from 'src/app/services/ticket-service';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { EntrenadorService } from 'src/app/services/entrenador-service';
 
-import { SocioData } from 'src/app/model/socio-data';
-import { MembresiaData, PagoData } from 'src/app/model/membresia-data';
-import { PaqueteData } from 'src/app/model/paquete-data';
-import { GimnasioData } from 'src/app/model/gimnasio-data';
-import { EntrenadorData } from 'src/app/model/entrenador-data';
+import { SocioData } from 'src/app/shared/models/socio-data';
+import { MembresiaData, PagoData } from 'src/app/shared/models/membresia-data';
+import { PaqueteData } from 'src/app/shared/models/paquete-data';
+import { GimnasioData } from 'src/app/shared/models/gimnasio-data';
+import { EntrenadorData } from 'src/app/shared/models/entrenador-data';
 
 import { TipoMovimiento } from 'src/app/shared/util/enums/tipo-movimiento';
 import { crearContextoTicket, obtenerNombreCajero } from 'src/app/shared/util/ticket-contexto';

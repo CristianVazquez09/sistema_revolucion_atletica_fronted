@@ -1,12 +1,12 @@
 // src/app/services/socio-service.ts
 import { Injectable } from '@angular/core';
 import { GenericService } from '../core/http/generic-service';
-import { SocioData } from '../model/socio-data';
-import { PagedResponse, toPagedResponse } from '../model/paged-response';
+import { SocioData } from '../shared/models/socio-data';
+import { PagedResponse, toPagedResponse } from '../shared/models/paged-response';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable, map } from 'rxjs';
-import { AsesoriaContratoData } from '../model/asesoria-contrato-data';
+import { AsesoriaContratoData } from '../shared/models/asesoria-contrato-data';
 import { TipoPaquete } from '../shared/util/enums/tipo-paquete';
 
 @Injectable({

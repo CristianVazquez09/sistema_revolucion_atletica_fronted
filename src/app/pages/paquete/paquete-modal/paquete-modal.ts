@@ -13,8 +13,8 @@ import { ReactiveFormsModule, Validators, FormGroup, FormControl } from '@angula
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 
-import { PaqueteData } from '../../../model/paquete-data';
-import { GimnasioData } from '../../../model/gimnasio-data';
+import { PaqueteData } from '../../../shared/models/paquete-data';
+import { GimnasioData } from '../../../shared/models/gimnasio-data';
 
 import { TiempoPlan } from '../../../shared/util/enums/tiempo-plan';
 import { TipoPaquete } from '../../../shared/util/enums/tipo-paquete';

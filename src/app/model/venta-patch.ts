@@ -1,5 +1,5 @@
 // src/app/model/venta-patch.ts
-import { PagoData } from './membresia-data';
+import { PagoData } from '../shared/models/membresia-data';
 
 export type VentaPatchAction =
   | { op: 'CAMBIAR_CANTIDAD'; idDetalle: number; nuevaCantidad: number }

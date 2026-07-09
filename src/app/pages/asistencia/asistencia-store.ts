@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
-import { SocioData } from '../../model/socio-data';
-import { MembresiaData } from '../../model/membresia-data';
+import { SocioData } from '../../shared/models/socio-data';
+import { MembresiaData } from '../../shared/models/membresia-data';
 
 const CLAVE_STORAGE = 'asistencia-v1';
 

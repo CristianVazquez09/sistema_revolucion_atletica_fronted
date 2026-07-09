@@ -4,11 +4,11 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { CategoriaService } from '../../services/categoria-service';
-import { CategoriaData } from '../../model/categoria-data';
+import { CategoriaData } from '../../shared/models/categoria-data';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 
 import { GimnasioService } from '../../services/gimnasio-service';
-import { GimnasioData } from '../../model/gimnasio-data';
+import { GimnasioData } from '../../shared/models/gimnasio-data';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';

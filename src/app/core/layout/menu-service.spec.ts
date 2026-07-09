@@ -2,8 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { MenuService } from './menu-service';
-import { MenuData } from '../../model/menu-data';
-import { RolData } from '../../model/rol-data';
+import { MenuData } from '../../shared/models/menu-data';
+import { RolData } from '../../shared/models/rol-data';
 import { environment } from '../../../environments/environment';
 
 describe('MenuService', () => {

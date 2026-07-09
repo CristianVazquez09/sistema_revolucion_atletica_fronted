@@ -1,6 +1,6 @@
 // src/app/pages/inscripcion/state/inscripcion-actions.ts
 import { createActionGroup, props, emptyProps } from '@ngrx/store';
-import { PaqueteData } from '../../../model/paquete-data';
+import { PaqueteData } from '../../../shared/models/paquete-data';
 
 export const InscripcionActions = createActionGroup({
   source: 'Inscripcion',

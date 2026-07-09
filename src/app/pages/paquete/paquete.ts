@@ -4,7 +4,7 @@ import { finalize, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { PaqueteService } from '../../services/paquete-service';
-import { PaqueteData } from '../../model/paquete-data';
+import { PaqueteData } from '../../shared/models/paquete-data';
 import { PaqueteModal } from './paquete-modal/paquete-modal';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';

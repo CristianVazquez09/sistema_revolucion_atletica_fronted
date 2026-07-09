@@ -1,5 +1,5 @@
 import { TipoMovimiento } from "../shared/util/enums/tipo-movimiento";
-import { PagoData } from "./membresia-data";
+import { PagoData } from "../shared/models/membresia-data";
 
 
 export interface HistorialData {

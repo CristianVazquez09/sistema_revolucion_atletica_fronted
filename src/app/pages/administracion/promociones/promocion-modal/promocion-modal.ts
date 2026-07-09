@@ -17,9 +17,9 @@ import { PromocionService } from 'src/app/services/promocion-service';
 import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 
 import { labelTipoPromocion, TipoPromocion } from 'src/app/shared/util/enums/tipo-promocion';
-import { PromocionData, PromocionUpsertData } from 'src/app/model/promocion-data';
-import { PaqueteData } from 'src/app/model/paquete-data';
-import { GimnasioData } from 'src/app/model/gimnasio-data';
+import { PromocionData, PromocionUpsertData } from 'src/app/shared/models/promocion-data';
+import { PaqueteData } from 'src/app/shared/models/paquete-data';
+import { GimnasioData } from 'src/app/shared/models/gimnasio-data';
 
 @Component({
   selector: 'app-promocion-modal',

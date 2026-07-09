@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { EntrenadorData } from 'src/app/model/entrenador-data';
-import { AsesoriaContratoData } from 'src/app/model/asesoria-contrato-data';
-import { PagoData } from 'src/app/model/membresia-data';
+import { EntrenadorData } from 'src/app/shared/models/entrenador-data';
+import { AsesoriaContratoData } from 'src/app/shared/models/asesoria-contrato-data';
+import { PagoData } from 'src/app/shared/models/membresia-data';
 
 @Component({
   selector: 'app-entrenador-modal',

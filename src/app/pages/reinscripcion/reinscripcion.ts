@@ -19,10 +19,10 @@ import { NotificacionService } from '../../core/layout/notificacion-service';
 import { PaqueteService } from '../../services/paquete-service';
 import { EntrenadorService } from '../../services/entrenador-service';
 
-import { SocioData } from '../../model/socio-data';
-import { PagoData } from '../../model/membresia-data';
-import { PaqueteData } from '../../model/paquete-data';
-import { EntrenadorData } from '../../model/entrenador-data';
+import { SocioData } from '../../shared/models/socio-data';
+import { PagoData } from '../../shared/models/membresia-data';
+import { PaqueteData } from '../../shared/models/paquete-data';
+import { EntrenadorData } from '../../shared/models/entrenador-data';
 
 import { TipoMovimiento } from '../../shared/util/enums/tipo-movimiento';
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
@@ -33,7 +33,7 @@ import { hoyISO } from '../../shared/util/fechas-precios';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { GimnasioService } from '../../services/gimnasio-service';
 import { TicketService, VentaContexto } from '../../services/ticket-service';
-import { GimnasioData } from '../../model/gimnasio-data';
+import { GimnasioData } from '../../shared/models/gimnasio-data';
 import { environment } from '../../../environments/environment';
 import { crearContextoTicket, obtenerNombreCajero } from '../../shared/util/ticket-contexto';
 
@@ -66,7 +66,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 
 // ✅ Promos
-import { PromocionData } from 'src/app/model/promocion-data';
+import { PromocionData } from 'src/app/shared/models/promocion-data';
 
 const STORAGE_KEY_REINSCRIPCION_GRUPAL = 'ra_reinscripcion_grupal_v1';
 

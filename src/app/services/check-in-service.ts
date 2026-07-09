@@ -4,10 +4,10 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { MembresiaData } from '../model/membresia-data';
-import { SocioData } from '../model/socio-data';
+import { MembresiaData } from '../shared/models/membresia-data';
+import { SocioData } from '../shared/models/socio-data';
 import { AsistenciaHistorialData } from '../model/asistencia-historial-data';
-import { PagedResponse, toPagedResponse } from '../model/paged-response';
+import { PagedResponse, toPagedResponse } from '../shared/models/paged-response';
 
 export interface CheckInRequest {
   idSocio?: number | null;

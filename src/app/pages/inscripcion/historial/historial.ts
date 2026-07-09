@@ -2,10 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { HistorialData } from '../../../model/historial-data';
 import { HistorialService } from '../../../services/historial-service';
-import { PagedResponse } from '../../../model/paged-response';
+import { PagedResponse } from '../../../shared/models/paged-response';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { PagoData } from '../../../model/membresia-data';
+import { PagoData } from '../../../shared/models/membresia-data';
 
 @Component({
   selector: 'app-historial',

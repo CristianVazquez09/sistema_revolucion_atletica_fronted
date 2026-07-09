@@ -14,9 +14,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
-import { AsesoriaContratoData } from 'src/app/model/asesoria-contrato-data';
-import { PagoData } from 'src/app/model/membresia-data';
-import { EntrenadorData } from 'src/app/model/entrenador-data';
+import { AsesoriaContratoData } from 'src/app/shared/models/asesoria-contrato-data';
+import { PagoData } from 'src/app/shared/models/membresia-data';
+import { EntrenadorData } from 'src/app/shared/models/entrenador-data';
 
 import { EntrenadorService } from 'src/app/services/entrenador-service';
 import { MenuService } from 'src/app/core/layout/menu-service';

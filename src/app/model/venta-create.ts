@@ -1,4 +1,4 @@
-import { PagoData } from './membresia-data';
+import { PagoData } from '../shared/models/membresia-data';
 
 export interface DetalleVentaCreate {
   idProducto: number;

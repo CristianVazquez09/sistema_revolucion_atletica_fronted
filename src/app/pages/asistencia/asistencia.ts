@@ -7,17 +7,17 @@ import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { SocioService } from '../../services/socio-service';
-import { SocioData } from '../../model/socio-data';
+import { SocioData } from '../../shared/models/socio-data';
 import { MembresiaService } from '../../services/membresia-service';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 import { AsistenciaStore } from './asistencia-store';
 
-import { MembresiaData } from '../../model/membresia-data';
+import { MembresiaData } from '../../shared/models/membresia-data';
 import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
 import { dateLocalFromISO, hoyISO } from '../../shared/util/fechas-precios';
 import { HuellaModal, HuellaResultado } from '../huella-modal/huella-modal';
 
-import { PaqueteData } from '../../model/paquete-data';
+import { PaqueteData } from '../../shared/models/paquete-data';
 import { TiempoPlan } from '../../shared/util/enums/tiempo-plan';
 import { CheckInService, CheckInResponse } from 'src/app/services/check-in-service';
 

@@ -2,10 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
-import { MembresiaData, PagoData } from '../../../model/membresia-data'; // 👈 agrega PagoData
+import { MembresiaData, PagoData } from '../../../shared/models/membresia-data'; // 👈 agrega PagoData
 import { MembresiaService } from '../../../services/membresia-service';
 import { FormsModule } from '@angular/forms';
-import { PagedResponse } from '../../../model/paged-response';
+import { PagedResponse } from '../../../shared/models/paged-response';
 
 @Component({
   selector: 'app-socio-informacion',

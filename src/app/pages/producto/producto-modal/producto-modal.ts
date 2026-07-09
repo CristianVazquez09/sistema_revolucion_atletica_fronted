@@ -2,9 +2,9 @@ import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, computed, in
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
-import { ProductoData } from '../../../model/producto-data';
-import { CategoriaData } from '../../../model/categoria-data';
-import { GimnasioData } from '../../../model/gimnasio-data';
+import { ProductoData } from '../../../shared/models/producto-data';
+import { CategoriaData } from '../../../shared/models/categoria-data';
+import { GimnasioData } from '../../../shared/models/gimnasio-data';
 
 import { ProductoService } from '../../../services/producto-service';
 import { CategoriaService } from '../../../services/categoria-service';

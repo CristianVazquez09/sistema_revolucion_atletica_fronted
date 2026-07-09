@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { RolService } from './rol-service';
-import { RolData } from '../model/rol-data';
+import { RolData } from '../shared/models/rol-data';
 import { environment } from '../../environments/environment';
 
 describe('RolService', () => {

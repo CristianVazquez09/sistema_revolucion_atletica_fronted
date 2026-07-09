@@ -8,8 +8,8 @@ import { EntrenadorService } from '../../services/entrenador-service';
 import { GimnasioService } from '../../services/gimnasio-service';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 
-import { EntrenadorData } from '../../model/entrenador-data';
-import { GimnasioData } from '../../model/gimnasio-data';
+import { EntrenadorData } from '../../shared/models/entrenador-data';
+import { GimnasioData } from '../../shared/models/gimnasio-data';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';

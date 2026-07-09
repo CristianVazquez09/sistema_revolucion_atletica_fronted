@@ -1,6 +1,6 @@
-import { ModalidadPaquete } from "../shared/util/enums/modalidad-paquete";
-import { TiempoPlan } from "../shared/util/enums/tiempo-plan";
-import { TipoPaquete } from "../shared/util/enums/tipo-paquete";
+import { ModalidadPaquete } from "../util/enums/modalidad-paquete";
+import { TiempoPlan } from "../util/enums/tiempo-plan";
+import { TipoPaquete } from "../util/enums/tipo-paquete";
 import { GimnasioData } from "./gimnasio-data";
 
 export interface PaqueteData {

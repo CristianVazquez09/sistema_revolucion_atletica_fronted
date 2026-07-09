@@ -9,9 +9,9 @@ import { of } from 'rxjs';
 
 import { VentaService } from '../../../../services/venta-service';
 import { VentaData } from '../../../../model/venta-data';
-import { PagoData } from '../../../../model/membresia-data';
+import { PagoData } from '../../../../shared/models/membresia-data';
 import { ProductoService } from '../../../../services/producto-service';
-import { ProductoData } from '../../../../model/producto-data';
+import { ProductoData } from '../../../../shared/models/producto-data';
 
 /* ----------------------------- Tipos internos ------------------------------ */
 

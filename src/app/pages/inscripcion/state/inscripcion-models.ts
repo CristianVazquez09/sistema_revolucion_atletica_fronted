@@ -1,5 +1,5 @@
 // src/app/pages/inscripcion/state/inscripcion-models.ts
-import { PaqueteData } from '../../../model/paquete-data';
+import { PaqueteData } from '../../../shared/models/paquete-data';
 
 export interface InscripcionState {
   listaPaquetes: PaqueteData[];

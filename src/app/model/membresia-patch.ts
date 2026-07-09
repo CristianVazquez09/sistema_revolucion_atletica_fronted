@@ -1,4 +1,4 @@
-import { PagoData } from './membresia-data';
+import { PagoData } from '../shared/models/membresia-data';
 
 export type MembresiaPatchAction =
   | { op: 'CAMBIAR_DESCUENTO'; nuevoDescuento: number }

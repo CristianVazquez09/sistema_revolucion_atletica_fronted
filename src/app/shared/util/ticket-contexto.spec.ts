@@ -1,5 +1,5 @@
 import { obtenerNombreCajero, crearContextoTicket } from './ticket-contexto';
-import { GimnasioData } from '../../model/gimnasio-data';
+import { GimnasioData } from '../../shared/models/gimnasio-data';
 
 describe('ticket-contexto', () => {
   describe('obtenerNombreCajero', () => {

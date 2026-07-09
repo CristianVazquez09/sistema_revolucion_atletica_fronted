@@ -2,9 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { SocioService } from './socio-service';
-import { SocioData } from '../model/socio-data';
-import { PagedResponse } from '../model/paged-response';
-import { AsesoriaContratoData } from '../model/asesoria-contrato-data';
+import { SocioData } from '../shared/models/socio-data';
+import { PagedResponse } from '../shared/models/paged-response';
+import { AsesoriaContratoData } from '../shared/models/asesoria-contrato-data';
 import { TipoPaquete } from '../shared/util/enums/tipo-paquete';
 import { environment } from '../../environments/environment';
 

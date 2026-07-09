@@ -5,7 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { GimnasioService } from 'src/app/services/gimnasio-service';
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
-import { GimnasioData } from 'src/app/model/gimnasio-data';
+import { GimnasioData } from 'src/app/shared/models/gimnasio-data';
 
 @Component({
   selector: 'ra-gimnasio-filter',

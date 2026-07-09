@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { MenuData } from '../../model/menu-data';
+import { MenuData } from '../../shared/models/menu-data';
 import { GenericService } from '../http/generic-service';
 
 @Injectable({

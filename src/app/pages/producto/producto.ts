@@ -19,7 +19,7 @@ import {
 
 import { ProductoModal } from './producto-modal/producto-modal';
 import { ProductoService } from '../../services/producto-service';
-import { ProductoData } from '../../model/producto-data';
+import { ProductoData } from '../../shared/models/producto-data';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 
 import { JwtHelperService } from '@auth0/angular-jwt';

@@ -9,7 +9,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { CheckInService } from 'src/app/services/check-in-service';
 import { AsistenciaHistorialData } from 'src/app/model/asistencia-historial-data';
-import { PagedResponse } from 'src/app/model/paged-response';
+import { PagedResponse } from 'src/app/shared/models/paged-response';
 import { TiempoPlanLabelPipe } from 'src/app/shared/util/tiempo-plan-label';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { MenuService } from 'src/app/core/layout/menu-service';

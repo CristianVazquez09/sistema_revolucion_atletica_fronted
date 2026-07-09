@@ -17,16 +17,16 @@ import { GimnasioService } from '../../services/gimnasio-service';
 import { TicketService, VentaContexto } from '../../services/ticket-service';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
-import { CategoriaData } from '../../model/categoria-data';
-import { ProductoData } from '../../model/producto-data';
+import { CategoriaData } from '../../shared/models/categoria-data';
+import { ProductoData } from '../../shared/models/producto-data';
 import { ResumenVenta } from '../resumen-venta/resumen-venta';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 import { VentaCreateRequest } from '../../model/venta-create';
-import { GimnasioData } from '../../model/gimnasio-data';
+import { GimnasioData } from '../../shared/models/gimnasio-data';
 import { environment } from '../../../environments/environment';
 import { CarritoItem, CarritoService } from '../../services/carrito-service';
 import { crearContextoTicket, obtenerNombreCajero } from '../../shared/util/ticket-contexto';
-import { PagoData } from '../../model/membresia-data';
+import { PagoData } from '../../shared/models/membresia-data';
 
 @Component({
   selector: 'app-punto-venta',

@@ -7,7 +7,7 @@ import { GimnasioService } from '../../../../services/gimnasio-service';
 import { RolService } from '../../../../services/rol-service';
 
 import { UsuarioData } from '../../../../model/usuario-data';
-import { RolData } from '../../../../model/rol-data';
+import { RolData } from '../../../../shared/models/rol-data';
 
 type GymOption = { id: number; nombre: string; direccion?: string; telefono?: string };
 

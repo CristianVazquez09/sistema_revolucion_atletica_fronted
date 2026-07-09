@@ -14,7 +14,7 @@ import { InventarioService } from '../../services/inventario-service';
 import { GimnasioService } from '../../services/gimnasio-service';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 
-import { GimnasioData } from '../../model/gimnasio-data';
+import { GimnasioData } from '../../shared/models/gimnasio-data';
 import {
   InventarioDiarioProductoData,
   InventarioTurnoResponseData,

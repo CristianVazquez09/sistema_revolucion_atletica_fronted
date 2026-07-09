@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { GimnasioData } from '../model/gimnasio-data';
+import { GimnasioData } from '../shared/models/gimnasio-data';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { GenericService } from '../core/http/generic-service';

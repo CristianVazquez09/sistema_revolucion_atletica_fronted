@@ -16,11 +16,11 @@ import {
 } from 'rxjs';
 
 import { SocioService } from '../../services/socio-service';
-import { SocioData } from '../../model/socio-data';
+import { SocioData } from '../../shared/models/socio-data';
 import { SocioModal } from './socio-modal/socio-modal';
 import { Router } from '@angular/router';
 import { NotificacionService } from '../../core/layout/notificacion-service';
-import { PagedResponse } from '../../model/paged-response';
+import { PagedResponse } from '../../shared/models/paged-response';
 
 import { TipoPaquete } from '../../shared/util/enums/tipo-paquete';
 import { MenuService } from 'src/app/core/layout/menu-service';

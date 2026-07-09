@@ -3,8 +3,8 @@ import { GenericService } from '../core/http/generic-service';
 
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { MembresiaData } from '../model/membresia-data';
-import { PagedResponse, toPagedResponse } from '../model/paged-response';
+import { MembresiaData } from '../shared/models/membresia-data';
+import { PagedResponse, toPagedResponse } from '../shared/models/paged-response';
 import { Observable, map } from 'rxjs';
 import { MembresiaPatchRequest } from '../model/membresia-patch';
 

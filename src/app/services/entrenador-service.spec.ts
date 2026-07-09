@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { EntrenadorService } from './entrenador-service';
-import { EntrenadorData } from '../model/entrenador-data';
+import { EntrenadorData } from '../shared/models/entrenador-data';
 import { environment } from '../../environments/environment';
 
 describe('EntrenadorService', () => {

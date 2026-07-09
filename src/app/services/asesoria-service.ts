@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { EntrenadorData } from '../model/entrenador-data';
+import { EntrenadorData } from '../shared/models/entrenador-data';
 import { GenericService } from '../core/http/generic-service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';

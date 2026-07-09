@@ -24,9 +24,9 @@ import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 import { MenuService } from 'src/app/core/layout/menu-service';
 
 import { labelTipoPromocion, TipoPromocion } from 'src/app/shared/util/enums/tipo-promocion';
-import { PromocionData } from 'src/app/model/promocion-data';
-import { PaqueteData } from 'src/app/model/paquete-data';
-import { GimnasioData } from 'src/app/model/gimnasio-data';
+import { PromocionData } from 'src/app/shared/models/promocion-data';
+import { PaqueteData } from 'src/app/shared/models/paquete-data';
+import { GimnasioData } from 'src/app/shared/models/gimnasio-data';
 import { environment } from 'src/environments/environment';
 
 @Component({

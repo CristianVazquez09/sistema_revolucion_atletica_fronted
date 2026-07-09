@@ -1,5 +1,5 @@
-import { GimnasioData } from './gimnasio-data';
-import { RolData } from './rol-data';
+import { GimnasioData } from '../shared/models/gimnasio-data';
+import { RolData } from '../shared/models/rol-data';
 
 export interface UsuarioData {
   id?: number;

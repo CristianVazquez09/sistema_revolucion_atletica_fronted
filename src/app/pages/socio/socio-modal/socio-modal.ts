@@ -12,8 +12,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 
-import { SocioData } from '../../../model/socio-data';
-import { GimnasioData } from '../../../model/gimnasio-data';
+import { SocioData } from '../../../shared/models/socio-data';
+import { GimnasioData } from '../../../shared/models/gimnasio-data';
 import { SocioService } from '../../../services/socio-service';
 import { GimnasioService } from '../../../services/gimnasio-service';
 

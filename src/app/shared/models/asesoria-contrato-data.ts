@@ -1,4 +1,4 @@
-import { TiempoPlan } from '../shared/util/enums/tiempo-plan';
+import { TiempoPlan } from '../util/enums/tiempo-plan';
 import { EntrenadorData } from './entrenador-data';
 import { GimnasioData } from './gimnasio-data';
 import { PagoData } from './membresia-data';

@@ -14,9 +14,9 @@ import { TicketService, VentaContexto } from '../../services/ticket-service';
 import { obtenerNombreCajero } from '../../shared/util/ticket-contexto';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
-import { SocioData } from '../../model/socio-data';
-import { PaqueteData } from '../../model/paquete-data';
-import { GimnasioData } from '../../model/gimnasio-data';
+import { SocioData } from '../../shared/models/socio-data';
+import { PaqueteData } from '../../shared/models/paquete-data';
+import { GimnasioData } from '../../shared/models/gimnasio-data';
 
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
 import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
@@ -26,7 +26,7 @@ import { TiempoPlan } from '../../shared/util/enums/tiempo-plan';
 import { environment } from '../../../environments/environment';
 
 // 👇 Importa pagos[]
-import { MembresiaData, PagoData } from '../../model/membresia-data';
+import { MembresiaData, PagoData } from '../../shared/models/membresia-data';
 
 // 👇 Modal de huella (igual que en Asistencia)
 import { HuellaModal, HuellaResultado } from '../huella-modal/huella-modal';

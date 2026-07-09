@@ -5,9 +5,9 @@ import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
 import { SocioService } from '../../../services/socio-service';
-import { PagedResponse } from '../../../model/paged-response';
-import { AsesoriaContratoData } from '../../../model/asesoria-contrato-data';
-import { PagoData } from '../../../model/membresia-data';
+import { PagedResponse } from '../../../shared/models/paged-response';
+import { AsesoriaContratoData } from '../../../shared/models/asesoria-contrato-data';
+import { PagoData } from '../../../shared/models/membresia-data';
 
 @Component({
   selector: 'app-socio-info-asesoria',

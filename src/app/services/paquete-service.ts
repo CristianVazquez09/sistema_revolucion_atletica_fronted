@@ -4,9 +4,9 @@ import { Observable } from 'rxjs';
 
 import { GenericService } from '../core/http/generic-service';
 import { environment } from '../../environments/environment';
-import { PaqueteData } from '../model/paquete-data';
+import { PaqueteData } from '../shared/models/paquete-data';
 
-import { PromocionData } from '../model/promocion-data';
+import { PromocionData } from '../shared/models/promocion-data';
 
 @Injectable({
   providedIn: 'root',
