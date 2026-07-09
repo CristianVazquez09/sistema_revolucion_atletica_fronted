@@ -26,7 +26,7 @@ import {
 } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { NotificacionService } from 'src/app/services/notificacion-service';
+import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 import { AsesoriaNutricionalService } from 'src/app/services/asesoria-nutricional-service';
 import { SocioService } from 'src/app/services/socio-service';
 

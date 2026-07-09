@@ -10,7 +10,7 @@ import { finalize, distinctUntilChanged, skip } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { CorteCajaService } from '../../../services/corte-caja-service';
-import { NotificacionService } from '../../../services/notificacion-service';
+import { NotificacionService } from '../../../core/layout/notificacion-service';
 import { CorteCajaListado, PagedResponse, PageMeta } from '../../../model/corte-caja-data';
 import { TicketService } from '../../../services/ticket-service';
 import { CorteCajaInfo } from './corte-caja-info/corte-caja-info';

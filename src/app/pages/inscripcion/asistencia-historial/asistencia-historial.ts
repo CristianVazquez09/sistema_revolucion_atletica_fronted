@@ -12,7 +12,7 @@ import { AsistenciaHistorialData } from 'src/app/model/asistencia-historial-data
 import { PagedResponse } from 'src/app/model/paged-response';
 import { TiempoPlanLabelPipe } from 'src/app/util/tiempo-plan-label';
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { MenuService } from 'src/app/services/menu-service';
+import { MenuService } from 'src/app/core/layout/menu-service';
 import { environment } from 'src/environments/environment';
 
 @Component({

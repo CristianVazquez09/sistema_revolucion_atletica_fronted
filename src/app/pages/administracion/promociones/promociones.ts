@@ -20,8 +20,8 @@ import { PromocionModal } from './promocion-modal/promocion-modal';
 import { PromocionService } from 'src/app/services/promocion-service';
 import { PaqueteService } from 'src/app/services/paquete-service';
 import { GimnasioService } from 'src/app/services/gimnasio-service';
-import { NotificacionService } from 'src/app/services/notificacion-service';
-import { MenuService } from 'src/app/services/menu-service';
+import { NotificacionService } from 'src/app/core/layout/notificacion-service';
+import { MenuService } from 'src/app/core/layout/menu-service';
 
 import { labelTipoPromocion, TipoPromocion } from 'src/app/util/enums/tipo-promocion';
 import { PromocionData } from 'src/app/model/promocion-data';

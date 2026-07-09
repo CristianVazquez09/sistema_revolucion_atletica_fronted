@@ -19,11 +19,11 @@ import { SocioService } from '../../services/socio-service';
 import { SocioData } from '../../model/socio-data';
 import { SocioModal } from './socio-modal/socio-modal';
 import { Router } from '@angular/router';
-import { NotificacionService } from '../../services/notificacion-service';
+import { NotificacionService } from '../../core/layout/notificacion-service';
 import { PagedResponse } from '../../model/paged-response';
 
 import { TipoPaquete } from '../../util/enums/tipo-paquete';
-import { MenuService } from 'src/app/services/menu-service';
+import { MenuService } from 'src/app/core/layout/menu-service';
 
 // ✅ selector admin + tenant ctx
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';

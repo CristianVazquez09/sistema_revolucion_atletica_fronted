@@ -12,13 +12,13 @@ import { FormsModule } from '@angular/forms';
 
 import { VentaService, VentaPageResponse, PageMeta } from '../../../services/venta-service';
 import { VentaData } from '../../../model/venta-data';
-import { NotificacionService } from '../../../services/notificacion-service';
+import { NotificacionService } from '../../../core/layout/notificacion-service';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../environments/environment';
 import { VentasAdminModal } from './ventas-admin-modal/ventas-admin-modal';
 import { TicketService, TicketPagoDetalle } from 'src/app/services/ticket-service';
-import { MenuService } from 'src/app/services/menu-service';
+import { MenuService } from 'src/app/core/layout/menu-service';
 
 // ✅ tenant selector + recarga reactiva
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';

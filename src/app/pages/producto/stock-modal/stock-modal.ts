@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
 import { ProductoData } from '../../../model/producto-data';
-import { NotificacionService } from '../../../services/notificacion-service';
+import { NotificacionService } from '../../../core/layout/notificacion-service';
 import { ProductoService } from '../../../services/producto-service';
 
 export type StockModalModo = 'ENTRADA' | 'AJUSTE';

@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, signal } from '@angular/core';
 import { Subject } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { MenuData } from '../model/menu-data';
-import { GenericService } from '../core/http/generic-service';
+import { environment } from '../../../environments/environment';
+import { MenuData } from '../../model/menu-data';
+import { GenericService } from '../http/generic-service';
 
 @Injectable({
   providedIn: 'root'

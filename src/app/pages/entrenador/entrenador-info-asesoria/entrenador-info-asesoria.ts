@@ -19,7 +19,7 @@ import { PagoData } from 'src/app/model/membresia-data';
 import { EntrenadorData } from 'src/app/model/entrenador-data';
 
 import { EntrenadorService } from 'src/app/services/entrenador-service';
-import { MenuService } from 'src/app/services/menu-service';
+import { MenuService } from 'src/app/core/layout/menu-service';
 
 @Component({
   selector: 'app-entrenador-info-asesoria',

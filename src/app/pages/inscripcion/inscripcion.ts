@@ -32,7 +32,7 @@ import { HuellaModal } from '../huella-modal/huella-modal';
 
 import { PaqueteService } from '../../services/paquete-service';
 import { MembresiaService } from '../../services/membresia-service';
-import { NotificacionService } from '../../services/notificacion-service';
+import { NotificacionService } from '../../core/layout/notificacion-service';
 import { GimnasioService } from '../../services/gimnasio-service';
 import { TicketService, VentaContexto } from '../../services/ticket-service';
 import { EntrenadorService } from '../../services/entrenador-service';

@@ -15,11 +15,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { NotificacionService } from 'src/app/services/notificacion-service';
+import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from 'src/environments/environment';
 
-import { MenuService } from 'src/app/services/menu-service';
+import { MenuService } from 'src/app/core/layout/menu-service';
 
 import { AsesoriaNutricionalService } from 'src/app/services/asesoria-nutricional-service';
 import { AsesoriaNutricionalData } from 'src/app/model/asesoria-nutricional-data';

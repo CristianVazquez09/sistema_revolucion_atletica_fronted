@@ -9,10 +9,10 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
 import { hoyISO } from '../../util/fechas-precios';
 
-import { MenuService } from 'src/app/services/menu-service';
+import { MenuService } from 'src/app/core/layout/menu-service';
 import { InventarioService } from '../../services/inventario-service';
 import { GimnasioService } from '../../services/gimnasio-service';
-import { NotificacionService } from '../../services/notificacion-service';
+import { NotificacionService } from '../../core/layout/notificacion-service';
 
 import { GimnasioData } from '../../model/gimnasio-data';
 import {

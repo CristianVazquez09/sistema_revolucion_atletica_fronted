@@ -16,12 +16,12 @@ import { environment } from '../../../../environments/environment';
 
 import { MembresiaData } from '../../../model/membresia-data';
 import { MembresiaPageResponse, MembresiaService } from '../../../services/membresia-service';
-import { NotificacionService } from '../../../services/notificacion-service';
+import { NotificacionService } from '../../../core/layout/notificacion-service';
 
 import { MembresiaModal } from './membresia-modal/membresia-modal';
 import { TiempoPlanLabelPipe } from 'src/app/util/tiempo-plan-label';
 import { TicketMembresia, TicketPagoDetalle, TicketService } from 'src/app/services/ticket-service';
-import { MenuService } from 'src/app/services/menu-service';
+import { MenuService } from 'src/app/core/layout/menu-service';
 
 import { distinctUntilChanged, skip } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';

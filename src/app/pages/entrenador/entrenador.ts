@@ -6,7 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { EntrenadorService } from '../../services/entrenador-service';
 import { GimnasioService } from '../../services/gimnasio-service';
-import { NotificacionService } from '../../services/notificacion-service';
+import { NotificacionService } from '../../core/layout/notificacion-service';
 
 import { EntrenadorData } from '../../model/entrenador-data';
 import { GimnasioData } from '../../model/gimnasio-data';

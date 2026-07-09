@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 
 import { CategoriaService } from '../../services/categoria-service';
 import { CategoriaData } from '../../model/categoria-data';
-import { NotificacionService } from '../../services/notificacion-service';
+import { NotificacionService } from '../../core/layout/notificacion-service';
 
 import { GimnasioService } from '../../services/gimnasio-service';
 import { GimnasioData } from '../../model/gimnasio-data';

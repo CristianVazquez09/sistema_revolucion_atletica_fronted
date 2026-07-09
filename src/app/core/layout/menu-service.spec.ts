@@ -2,9 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { MenuService } from './menu-service';
-import { MenuData } from '../model/menu-data';
-import { RolData } from '../model/rol-data';
-import { environment } from '../../environments/environment';
+import { MenuData } from '../../model/menu-data';
+import { RolData } from '../../model/rol-data';
+import { environment } from '../../../environments/environment';
 
 describe('MenuService', () => {
   const BASE = `${environment.HOST}/menus`;

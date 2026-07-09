@@ -2,7 +2,7 @@ import { Component, HostListener, signal } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
-import { MenuService } from '../../services/menu-service';
+import { MenuService } from '../../core/layout/menu-service';
 import { MenuData } from '../../model/menu-data';
 import { environment } from '../../../environments/environment';
 import { CorteCajaService } from '../../services/corte-caja-service';

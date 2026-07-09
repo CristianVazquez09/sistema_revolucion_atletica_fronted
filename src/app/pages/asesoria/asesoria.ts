@@ -33,7 +33,7 @@ import { AsesoriaService } from '../../services/asesoria-service';
 
 // ⬇️ Modal de Huella (igual que en Asistencia)
 import { HuellaModal, HuellaResultado } from '../huella-modal/huella-modal';
-import { NotificacionService } from 'src/app/services/notificacion-service';
+import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 
 @Component({
   selector: 'app-asesoria',

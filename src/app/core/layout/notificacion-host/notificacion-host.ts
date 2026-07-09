@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NotificacionService } from '../../services/notificacion-service';
+import { NotificacionService } from '../notificacion-service';
 
 @Component({
   selector: 'app-notificacion-host',

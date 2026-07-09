@@ -20,11 +20,11 @@ import {
 import { ProductoModal } from './producto-modal/producto-modal';
 import { ProductoService } from '../../services/producto-service';
 import { ProductoData } from '../../model/producto-data';
-import { NotificacionService } from '../../services/notificacion-service';
+import { NotificacionService } from '../../core/layout/notificacion-service';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
-import { MenuService } from 'src/app/services/menu-service';
+import { MenuService } from 'src/app/core/layout/menu-service';
 
 import { StockModal, StockModalModo } from './stock-modal/stock-modal';
 

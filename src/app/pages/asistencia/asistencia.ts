@@ -9,7 +9,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { SocioService } from '../../services/socio-service';
 import { SocioData } from '../../model/socio-data';
 import { MembresiaService } from '../../services/membresia-service';
-import { NotificacionService } from '../../services/notificacion-service';
+import { NotificacionService } from '../../core/layout/notificacion-service';
 import { AsistenciaStore } from './asistencia-store';
 
 import { MembresiaData } from '../../model/membresia-data';

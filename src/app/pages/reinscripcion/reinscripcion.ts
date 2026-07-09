@@ -15,7 +15,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { SocioService } from '../../services/socio-service';
 import { MembresiaService } from '../../services/membresia-service';
-import { NotificacionService } from '../../services/notificacion-service';
+import { NotificacionService } from '../../core/layout/notificacion-service';
 import { PaqueteService } from '../../services/paquete-service';
 import { EntrenadorService } from '../../services/entrenador-service';
 

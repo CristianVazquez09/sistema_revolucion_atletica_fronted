@@ -18,7 +18,7 @@ import { TiempoPlanLabelPipe } from 'src/app/util/tiempo-plan-label';
 import { SocioService } from 'src/app/services/socio-service';
 import { MembresiaService } from 'src/app/services/membresia-service';
 import { PaqueteService } from 'src/app/services/paquete-service';
-import { NotificacionService } from 'src/app/services/notificacion-service';
+import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 
 import { GimnasioService } from 'src/app/services/gimnasio-service';
 import { TicketService, VentaContexto } from 'src/app/services/ticket-service';

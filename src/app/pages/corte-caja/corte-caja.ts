@@ -7,7 +7,7 @@ import { distinctUntilChanged, skip } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { CorteCajaService } from '../../services/corte-caja-service';
-import { NotificacionService } from '../../services/notificacion-service';
+import { NotificacionService } from '../../core/layout/notificacion-service';
 import {
   CorteCajaResponseDTO,
   CerrarCorte,

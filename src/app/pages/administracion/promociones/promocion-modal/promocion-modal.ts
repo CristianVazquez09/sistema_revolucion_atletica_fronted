@@ -14,7 +14,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin, of, switchMap } from 'rxjs';
 
 import { PromocionService } from 'src/app/services/promocion-service';
-import { NotificacionService } from 'src/app/services/notificacion-service';
+import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 
 import { labelTipoPromocion, TipoPromocion } from 'src/app/util/enums/tipo-promocion';
 import { PromocionData, PromocionUpsertData } from 'src/app/model/promocion-data';

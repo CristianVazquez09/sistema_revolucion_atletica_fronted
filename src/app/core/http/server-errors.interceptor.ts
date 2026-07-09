@@ -2,7 +2,7 @@ import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpResponse } fr
 import { Router } from '@angular/router';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 import { Injectable } from '@angular/core';
-import { NotificacionService } from '../../services/notificacion-service';
+import { NotificacionService } from '../layout/notificacion-service';
 import { NO_GLOBAL_ERROR_TOAST } from './http-error.tokens';
 import { getHttpErrorMessage } from './getHttpErrorMessage';
 
