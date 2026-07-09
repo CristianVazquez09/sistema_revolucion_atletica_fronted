@@ -74,11 +74,17 @@ describe('fechas-precios', () => {
       expect(calcularFechaFin('2026-03-10', 'VISITA_15')).toBe('2026-04-10');
     });
 
-    it('sin fecha de inicio devuelve hoy', () => {
+  });
+
+  describe('calcularFechaFin sin fecha de inicio', () => {
+    beforeEach(() => {
       jasmine.clock().install();
       jasmine.clock().mockDate(new Date(2026, 6, 8));
+    });
+    afterEach(() => jasmine.clock().uninstall());
+
+    it('devuelve hoy', () => {
       expect(calcularFechaFin('', 'UN_MES')).toBe('2026-07-08');
-      jasmine.clock().uninstall();
     });
   });
 
@@ -111,6 +117,7 @@ describe('fechas-precios', () => {
     it('trata null/undefined/0 como 0', () => {
       expect(calcularTotal(0)).toBe(0);
       expect(calcularTotal(100, undefined, undefined)).toBe(100);
+      expect(calcularTotal(100, null as any, null as any)).toBe(100);
     });
   });
 
