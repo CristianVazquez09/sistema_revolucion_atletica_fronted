@@ -1,4 +1,4 @@
-// src/app/util/ticket-contexto.ts
+// src/app/shared/util/ticket-contexto.ts
 import { VentaContexto } from '../../services/ticket-service';
 import { GimnasioData } from '../../model/gimnasio-data';
 
