@@ -1,6 +1,6 @@
 // src/app/services/socio-service.ts
 import { Injectable } from '@angular/core';
-import { GenericService } from './generic-service';
+import { GenericService } from '../core/http/generic-service';
 import { SocioData } from '../model/socio-data';
 import { PagedResponse, toPagedResponse } from '../model/paged-response';
 import { HttpClient } from '@angular/common/http';

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { UsuarioData } from '../model/usuario-data';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { GenericService } from './generic-service';
+import { GenericService } from '../core/http/generic-service';
 import { environment } from '../../environments/environment';
 
 export interface MiPerfilPatch {

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ProductoData } from '../model/producto-data';
-import { GenericService } from './generic-service';
+import { GenericService } from '../core/http/generic-service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 

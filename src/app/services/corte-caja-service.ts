@@ -2,7 +2,7 @@ import { HttpClient, HttpResponse, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { GenericService } from './generic-service';
+import { GenericService } from '../core/http/generic-service';
 import {
   CorteCajaResponseDTO,
   CerrarCorte,

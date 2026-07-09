@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { VentaData } from '../model/venta-data';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { GenericService } from './generic-service';
+import { GenericService } from '../core/http/generic-service';
 import { VentaCreateRequest } from '../model/venta-create';
 import { map, Observable } from 'rxjs';
 import { VentaPatchRequest } from '../model/venta-patch';

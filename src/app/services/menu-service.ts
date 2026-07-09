@@ -3,7 +3,7 @@ import { Injectable, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { MenuData } from '../model/menu-data';
-import { GenericService } from './generic-service';
+import { GenericService } from '../core/http/generic-service';
 
 @Injectable({
   providedIn: 'root'

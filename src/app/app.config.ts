@@ -6,7 +6,7 @@ import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors, withInterceptor
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 
 import { JwtModule } from '@auth0/angular-jwt';
-import { ServerErrorsInterceptor } from './interceptor/server-errors.interceptor';
+import { ServerErrorsInterceptor } from './core/http/server-errors.interceptor';
 
 import { provideStore } from '@ngrx/store';
 import { provideState } from '@ngrx/store';
