@@ -17,7 +17,7 @@ import { CorteCajaInfo } from './corte-caja-info/corte-caja-info';
 
 // ✅ tenant selector
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
-import { RaGimnasioFilterComponent } from 'src/app/shared/ra-app-zoom/ra-gimnasio-filter/ra-gimnasio-filter';
+import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/ra-gimnasio-filter';
 
 type CampoOrden = 'apertura' | 'cierre' | 'idCorte';
 type DirOrden   = 'asc' | 'desc';

@@ -27,7 +27,7 @@ import { MenuService } from 'src/app/core/layout/menu-service';
 
 // ✅ selector admin + tenant ctx
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
-import { RaGimnasioFilterComponent } from 'src/app/shared/ra-app-zoom/ra-gimnasio-filter/ra-gimnasio-filter';
+import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/ra-gimnasio-filter';
 
 // ✅ roles desde token
 import { JwtHelperService } from '@auth0/angular-jwt';

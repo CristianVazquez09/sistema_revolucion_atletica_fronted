@@ -27,7 +27,7 @@ import { CorteCajaModal } from './corte-caja-modal/corte-caja-modal';
 
 // ✅ selector admin
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
-import { RaGimnasioFilterComponent } from 'src/app/shared/ra-app-zoom/ra-gimnasio-filter/ra-gimnasio-filter';
+import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/ra-gimnasio-filter';
 
 @Component({
   selector: 'app-corte-caja',
