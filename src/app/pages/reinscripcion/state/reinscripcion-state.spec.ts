@@ -262,6 +262,13 @@ describe('Reinscripcion State', () => {
         const result = selectTotalVista.projector(100, 500);
         expect(result).toBe(0);
       });
+
+      // AS-IS (negocio): a diferencia de inscripción (calcularTotal redondea a 2 decimales),
+      // aquí NO hay redondeo: el resultado conserva la precisión cruda de la resta.
+      // 100.105 - 0.005 = 100.10000000000001 en IEEE754 (redondeado sería 100.1).
+      it('no redondea decimales (asimetría vs inscripción)', () => {
+        expect(selectTotalVista.projector(100.105, 0.005)).toBe(100.10000000000001);
+      });
     });
 
     describe('selectFechaPagoVista', () => {
