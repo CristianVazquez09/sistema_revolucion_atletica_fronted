@@ -26,7 +26,7 @@ import { TipoPaquete } from '../../util/enums/tipo-paquete';
 import { MenuService } from 'src/app/services/menu-service';
 
 // ✅ selector admin + tenant ctx
-import { TenantContextService } from 'src/app/core/tenant-context.service';
+import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
 import { RaGimnasioFilterComponent } from 'src/app/shared/ra-app-zoom/ra-gimnasio-filter/ra-gimnasio-filter';
 
 // ✅ roles desde token

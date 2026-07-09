@@ -21,7 +21,7 @@ import { TicketService, TicketPagoDetalle } from 'src/app/services/ticket-servic
 import { MenuService } from 'src/app/services/menu-service';
 
 // ✅ tenant selector + recarga reactiva
-import { TenantContextService } from 'src/app/core/tenant-context.service';
+import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
 import { RaGimnasioFilterComponent } from 'src/app/shared/ra-app-zoom/ra-gimnasio-filter/ra-gimnasio-filter';
 import { distinctUntilChanged, skip } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';

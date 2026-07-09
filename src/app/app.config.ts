@@ -13,7 +13,7 @@ import { provideState } from '@ngrx/store';
 
 import { environment } from '../environments/environment';
 import { inscripcionFeature } from './pages/inscripcion/state/inscripcion-reducer';
-import { TenantInterceptor } from './core/tenant.interceptor';
+import { TenantInterceptor } from './core/tenant/tenant.interceptor';
 import { REINSCRIPCION_FEATURE_KEY, reinscripcionReducer } from './pages/reinscripcion/state/reinscripcion-reducer';
 import { authInterceptor } from './core/auth/auth.interceptor';
 

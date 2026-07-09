@@ -29,7 +29,7 @@ import { MenuService } from 'src/app/services/menu-service';
 import { StockModal, StockModalModo } from './stock-modal/stock-modal';
 
 // ✅ tenant / filtro gimnasio (admin)
-import { TenantContextService } from 'src/app/core/tenant-context.service';
+import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
 import { RaGimnasioFilterComponent } from 'src/app/shared/ra-app-zoom/ra-gimnasio-filter/ra-gimnasio-filter';
 
 @Component({
