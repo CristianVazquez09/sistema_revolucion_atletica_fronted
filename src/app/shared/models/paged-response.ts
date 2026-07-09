@@ -1,4 +1,4 @@
-// src/app/model/paged-response.ts
+// src/app/shared/models/paged-response.ts
 export interface InfoPagina {
   tamanio: number; // tamaño de página
   numero: number; // página actual, base 0
