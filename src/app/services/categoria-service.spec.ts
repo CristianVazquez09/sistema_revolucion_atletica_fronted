@@ -10,7 +10,10 @@ describe('CategoriaService', () => {
   let service: CategoriaService;
   let httpMock: HttpTestingController;
 
-  const categoria = { idCategoria: 1, nombre: 'Suplementos' } as unknown as CategoriaData;
+  // Patrón para specs de servicios: fixture tipado completo (sin casts por unknown),
+  // asertar SIEMPRE método/URL/body del request; el valor de respuesta se asevera
+  // una vez por spec (en buscarTodos) porque GenericService no transforma respuestas.
+  const categoria: CategoriaData = { idCategoria: 1, nombre: 'Suplementos', activo: true };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
