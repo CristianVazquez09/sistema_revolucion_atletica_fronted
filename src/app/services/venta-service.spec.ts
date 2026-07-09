@@ -6,7 +6,7 @@ import { VentaData } from '../model/venta-data';
 import { VentaCreateRequest } from '../model/venta-create';
 import { VentaPatchRequest } from '../model/venta-patch';
 import { environment } from '../../environments/environment';
-import { TipoPago } from '../util/enums/tipo-pago';
+import { TipoPago } from '../shared/util/enums/tipo-pago';
 
 describe('VentaService', () => {
   const BASE = `${environment.HOST}/ventas`;

@@ -6,9 +6,9 @@ import { MembresiaData } from '../model/membresia-data';
 import { MembresiaPatchRequest } from '../model/membresia-patch';
 import { PagedResponse } from '../model/paged-response';
 import { environment } from '../../environments/environment';
-import { TipoMovimiento } from '../util/enums/tipo-movimiento';
-import { TipoPago } from '../util/enums/tipo-pago';
-import { TiempoPlan } from '../util/enums/tiempo-plan';
+import { TipoMovimiento } from '../shared/util/enums/tipo-movimiento';
+import { TipoPago } from '../shared/util/enums/tipo-pago';
+import { TiempoPlan } from '../shared/util/enums/tiempo-plan';
 
 describe('MembresiaService', () => {
   const BASE = `${environment.HOST}/membresias`;

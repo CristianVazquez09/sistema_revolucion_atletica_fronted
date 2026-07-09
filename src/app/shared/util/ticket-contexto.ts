@@ -1,6 +1,6 @@
 // src/app/util/ticket-contexto.ts
-import { VentaContexto } from '../services/ticket-service';
-import { GimnasioData } from '../model/gimnasio-data';
+import { VentaContexto } from '../../services/ticket-service';
+import { GimnasioData } from '../../model/gimnasio-data';
 
 /**
  * Devuelve el nombre para mostrar en tickets.

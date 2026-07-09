@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { PromocionService } from './promocion-service';
 import { PromocionData, PromocionUpsertData } from '../model/promocion-data';
-import { TipoPromocion } from '../util/enums/tipo-promocion';
+import { TipoPromocion } from '../shared/util/enums/tipo-promocion';
 import { environment } from '../../environments/environment';
 
 describe('PromocionService', () => {

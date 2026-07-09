@@ -22,7 +22,7 @@ import { Router } from '@angular/router';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 import { PagedResponse } from '../../model/paged-response';
 
-import { TipoPaquete } from '../../util/enums/tipo-paquete';
+import { TipoPaquete } from '../../shared/util/enums/tipo-paquete';
 import { MenuService } from 'src/app/core/layout/menu-service';
 
 // ✅ selector admin + tenant ctx

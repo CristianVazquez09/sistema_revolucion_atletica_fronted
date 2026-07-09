@@ -1,4 +1,4 @@
-import { TipoPago } from '../util/enums/tipo-pago';
+import { TipoPago } from '../shared/util/enums/tipo-pago';
 
 export type CorteEstado = 'ABIERTO' | 'CERRADO';
 

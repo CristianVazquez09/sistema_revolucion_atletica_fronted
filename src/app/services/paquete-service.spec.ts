@@ -5,8 +5,8 @@ import { PaqueteService } from './paquete-service';
 import { PaqueteData } from '../model/paquete-data';
 import { PromocionData } from '../model/promocion-data';
 import { environment } from '../../environments/environment';
-import { TiempoPlan } from '../util/enums/tiempo-plan';
-import { TipoPromocion } from '../util/enums/tipo-promocion';
+import { TiempoPlan } from '../shared/util/enums/tiempo-plan';
+import { TipoPromocion } from '../shared/util/enums/tipo-promocion';
 
 describe('PaqueteService', () => {
   const BASE = `${environment.HOST}/paquetes`;

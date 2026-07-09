@@ -15,7 +15,7 @@ import { GimnasioService } from '../../services/gimnasio-service';
 import { EntrenadorData } from '../../model/entrenador-data';
 import { SocioData } from '../../model/socio-data';
 import { GimnasioData } from '../../model/gimnasio-data';
-import { TiempoPlan } from '../../util/enums/tiempo-plan';
+import { TiempoPlan } from '../../shared/util/enums/tiempo-plan';
 import { PagoData } from '../../model/membresia-data';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
@@ -26,9 +26,9 @@ import {
   VentaContexto,
 } from '../../services/ticket-service';
 import { ResumenVenta } from '../resumen-venta/resumen-venta';
-import { crearContextoTicket, obtenerNombreCajero } from '../../util/ticket-contexto';
+import { crearContextoTicket, obtenerNombreCajero } from '../../shared/util/ticket-contexto';
 import { AsesoriaCreateRequest } from '../../model/asesoria-data';
-import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
+import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
 import { AsesoriaService } from '../../services/asesoria-service';
 
 // ⬇️ Modal de Huella (igual que en Asistencia)

@@ -16,7 +16,7 @@ import { forkJoin, of, switchMap } from 'rxjs';
 import { PromocionService } from 'src/app/services/promocion-service';
 import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 
-import { labelTipoPromocion, TipoPromocion } from 'src/app/util/enums/tipo-promocion';
+import { labelTipoPromocion, TipoPromocion } from 'src/app/shared/util/enums/tipo-promocion';
 import { PromocionData, PromocionUpsertData } from 'src/app/model/promocion-data';
 import { PaqueteData } from 'src/app/model/paquete-data';
 import { GimnasioData } from 'src/app/model/gimnasio-data';

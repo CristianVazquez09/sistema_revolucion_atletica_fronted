@@ -24,10 +24,10 @@ import { PagoData } from '../../model/membresia-data';
 import { PaqueteData } from '../../model/paquete-data';
 import { EntrenadorData } from '../../model/entrenador-data';
 
-import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
+import { TipoMovimiento } from '../../shared/util/enums/tipo-movimiento';
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
-import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
-import { hoyISO } from '../../util/fechas-precios';
+import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
+import { hoyISO } from '../../shared/util/fechas-precios';
 
 // Ticket
 import { JwtHelperService } from '@auth0/angular-jwt';
@@ -35,7 +35,7 @@ import { GimnasioService } from '../../services/gimnasio-service';
 import { TicketService, VentaContexto } from '../../services/ticket-service';
 import { GimnasioData } from '../../model/gimnasio-data';
 import { environment } from '../../../environments/environment';
-import { crearContextoTicket, obtenerNombreCajero } from '../../util/ticket-contexto';
+import { crearContextoTicket, obtenerNombreCajero } from '../../shared/util/ticket-contexto';
 
 // Huella
 import { HuellaModal } from '../huella-modal/huella-modal';

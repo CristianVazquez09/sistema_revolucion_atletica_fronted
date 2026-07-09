@@ -1,4 +1,4 @@
-import { TipoMovimiento } from "../util/enums/tipo-movimiento";
+import { TipoMovimiento } from "../shared/util/enums/tipo-movimiento";
 import { PagoData } from "./membresia-data";
 
 

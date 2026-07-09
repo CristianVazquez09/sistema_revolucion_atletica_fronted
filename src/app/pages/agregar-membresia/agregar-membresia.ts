@@ -11,7 +11,7 @@ import { MembresiaService } from '../../services/membresia-service';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 import { GimnasioService } from '../../services/gimnasio-service';
 import { TicketService, VentaContexto } from '../../services/ticket-service';
-import { obtenerNombreCajero } from '../../util/ticket-contexto';
+import { obtenerNombreCajero } from '../../shared/util/ticket-contexto';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { SocioData } from '../../model/socio-data';
@@ -19,10 +19,10 @@ import { PaqueteData } from '../../model/paquete-data';
 import { GimnasioData } from '../../model/gimnasio-data';
 
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
-import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
-import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
-import { calcularFechaFin, calcularTotal, hoyISO } from '../../util/fechas-precios';
-import { TiempoPlan } from '../../util/enums/tiempo-plan';
+import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
+import { TipoMovimiento } from '../../shared/util/enums/tipo-movimiento';
+import { calcularFechaFin, calcularTotal, hoyISO } from '../../shared/util/fechas-precios';
+import { TiempoPlan } from '../../shared/util/enums/tiempo-plan';
 import { environment } from '../../../environments/environment';
 
 // 👇 Importa pagos[]

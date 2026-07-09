@@ -11,7 +11,7 @@ import {
   avatarColorByStyle,
   avatarImageByStyle,
   loadPreferenciasUsuario,
-} from '../../util/preferencias-usuario';
+} from '../../shared/util/preferencias-usuario';
 
 @Component({
   selector: 'app-menu-principal',

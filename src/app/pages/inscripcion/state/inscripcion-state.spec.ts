@@ -11,7 +11,7 @@ import {
   selectFechaPagoVista,
 } from './inscripcion-selectors';
 import { PaqueteData } from '../../../model/paquete-data';
-import { TiempoPlan } from '../../../util/enums/tiempo-plan';
+import { TiempoPlan } from '../../../shared/util/enums/tiempo-plan';
 
 describe('Inscripcion State', () => {
   describe('Reducer', () => {

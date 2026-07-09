@@ -7,11 +7,11 @@ import { PaqueteService } from '../../services/paquete-service';
 import { PaqueteData } from '../../model/paquete-data';
 import { PaqueteModal } from './paquete-modal/paquete-modal';
 import { NotificacionService } from '../../core/layout/notificacion-service';
-import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
+import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
-import { TipoPaquete } from '../../util/enums/tipo-paquete';
+import { TipoPaquete } from '../../shared/util/enums/tipo-paquete';
 import { MenuService } from 'src/app/core/layout/menu-service';
 
 @Component({

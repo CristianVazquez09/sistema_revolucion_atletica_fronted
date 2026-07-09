@@ -43,11 +43,11 @@ import { MembresiaData, PagoData } from '../../model/membresia-data';
 import { GimnasioData } from '../../model/gimnasio-data';
 import { EntrenadorData } from '../../model/entrenador-data';
 
-import { TipoMovimiento } from '../../util/enums/tipo-movimiento';
-import { TipoPago } from '../../util/enums/tipo-pago';
-import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
-import { calcularTotal, hoyISO } from '../../util/fechas-precios';
-import { crearContextoTicket, obtenerNombreCajero } from '../../util/ticket-contexto';
+import { TipoMovimiento } from '../../shared/util/enums/tipo-movimiento';
+import { TipoPago } from '../../shared/util/enums/tipo-pago';
+import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
+import { calcularTotal, hoyISO } from '../../shared/util/fechas-precios';
+import { crearContextoTicket, obtenerNombreCajero } from '../../shared/util/ticket-contexto';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';

@@ -5,7 +5,7 @@ import { SocioService } from './socio-service';
 import { SocioData } from '../model/socio-data';
 import { PagedResponse } from '../model/paged-response';
 import { AsesoriaContratoData } from '../model/asesoria-contrato-data';
-import { TipoPaquete } from '../util/enums/tipo-paquete';
+import { TipoPaquete } from '../shared/util/enums/tipo-paquete';
 import { environment } from '../../environments/environment';
 
 describe('SocioService', () => {

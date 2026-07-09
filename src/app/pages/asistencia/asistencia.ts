@@ -13,12 +13,12 @@ import { NotificacionService } from '../../core/layout/notificacion-service';
 import { AsistenciaStore } from './asistencia-store';
 
 import { MembresiaData } from '../../model/membresia-data';
-import { TiempoPlanLabelPipe } from '../../util/tiempo-plan-label';
-import { dateLocalFromISO, hoyISO } from '../../util/fechas-precios';
+import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
+import { dateLocalFromISO, hoyISO } from '../../shared/util/fechas-precios';
 import { HuellaModal, HuellaResultado } from '../huella-modal/huella-modal';
 
 import { PaqueteData } from '../../model/paquete-data';
-import { TiempoPlan } from '../../util/enums/tiempo-plan';
+import { TiempoPlan } from '../../shared/util/enums/tiempo-plan';
 import { CheckInService, CheckInResponse } from 'src/app/services/check-in-service';
 
 type EstadoSemaforo = 'verde' | 'amarillo' | 'rojo';

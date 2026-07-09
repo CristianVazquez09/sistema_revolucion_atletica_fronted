@@ -1,6 +1,6 @@
 // src/app/pages/inscripcion/state/inscripcion-selectors.ts
 import { createSelector } from '@ngrx/store';
-import { calcularFechaFin, calcularTotal } from '../../../util/fechas-precios';
+import { calcularFechaFin, calcularTotal } from '../../../shared/util/fechas-precios';
 import { selectInscripcionState } from './inscripcion-reducer';
 
 export const selectListaPaquetes = createSelector(

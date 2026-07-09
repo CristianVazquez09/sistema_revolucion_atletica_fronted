@@ -7,7 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
-import { hoyISO } from '../../util/fechas-precios';
+import { hoyISO } from '../../shared/util/fechas-precios';
 
 import { MenuService } from 'src/app/core/layout/menu-service';
 import { InventarioService } from '../../services/inventario-service';

@@ -20,7 +20,7 @@ import {
 } from '../../model/corte-caja-data';
 import { environment } from '../../../environments/environment';
 import { TicketService } from '../../services/ticket-service';
-import { obtenerNombreCajero } from '../../util/ticket-contexto';
+import { obtenerNombreCajero } from '../../shared/util/ticket-contexto';
 
 // ✅ Modal
 import { CorteCajaModal } from './corte-caja-modal/corte-caja-modal';

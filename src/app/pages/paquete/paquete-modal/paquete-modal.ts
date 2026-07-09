@@ -16,11 +16,11 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { PaqueteData } from '../../../model/paquete-data';
 import { GimnasioData } from '../../../model/gimnasio-data';
 
-import { TiempoPlan } from '../../../util/enums/tiempo-plan';
-import { TipoPaquete } from '../../../util/enums/tipo-paquete';
-import { ModalidadPaquete } from 'src/app/util/enums/modalidad-paquete';
+import { TiempoPlan } from '../../../shared/util/enums/tiempo-plan';
+import { TipoPaquete } from '../../../shared/util/enums/tipo-paquete';
+import { ModalidadPaquete } from '../../../shared/util/enums/modalidad-paquete';
 
-import { TiempoPlanLabelPipe } from '../../../util/tiempo-plan-label';
+import { TiempoPlanLabelPipe } from '../../../shared/util/tiempo-plan-label';
 
 import { PaqueteService } from '../../../services/paquete-service';
 import { GimnasioService } from '../../../services/gimnasio-service';

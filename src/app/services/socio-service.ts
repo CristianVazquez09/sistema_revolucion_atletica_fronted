@@ -7,7 +7,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable, map } from 'rxjs';
 import { AsesoriaContratoData } from '../model/asesoria-contrato-data';
-import { TipoPaquete } from '../util/enums/tipo-paquete';
+import { TipoPaquete } from '../shared/util/enums/tipo-paquete';
 
 @Injectable({
   providedIn: 'root'

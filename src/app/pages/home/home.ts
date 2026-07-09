@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
-import { fraseHomeByMode, loadPreferenciasUsuario } from '../../util/preferencias-usuario';
+import { fraseHomeByMode, loadPreferenciasUsuario } from '../../shared/util/preferencias-usuario';
 
 type Rol = 'admin' | 'gerente' | 'recepcionista';
 

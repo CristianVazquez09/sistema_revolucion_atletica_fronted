@@ -16,7 +16,7 @@ import {
   fraseHomeByMode,
   loadPreferenciasUsuario,
   savePreferenciasUsuario,
-} from '../../util/preferencias-usuario';
+} from '../../shared/util/preferencias-usuario';
 
 @Component({
   selector: 'app-mi-perfil',

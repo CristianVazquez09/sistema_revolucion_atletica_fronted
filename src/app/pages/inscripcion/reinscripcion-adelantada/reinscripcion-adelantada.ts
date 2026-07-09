@@ -13,7 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, finalize, of, forkJoin } from 'rxjs';
 
 import { ResumenCompra } from '../../resumen-compra/resumen-compra';
-import { TiempoPlanLabelPipe } from 'src/app/util/tiempo-plan-label';
+import { TiempoPlanLabelPipe } from 'src/app/shared/util/tiempo-plan-label';
 
 import { SocioService } from 'src/app/services/socio-service';
 import { MembresiaService } from 'src/app/services/membresia-service';
@@ -31,12 +31,12 @@ import { PaqueteData } from 'src/app/model/paquete-data';
 import { GimnasioData } from 'src/app/model/gimnasio-data';
 import { EntrenadorData } from 'src/app/model/entrenador-data';
 
-import { TipoMovimiento } from 'src/app/util/enums/tipo-movimiento';
-import { crearContextoTicket, obtenerNombreCajero } from 'src/app/util/ticket-contexto';
+import { TipoMovimiento } from 'src/app/shared/util/enums/tipo-movimiento';
+import { crearContextoTicket, obtenerNombreCajero } from 'src/app/shared/util/ticket-contexto';
 import { environment } from 'src/environments/environment';
 
-import { calcularFechaFin, hoyISO as hoyISOUtil } from 'src/app/util/fechas-precios';
-import { TiempoPlan } from 'src/app/util/enums/tiempo-plan';
+import { calcularFechaFin, hoyISO as hoyISOUtil } from 'src/app/shared/util/fechas-precios';
+import { TiempoPlan } from 'src/app/shared/util/enums/tiempo-plan';
 
 import { HuellaModal, HuellaResultado } from '../../huella-modal/huella-modal';
 
