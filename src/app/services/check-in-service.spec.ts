@@ -84,4 +84,31 @@ describe('CheckInService', () => {
     expect(req.request.params.get('nombre')).toBe('ana');
     req.flush(paginaVacia);
   });
+
+  it('listarHistorialRango GET /rango con page/size/desde/hasta, idSocio solo cuando > 0', () => {
+    service.listarHistorialRango(0, 5, '2026-01-01', '2026-01-31').subscribe();
+    const sinIdSocio = httpMock.expectOne(r => r.url === `${BASE}/rango`);
+    expect(sinIdSocio.request.method).toBe('GET');
+    expect(sinIdSocio.request.params.get('page')).toBe('0');
+    expect(sinIdSocio.request.params.get('size')).toBe('5');
+    expect(sinIdSocio.request.params.get('desde')).toBe('2026-01-01');
+    expect(sinIdSocio.request.params.get('hasta')).toBe('2026-01-31');
+    expect(sinIdSocio.request.params.has('idSocio')).toBeFalse();
+    sinIdSocio.flush(paginaVacia);
+
+    service.listarHistorialRango(0, 5, '2026-01-01', '2026-01-31', 7).subscribe();
+    const conIdSocio = httpMock.expectOne(r => r.url === `${BASE}/rango`);
+    expect(conIdSocio.request.params.get('idSocio')).toBe('7');
+    conIdSocio.flush(paginaVacia);
+  });
+
+  it('buscarPorNombreSocio GET /buscar con page/size/nombre', () => {
+    service.buscarPorNombreSocio(0, 5, 'ana').subscribe();
+    const req = httpMock.expectOne(r => r.url === `${BASE}/buscar`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('page')).toBe('0');
+    expect(req.request.params.get('size')).toBe('5');
+    expect(req.request.params.get('nombre')).toBe('ana');
+    req.flush(paginaVacia);
+  });
 });
