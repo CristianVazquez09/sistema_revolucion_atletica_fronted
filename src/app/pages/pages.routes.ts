@@ -15,15 +15,15 @@ import { AgregarMembresia } from './agregar-membresia/agregar-membresia';
 import { Administracion } from './administracion/administracion';
 import { Entrenador } from './entrenador/entrenador';
 import { Asesoria } from './asesoria/asesoria';
-import { gerenteGuard } from '../guards/gerente-guards';
-import { adminGuard } from '../guards/admin-guards';
+import { gerenteGuard } from '../core/auth/gerente-guards';
+import { adminGuard } from '../core/auth/admin-guards';
 import { AsistenciaHistorial } from './inscripcion/asistencia-historial/asistencia-historial';
 import { ReinscripcionAdelantada } from './inscripcion/reinscripcion-adelantada/reinscripcion-adelantada';
 import { SocioInfoAsesoria } from './socio/socio-info-asesoria/socio-info-asesoria';
 import { EntrenadorInfoAsesoria } from './entrenador/entrenador-info-asesoria/entrenador-info-asesoria';
 
 import { Inventario } from './inventario/inventario';
-import { operacionGuard } from '../guards/operacion-guards';
+import { operacionGuard } from '../core/auth/operacion-guards';
 
 export const pagesRoutes: Routes = [
   {

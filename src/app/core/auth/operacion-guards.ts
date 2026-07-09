@@ -1,10 +1,9 @@
-// src/app/guards/gerente-guards.ts
 import { CanMatchFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
-export const gerenteGuard: CanMatchFn = () => {
+export const operacionGuard: CanMatchFn = () => {
   const router = inject(Router);
   const jwt = inject(JwtHelperService);
 
@@ -21,7 +20,11 @@ export const gerenteGuard: CanMatchFn = () => {
       .concat([d?.role, d?.rol, d?.perfil].filter(Boolean) as string[])
       .map(r => String(r).toUpperCase());
 
-    const ok = roles.includes('GERENTE') || roles.includes('ROLE_GERENTE');
+    const ok =
+      d?.is_admin === true ||
+      roles.includes('ADMIN') || roles.includes('ROLE_ADMIN') ||
+      roles.includes('GERENTE') || roles.includes('ROLE_GERENTE');
+
     return ok ? true : router.parseUrl('/pages');
   } catch {
     return router.parseUrl('/pages');

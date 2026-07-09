@@ -15,7 +15,7 @@ import { environment } from '../environments/environment';
 import { inscripcionFeature } from './pages/inscripcion/state/inscripcion-reducer';
 import { TenantInterceptor } from './core/tenant.interceptor';
 import { REINSCRIPCION_FEATURE_KEY, reinscripcionReducer } from './pages/reinscripcion/state/reinscripcion-reducer';
-import { authInterceptor } from './interceptor/auth.interceptor';
+import { authInterceptor } from './core/auth/auth.interceptor';
 
 export function tokenGetter() {
   return sessionStorage.getItem(environment.TOKEN_NAME);

@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { LoginService } from './login-service';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 describe('LoginService', () => {
   // Protege el HOST_LOGIN: login NO usa environment.HOST

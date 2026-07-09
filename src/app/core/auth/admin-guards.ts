@@ -1,9 +1,10 @@
+// src/app/core/auth/admin-guards.ts
 import { CanMatchFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
-export const operacionGuard: CanMatchFn = () => {
+export const adminGuard: CanMatchFn = () => {
   const router = inject(Router);
   const jwt = inject(JwtHelperService);
 
@@ -20,11 +21,7 @@ export const operacionGuard: CanMatchFn = () => {
       .concat([d?.role, d?.rol, d?.perfil].filter(Boolean) as string[])
       .map(r => String(r).toUpperCase());
 
-    const ok =
-      d?.is_admin === true ||
-      roles.includes('ADMIN') || roles.includes('ROLE_ADMIN') ||
-      roles.includes('GERENTE') || roles.includes('ROLE_GERENTE');
-
+    const ok = d?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     return ok ? true : router.parseUrl('/pages');
   } catch {
     return router.parseUrl('/pages');
