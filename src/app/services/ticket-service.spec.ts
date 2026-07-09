@@ -452,4 +452,310 @@ describe('TicketService', () => {
       });
     });
   });
+
+  describe('HTML Builders', () => {
+    // Private HTML builder methods; tested via bracket notation.
+    // localStorage is read for print styles with numeric fallbacks.
+    beforeEach(() => {
+      localStorage.clear();
+    });
+
+    describe('htmlVenta: generador de HTML para tickets de venta', () => {
+      it('should contain negocio nombre in uppercase', () => {
+        const html = (service as any)['htmlVenta']({
+          negocio: { nombre: 'Mi Gimnasio' },
+          folio: '1001',
+          fecha: new Date('2026-01-15T10:30:00Z'),
+          cajero: 'Juan',
+          items: [{ nombre: 'Proteína', cantidad: 2, precioUnit: 500 }],
+          totales: { total: 1000 }
+        });
+        expect(html).toContain('MI GIMNASIO');
+      });
+
+      it('should contain folio number', () => {
+        const html = (service as any)['htmlVenta']({
+          negocio: { nombre: 'Gym' },
+          folio: '5042',
+          fecha: new Date('2026-01-15T10:30:00Z'),
+          items: [{ nombre: 'Item', cantidad: 1, precioUnit: 100 }],
+          totales: { total: 100 }
+        });
+        expect(html).toContain('5042');
+      });
+
+      it('should contain quantity marker x2 for item with cantidad=2', () => {
+        const html = (service as any)['htmlVenta']({
+          negocio: { nombre: 'Gym' },
+          folio: '1',
+          fecha: new Date(),
+          items: [{ nombre: 'Proteína', cantidad: 2, precioUnit: 500 }],
+          totales: { total: 1000 }
+        });
+        expect(html).toContain('x2');
+      });
+
+      it('should contain formatted total in money format', () => {
+        const html = (service as any)['htmlVenta']({
+          negocio: { nombre: 'Gym' },
+          folio: '1',
+          fecha: new Date(),
+          items: [{ nombre: 'Item', cantidad: 1, precioUnit: 1500 }],
+          totales: { total: 1500 }
+        });
+        expect(html).toContain('$1,500.00');
+      });
+
+      it('should contain CAJERO: label with cajero name', () => {
+        const html = (service as any)['htmlVenta']({
+          negocio: { nombre: 'Gym' },
+          folio: '1',
+          fecha: new Date(),
+          cajero: 'Carlos López',
+          items: [],
+          totales: { total: 0 }
+        });
+        expect(html).toContain('CAJERO:');
+        expect(html).toContain('Carlos López');
+      });
+
+      it('should contain ¡Gracias por su compra! footer', () => {
+        const html = (service as any)['htmlVenta']({
+          negocio: { nombre: 'Gym' },
+          folio: '1',
+          fecha: new Date(),
+          items: [],
+          totales: { total: 0 }
+        });
+        expect(html).toContain('¡Gracias por su compra!');
+      });
+
+      it('should contain ESTE NO ES UN COMPROBANTE FISCAL disclaimer', () => {
+        const html = (service as any)['htmlVenta']({
+          negocio: { nombre: 'Gym' },
+          folio: '1',
+          fecha: new Date(),
+          items: [],
+          totales: { total: 0 }
+        });
+        expect(html).toContain('ESTE NO ES UN COMPROBANTE FISCAL');
+      });
+
+      it('should escape HTML in item nombre to prevent injection', () => {
+        const html = (service as any)['htmlVenta']({
+          negocio: { nombre: 'Gym' },
+          folio: '1',
+          fecha: new Date(),
+          items: [{ nombre: '<script>alert(1)</script>', cantidad: 1, precioUnit: 100 }],
+          totales: { total: 100 }
+        });
+        expect(html).toContain('&lt;script&gt;');
+        expect(html).not.toContain('<script>alert');
+      });
+    });
+
+    describe('htmlMembresia: generador de HTML para tickets de membresía', () => {
+      it('should contain concepto', () => {
+        const html = (service as any)['htmlMembresia']({
+          negocio: { nombre: 'Gym' },
+          folio: '2001',
+          fecha: new Date(),
+          concepto: 'Membresía MENSUAL',
+          importe: 500,
+          total: 500,
+          totalAPagar: 500,
+          estado: 'PAGADO'
+        });
+        expect(html).toContain('Membresía MENSUAL');
+      });
+
+      it('should contain TOTAL A PAGAR label', () => {
+        const html = (service as any)['htmlMembresia']({
+          negocio: { nombre: 'Gym' },
+          folio: '2001',
+          fecha: new Date(),
+          concepto: 'Membresía',
+          importe: 500,
+          total: 500,
+          totalAPagar: 500
+        });
+        expect(html).toContain('TOTAL A PAGAR');
+      });
+
+      it('should contain *** PAGADO *** when estado=PAGADO', () => {
+        const html = (service as any)['htmlMembresia']({
+          negocio: { nombre: 'Gym' },
+          folio: '2001',
+          fecha: new Date(),
+          concepto: 'Membresía',
+          importe: 500,
+          total: 500,
+          totalAPagar: 500,
+          estado: 'PAGADO'
+        });
+        expect(html).toContain('*** PAGADO ***');
+      });
+
+      it('should contain ENTRENADOR: label when entrenador is provided', () => {
+        const html = (service as any)['htmlMembresia']({
+          negocio: { nombre: 'Gym' },
+          folio: '2001',
+          fecha: new Date(),
+          concepto: 'Membresía',
+          importe: 500,
+          total: 500,
+          totalAPagar: 500,
+          entrenador: 'Miguel Santos'
+        });
+        expect(html).toContain('ENTRENADOR:');
+        expect(html).toContain('Miguel Santos');
+      });
+
+      it('should NOT contain ENTRENADOR: label when entrenador is not provided', () => {
+        const html = (service as any)['htmlMembresia']({
+          negocio: { nombre: 'Gym' },
+          folio: '2001',
+          fecha: new Date(),
+          concepto: 'Membresía',
+          importe: 500,
+          total: 500,
+          totalAPagar: 500
+        });
+        expect(html).not.toContain('ENTRENADOR:');
+      });
+
+      it('should contain formatted total in money format', () => {
+        const html = (service as any)['htmlMembresia']({
+          negocio: { nombre: 'Gym' },
+          folio: '2001',
+          fecha: new Date(),
+          concepto: 'Membresía',
+          importe: 2500,
+          total: 2500,
+          totalAPagar: 2500
+        });
+        expect(html).toContain('$2,500.00');
+      });
+    });
+
+    describe('htmlCorte: generador de HTML para corte de caja', () => {
+      it('should contain ::: CORTE DE CAJA ::: banner', () => {
+        const html = (service as any)['htmlCorte'](
+          {
+            negocio: { nombre: 'Gym' },
+            folio: 'C001',
+            fecha: new Date(),
+            totales: { general: 5000 }
+          },
+          'REVOLUCIÓN ATLÉTICA'
+        );
+        expect(html).toContain('::: CORTE DE CAJA :::');
+      });
+
+      it('should contain CORTE # with idCorte value', () => {
+        const html = (service as any)['htmlCorte'](
+          {
+            negocio: { nombre: 'Gym' },
+            folio: '999',
+            idCorte: '999',
+            fecha: new Date(),
+            totales: { general: 5000 }
+          },
+          'REVOLUCIÓN ATLÉTICA'
+        );
+        expect(html).toContain('CORTE # 999');
+      });
+
+      it('should contain TIPOS DE INGRESOS section', () => {
+        const html = (service as any)['htmlCorte'](
+          {
+            negocio: { nombre: 'Gym' },
+            folio: '1',
+            fecha: new Date(),
+            totales: { ventas: 1000, membresias: 500, accesorias: 200, general: 1700 }
+          },
+          'REVOLUCIÓN ATLÉTICA'
+        );
+        expect(html).toContain('TIPOS DE INGRESOS');
+      });
+
+      it('should contain FORMAS DE PAGO section', () => {
+        const html = (service as any)['htmlCorte'](
+          {
+            negocio: { nombre: 'Gym' },
+            folio: '1',
+            fecha: new Date(),
+            totales: { general: 1000 },
+            pagos: { EFECTIVO: 1000 }
+          },
+          'REVOLUCIÓN ATLÉTICA'
+        );
+        expect(html).toContain('FORMAS DE PAGO');
+      });
+
+      it('should contain formatted total.general in money format', () => {
+        const html = (service as any)['htmlCorte'](
+          {
+            negocio: { nombre: 'Gym' },
+            folio: '1',
+            fecha: new Date(),
+            totales: { general: 3500 }
+          },
+          'REVOLUCIÓN ATLÉTICA'
+        );
+        expect(html).toContain('$3,500.00');
+      });
+
+      it('should contain brand title in uppercase', () => {
+        const html = (service as any)['htmlCorte'](
+          {
+            negocio: { nombre: 'Gym' },
+            folio: '1',
+            fecha: new Date(),
+            totales: { general: 1000 }
+          },
+          'Mi Marca Fitness'
+        );
+        expect(html).toContain('MI MARCA FITNESS');
+      });
+
+      it('should contain negocio nombre in uppercase', () => {
+        const html = (service as any)['htmlCorte'](
+          {
+            negocio: { nombre: 'Sucursal Centro' },
+            folio: '1',
+            fecha: new Date(),
+            totales: { general: 1000 }
+          },
+          'REVOLUCIÓN ATLÉTICA'
+        );
+        expect(html).toContain('SUCURSAL CENTRO');
+      });
+    });
+
+    describe('htmlVenta: escape and injection prevention', () => {
+      it('should escape <script> tag in item nombre', () => {
+        const html = (service as any)['htmlVenta']({
+          negocio: { nombre: 'Gym' },
+          folio: '1',
+          fecha: new Date(),
+          items: [{ nombre: '<script>alert(1)</script>', cantidad: 1, precioUnit: 100 }],
+          totales: { total: 100 }
+        });
+        expect(html).toContain('&lt;script&gt;');
+        expect(html).not.toContain('<script>alert');
+      });
+
+      it('should escape ampersand in item nombre', () => {
+        const html = (service as any)['htmlVenta']({
+          negocio: { nombre: 'Gym' },
+          folio: '1',
+          fecha: new Date(),
+          items: [{ nombre: 'Café & Proteína', cantidad: 1, precioUnit: 100 }],
+          totales: { total: 100 }
+        });
+        expect(html).toContain('&amp;');
+      });
+    });
+  });
 });
