@@ -64,14 +64,14 @@ describe('fechas-precios', () => {
       expect(calcularFechaFin('2026-03-10', 'ALGO_RARO')).toBe('2026-04-10');
     });
 
-    // HALLAZGO AS-IS: VISITA_10/VISITA_15 no tienen caso propio y caen al fallback
-    // de +1 mes, aunque su etiqueta comercial dice "2 meses". Documentado para Fase 5.
-    it('VISITA_10 cae al fallback de +1 mes (posible bug documentado)', () => {
-      expect(calcularFechaFin('2026-03-10', 'VISITA_10')).toBe('2026-04-10');
+    // Vigencia definida por el negocio (2026-07-09): los planes por visitas duran 2 meses,
+    // como indica su etiqueta comercial "10/15 visitas (2 meses)".
+    it('VISITA_10 suma 2 meses', () => {
+      expect(calcularFechaFin('2026-03-10', 'VISITA_10')).toBe('2026-05-10');
     });
 
-    it('VISITA_15 cae al fallback de +1 mes (posible bug documentado)', () => {
-      expect(calcularFechaFin('2026-03-10', 'VISITA_15')).toBe('2026-04-10');
+    it('VISITA_15 suma 2 meses', () => {
+      expect(calcularFechaFin('2026-03-10', 'VISITA_15')).toBe('2026-05-10');
     });
 
   });

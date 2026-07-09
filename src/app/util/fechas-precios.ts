@@ -45,6 +45,10 @@ export function calcularFechaFin(
     case 'ANUAL':
     case 'UN_ANIO':       addYears(1);  break;
 
+    // Planes por visitas: vigencia comercial de 2 meses
+    case 'VISITA_10':
+    case 'VISITA_15':     addMonths(2); break;
+
     default:              addMonths(1);  break; // fallback razonable
   }
   return d.toISOString().slice(0, 10);
