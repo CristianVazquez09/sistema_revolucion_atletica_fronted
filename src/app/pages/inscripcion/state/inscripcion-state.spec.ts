@@ -145,15 +145,25 @@ describe('Inscripcion State', () => {
         const action = InscripcionActions.reset();
         const nextState = inscripcionReducer(modifiedState, action);
 
-        expect(nextState.listaPaquetes).toEqual([]);
-        expect(nextState.paqueteId).toBe(0);
-        expect(nextState.descuento).toBe(0);
+        expect(nextState.listaPaquetes).toEqual(initialInscripcionState.listaPaquetes);
+        expect(nextState.paqueteId).toBe(initialInscripcionState.paqueteId);
+        expect(nextState.descuento).toBe(initialInscripcionState.descuento);
         expect(nextState.fechaInicio).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       });
     });
   });
 
   describe('Selectors', () => {
+    // Tipo local para ejercitar los fallbacks de getId del selector
+    // (paqueteId / id / id_paquete). getId prueba idPaquete PRIMERO,
+    // por lo que estos fixtures deben OMITIR idPaquete para llegar a
+    // las llaves alternas. Un cast por fixture, acotado a este tipo.
+    type PaqueteConIdsAlternos = Omit<PaqueteData, 'idPaquete'> & {
+      paqueteId?: number;
+      id?: number;
+      id_paquete?: number;
+    };
+
     const p1: PaqueteData = {
       idPaquete: 1,
       nombre: 'Mensual',
@@ -188,18 +198,48 @@ describe('Inscripcion State', () => {
       });
 
       it('should find paquete using paqueteId field', () => {
-        const paqueteWithPaqueteId: PaqueteData = {
+        const paqueteConPaqueteId: PaqueteConIdsAlternos = {
           paqueteId: 3,
           nombre: 'Test',
           precio: 100,
           tiempo: TiempoPlan.MENSUAL,
           costoInscripcion: 50,
           activo: true,
-        } as any;
-        const lista = [paqueteWithPaqueteId];
+        };
+        const lista = [paqueteConPaqueteId] as PaqueteData[];
         const id = 3;
         const result = selectPaqueteActual.projector(lista, id);
-        expect(result).toEqual(paqueteWithPaqueteId);
+        expect(result).toEqual(paqueteConPaqueteId as PaqueteData);
+      });
+
+      it('should find paquete using id field', () => {
+        const paqueteConId: PaqueteConIdsAlternos = {
+          id: 5,
+          nombre: 'Test',
+          precio: 100,
+          tiempo: TiempoPlan.MENSUAL,
+          costoInscripcion: 50,
+          activo: true,
+        };
+        const lista = [paqueteConId] as PaqueteData[];
+        const id = 5;
+        const result = selectPaqueteActual.projector(lista, id);
+        expect(result).toEqual(paqueteConId as PaqueteData);
+      });
+
+      it('should find paquete using id_paquete field', () => {
+        const paqueteConIdPaqueteSnake: PaqueteConIdsAlternos = {
+          id_paquete: 6,
+          nombre: 'Test',
+          precio: 100,
+          tiempo: TiempoPlan.MENSUAL,
+          costoInscripcion: 50,
+          activo: true,
+        };
+        const lista = [paqueteConIdPaqueteSnake] as PaqueteData[];
+        const id = 6;
+        const result = selectPaqueteActual.projector(lista, id);
+        expect(result).toEqual(paqueteConIdPaqueteSnake as PaqueteData);
       });
 
       it('should handle empty lista', () => {
@@ -210,6 +250,8 @@ describe('Inscripcion State', () => {
       });
     });
 
+    // Fixtures deliberadamente malformados: los selectors defienden contra
+    // datos sucios del backend; el cast está justificado y acotado a este describe.
     describe('selectPrecioPaquete', () => {
       it('should return precio from paquete', () => {
         const result = selectPrecioPaquete.projector(p1);
