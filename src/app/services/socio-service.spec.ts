@@ -98,6 +98,14 @@ describe('SocioService', () => {
     req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 5 });
   });
 
+  it('buscarSocios(0, 5, "GIMNASIO") sin activo solo agrega tipoPaquete', () => {
+    service.buscarSocios(0, 5, TipoPaquete.GIMNASIO).subscribe();
+
+    const req = httpMock.expectOne(r => r.urlWithParams === `${BASE}/buscar?page=0&size=5&tipoPaquete=GIMNASIO`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 5 });
+  });
+
   it('buscarSocios(0, 5, "GIMNASIO", true) hace GET con tipoPaquete y activo', () => {
     service.buscarSocios(0, 5, TipoPaquete.GIMNASIO, true).subscribe();
 
@@ -122,6 +130,16 @@ describe('SocioService', () => {
     const req = httpMock.expectOne(r => r.urlWithParams === `${BASE}/buscar?page=1&size=10&nombre=test&activo=true`);
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], totalElements: 0, totalPages: 0, number: 1, size: 10 });
+  });
+
+  it('buscarSociosPorNombre con tipoPaquete y soloVigentes arma el query en orden nombre/tipoPaquete/soloVigentes', () => {
+    service.buscarSociosPorNombre('ana', 0, 5, undefined, TipoPaquete.GIMNASIO, true).subscribe();
+
+    const req = httpMock.expectOne(
+      r => r.urlWithParams === `${BASE}/buscar?page=0&size=5&nombre=ana&tipoPaquete=GIMNASIO&soloVigentes=true`
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 5 });
   });
 
   // ======== obtenerAsesoriasDeSocio ========
@@ -155,8 +173,17 @@ describe('SocioService', () => {
     req.flush(fixture);
   });
 
-  it('buscarPorHuella sin prefijo envía como está (tras trim)', () => {
+  it('buscarPorHuella sin prefijo envía como está', () => {
     service.buscarPorHuella('BBBB').subscribe();
+
+    const req = httpMock.expectOne(`${BASE}/buscar-por-huella`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ huellaDigital: 'BBBB' });
+    req.flush(fixture);
+  });
+
+  it('buscarPorHuella sin coma aplica trim a los espacios', () => {
+    service.buscarPorHuella('  BBBB  ').subscribe();
 
     const req = httpMock.expectOne(`${BASE}/buscar-por-huella`);
     expect(req.request.method).toBe('POST');
