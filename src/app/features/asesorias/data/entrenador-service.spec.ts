@@ -1,23 +1,25 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { AsesoriaService } from './asesoria-service';
-import { EntrenadorData } from '../shared/models/entrenador-data';
-import { environment } from '../../environments/environment';
+import { EntrenadorService } from './entrenador-service';
+import { EntrenadorData } from '../../../shared/models/entrenador-data';
+import { environment } from '../../../../environments/environment';
 
-describe('AsesoriaService', () => {
-  const BASE = `${environment.HOST}/asesorias`;
-  let service: AsesoriaService;
+describe('EntrenadorService', () => {
+  const BASE = `${environment.HOST}/entrenadores`;
+  let service: EntrenadorService;
   let httpMock: HttpTestingController;
 
-  // AS-IS: AsesoriaService tipa su genérico con EntrenadorData
+  // Patrón para specs de servicios: fixture tipado completo (sin casts por unknown),
+  // asertar SIEMPRE método/URL/body del request; el valor de respuesta se asevera
+  // una vez por spec (en buscarTodos) porque GenericService no transforma respuestas.
   const entrenador: EntrenadorData = { idEntrenador: 1, nombre: 'Juan', apellido: 'Pérez', activo: true };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
-    service = TestBed.inject(AsesoriaService);
+    service = TestBed.inject(EntrenadorService);
     httpMock = TestBed.inject(HttpTestingController);
   });
 
@@ -62,5 +64,12 @@ describe('AsesoriaService', () => {
     const req = httpMock.expectOne(`${BASE}/7`);
     expect(req.request.method).toBe('DELETE');
     req.flush(null);
+  });
+
+  it('listarAsesoriasActivas hace GET a base/{id}/asesorias-activas', () => {
+    service.listarAsesoriasActivas(5).subscribe();
+    const req = httpMock.expectOne(`${BASE}/5/asesorias-activas`);
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
   });
 });

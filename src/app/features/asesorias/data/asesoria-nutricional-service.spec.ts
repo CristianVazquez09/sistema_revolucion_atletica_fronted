@@ -6,9 +6,9 @@ import {
   AsesoriaNutricionalData,
   AsesoriaNutricionalUpsertDTO,
   AsesoriaNutricionalVigenciaDTO,
-} from '../model/asesoria-nutricional-data';
-import { environment } from '../../environments/environment';
-import { SocioData } from '../shared/models/socio-data';
+} from '../models/asesoria-nutricional-data';
+import { environment } from '../../../../environments/environment';
+import { SocioData } from '../../../shared/models/socio-data';
 
 describe('AsesoriaNutricionalService', () => {
   const BASE = `${environment.HOST}/asesorias-nutricionales`;

@@ -1,4 +1,4 @@
-import { SocioData } from '../shared/models/socio-data';
+import { SocioData } from '../../../shared/models/socio-data';
 
 export interface AsesoriaNutricionalData {
   id?: number;                 // backend: /{id}

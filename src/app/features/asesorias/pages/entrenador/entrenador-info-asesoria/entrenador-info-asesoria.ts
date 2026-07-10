@@ -18,7 +18,7 @@ import { AsesoriaContratoData } from 'src/app/shared/models/asesoria-contrato-da
 import { PagoData } from 'src/app/shared/models/membresia-data';
 import { EntrenadorData } from 'src/app/shared/models/entrenador-data';
 
-import { EntrenadorService } from 'src/app/services/entrenador-service';
+import { EntrenadorService } from 'src/app/features/asesorias/data/entrenador-service';
 import { MenuService } from 'src/app/core/layout/menu-service';
 
 @Component({

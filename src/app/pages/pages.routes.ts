@@ -12,14 +12,11 @@ import { Asistencia } from './asistencia/asistencia';
 import { Historial } from './inscripcion/historial/historial';
 import { AgregarMembresia } from './agregar-membresia/agregar-membresia';
 import { Administracion } from './administracion/administracion';
-import { Entrenador } from './entrenador/entrenador';
-import { Asesoria } from './asesoria/asesoria';
 import { gerenteGuard } from '../core/auth/gerente-guards';
 import { adminGuard } from '../core/auth/admin-guards';
 import { AsistenciaHistorial } from './inscripcion/asistencia-historial/asistencia-historial';
 import { ReinscripcionAdelantada } from './inscripcion/reinscripcion-adelantada/reinscripcion-adelantada';
 import { SocioInfoAsesoria } from './socio/socio-info-asesoria/socio-info-asesoria';
-import { EntrenadorInfoAsesoria } from './entrenador/entrenador-info-asesoria/entrenador-info-asesoria';
 
 import { operacionGuard } from '../core/auth/operacion-guards';
 
@@ -49,12 +46,23 @@ export const pagesRoutes: Routes = [
   { path: 'historial', component: Historial },
   { path: 'corte-caja', loadChildren: () => import('../features/corte-caja/corte-caja.routes').then(m => m.CORTE_CAJA_ROUTES) },
   { path: 'agregar-membresia', component: AgregarMembresia },
-  { path: 'entrenador', component: Entrenador },
-  { path: 'asesoria', component: Asesoria },
+  {
+    path: 'entrenador',
+    loadComponent: () =>
+      import('../features/asesorias/pages/entrenador/entrenador').then((m) => m.Entrenador),
+  },
+  {
+    path: 'asesoria',
+    loadComponent: () =>
+      import('../features/asesorias/pages/asesoria/asesoria').then((m) => m.Asesoria),
+  },
   { path: 'socio/:idSocio/asesorias', component: SocioInfoAsesoria },
   {
     path: 'entrenador/:idEntrenador/asesorias',
-    component: EntrenadorInfoAsesoria,
+    loadComponent: () =>
+      import('../features/asesorias/pages/entrenador/entrenador-info-asesoria/entrenador-info-asesoria').then(
+        (m) => m.EntrenadorInfoAsesoria,
+      ),
   },
 
   {
@@ -151,7 +159,7 @@ export const pagesRoutes: Routes = [
       {
         path: 'asesorias-nutricionales',
         loadComponent: () =>
-          import('./asesoria-nutricional/asesoria-nutricional').then(
+          import('../features/asesorias/pages/asesoria-nutricional/asesoria-nutricional').then(
             (m) => m.AsesoriaNutricional,
           ),
         data: { title: 'Asesorías nutricionales' },

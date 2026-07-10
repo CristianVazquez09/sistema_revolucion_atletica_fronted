@@ -21,8 +21,8 @@ import { environment } from 'src/environments/environment';
 
 import { MenuService } from 'src/app/core/layout/menu-service';
 
-import { AsesoriaNutricionalService } from 'src/app/services/asesoria-nutricional-service';
-import { AsesoriaNutricionalData } from 'src/app/model/asesoria-nutricional-data';
+import { AsesoriaNutricionalService } from 'src/app/features/asesorias/data/asesoria-nutricional-service';
+import { AsesoriaNutricionalData } from 'src/app/features/asesorias/models/asesoria-nutricional-data';
 
 import { AsesoriaNutriocionalModal } from './asesoria-nutriocional-modal/asesoria-nutriocional-modal';
 

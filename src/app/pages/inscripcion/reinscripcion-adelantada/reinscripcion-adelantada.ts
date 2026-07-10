@@ -23,7 +23,7 @@ import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 import { GimnasioService } from 'src/app/services/gimnasio-service';
 import { TicketService, VentaContexto } from 'src/app/services/ticket-service';
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { EntrenadorService } from 'src/app/services/entrenador-service';
+import { EntrenadorService } from 'src/app/features/asesorias/data/entrenador-service';
 
 import { SocioData } from 'src/app/shared/models/socio-data';
 import { MembresiaData, PagoData } from 'src/app/shared/models/membresia-data';
@@ -44,7 +44,7 @@ import { HuellaModal, HuellaResultado } from '../../huella-modal/huella-modal';
 import {
   AsesoriaNutricionalService,
   AsesoriaNutricionalEstadoDTO,
-} from 'src/app/services/asesoria-nutricional-service';
+} from 'src/app/features/asesorias/data/asesoria-nutricional-service';
 
 // ===================== Helpers fechas ISO (local) =====================
 function parseLocalDate(iso: string): Date {

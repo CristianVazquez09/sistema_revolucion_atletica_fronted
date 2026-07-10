@@ -4,15 +4,15 @@ import { Component, HostListener, OnInit, inject, computed } from '@angular/core
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
-import { EntrenadorService } from '../../services/entrenador-service';
-import { GimnasioService } from '../../services/gimnasio-service';
-import { NotificacionService } from '../../core/layout/notificacion-service';
+import { EntrenadorService } from '../../data/entrenador-service';
+import { GimnasioService } from '../../../../services/gimnasio-service';
+import { NotificacionService } from '../../../../core/layout/notificacion-service';
 
-import { EntrenadorData } from '../../shared/models/entrenador-data';
-import { GimnasioData } from '../../shared/models/gimnasio-data';
+import { EntrenadorData } from '../../../../shared/models/entrenador-data';
+import { GimnasioData } from '../../../../shared/models/gimnasio-data';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-entrenador',

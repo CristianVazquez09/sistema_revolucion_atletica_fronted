@@ -17,7 +17,7 @@ import { SocioService } from '../../services/socio-service';
 import { MembresiaService } from '../../services/membresia-service';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 import { PaqueteService } from '../../services/paquete-service';
-import { EntrenadorService } from '../../services/entrenador-service';
+import { EntrenadorService } from '../../features/asesorias/data/entrenador-service';
 
 import { SocioData } from '../../shared/models/socio-data';
 import { PagoData } from '../../shared/models/membresia-data';
@@ -60,7 +60,7 @@ import {
 import {
   AsesoriaNutricionalService,
   AsesoriaNutricionalEstadoDTO,
-} from 'src/app/services/asesoria-nutricional-service';
+} from 'src/app/features/asesorias/data/asesoria-nutricional-service';
 
 import { forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';

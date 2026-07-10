@@ -35,7 +35,7 @@ import { MembresiaService } from '../../services/membresia-service';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 import { GimnasioService } from '../../services/gimnasio-service';
 import { TicketService, VentaContexto } from '../../services/ticket-service';
-import { EntrenadorService } from '../../services/entrenador-service';
+import { EntrenadorService } from '../../features/asesorias/data/entrenador-service';
 
 import { PaqueteData } from '../../shared/models/paquete-data';
 import { SocioData } from '../../shared/models/socio-data';

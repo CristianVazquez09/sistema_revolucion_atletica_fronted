@@ -8,31 +8,31 @@ import {
 } from '@angular/forms';
 import { finalize, of, switchMap } from 'rxjs';
 
-import { EntrenadorService } from '../../services/entrenador-service';
-import { SocioService } from '../../services/socio-service';
-import { GimnasioService } from '../../services/gimnasio-service';
+import { EntrenadorService } from '../../data/entrenador-service';
+import { SocioService } from '../../../../services/socio-service';
+import { GimnasioService } from '../../../../services/gimnasio-service';
 
-import { EntrenadorData } from '../../shared/models/entrenador-data';
-import { SocioData } from '../../shared/models/socio-data';
-import { GimnasioData } from '../../shared/models/gimnasio-data';
-import { TiempoPlan } from '../../shared/util/enums/tiempo-plan';
-import { PagoData } from '../../shared/models/membresia-data';
+import { EntrenadorData } from '../../../../shared/models/entrenador-data';
+import { SocioData } from '../../../../shared/models/socio-data';
+import { GimnasioData } from '../../../../shared/models/gimnasio-data';
+import { TiempoPlan } from '../../../../shared/util/enums/tiempo-plan';
+import { PagoData } from '../../../../shared/models/membresia-data';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../../environments/environment';
 import {
   TicketPagoDetalle,
   TicketService,
   VentaContexto,
-} from '../../services/ticket-service';
-import { ResumenVenta } from '../resumen-venta/resumen-venta';
-import { crearContextoTicket, obtenerNombreCajero } from '../../shared/util/ticket-contexto';
-import { AsesoriaCreateRequest } from '../../model/asesoria-data';
-import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
-import { AsesoriaService } from '../../services/asesoria-service';
+} from '../../../../services/ticket-service';
+import { ResumenVenta } from '../../../../pages/resumen-venta/resumen-venta';
+import { crearContextoTicket, obtenerNombreCajero } from '../../../../shared/util/ticket-contexto';
+import { AsesoriaCreateRequest } from '../../models/asesoria-data';
+import { TiempoPlanLabelPipe } from '../../../../shared/util/tiempo-plan-label';
+import { AsesoriaService } from '../../data/asesoria-service';
 
 // ⬇️ Modal de Huella (igual que en Asistencia)
-import { HuellaModal, HuellaResultado } from '../huella-modal/huella-modal';
+import { HuellaModal, HuellaResultado } from '../../../../pages/huella-modal/huella-modal';
 import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 
 @Component({
