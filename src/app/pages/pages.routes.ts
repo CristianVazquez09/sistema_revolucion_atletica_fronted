@@ -5,7 +5,6 @@ import { Inscripcion } from './inscripcion/inscripcion';
 import { Paquete } from './paquete/paquete';
 import { Producto } from './producto/producto';
 import { Categoria } from './categoria/categoria';
-import { PuntoVenta } from './punto-venta/punto-venta';
 import { SocioInformacion } from './socio/socio-informacion/socio-informacion';
 import { Reinscripcion } from './reinscripcion/reinscripcion';
 import { Historial } from './inscripcion/historial/historial';
@@ -44,7 +43,13 @@ export const pagesRoutes: Routes = [
   { path: 'productos', component: Producto, canMatch: [operacionGuard] },
 
   { path: 'categoria', component: Categoria },
-  { path: 'punto-venta', component: PuntoVenta },
+  {
+    path: 'punto-venta',
+    loadComponent: () =>
+      import('../features/punto-venta/pages/punto-venta/punto-venta').then(
+        (m) => m.PuntoVenta,
+      ),
+  },
   { path: 'socio/:idSocio/historial', component: SocioInformacion },
   { path: 'reinscripcion/:id', component: Reinscripcion },
   { path: 'historial', component: Historial },

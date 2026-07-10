@@ -10,23 +10,23 @@ import {
   finalize,
 } from 'rxjs';
 
-import { CategoriaService } from '../../services/categoria-service';
-import { ProductoService } from '../../services/producto-service';
-import { VentaService } from '../../services/venta-service';
-import { GimnasioService } from '../../services/gimnasio-service';
-import { TicketService, VentaContexto } from '../../shared/ticket/ticket-service';
+import { CategoriaService } from '../../../../services/categoria-service';
+import { ProductoService } from '../../../../services/producto-service';
+import { VentaService } from '../../../../services/venta-service';
+import { GimnasioService } from '../../../../services/gimnasio-service';
+import { TicketService, VentaContexto } from '../../../../shared/ticket/ticket-service';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
-import { CategoriaData } from '../../shared/models/categoria-data';
-import { ProductoData } from '../../shared/models/producto-data';
-import { ResumenVenta } from '../../shared/ui/resumen-venta/resumen-venta';
-import { NotificacionService } from '../../core/layout/notificacion-service';
-import { VentaCreateRequest } from '../../model/venta-create';
-import { GimnasioData } from '../../shared/models/gimnasio-data';
-import { environment } from '../../../environments/environment';
-import { CarritoItem, CarritoService } from '../../services/carrito-service';
-import { crearContextoTicket, obtenerNombreCajero } from '../../shared/util/ticket-contexto';
-import { PagoData } from '../../shared/models/membresia-data';
+import { CategoriaData } from '../../../../shared/models/categoria-data';
+import { ProductoData } from '../../../../shared/models/producto-data';
+import { ResumenVenta } from '../../../../shared/ui/resumen-venta/resumen-venta';
+import { NotificacionService } from '../../../../core/layout/notificacion-service';
+import { VentaCreateRequest } from '../../../../model/venta-create';
+import { GimnasioData } from '../../../../shared/models/gimnasio-data';
+import { environment } from '../../../../../environments/environment';
+import { CarritoItem, CarritoService } from '../../data/carrito-service';
+import { crearContextoTicket, obtenerNombreCajero } from '../../../../shared/util/ticket-contexto';
+import { PagoData } from '../../../../shared/models/membresia-data';
 
 @Component({
   selector: 'app-punto-venta',
