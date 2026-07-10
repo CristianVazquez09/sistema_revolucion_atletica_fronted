@@ -5,6 +5,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { MenuService } from '../../core/layout/menu-service';
 import { MenuData } from '../../shared/models/menu-data';
 import { environment } from '../../../environments/environment';
+// TODO(Fase 3c): edge cross-feature temporal; menu-principal migra a features/cuenta
 import { CorteCajaService } from '../../features/corte-caja/data/corte-caja-service';
 import { NgClass } from '@angular/common';
 import {
