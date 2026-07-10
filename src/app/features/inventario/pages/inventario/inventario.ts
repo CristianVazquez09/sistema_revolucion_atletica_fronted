@@ -1,4 +1,4 @@
-// src/app/pages/inventario/inventario.ts
+// src/app/features/inventario/pages/inventario/inventario.ts
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal, DestroyRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -6,20 +6,20 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { environment } from '../../../environments/environment';
-import { hoyISO } from '../../shared/util/fechas-precios';
+import { environment } from '../../../../../environments/environment';
+import { hoyISO } from '../../../../shared/util/fechas-precios';
 
 import { MenuService } from 'src/app/core/layout/menu-service';
-import { InventarioService } from '../../services/inventario-service';
-import { GimnasioService } from '../../services/gimnasio-service';
-import { NotificacionService } from '../../core/layout/notificacion-service';
+import { InventarioService } from '../../data/inventario-service';
+import { GimnasioService } from '../../../../services/gimnasio-service';
+import { NotificacionService } from '../../../../core/layout/notificacion-service';
 
-import { GimnasioData } from '../../shared/models/gimnasio-data';
+import { GimnasioData } from '../../../../shared/models/gimnasio-data';
 import {
   InventarioDiarioProductoData,
   InventarioTurnoResponseData,
   TurnoInventario,
-} from '../../model/inventario-diario-data';
+} from '../../models/inventario-diario-data';
 
 // Horarios de cierre por turno (24h, "HH:mm") — ajusta según tu negocio
 const HORA_CIERRE_TURNO: Record<TurnoInventario, string> = {

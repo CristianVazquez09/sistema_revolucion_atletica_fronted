@@ -22,7 +22,6 @@ import { ReinscripcionAdelantada } from './inscripcion/reinscripcion-adelantada/
 import { SocioInfoAsesoria } from './socio/socio-info-asesoria/socio-info-asesoria';
 import { EntrenadorInfoAsesoria } from './entrenador/entrenador-info-asesoria/entrenador-info-asesoria';
 
-import { Inventario } from './inventario/inventario';
 import { operacionGuard } from '../core/auth/operacion-guards';
 
 export const pagesRoutes: Routes = [
@@ -39,7 +38,7 @@ export const pagesRoutes: Routes = [
   { path: 'inscripcion', component: Inscripcion },
 
   // ✅ Inventario diario (todos los roles autenticados que tengan el menú)
-  { path: 'inventario', component: Inventario },
+  { path: 'inventario', loadChildren: () => import('../features/inventario/inventario.routes').then(m => m.INVENTARIO_ROUTES) },
 
   // ✅ Productos (solo Admin/Gerente)
   { path: 'productos', component: Producto, canMatch: [operacionGuard] },
