@@ -11,7 +11,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CorteMovimientoViewDTO } from '../../../model/corte-caja-data';
+import { CorteMovimientoViewDTO } from '../../../../../shared/models/corte-caja-data';
 
 @Component({
   selector: 'app-corte-caja-modal',

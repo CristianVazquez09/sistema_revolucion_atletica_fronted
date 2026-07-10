@@ -10,7 +10,6 @@ import { SocioInformacion } from './socio/socio-informacion/socio-informacion';
 import { Reinscripcion } from './reinscripcion/reinscripcion';
 import { Asistencia } from './asistencia/asistencia';
 import { Historial } from './inscripcion/historial/historial';
-import { CorteCaja } from './corte-caja/corte-caja';
 import { AgregarMembresia } from './agregar-membresia/agregar-membresia';
 import { Administracion } from './administracion/administracion';
 import { Entrenador } from './entrenador/entrenador';
@@ -48,7 +47,7 @@ export const pagesRoutes: Routes = [
   { path: 'socio/:idSocio/historial', component: SocioInformacion },
   { path: 'reinscripcion/:id', component: Reinscripcion },
   { path: 'historial', component: Historial },
-  { path: 'corte-caja', component: CorteCaja },
+  { path: 'corte-caja', loadChildren: () => import('../features/corte-caja/corte-caja.routes').then(m => m.CORTE_CAJA_ROUTES) },
   { path: 'agregar-membresia', component: AgregarMembresia },
   { path: 'entrenador', component: Entrenador },
   { path: 'asesoria', component: Asesoria },

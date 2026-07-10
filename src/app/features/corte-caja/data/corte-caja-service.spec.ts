@@ -12,8 +12,8 @@ import {
   CorteDesgloseDTO,
   CorteCajaListado,
   PagedResponse,
-} from '../model/corte-caja-data';
-import { environment } from '../../environments/environment';
+} from '../../../shared/models/corte-caja-data';
+import { environment } from '../../../../environments/environment';
 
 describe('CorteCajaService', () => {
   const BASE = `${environment.HOST}/cortes`;

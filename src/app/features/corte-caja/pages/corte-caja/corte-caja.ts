@@ -6,8 +6,8 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { distinctUntilChanged, skip } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { CorteCajaService } from '../../services/corte-caja-service';
-import { NotificacionService } from '../../core/layout/notificacion-service';
+import { CorteCajaService } from '../../data/corte-caja-service';
+import { NotificacionService } from '../../../../core/layout/notificacion-service';
 import {
   CorteCajaResponseDTO,
   CerrarCorte,
@@ -17,10 +17,10 @@ import {
   RegistrarSalidaEfectivoRequest,
   CorteDesgloseDTO,
   CorteMovimientoViewDTO,
-} from '../../model/corte-caja-data';
-import { environment } from '../../../environments/environment';
-import { TicketService } from '../../services/ticket-service';
-import { obtenerNombreCajero } from '../../shared/util/ticket-contexto';
+} from '../../../../shared/models/corte-caja-data';
+import { environment } from '../../../../../environments/environment';
+import { TicketService } from '../../../../services/ticket-service';
+import { obtenerNombreCajero } from '../../../../shared/util/ticket-contexto';
 
 // ✅ Modal
 import { CorteCajaModal } from './corte-caja-modal/corte-caja-modal';

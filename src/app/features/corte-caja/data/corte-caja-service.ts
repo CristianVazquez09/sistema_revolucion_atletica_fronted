@@ -1,8 +1,8 @@
 import { HttpClient, HttpResponse, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
-import { GenericService } from '../core/http/generic-service';
+import { environment } from '../../../../environments/environment';
+import { GenericService } from '../../../core/http/generic-service';
 import {
   CorteCajaResponseDTO,
   CerrarCorte,
@@ -13,7 +13,7 @@ import {
   RegistrarSalidaEfectivoRequest,
   SalidaEfectivo,
   CorteDesgloseDTO,
-} from '../model/corte-caja-data';
+} from '../../../shared/models/corte-caja-data';
 import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })

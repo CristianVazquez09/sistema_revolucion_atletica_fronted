@@ -15,8 +15,8 @@ import { finalize } from 'rxjs';
 import {
   CorteCajaListado,
   CorteMovimientoViewDTO,
-} from 'src/app/model/corte-caja-data';
-import { CorteCajaService } from 'src/app/services/corte-caja-service';
+} from 'src/app/shared/models/corte-caja-data';
+import { CorteCajaService } from 'src/app/features/corte-caja/data/corte-caja-service';
 import { FormsModule } from '@angular/forms';
 
 @Component({
