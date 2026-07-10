@@ -19,7 +19,7 @@ import { GimnasioService } from '../../../services/gimnasio-service';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../environments/environment';
-import { HuellaModal, HuellaResultado } from '../../shared/huella/huella-modal/huella-modal';
+import { HuellaModal, HuellaResultado } from '../../../shared/huella/huella-modal/huella-modal';
 
 const MULTI_WS = /\s+/g;
 
