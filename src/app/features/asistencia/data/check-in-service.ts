@@ -1,4 +1,4 @@
-// src/app/services/check-in-service.ts
+// src/app/features/asistencia/data/check-in-service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
