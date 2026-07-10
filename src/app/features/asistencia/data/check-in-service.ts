@@ -3,11 +3,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
-import { environment } from '../../environments/environment';
-import { MembresiaData } from '../shared/models/membresia-data';
-import { SocioData } from '../shared/models/socio-data';
-import { AsistenciaHistorialData } from '../model/asistencia-historial-data';
-import { PagedResponse, toPagedResponse } from '../shared/models/paged-response';
+import { environment } from '../../../../environments/environment';
+import { MembresiaData } from '../../../shared/models/membresia-data';
+import { SocioData } from '../../../shared/models/socio-data';
+import { AsistenciaHistorialData } from '../models/asistencia-historial-data';
+import { PagedResponse, toPagedResponse } from '../../../shared/models/paged-response';
 
 export interface CheckInRequest {
   idSocio?: number | null;

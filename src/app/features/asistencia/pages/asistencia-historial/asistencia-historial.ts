@@ -7,13 +7,13 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { CheckInService } from 'src/app/services/check-in-service';
-import { AsistenciaHistorialData } from 'src/app/model/asistencia-historial-data';
-import { PagedResponse } from 'src/app/shared/models/paged-response';
-import { TiempoPlanLabelPipe } from 'src/app/shared/util/tiempo-plan-label';
+import { CheckInService } from '../../data/check-in-service';
+import { AsistenciaHistorialData } from '../../models/asistencia-historial-data';
+import { PagedResponse } from '../../../../shared/models/paged-response';
+import { TiempoPlanLabelPipe } from '../../../../shared/util/tiempo-plan-label';
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { MenuService } from 'src/app/core/layout/menu-service';
-import { environment } from 'src/environments/environment';
+import { MenuService } from '../../../../core/layout/menu-service';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-asistencia-historial',

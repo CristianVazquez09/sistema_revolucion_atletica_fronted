@@ -1,4 +1,4 @@
-import { PaqueteData } from "../shared/models/paquete-data";
+import { PaqueteData } from "../../../shared/models/paquete-data";
 
 export interface AsistenciaHistorialData {
   idAsistencia: number;

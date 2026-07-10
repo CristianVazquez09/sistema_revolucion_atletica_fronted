@@ -8,13 +8,11 @@ import { Categoria } from './categoria/categoria';
 import { PuntoVenta } from './punto-venta/punto-venta';
 import { SocioInformacion } from './socio/socio-informacion/socio-informacion';
 import { Reinscripcion } from './reinscripcion/reinscripcion';
-import { Asistencia } from './asistencia/asistencia';
 import { Historial } from './inscripcion/historial/historial';
 import { AgregarMembresia } from './agregar-membresia/agregar-membresia';
 import { Administracion } from './administracion/administracion';
 import { gerenteGuard } from '../core/auth/gerente-guards';
 import { adminGuard } from '../core/auth/admin-guards';
-import { AsistenciaHistorial } from './inscripcion/asistencia-historial/asistencia-historial';
 import { ReinscripcionAdelantada } from './inscripcion/reinscripcion-adelantada/reinscripcion-adelantada';
 import { SocioInfoAsesoria } from './socio/socio-info-asesoria/socio-info-asesoria';
 
@@ -27,8 +25,14 @@ export const pagesRoutes: Routes = [
     loadComponent: () => import('./home/home').then((m) => m.Home),
   },
   { path: 'paquete', component: Paquete },
-  { path: 'asistencia', component: Asistencia },
-  { path: 'historial-asistencias', component: AsistenciaHistorial },
+  {
+    path: 'asistencia',
+    loadComponent: () => import('../features/asistencia/pages/asistencia/asistencia').then((m) => m.Asistencia),
+  },
+  {
+    path: 'historial-asistencias',
+    loadComponent: () => import('../features/asistencia/pages/asistencia-historial/asistencia-historial').then((m) => m.AsistenciaHistorial),
+  },
   { path: 'reinscripcion-adelantada', component: ReinscripcionAdelantada },
   { path: 'socio', component: Socio },
   { path: 'inscripcion', component: Inscripcion },

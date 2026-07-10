@@ -6,20 +6,20 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
-import { SocioService } from '../../services/socio-service';
-import { SocioData } from '../../shared/models/socio-data';
-import { MembresiaService } from '../../services/membresia-service';
-import { NotificacionService } from '../../core/layout/notificacion-service';
+import { SocioService } from '../../../../services/socio-service';
+import { SocioData } from '../../../../shared/models/socio-data';
+import { MembresiaService } from '../../../../services/membresia-service';
+import { NotificacionService } from '../../../../core/layout/notificacion-service';
 import { AsistenciaStore } from './asistencia-store';
 
-import { MembresiaData } from '../../shared/models/membresia-data';
-import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
-import { dateLocalFromISO, hoyISO } from '../../shared/util/fechas-precios';
-import { HuellaModal, HuellaResultado } from '../../shared/huella/huella-modal/huella-modal';
+import { MembresiaData } from '../../../../shared/models/membresia-data';
+import { TiempoPlanLabelPipe } from '../../../../shared/util/tiempo-plan-label';
+import { dateLocalFromISO, hoyISO } from '../../../../shared/util/fechas-precios';
+import { HuellaModal, HuellaResultado } from '../../../../shared/huella/huella-modal/huella-modal';
 
-import { PaqueteData } from '../../shared/models/paquete-data';
-import { TiempoPlan } from '../../shared/util/enums/tiempo-plan';
-import { CheckInService, CheckInResponse } from 'src/app/services/check-in-service';
+import { PaqueteData } from '../../../../shared/models/paquete-data';
+import { TiempoPlan } from '../../../../shared/util/enums/tiempo-plan';
+import { CheckInService, CheckInResponse } from '../../data/check-in-service';
 
 type EstadoSemaforo = 'verde' | 'amarillo' | 'rojo';
 
