@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { UsuarioService } from '../../../services/usuario-service';
-import { UsuarioData } from '../../../model/usuario-data';
+import { UsuarioData } from '../../../shared/models/usuario-data';
 import { UsuariosAdminModal } from './usuarios-admin-modal/usuarios-admin-modal';
 
 @Component({

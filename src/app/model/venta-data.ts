@@ -1,6 +1,6 @@
 import { PagoData } from '../shared/models/membresia-data';
 import { DetalleVentaData } from './detalle-venta-data';
-import { UsuarioData } from './usuario-data';
+import { UsuarioData } from '../shared/models/usuario-data';
 import { GimnasioData } from '../shared/models/gimnasio-data';
 
 /** Respuesta del backend para una venta */

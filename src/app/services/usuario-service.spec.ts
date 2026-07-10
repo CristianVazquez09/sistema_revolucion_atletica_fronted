@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { UsuarioService } from './usuario-service';
-import { UsuarioData } from '../model/usuario-data';
+import { UsuarioData } from '../shared/models/usuario-data';
 import { environment } from '../../environments/environment';
 
 describe('UsuarioService', () => {

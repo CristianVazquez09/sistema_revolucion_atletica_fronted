@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { UsuarioData } from '../model/usuario-data';
+import { UsuarioData } from '../shared/models/usuario-data';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { GenericService } from '../core/http/generic-service';

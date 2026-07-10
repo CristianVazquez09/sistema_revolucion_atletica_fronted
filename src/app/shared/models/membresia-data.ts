@@ -3,7 +3,7 @@ import { TipoPago } from '../util/enums/tipo-pago';
 import { GimnasioData } from './gimnasio-data';
 import { PaqueteData } from './paquete-data';
 import { SocioData } from './socio-data';
-import { UsuarioData } from '../../model/usuario-data';
+import { UsuarioData } from './usuario-data';
 
 export interface PagoData {
   tipoPago: TipoPago;
