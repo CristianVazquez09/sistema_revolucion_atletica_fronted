@@ -1,4 +1,4 @@
-// src/app/services/ticket-service.ts
+// src/app/shared/ticket/ticket-service.ts
 import { Injectable } from '@angular/core';
 
 // =========================
