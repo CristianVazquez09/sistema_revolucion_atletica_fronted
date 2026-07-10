@@ -1,6 +1,6 @@
 import { GimnasioData } from "./gimnasio-data";
 
-// src/app/model/socio.ts
+// src/app/shared/models/socio-data.ts
 export interface SocioData {
   idSocio: number;
   nombre: string;
