@@ -15,7 +15,7 @@ import { AsistenciaStore } from './asistencia-store';
 import { MembresiaData } from '../../shared/models/membresia-data';
 import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
 import { dateLocalFromISO, hoyISO } from '../../shared/util/fechas-precios';
-import { HuellaModal, HuellaResultado } from '../huella-modal/huella-modal';
+import { HuellaModal, HuellaResultado } from '../../shared/huella/huella-modal/huella-modal';
 
 import { PaqueteData } from '../../shared/models/paquete-data';
 import { TiempoPlan } from '../../shared/util/enums/tiempo-plan';

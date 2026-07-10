@@ -38,7 +38,7 @@ import { environment } from 'src/environments/environment';
 import { calcularFechaFin, hoyISO as hoyISOUtil } from 'src/app/shared/util/fechas-precios';
 import { TiempoPlan } from 'src/app/shared/util/enums/tiempo-plan';
 
-import { HuellaModal, HuellaResultado } from '../../huella-modal/huella-modal';
+import { HuellaModal, HuellaResultado } from '../../../shared/huella/huella-modal/huella-modal';
 
 // ✅ Asesoría Nutricional (nuevo endpoint estado)
 import {

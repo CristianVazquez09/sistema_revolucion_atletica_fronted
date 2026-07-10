@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnDestroy, OnInit, Output, signal, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SampleFormat } from '@digitalpersona/devices';
-import { getHuellaReaderSingleton } from './huella-reader-singleton';
+import { getHuellaReaderSingleton } from '../huella-reader-singleton';
 
 export type HuellaResultado = {
   formato: 'PNG';

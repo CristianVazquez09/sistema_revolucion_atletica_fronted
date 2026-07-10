@@ -32,7 +32,7 @@ import { TiempoPlanLabelPipe } from '../../../../shared/util/tiempo-plan-label';
 import { AsesoriaService } from '../../data/asesoria-service';
 
 // ⬇️ Modal de Huella (igual que en Asistencia)
-import { HuellaModal, HuellaResultado } from '../../../../pages/huella-modal/huella-modal';
+import { HuellaModal, HuellaResultado } from '../../../../shared/huella/huella-modal/huella-modal';
 import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 
 @Component({

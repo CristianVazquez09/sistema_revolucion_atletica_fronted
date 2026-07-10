@@ -28,7 +28,7 @@ import {
 } from 'rxjs';
 
 import { ResumenCompra } from '../resumen-compra/resumen-compra';
-import { HuellaModal } from '../huella-modal/huella-modal';
+import { HuellaModal } from '../../shared/huella/huella-modal/huella-modal';
 
 import { PaqueteService } from '../../services/paquete-service';
 import { MembresiaService } from '../../services/membresia-service';

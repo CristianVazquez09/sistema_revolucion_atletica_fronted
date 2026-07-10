@@ -29,7 +29,7 @@ import { environment } from '../../../environments/environment';
 import { MembresiaData, PagoData } from '../../shared/models/membresia-data';
 
 // 👇 Modal de huella (igual que en Asistencia)
-import { HuellaModal, HuellaResultado } from '../huella-modal/huella-modal';
+import { HuellaModal, HuellaResultado } from '../../shared/huella/huella-modal/huella-modal';
 
 @Component({
   selector: 'app-agregar-membresia',

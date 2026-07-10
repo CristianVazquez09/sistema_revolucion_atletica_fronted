@@ -38,7 +38,7 @@ import { environment } from '../../../environments/environment';
 import { crearContextoTicket, obtenerNombreCajero } from '../../shared/util/ticket-contexto';
 
 // Huella
-import { HuellaModal } from '../huella-modal/huella-modal';
+import { HuellaModal } from '../../shared/huella/huella-modal/huella-modal';
 import { HttpErrorResponse } from '@angular/common/http';
 
 // NgRx
