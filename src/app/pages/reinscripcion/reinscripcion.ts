@@ -25,14 +25,14 @@ import { PaqueteData } from '../../shared/models/paquete-data';
 import { EntrenadorData } from '../../shared/models/entrenador-data';
 
 import { TipoMovimiento } from '../../shared/util/enums/tipo-movimiento';
-import { ResumenCompra } from '../resumen-compra/resumen-compra';
+import { ResumenCompra } from '../../shared/ui/resumen-compra/resumen-compra';
 import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
 import { hoyISO } from '../../shared/util/fechas-precios';
 
 // Ticket
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { GimnasioService } from '../../services/gimnasio-service';
-import { TicketService, VentaContexto } from '../../services/ticket-service';
+import { TicketService, VentaContexto } from '../../shared/ticket/ticket-service';
 import { GimnasioData } from '../../shared/models/gimnasio-data';
 import { environment } from '../../../environments/environment';
 import { crearContextoTicket, obtenerNombreCajero } from '../../shared/util/ticket-contexto';

@@ -10,7 +10,7 @@ import { PaqueteService } from '../../services/paquete-service';
 import { MembresiaService } from '../../services/membresia-service';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 import { GimnasioService } from '../../services/gimnasio-service';
-import { TicketService, VentaContexto } from '../../services/ticket-service';
+import { TicketService, VentaContexto } from '../../shared/ticket/ticket-service';
 import { obtenerNombreCajero } from '../../shared/util/ticket-contexto';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
@@ -18,7 +18,7 @@ import { SocioData } from '../../shared/models/socio-data';
 import { PaqueteData } from '../../shared/models/paquete-data';
 import { GimnasioData } from '../../shared/models/gimnasio-data';
 
-import { ResumenCompra } from '../resumen-compra/resumen-compra';
+import { ResumenCompra } from '../../shared/ui/resumen-compra/resumen-compra';
 import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
 import { TipoMovimiento } from '../../shared/util/enums/tipo-movimiento';
 import { calcularFechaFin, calcularTotal, hoyISO } from '../../shared/util/fechas-precios';

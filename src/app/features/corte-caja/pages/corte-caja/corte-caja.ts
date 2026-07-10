@@ -19,7 +19,7 @@ import {
   CorteMovimientoViewDTO,
 } from '../../../../shared/models/corte-caja-data';
 import { environment } from '../../../../../environments/environment';
-import { TicketService } from '../../../../services/ticket-service';
+import { TicketService } from '../../../../shared/ticket/ticket-service';
 import { obtenerNombreCajero } from '../../../../shared/util/ticket-contexto';
 
 // ✅ Modal

@@ -12,7 +12,7 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, finalize, of, forkJoin } from 'rxjs';
 
-import { ResumenCompra } from '../../resumen-compra/resumen-compra';
+import { ResumenCompra } from '../../../shared/ui/resumen-compra/resumen-compra';
 import { TiempoPlanLabelPipe } from 'src/app/shared/util/tiempo-plan-label';
 
 import { SocioService } from 'src/app/services/socio-service';
@@ -21,7 +21,7 @@ import { PaqueteService } from 'src/app/services/paquete-service';
 import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 
 import { GimnasioService } from 'src/app/services/gimnasio-service';
-import { TicketService, VentaContexto } from 'src/app/services/ticket-service';
+import { TicketService, VentaContexto } from 'src/app/shared/ticket/ticket-service';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { EntrenadorService } from 'src/app/features/asesorias/data/entrenador-service';
 

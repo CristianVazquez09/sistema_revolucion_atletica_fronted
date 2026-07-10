@@ -24,8 +24,8 @@ import {
   TicketPagoDetalle,
   TicketService,
   VentaContexto,
-} from '../../../../services/ticket-service';
-import { ResumenVenta } from '../../../../pages/resumen-venta/resumen-venta';
+} from '../../../../shared/ticket/ticket-service';
+import { ResumenVenta } from '../../../../shared/ui/resumen-venta/resumen-venta';
 import { crearContextoTicket, obtenerNombreCajero } from '../../../../shared/util/ticket-contexto';
 import { AsesoriaCreateRequest } from '../../models/asesoria-data';
 import { TiempoPlanLabelPipe } from '../../../../shared/util/tiempo-plan-label';

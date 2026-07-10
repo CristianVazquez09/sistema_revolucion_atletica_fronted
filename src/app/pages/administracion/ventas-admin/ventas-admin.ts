@@ -17,7 +17,7 @@ import { NotificacionService } from '../../../core/layout/notificacion-service';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../environments/environment';
 import { VentasAdminModal } from './ventas-admin-modal/ventas-admin-modal';
-import { TicketService, TicketPagoDetalle } from 'src/app/services/ticket-service';
+import { TicketService, TicketPagoDetalle } from 'src/app/shared/ticket/ticket-service';
 import { MenuService } from 'src/app/core/layout/menu-service';
 
 // ✅ tenant selector + recarga reactiva

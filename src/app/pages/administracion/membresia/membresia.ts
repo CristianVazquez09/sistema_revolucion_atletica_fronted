@@ -20,7 +20,7 @@ import { NotificacionService } from '../../../core/layout/notificacion-service';
 
 import { MembresiaModal } from './membresia-modal/membresia-modal';
 import { TiempoPlanLabelPipe } from 'src/app/shared/util/tiempo-plan-label';
-import { TicketMembresia, TicketPagoDetalle, TicketService } from 'src/app/services/ticket-service';
+import { TicketMembresia, TicketPagoDetalle, TicketService } from 'src/app/shared/ticket/ticket-service';
 import { MenuService } from 'src/app/core/layout/menu-service';
 
 import { distinctUntilChanged, skip } from 'rxjs';

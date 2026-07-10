@@ -12,7 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CorteCajaService } from '../../../features/corte-caja/data/corte-caja-service';
 import { NotificacionService } from '../../../core/layout/notificacion-service';
 import { CorteCajaListado, PagedResponse, PageMeta } from '../../../shared/models/corte-caja-data';
-import { TicketService } from '../../../services/ticket-service';
+import { TicketService } from '../../../shared/ticket/ticket-service';
 import { CorteCajaInfo } from './corte-caja-info/corte-caja-info';
 
 // ✅ tenant selector

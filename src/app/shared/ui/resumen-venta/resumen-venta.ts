@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PagoData } from '../../shared/models/membresia-data';
+import { PagoData } from '../../models/membresia-data';
 
 type ItemResumen = { nombre: string; cantidad: number; precioUnit: number; };
 
