@@ -1,9 +1,5 @@
 import { Routes } from '@angular/router';
 
-import { Paquete } from '../features/administracion/pages/paquete/paquete';
-import { Producto } from '../features/administracion/pages/producto/producto';
-import { Categoria } from '../features/administracion/pages/categoria/categoria';
-import { Administracion } from '../features/administracion/pages/administracion/administracion';
 import { gerenteGuard } from '../core/auth/gerente-guards';
 import { adminGuard } from '../core/auth/admin-guards';
 
@@ -15,7 +11,11 @@ export const pagesRoutes: Routes = [
     pathMatch: 'full',
     loadComponent: () => import('./home/home').then((m) => m.Home),
   },
-  { path: 'paquete', component: Paquete },
+  {
+    path: 'paquete',
+    loadComponent: () =>
+      import('../features/administracion/pages/paquete/paquete').then((m) => m.Paquete),
+  },
   {
     path: 'asistencia',
     loadComponent: () => import('../features/asistencia/pages/asistencia/asistencia').then((m) => m.Asistencia),
@@ -45,9 +45,18 @@ export const pagesRoutes: Routes = [
   { path: 'inventario', loadChildren: () => import('../features/inventario/inventario.routes').then(m => m.INVENTARIO_ROUTES) },
 
   // ✅ Productos (solo Admin/Gerente)
-  { path: 'productos', component: Producto, canMatch: [operacionGuard] },
+  {
+    path: 'productos',
+    loadComponent: () =>
+      import('../features/administracion/pages/producto/producto').then((m) => m.Producto),
+    canMatch: [operacionGuard],
+  },
 
-  { path: 'categoria', component: Categoria },
+  {
+    path: 'categoria',
+    loadComponent: () =>
+      import('../features/administracion/pages/categoria/categoria').then((m) => m.Categoria),
+  },
   {
     path: 'punto-venta',
     loadComponent: () =>
@@ -135,7 +144,10 @@ export const pagesRoutes: Routes = [
 
   {
     path: 'admin',
-    component: Administracion,
+    loadComponent: () =>
+      import('../features/administracion/pages/administracion/administracion').then(
+        (m) => m.Administracion,
+      ),
     canMatch: [adminGuard],
     data: {
       sectionTitle: 'Administración',
@@ -216,7 +228,10 @@ export const pagesRoutes: Routes = [
 
   {
     path: 'gerencia',
-    component: Administracion,
+    loadComponent: () =>
+      import('../features/administracion/pages/administracion/administracion').then(
+        (m) => m.Administracion,
+      ),
     canMatch: [gerenteGuard],
     data: {
       sectionTitle: 'Operación',
