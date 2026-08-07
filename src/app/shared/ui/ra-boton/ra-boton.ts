@@ -12,8 +12,8 @@ const CLASES_POR_VARIANTE: Record<RaBotonVariante, string> = {
   primario: 'bg-red-600 hover:bg-red-700 text-white',
   peligro: 'bg-red-600 hover:bg-red-700 text-white',
   exito: 'bg-emerald-600 hover:bg-emerald-700 text-white',
-  info: 'bg-[color:var(--color-ra-azul-fuerte)] hover:brightness-110 text-white',
-  ghost: 'bg-white border border-gray-200 hover:bg-gray-50 text-ra-slate',
+  info: 'bg-[color:var(--color-ra-azul-fuerte)] hover:bg-[#0A2540] text-white',
+  ghost: 'bg-white border border-gray-200 hover:bg-gray-100 text-ra-slate',
   'icono-peligro': 'rounded-full bg-red-600 hover:bg-red-700 text-white grid place-items-center',
 };
 
