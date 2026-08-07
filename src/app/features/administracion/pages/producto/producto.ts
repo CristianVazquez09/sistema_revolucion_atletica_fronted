@@ -1,21 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, signal, DestroyRef, inject } from '@angular/core';
 import { RouterLink, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import {
-  Subject,
-  Subscription,
-  debounceTime,
-  distinctUntilChanged,
-  finalize,
-  map,
-  filter,
-  switchMap,
-  tap,
-  skip,
-} from 'rxjs';
+import { distinctUntilChanged, finalize, skip } from 'rxjs';
 
 import { ProductoModal } from './producto-modal/producto-modal';
 import { ProductoService } from '../../data/producto-service';
@@ -32,19 +20,20 @@ import { StockModal, StockModalModo } from './stock-modal/stock-modal';
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
 import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/ra-gimnasio-filter';
 import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
+import { RaBuscador } from 'src/app/shared/ui/ra-buscador/ra-buscador';
 
 @Component({
   selector: 'app-producto',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     RouterModule,
     ProductoModal,
     StockModal,
     RouterLink,
     RaGimnasioFilterComponent,
     RaDropdown,
+    RaBuscador,
   ],
   templateUrl: './producto.html',
   styleUrl: './producto.css',
@@ -81,11 +70,9 @@ export class Producto implements OnInit, OnDestroy {
   stockProducto: (ProductoData & { gimnasio?: any }) | null = null;
   stockModo: StockModalModo = 'ENTRADA';
 
-  // ✅ buscador con debounce (>=3)
+  // ✅ buscador (>=3 caracteres)
   terminoBusqueda = '';
   private readonly minCaracteresBusqueda = 3;
-  private busqueda$ = new Subject<string>();
-  private subsBusqueda?: Subscription;
 
   ngOnInit(): void {
     // ✅ init tenant context (admin / view tenant)
@@ -112,40 +99,9 @@ export class Producto implements OnInit, OnDestroy {
 
     // primera carga
     this.cargarListadoBase();
-
-    // ✅ búsqueda con debounce
-    this.subsBusqueda = this.busqueda$
-      .pipe(
-        map((v) => this.normalizarTermino(v)),
-        debounceTime(350),
-        distinctUntilChanged(),
-        tap((txt) => {
-          if (txt.length === 0) this.cargarListadoBase(); // limpiar => base
-        }),
-        filter((txt) => txt.length >= this.minCaracteresBusqueda),
-        switchMap((txt) => {
-          this.loading = true;
-          this.error = null;
-          return this.productoSrv
-            .buscarPorNombre(txt) // ✅ TU SERVICE
-            .pipe(finalize(() => (this.loading = false)));
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (data) => {
-          this.productos = (data ?? []).filter((p) => p?.activo !== false) as any[];
-        },
-        error: (err) => {
-          console.error(err);
-          this.error = 'No se pudo ejecutar la búsqueda de productos.';
-        },
-      });
   }
 
   ngOnDestroy(): void {
-    this.subsBusqueda?.unsubscribe();
-
     // ✅ si admin eligió un gimnasio aquí, al salir lo regresamos a "Todos"
     if (this.isAdmin) {
       this.tenantCtx.setViewTenant(null);
@@ -241,17 +197,31 @@ export class Producto implements OnInit, OnDestroy {
   // Buscador UI
   // =========================
   onBuscarChange(valor: string): void {
-    const limpio = this.normalizarTermino(valor);
-    this.terminoBusqueda = limpio;
+    const texto = this.normalizarTermino(valor);
+    this.terminoBusqueda = texto;
 
-    // si aún no llega a 3, no buscar (pero si está vacío se recarga por el tap)
-    if (limpio.length > 0 && limpio.length < this.minCaracteresBusqueda) return;
+    if (texto.length === 0) {
+      this.cargarListadoBase();
+      return;
+    }
 
-    this.busqueda$.next(limpio);
-  }
+    if (texto.length < this.minCaracteresBusqueda) return;
 
-  limpiarBusqueda(): void {
-    this.onBuscarChange('');
+    this.loading = true;
+    this.error = null;
+
+    this.productoSrv
+      .buscarPorNombre(texto)
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: (data) => {
+          this.productos = (data ?? []).filter((p) => p?.activo !== false) as any[];
+        },
+        error: (err) => {
+          console.error(err);
+          this.error = 'No se pudo ejecutar la búsqueda de productos.';
+        },
+      });
   }
 
   // =========================

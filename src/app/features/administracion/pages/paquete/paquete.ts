@@ -1,7 +1,6 @@
-import { Component, inject, OnInit, signal, DestroyRef } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { finalize, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
 
 import { PaqueteService } from '../../data/paquete-service';
 import { PaqueteData } from '../../../../shared/models/paquete-data';
@@ -14,11 +13,12 @@ import { environment } from '../../../../../environments/environment';
 import { TipoPaquete } from '../../../../shared/util/enums/tipo-paquete';
 import { MenuService } from 'src/app/core/layout/menu-service';
 import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
+import { RaBuscador } from 'src/app/shared/ui/ra-buscador/ra-buscador';
 
 @Component({
   selector: 'app-paquete-componet',
   standalone: true,
-  imports: [CommonModule, PaqueteModal, TiempoPlanLabelPipe, RaDropdown],
+  imports: [CommonModule, PaqueteModal, TiempoPlanLabelPipe, RaDropdown, RaBuscador],
   templateUrl: './paquete.html',
   styleUrl: './paquete.css',
 })
@@ -27,9 +27,6 @@ export class Paquete implements OnInit {
   private servicioPaquetes = inject(PaqueteService);
   private jwt = inject(JwtHelperService);
   private menuSrv = inject(MenuService);
-
-  private destroyRef = inject(DestroyRef);
-  private busqueda$ = new Subject<string>();
 
   menuAbierto = this.menuSrv.menuAbierto;
 
@@ -50,19 +47,6 @@ export class Paquete implements OnInit {
 
   ngOnInit(): void {
     this.isAdmin = this.esAdminDesdeToken();
-
-    // ✅ debounce del buscador
-    this.busqueda$
-      .pipe(debounceTime(250), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
-      .subscribe((term) => {
-        const t = (term ?? '').trim();
-        if (!t) {
-          this.cargarPaquetes();
-          return;
-        }
-        this.buscarPaquetesPorNombre(t);
-      });
-
     this.cargarPaquetes();
   }
 
@@ -85,16 +69,15 @@ export class Paquete implements OnInit {
     }
   }
 
-  // ✅ handlers buscador
-  onBuscarInput(ev: Event): void {
-    const value = (ev.target as HTMLInputElement)?.value ?? '';
-    this.busqueda.set(value);
-    this.busqueda$.next(value);
-  }
+  // ✅ handler buscador
+  onBuscarChange(termino: string): void {
+    this.busqueda.set(termino);
 
-  limpiarBusqueda(): void {
-    this.busqueda.set('');
-    this.busqueda$.next('');
+    if (!termino) {
+      this.cargarPaquetes();
+      return;
+    }
+    this.buscarPaquetesPorNombre(termino);
   }
 
   // Acciones

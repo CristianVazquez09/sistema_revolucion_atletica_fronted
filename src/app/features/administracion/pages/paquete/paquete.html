@@ -17,24 +17,7 @@
   >
     <h1 class="text-ra-slate shrink-0 text-base font-semibold sm:text-lg">Paquetes</h1>
     <div class="h-5 w-px shrink-0 bg-gray-200"></div>
-    <div class="flex shrink-0 items-center gap-1.5">
-      <input
-        type="search"
-        class="h-8 w-[240px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
-        placeholder="Buscar paquete…"
-        [value]="busqueda()"
-        (input)="onBuscarInput($event)"
-      />
-      @if (busqueda()) {
-        <button
-          type="button"
-          class="text-ra-slate h-8 shrink-0 rounded-lg border border-gray-200 px-3 text-xs hover:bg-gray-50"
-          (click)="limpiarBusqueda()"
-        >
-          Limpiar
-        </button>
-      }
-    </div>
+    <ra-buscador placeholder="Buscar paquete…" (buscar)="onBuscarChange($event)"></ra-buscador>
   </div>
 
   <!-- TABLA -->
