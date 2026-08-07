@@ -4,6 +4,7 @@ import {
   DestroyRef,
   EventEmitter,
   Output,
+  computed,
   effect,
   inject,
   input,
@@ -27,7 +28,7 @@ import { Subject, debounce, distinctUntilChanged, map, timer } from 'rxjs';
     <div class="flex shrink-0 items-center gap-1.5">
       <input
         type="text"
-        class="h-8 w-[240px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
+        [class]="clasesInput()"
         [placeholder]="placeholder()"
         [value]="terminoActual()"
         (input)="onInput($any($event.target).value)"
@@ -50,10 +51,17 @@ export class RaBuscador {
   mostrarLimpiar = input(true);
   /** Texto externo opcional para sincronizar/limpiar el input desde el padre. */
   valor = input<string | null>(null);
+  /** Clase Tailwind de ancho del input. Default fijo (240px) para las
+   * barras de búsqueda de listas; usar 'w-full' cuando ra-buscador va
+   * dentro de un contenedor que ya define su propio ancho máximo. */
+  ancho = input('w-[240px]');
 
   @Output() buscar = new EventEmitter<string>();
 
   protected readonly terminoActual = signal('');
+  protected readonly clasesInput = computed(
+    () => `h-8 ${this.ancho()} rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner`,
+  );
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly entrada$ = new Subject<string>();

@@ -141,3 +141,29 @@ describe('RaBuscador con valor (controlado desde el padre)', () => {
     expect(input().value).toBe('');
   }));
 });
+
+@Component({
+  standalone: true,
+  imports: [RaBuscador],
+  template: `<ra-buscador ancho="w-full"></ra-buscador>`,
+})
+class HostAnchoPersonalizado {}
+
+describe('RaBuscador con ancho personalizado', () => {
+  it('aplica la clase de ancho recibida en vez del default fijo', () => {
+    const fixture = TestBed.createComponent(HostAnchoPersonalizado);
+    fixture.detectChanges();
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input');
+    expect(input.className).toContain('w-full');
+    expect(input.className).not.toContain('w-[240px]');
+  });
+});
+
+describe('RaBuscador con ancho por defecto', () => {
+  it('usa w-[240px] cuando no se especifica ancho', () => {
+    const fixture = TestBed.createComponent(HostBuscador);
+    fixture.detectChanges();
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input');
+    expect(input.className).toContain('w-[240px]');
+  });
+});
