@@ -36,6 +36,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
 import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/ra-gimnasio-filter';
 import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
+import { RaBadge, RaBadgeVariante } from 'src/app/shared/ui/ra-badge/ra-badge';
+import { TipoMovimiento } from 'src/app/shared/util/enums/tipo-movimiento';
 
 type PageMeta = {
   size: number;
@@ -54,6 +56,7 @@ type PageMeta = {
     TiempoPlanLabelPipe,
     RaGimnasioFilterComponent,
     RaDropdown,
+    RaBadge,
   ],
   templateUrl: './membresia.html',
   styleUrl: './membresia.css',
@@ -496,6 +499,12 @@ export class Membresia {
 
   gymNombre(g: any): string {
     return g?.nombre ?? ((g?.idGimnasio ?? g?.id) ? `#${g?.idGimnasio ?? g?.id}` : '—');
+  }
+
+  movimientoVariante(movimiento: TipoMovimiento): RaBadgeVariante {
+    if (movimiento === 'INSCRIPCION') return 'exito';
+    if (movimiento === 'REINSCRIPCION') return 'info';
+    return 'neutral';
   }
 
   trackById = (_: number, it: MembresiaData) => it.idMembresia!;

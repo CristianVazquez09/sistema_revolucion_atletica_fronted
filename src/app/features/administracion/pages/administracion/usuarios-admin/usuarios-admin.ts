@@ -6,11 +6,12 @@ import { UsuarioService } from '../../../data/usuario-service';
 import { UsuarioData } from '../../../../../shared/models/usuario-data';
 import { UsuariosAdminModal } from './usuarios-admin-modal/usuarios-admin-modal';
 import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
+import { RaBadge } from 'src/app/shared/ui/ra-badge/ra-badge';
 
 @Component({
   selector: 'app-usuarios-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, UsuariosAdminModal, RaDropdown],
+  imports: [CommonModule, FormsModule, UsuariosAdminModal, RaDropdown, RaBadge],
   templateUrl: './usuarios-admin.html',
   styleUrl: './usuarios-admin.css',
 })

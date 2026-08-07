@@ -94,11 +94,7 @@
                 </td>
 
                 <td class="px-3 py-2.5 text-center">
-                  <span
-                    class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700"
-                  >
-                    {{ rolPrincipal(u) }}
-                  </span>
+                  <ra-badge variante="info">{{ rolPrincipal(u) }}</ra-badge>
                 </td>
 
                 <td class="min-w-0 px-3 py-2.5 text-[11px]">
@@ -106,15 +102,9 @@
                 </td>
 
                 <td class="px-3 py-2.5 text-center">
-                  <span
-                    class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                    [ngClass]="{
-                      'bg-emerald-100 text-emerald-700': u.activo,
-                      'bg-gray-100 text-gray-700': !u.activo,
-                    }"
-                  >
+                  <ra-badge [variante]="u.activo ? 'exito' : 'neutral'">
                     {{ u.activo ? 'Sí' : 'No' }}
-                  </span>
+                  </ra-badge>
                 </td>
 
                 <td class="relative px-1 py-2.5 text-center">

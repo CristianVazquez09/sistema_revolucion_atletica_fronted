@@ -208,17 +208,9 @@
 
                     <!-- Movimiento -->
                     <td class="px-3 py-2.5 text-center">
-                      <span
-                        class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                        [ngClass]="{
-                          'bg-emerald-100 text-emerald-700': m.movimiento === 'INSCRIPCION',
-                          'bg-indigo-100 text-indigo-700': m.movimiento === 'REINSCRIPCION',
-                          'bg-gray-100 text-gray-600':
-                            m.movimiento !== 'INSCRIPCION' && m.movimiento !== 'REINSCRIPCION',
-                        }"
-                      >
+                      <ra-badge [variante]="movimientoVariante(m.movimiento)">
                         {{ m.movimiento }}
-                      </span>
+                      </ra-badge>
                     </td>
 
                     <!-- Total -->
@@ -234,9 +226,7 @@
                     <!-- Gimnasio -->
                     @if (mostrarGimnasioCol()) {
                       <td class="px-3 py-2.5 text-center">
-                        <span
-                          class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 px-2 py-0.5 text-[10px] text-[color:var(--color-ra-azul-fuerte)]"
-                        >
+                        <ra-badge variante="chip">
                           <svg
                             viewBox="0 0 24 24"
                             class="h-3.5 w-3.5 shrink-0"
@@ -249,7 +239,7 @@
                           <span class="max-w-[140px] truncate">{{
                             gymNombre(m.paquete.gimnasio || m.socio.gimnasio || m.gimnasio)
                           }}</span>
-                        </span>
+                        </ra-badge>
                       </td>
                     }
 

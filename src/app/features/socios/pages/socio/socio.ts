@@ -25,6 +25,7 @@ import { PagedResponse } from '../../../../shared/models/paged-response';
 import { TipoPaquete } from '../../../../shared/util/enums/tipo-paquete';
 import { MenuService } from 'src/app/core/layout/menu-service';
 import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
+import { RaBadge } from 'src/app/shared/ui/ra-badge/ra-badge';
 
 // ✅ selector admin + tenant ctx
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
@@ -37,7 +38,7 @@ import { environment } from '../../../../../environments/environment';
 @Component({
   selector: 'app-socio',
   standalone: true,
-  imports: [CommonModule, SocioModal, FormsModule, RaGimnasioFilterComponent, RaDropdown],
+  imports: [CommonModule, SocioModal, FormsModule, RaGimnasioFilterComponent, RaDropdown, RaBadge],
   templateUrl: './socio.html',
   styleUrl: './socio.css',
 })

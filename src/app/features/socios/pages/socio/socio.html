@@ -171,10 +171,7 @@
 
                 @if (isAdmin) {
                   <td class="min-w-0 px-3 py-2.5 text-[11px]">
-                    <span
-                      class="inline-flex max-w-full items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 px-2 py-0.5 text-[10px] text-[color:var(--color-ra-azul-fuerte)]"
-                      [title]="displayGimnasio(s)"
-                    >
+                    <ra-badge variante="chip" [title]="displayGimnasio(s)">
                       <svg
                         viewBox="0 0 24 24"
                         class="h-3.5 w-3.5 shrink-0"
@@ -185,7 +182,7 @@
                         <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
                       </svg>
                       <span class="truncate">{{ displayGimnasio(s) }}</span>
-                    </span>
+                    </ra-badge>
                   </td>
                 }
 
