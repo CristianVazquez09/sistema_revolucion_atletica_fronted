@@ -16,15 +16,14 @@ type GymOption = { id: number; nombre: string; direccion?: string; telefono?: st
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './usuarios-admin-modal.html',
-  styleUrl: './usuarios-admin-modal.css'
+  styleUrl: './usuarios-admin-modal.css',
 })
 export class UsuariosAdminModal implements OnInit {
-
   @Input() idUsuario: number | null = null;
   @Output() cancelar = new EventEmitter<void>();
   @Output() guardado = new EventEmitter<void>();
 
-  private srv    = inject(UsuarioService);
+  private srv = inject(UsuarioService);
   private gymSrv = inject(GimnasioService);
   private rolSrv = inject(RolService);
 
@@ -34,7 +33,7 @@ export class UsuariosAdminModal implements OnInit {
   form = new FormGroup({
     nombreUsuario: new FormControl<string>('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(3)]
+      validators: [Validators.required, Validators.minLength(3)],
     }),
     nombre: new FormControl<string>('', { nonNullable: true }),
     apellido: new FormControl<string>('', { nonNullable: true }),
@@ -42,9 +41,9 @@ export class UsuariosAdminModal implements OnInit {
     activo: new FormControl<boolean>(true, { nonNullable: true }),
     rolNombre: new FormControl<string>('', {
       nonNullable: true,
-      validators: [Validators.required]
+      validators: [Validators.required],
     }),
-    gimnasioId: new FormControl<number | null>(null)
+    gimnasioId: new FormControl<number | null>(null),
   });
 
   data: UsuarioData | null = null;
@@ -53,7 +52,9 @@ export class UsuariosAdminModal implements OnInit {
   error: string | null = null;
 
   trackGymBy = (_: number, g: GymOption) => g.id;
-  get esCrear(): boolean { return !this.idUsuario; }
+  get esCrear(): boolean {
+    return !this.idUsuario;
+  }
 
   ngOnInit(): void {
     this.cargando = true;
@@ -68,17 +69,13 @@ export class UsuariosAdminModal implements OnInit {
         this.cargarGimnasios();
       },
       error: () => {
-        this.roles = [
-          { nombre: 'ADMIN' },
-          { nombre: 'GERENTE' },
-          { nombre: 'RECEPCIONISTA' },
-        ];
+        this.roles = [{ nombre: 'ADMIN' }, { nombre: 'GERENTE' }, { nombre: 'RECEPCIONISTA' }];
         if (this.esCrear && !this.form.controls.rolNombre.value) {
           this.form.controls.rolNombre.setValue(this.roles[0].nombre, { emitEvent: false });
         }
         this.updateContraseniaValidator(this.esCrear);
         this.cargarGimnasios();
-      }
+      },
     });
   }
 
@@ -86,16 +83,19 @@ export class UsuariosAdminModal implements OnInit {
     this.gymSrv.buscarTodos().subscribe({
       next: (lista: any[]) => {
         this.gimnasios = (lista ?? [])
-          .map(g => ({
+          .map((g) => ({
             id: (g as any).id ?? (g as any).idGimnasio,
             nombre: g.nombre,
             direccion: g.direccion,
-            telefono: g.telefono
+            telefono: g.telefono,
           }))
-          .filter(g => Number(g.id) > 0) as GymOption[];
+          .filter((g) => Number(g.id) > 0) as GymOption[];
         this.initUsuario();
       },
-      error: () => { this.gimnasios = []; this.initUsuario(); }
+      error: () => {
+        this.gimnasios = [];
+        this.initUsuario();
+      },
     });
   }
 
@@ -126,20 +126,26 @@ export class UsuariosAdminModal implements OnInit {
         this.data = u;
         const gymId = this.getGymIdFlexible((u as any).gimnasio);
 
-        this.form.patchValue({
-          nombreUsuario: u.nombreUsuario,
-          nombre: u.nombre ?? '',
-          apellido: u.apellido ?? '',
-          contrasenia: '',
-          activo: !!u.activo,
-          rolNombre: (u.roles?.[0]?.nombre ?? this.roles?.[0]?.nombre ?? ''),
-          gimnasioId: gymId
-        }, { emitEvent: false });
+        this.form.patchValue(
+          {
+            nombreUsuario: u.nombreUsuario,
+            nombre: u.nombre ?? '',
+            apellido: u.apellido ?? '',
+            contrasenia: '',
+            activo: !!u.activo,
+            rolNombre: u.roles?.[0]?.nombre ?? this.roles?.[0]?.nombre ?? '',
+            gimnasioId: gymId,
+          },
+          { emitEvent: false },
+        );
 
         this.updateContraseniaValidator(false);
         this.cargando = false;
       },
-      error: () => { this.error = 'No se pudo cargar el usuario.'; this.cargando = false; }
+      error: () => {
+        this.error = 'No se pudo cargar el usuario.';
+        this.cargando = false;
+      },
     });
   }
 
@@ -147,7 +153,12 @@ export class UsuariosAdminModal implements OnInit {
     console.log('[UsuariosAdminModal] submit'); // <- para verificar que entra
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      console.log('[UsuariosAdminModal] form invalid', this.form.getRawValue(), this.form.status, this.form.errors);
+      console.log(
+        '[UsuariosAdminModal] form invalid',
+        this.form.getRawValue(),
+        this.form.status,
+        this.form.errors,
+      );
       return;
     }
 
@@ -158,35 +169,39 @@ export class UsuariosAdminModal implements OnInit {
     if (this.esCrear) {
       const payload: any = {
         nombreUsuario: f.nombreUsuario!.trim(),
-        nombre:        f.nombre!.trim() || undefined,
-        apellido:      f.apellido!.trim() || undefined,
-        contrasenia:   f.contrasenia!.trim(),
-        activo:        !!f.activo,
-        rol:           f.rolNombre!,
-        ...gimnasioPayload
+        nombre: f.nombre!.trim() || undefined,
+        apellido: f.apellido!.trim() || undefined,
+        contrasenia: f.contrasenia!.trim(),
+        activo: !!f.activo,
+        rol: f.rolNombre!,
+        ...gimnasioPayload,
       };
 
       console.log('[UsuariosAdminModal] POST payload:', payload);
 
       this.guardando = true;
       this.srv.guardar(payload).subscribe({
-        next: () => { this.guardando = false; this.guardado.emit(); },
+        next: () => {
+          this.guardando = false;
+          this.guardado.emit();
+        },
         error: (err) => {
           this.guardando = false;
-          this.error = (err?.status === 409)
-            ? (err?.error?.detail || 'Ese nombre de usuario ya existe.')
-            : (err?.error?.detail || 'No se pudo crear el usuario.');
-        }
+          this.error =
+            err?.status === 409
+              ? err?.error?.detail || 'Ese nombre de usuario ya existe.'
+              : err?.error?.detail || 'No se pudo crear el usuario.';
+        },
       });
       return;
     }
 
     const upd: any = {
       nombreUsuario: f.nombreUsuario!.trim(),
-      nombre:        f.nombre!.trim() || undefined,
-      apellido:      f.apellido!.trim() || undefined,
-      activo:        !!f.activo,
-      ...gimnasioPayload
+      nombre: f.nombre!.trim() || undefined,
+      apellido: f.apellido!.trim() || undefined,
+      activo: !!f.activo,
+      ...gimnasioPayload,
     };
     if (f.rolNombre) upd.rol = f.rolNombre;
     if (f.contrasenia && f.contrasenia.trim().length > 0) {
@@ -197,11 +212,14 @@ export class UsuariosAdminModal implements OnInit {
 
     this.guardando = true;
     this.srv.actualizar(this.idUsuario!, upd).subscribe({
-      next: () => { this.guardando = false; this.guardado.emit(); },
+      next: () => {
+        this.guardando = false;
+        this.guardado.emit();
+      },
       error: (err) => {
         this.guardando = false;
         this.error = err?.error?.detail || 'No se pudo actualizar el usuario.';
-      }
+      },
     });
   }
 }

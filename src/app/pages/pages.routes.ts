@@ -18,11 +18,15 @@ export const pagesRoutes: Routes = [
   },
   {
     path: 'asistencia',
-    loadComponent: () => import('../features/asistencia/pages/asistencia/asistencia').then((m) => m.Asistencia),
+    loadComponent: () =>
+      import('../features/asistencia/pages/asistencia/asistencia').then((m) => m.Asistencia),
   },
   {
     path: 'historial-asistencias',
-    loadComponent: () => import('../features/asistencia/pages/asistencia-historial/asistencia-historial').then((m) => m.AsistenciaHistorial),
+    loadComponent: () =>
+      import('../features/asistencia/pages/asistencia-historial/asistencia-historial').then(
+        (m) => m.AsistenciaHistorial,
+      ),
   },
   {
     path: 'reinscripcion-adelantada',
@@ -42,7 +46,11 @@ export const pagesRoutes: Routes = [
   },
 
   // ✅ Inventario diario (todos los roles autenticados que tengan el menú)
-  { path: 'inventario', loadChildren: () => import('../features/inventario/inventario.routes').then(m => m.INVENTARIO_ROUTES) },
+  {
+    path: 'inventario',
+    loadChildren: () =>
+      import('../features/inventario/inventario.routes').then((m) => m.INVENTARIO_ROUTES),
+  },
 
   // ✅ Productos (solo Admin/Gerente)
   {
@@ -60,9 +68,7 @@ export const pagesRoutes: Routes = [
   {
     path: 'punto-venta',
     loadComponent: () =>
-      import('../features/punto-venta/pages/punto-venta/punto-venta').then(
-        (m) => m.PuntoVenta,
-      ),
+      import('../features/punto-venta/pages/punto-venta/punto-venta').then((m) => m.PuntoVenta),
   },
   {
     path: 'socio/:idSocio/historial',
@@ -74,14 +80,22 @@ export const pagesRoutes: Routes = [
   {
     path: 'reinscripcion/:id',
     loadComponent: () =>
-      import('../features/inscripciones/pages/reinscripcion/reinscripcion').then((m) => m.Reinscripcion),
+      import('../features/inscripciones/pages/reinscripcion/reinscripcion').then(
+        (m) => m.Reinscripcion,
+      ),
   },
   {
     path: 'historial',
     loadComponent: () =>
-      import('../features/inscripciones/pages/inscripcion/historial/historial').then((m) => m.Historial),
+      import('../features/inscripciones/pages/inscripcion/historial/historial').then(
+        (m) => m.Historial,
+      ),
   },
-  { path: 'corte-caja', loadChildren: () => import('../features/corte-caja/corte-caja.routes').then(m => m.CORTE_CAJA_ROUTES) },
+  {
+    path: 'corte-caja',
+    loadChildren: () =>
+      import('../features/corte-caja/corte-caja.routes').then((m) => m.CORTE_CAJA_ROUTES),
+  },
   {
     path: 'agregar-membresia',
     loadComponent: () =>
@@ -116,7 +130,8 @@ export const pagesRoutes: Routes = [
 
   {
     path: 'mi-perfil',
-    loadComponent: () => import('../features/cuenta/pages/mi-perfil/mi-perfil').then((m) => m.MiPerfil),
+    loadComponent: () =>
+      import('../features/cuenta/pages/mi-perfil/mi-perfil').then((m) => m.MiPerfil),
     data: { title: 'Mi perfil' },
   },
 
@@ -129,7 +144,9 @@ export const pagesRoutes: Routes = [
   {
     path: 'membresia',
     loadComponent: () =>
-      import('../features/administracion/pages/administracion/membresia/membresia').then((m) => m.Membresia),
+      import('../features/administracion/pages/administracion/membresia/membresia').then(
+        (m) => m.Membresia,
+      ),
     data: { title: 'Membresías', scope: 'recepcion' },
   },
   {
@@ -198,13 +215,17 @@ export const pagesRoutes: Routes = [
       {
         path: 'estadisticas',
         loadComponent: () =>
-          import('../features/administracion/pages/administracion/estadisticas/estadisticas').then((m) => m.Estadisticas),
+          import('../features/administracion/pages/administracion/estadisticas/estadisticas').then(
+            (m) => m.Estadisticas,
+          ),
         data: { title: 'Estadísticas' },
       },
       {
         path: 'reportes',
         loadComponent: () =>
-          import('../features/administracion/pages/administracion/reportes/reportes').then((m) => m.Reportes),
+          import('../features/administracion/pages/administracion/reportes/reportes').then(
+            (m) => m.Reportes,
+          ),
         data: { title: 'Reportes' },
       },
       {
@@ -216,12 +237,13 @@ export const pagesRoutes: Routes = [
         data: { title: 'Asesorías nutricionales' },
       },
       {
-  path: 'promociones',
-  loadComponent: () =>
-    import('../features/administracion/pages/administracion/promociones/promociones').then((m) => m.Promociones),
-  data: { title: 'Promociones' },
-},
-
+        path: 'promociones',
+        loadComponent: () =>
+          import('../features/administracion/pages/administracion/promociones/promociones').then(
+            (m) => m.Promociones,
+          ),
+        data: { title: 'Promociones' },
+      },
     ],
   },
 
@@ -262,10 +284,13 @@ export const pagesRoutes: Routes = [
         data: { title: 'Ventas' },
       },
       {
-    path: 'promociones',
-    loadComponent: () => import('../features/administracion/pages/administracion/promociones/promociones').then((m) => m.Promociones),
-    data: { title: 'Promociones' },
-  },
+        path: 'promociones',
+        loadComponent: () =>
+          import('../features/administracion/pages/administracion/promociones/promociones').then(
+            (m) => m.Promociones,
+          ),
+        data: { title: 'Promociones' },
+      },
     ],
   },
 ];

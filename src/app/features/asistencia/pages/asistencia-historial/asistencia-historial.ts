@@ -81,7 +81,7 @@ export class AsistenciaHistorial implements OnInit {
         map((v) => (v ?? '').trim()),
         debounceTime(300),
         distinctUntilChanged(),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((n) => {
         const activar = n.length >= 3;
@@ -125,20 +125,12 @@ export class AsistenciaHistorial implements OnInit {
       const roles: string[] = [
         ...(Array.isArray(decoded?.roles) ? decoded.roles : []),
         ...(Array.isArray(decoded?.authorities) ? decoded.authorities : []),
-        ...(Array.isArray(decoded?.realm_access?.roles)
-          ? decoded.realm_access.roles
-          : []),
+        ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
       ]
-        .concat(
-          [decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[]
-        )
+        .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
         .map((r) => String(r).toUpperCase());
 
-      return (
-        decoded?.is_admin === true ||
-        roles.includes('ADMIN') ||
-        roles.includes('ROLE_ADMIN')
-      );
+      return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     } catch {
       return false;
     }
@@ -240,13 +232,7 @@ export class AsistenciaHistorial implements OnInit {
     const usarBuscar = !!nombre || (desde && hasta);
 
     const obs = usarBuscar
-      ? this.asistenciaService.buscar(
-          this.paginaActual,
-          this.tamanioPagina,
-          desde,
-          hasta,
-          nombre
-        )
+      ? this.asistenciaService.buscar(this.paginaActual, this.tamanioPagina, desde, hasta, nombre)
       : this.asistenciaService.listarHistorial(this.paginaActual, this.tamanioPagina);
 
     obs.subscribe({

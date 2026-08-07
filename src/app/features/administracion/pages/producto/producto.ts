@@ -1,5 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit, signal, DestroyRef, inject } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  signal,
+  DestroyRef,
+  inject,
+} from '@angular/core';
 import { RouterLink, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -107,11 +115,7 @@ export class Producto implements OnInit, OnDestroy {
     // ✅ Admin: al cambiar gimnasio en selector => recarga lista (respetando búsqueda si aplica)
     if (this.isAdmin) {
       this.tenantCtx.viewTenantChanges$
-        .pipe(
-          distinctUntilChanged(),
-          skip(1),
-          takeUntilDestroyed(this.destroyRef)
-        )
+        .pipe(distinctUntilChanged(), skip(1), takeUntilDestroyed(this.destroyRef))
         .subscribe(() => this.refrescarListado());
     }
 
@@ -135,7 +139,7 @@ export class Producto implements OnInit, OnDestroy {
             .buscarPorNombre(txt) // ✅ TU SERVICE
             .pipe(finalize(() => (this.loading = false)));
         }),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (data) => {
@@ -202,7 +206,9 @@ export class Producto implements OnInit, OnDestroy {
   // Carga / búsqueda
   // =========================
   private cargarListadoBase(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
     this.loading = true;
     this.error = null;
 
@@ -221,7 +227,9 @@ export class Producto implements OnInit, OnDestroy {
   }
 
   private refrescarListado(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
     const txt = this.normalizarTermino(this.terminoBusqueda);
     if (txt.length >= this.minCaracteresBusqueda) {
       this.loading = true;
@@ -330,7 +338,9 @@ export class Producto implements OnInit, OnDestroy {
 
   @HostListener('document:click')
   closeMenuRows(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
   }
 
   toggleMenuRow(i: number, event: MouseEvent): void {
@@ -351,9 +361,10 @@ export class Producto implements OnInit, OnDestroy {
     this.menuRowIdx = i;
     this.menuDropUpIdx = openUp ? i : null;
     this.menuDropdownStyle = openUp
-      ? { bottom: `${viewportHeight - rect.top + gap}px`, right: `${window.innerWidth - rect.right}px` }
+      ? {
+          bottom: `${viewportHeight - rect.top + gap}px`,
+          right: `${window.innerWidth - rect.right}px`,
+        }
       : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }
-
-

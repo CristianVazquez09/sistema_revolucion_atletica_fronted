@@ -1,4 +1,14 @@
-import { Component, HostListener, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild, inject, signal } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  OnInit,
+  AfterViewInit,
+  OnDestroy,
+  ElementRef,
+  ViewChild,
+  inject,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -18,10 +28,9 @@ import { environment } from '../../../../../environments/environment';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './categoria.html',
-  styleUrl: './categoria.css'
+  styleUrl: './categoria.css',
 })
 export class Categoria implements OnInit, AfterViewInit, OnDestroy {
-
   // Inyección
   private fb = inject(FormBuilder);
   private categoriaSrv = inject(CategoriaService);
@@ -49,7 +58,7 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
   // Form: gimnasioId se habilita solo si eres admin
   form = this.fb.group({
     nombre: ['', [Validators.required, Validators.maxLength(80)]],
-    gimnasioId: this.fb.control<number | null>({ value: null, disabled: true })
+    gimnasioId: this.fb.control<number | null>({ value: null, disabled: true }),
   });
 
   guardando = false;
@@ -71,9 +80,7 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
 
   // Breakpoint md para no encoger tarjetas/inputs en mobile
   esMdUp = signal(
-    typeof window !== 'undefined'
-      ? window.matchMedia('(min-width: 768px)').matches
-      : false
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : false,
   );
 
   ngOnInit(): void {
@@ -169,7 +176,7 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
         ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
       ]
         .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
-        .map(r => String(r).toUpperCase());
+        .map((r) => String(r).toUpperCase());
 
       return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     } catch {
@@ -197,7 +204,7 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
         this.cargandoGimnasios = false;
         this.errorGimnasios = 'No se pudieron cargar los gimnasios.';
         this.cargarCategorias();
-      }
+      },
     });
   }
 
@@ -206,22 +213,25 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
     this.error = null;
 
     this.categoriaSrv.buscarTodos().subscribe({
-      next: data => {
+      next: (data) => {
         // Solo activas (si no trae campo, se asume activa)
-        this.categorias = (data ?? []).filter(c => c?.activo !== false);
+        this.categorias = (data ?? []).filter((c) => c?.activo !== false);
         this.loading = false;
       },
-      error: err => {
+      error: (err) => {
         console.error(err);
         this.loading = false;
         this.error = 'No se pudieron cargar las categorías.';
-      }
+      },
     });
   }
 
   // --- Guardar (crear/actualizar) ---
   guardar(): void {
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
     this.guardando = true;
 
@@ -252,11 +262,11 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
         this.cargarCategorias();
         this.notificacion.exito('Categoría guardada.');
       },
-      error: err => {
+      error: (err) => {
         console.error(err);
         this.guardando = false;
         this.notificacion.error('No se pudo guardar la categoría.');
-      }
+      },
     });
   }
 
@@ -269,7 +279,7 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
       nombre: String(c.nombre ?? ''),
       gimnasioId: this.isAdmin
         ? (this.getGymId(c.gimnasio) ?? this.form.controls.gimnasioId.value)
-        : null
+        : null,
     });
   }
 
@@ -280,7 +290,7 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
         nombre: '',
         gimnasioId: this.form.controls.gimnasioId.enabled
           ? (this.form.controls.gimnasioId.value ?? null)
-          : null
+          : null,
       });
     } else {
       this.form.reset({ nombre: '', gimnasioId: null });
@@ -300,16 +310,24 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
         this.notificacion.exito('Categoría desactivada.');
         this.cargarCategorias();
       },
-      error: () => this.notificacion.error('No se pudo desactivar la categoría.')
+      error: () => this.notificacion.error('No se pudo desactivar la categoría.'),
     });
   }
 
   // --- Helpers de template ---
-  get esEdicion(): boolean { return !!this.categoriaEditando; }
-  get idEditando(): number | null { return this.categoriaEditando?.idCategoria ?? null; }
+  get esEdicion(): boolean {
+    return !!this.categoriaEditando;
+  }
+  get idEditando(): number | null {
+    return this.categoriaEditando?.idCategoria ?? null;
+  }
 
   @HostListener('document:click')
-  closeMenuRows(): void { this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null; }
+  closeMenuRows(): void {
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
+  }
 
   toggleMenuRow(i: number, event: MouseEvent): void {
     event.stopPropagation();
@@ -329,9 +347,10 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
     this.menuRowIdx = i;
     this.menuDropUpIdx = openUp ? i : null;
     this.menuDropdownStyle = openUp
-      ? { bottom: `${viewportHeight - rect.top + gap}px`, right: `${window.innerWidth - rect.right}px` }
+      ? {
+          bottom: `${viewportHeight - rect.top + gap}px`,
+          right: `${window.innerWidth - rect.right}px`,
+        }
       : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }
-
-

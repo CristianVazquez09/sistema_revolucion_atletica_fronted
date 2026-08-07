@@ -7,11 +7,15 @@ import { Injectable } from '@angular/core';
 export type TicketTipo = 'VENTA' | 'MEMBRESIA' | 'ENTRENADOR' | 'ACCESORIA';
 
 // Acepta { metodo, monto } o { tipoPago, monto }
-export interface TicketPagoDetalle { metodo?: string; tipoPago?: string; monto: number; }
+export interface TicketPagoDetalle {
+  metodo?: string;
+  tipoPago?: string;
+  monto: number;
+}
 
 export interface TicketHeader {
   negocio: { nombre: string; direccion?: string; telefono?: string };
-  folio?: string | number;       // -> número grande centrado
+  folio?: string | number; // -> número grande centrado
   fecha: Date | string;
   cajero?: string;
   socio?: string;
@@ -35,46 +39,46 @@ export interface TicketVenta extends TicketHeader {
 
   items: TicketItem[];
   totales: TicketTotales;
-  leyendaLateral?: string;       // leyenda vertical (opcional)
-  brandTitle?: string;           // encabezado (por defecto “REVOLUCIÓN ATLÉTICA”)
-  tipoPago?: string;             // compat: un solo método
-  pagos?: TicketPagoDetalle[];   // desglose: varios métodos
+  leyendaLateral?: string; // leyenda vertical (opcional)
+  brandTitle?: string; // encabezado (por defecto “REVOLUCIÓN ATLÉTICA”)
+  tipoPago?: string; // compat: un solo método
+  pagos?: TicketPagoDetalle[]; // desglose: varios métodos
 }
 
 export interface TicketMembresia extends TicketHeader {
-  concepto: string;              // p.ej. "Membresía MENSUAL"
-  periodo?: string;              // p.ej. "Noviembre 2025"
-  importe: number | string;      // precio base + inscripción
+  concepto: string; // p.ej. "Membresía MENSUAL"
+  periodo?: string; // p.ej. "Noviembre 2025"
+  importe: number | string; // precio base + inscripción
   descuento?: number | string;
-  total?: number | string;       // total tras descuento
-  abonado?: number | string;     // si manejas anticipos
+  total?: number | string; // total tras descuento
+  abonado?: number | string; // si manejas anticipos
   totalAPagar?: number | string; // total - abonado
-  pagos?: TicketPagoDetalle[];   // desglose real
-  tipoPago?: string;             // compat si no mandas 'pagos'
+  pagos?: TicketPagoDetalle[]; // desglose real
+  tipoPago?: string; // compat si no mandas 'pagos'
   cambio?: number | string;
-  referencia?: string | number;  // REF:
+  referencia?: string | number; // REF:
   saldo?: number | string;
   estado?: 'PAGADO' | 'PENDIENTE';
-  entrenador?: string;           // entrenador RA asignado
+  entrenador?: string; // entrenador RA asignado
 }
 
 export interface TicketEntrenador extends TicketHeader {
   concepto: string;
   importe: number | string;
-  tipoPago?: string;             // compat
-  pagos?: TicketPagoDetalle[];   // desglose
+  tipoPago?: string; // compat
+  pagos?: TicketPagoDetalle[]; // desglose
 }
 
 export interface TicketAccesoria extends TicketHeader {
   concepto: string;
   entrenador?: string;
-  tiempo?: string;               // p.ej. "MENSUAL", "8 SESIONES", etc.
+  tiempo?: string; // p.ej. "MENSUAL", "8 SESIONES", etc.
   importe: number | string;
   descuento?: number | string;
   total?: number | string;
-  pagos?: TicketPagoDetalle[];   // desglose
-  tipoPago?: string;             // compat si solo envías un método
-  referencia?: string | number;  // opc: id de la asesoría
+  pagos?: TicketPagoDetalle[]; // desglose
+  tipoPago?: string; // compat si solo envías un método
+  referencia?: string | number; // opc: id de la asesoría
 }
 
 export interface TicketSalidaEfectivo extends TicketHeader {
@@ -107,10 +111,10 @@ export interface VentaBackend {
   descuento?: number;
 
   pagos?: Array<{
-    tipoPago?: string;   // EFECTIVO | TARJETA | TRANSFERENCIA | ...
-    metodo?: string;     // compat
-    monto?: number;      // ideal
-    total?: number;      // compat
+    tipoPago?: string; // EFECTIVO | TARJETA | TRANSFERENCIA | ...
+    metodo?: string; // compat
+    monto?: number; // ideal
+    total?: number; // compat
   }>;
 
   detalles?: Array<{
@@ -144,10 +148,10 @@ export interface CorteBackend {
   idCorte?: number | string;
 
   // Compat nombres de fecha
-  desde?: string | Date;     // antiguo
-  hasta?: string | Date;     // antiguo
-  apertura?: string | Date;  // backend actual
-  cierre?: string | Date;    // backend actual
+  desde?: string | Date; // antiguo
+  hasta?: string | Date; // antiguo
+  apertura?: string | Date; // backend actual
+  cierre?: string | Date; // backend actual
 
   estado?: string;
 
@@ -170,7 +174,7 @@ export interface CorteBackend {
   desgloses?: Array<{
     origen?: 'VENTA' | 'MEMBRESIA' | 'ACCESORIA' | string;
     tipoPago?: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | string;
-    metodo?: string;   // por compat
+    metodo?: string; // por compat
     operaciones?: number;
     total?: number;
   }>;
@@ -188,7 +192,6 @@ export interface CorteBackend {
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
-
   // =========================================================
   // A) MÉTODOS DE ALTO NIVEL (helpers para UI/flows)
   // =========================================================
@@ -197,14 +200,14 @@ export class TicketService {
     venta: VentaBackend,
     ctx: VentaContexto,
     tipoPago?: string,
-    pagos?: TicketPagoDetalle[]
+    pagos?: TicketPagoDetalle[],
   ) {
     const items = this.normalizarItemsDesdeBackend(venta);
     const subtotal = this.calcularSubtotal(items);
     const total = Number.isFinite(Number(venta?.total)) ? Number(venta!.total) : subtotal;
 
     // ✅ si no te mandan pagos explícitos, intenta sacarlos del backend
-    const pagosDet = (pagos && pagos.length) ? pagos : this.normalizarPagosVentaDesdeBackend(venta);
+    const pagosDet = pagos && pagos.length ? pagos : this.normalizarPagosVentaDesdeBackend(venta);
 
     const descuento = Number(venta?.descuento) || 0;
     this.verVentaComoHtml({
@@ -219,8 +222,8 @@ export class TicketService {
       totales: { subtotal, descuento, total },
       leyendaLateral: ctx.leyendaLateral ?? ctx.negocio.nombre,
       brandTitle: ctx.brandTitle,
-      tipoPago,         // solo fallback
-      pagos: pagosDet,  // ✅ lo importante
+      tipoPago, // solo fallback
+      pagos: pagosDet, // ✅ lo importante
     });
   }
 
@@ -228,14 +231,14 @@ export class TicketService {
     venta: VentaBackend,
     ctx: VentaContexto,
     tipoPago?: string,
-    pagos?: TicketPagoDetalle[]
+    pagos?: TicketPagoDetalle[],
   ) {
     const items = this.normalizarItemsDesdeBackend(venta);
     const subtotal = this.calcularSubtotal(items);
     const total = Number.isFinite(Number(venta?.total)) ? Number(venta!.total) : subtotal;
 
     // ✅ si no te mandan pagos explícitos, intenta sacarlos del backend
-    const pagosDet = (pagos && pagos.length) ? pagos : this.normalizarPagosVentaDesdeBackend(venta);
+    const pagosDet = pagos && pagos.length ? pagos : this.normalizarPagosVentaDesdeBackend(venta);
 
     const descuento = Number(venta?.descuento) || 0;
     this.imprimirVenta({
@@ -249,8 +252,8 @@ export class TicketService {
       totales: { subtotal, descuento, total },
       leyendaLateral: ctx.leyendaLateral ?? ctx.negocio.nombre,
       brandTitle: ctx.brandTitle,
-      tipoPago,         // solo fallback
-      pagos: pagosDet,  // ✅ lo importante
+      tipoPago, // solo fallback
+      pagos: pagosDet, // ✅ lo importante
     });
   }
 
@@ -262,10 +265,14 @@ export class TicketService {
     folio?: string | number,
     fecha?: Date | string,
     idVenta?: string | number,
-    descuento?: number
+    descuento?: number,
   ) {
     void idVenta; // compat, ya no se imprime
-    const items = carrito.map(it => ({ nombre: it.nombre, cantidad: it.cantidad, precioUnit: it.precioUnit }));
+    const items = carrito.map((it) => ({
+      nombre: it.nombre,
+      cantidad: it.cantidad,
+      precioUnit: it.precioUnit,
+    }));
     const subtotal = this.calcularSubtotal(items);
     const desc = descuento || 0;
     const total = Math.max(0, subtotal - desc);
@@ -281,7 +288,7 @@ export class TicketService {
       leyendaLateral: ctx.leyendaLateral ?? ctx.negocio.nombre,
       brandTitle: ctx.brandTitle,
       tipoPago,
-      pagos
+      pagos,
     });
   }
 
@@ -293,10 +300,14 @@ export class TicketService {
     folio?: string | number,
     fecha?: Date | string,
     idVenta?: string | number,
-    descuento?: number
+    descuento?: number,
   ) {
     void idVenta; // compat, ya no se imprime
-    const items = carrito.map(it => ({ nombre: it.nombre, cantidad: it.cantidad, precioUnit: it.precioUnit }));
+    const items = carrito.map((it) => ({
+      nombre: it.nombre,
+      cantidad: it.cantidad,
+      precioUnit: it.precioUnit,
+    }));
     const subtotal = this.calcularSubtotal(items);
     const desc = descuento || 0;
     const total = Math.max(0, subtotal - desc);
@@ -312,7 +323,7 @@ export class TicketService {
       leyendaLateral: ctx.leyendaLateral ?? ctx.negocio.nombre,
       brandTitle: ctx.brandTitle,
       tipoPago,
-      pagos
+      pagos,
     });
   }
 
@@ -325,10 +336,10 @@ export class TicketService {
     precioPaquete: number;
     descuento: number;
     costoInscripcion: number;
-    tipoPago?: string;                   // compat si no mandas pagos
-    pagos?: TicketPagoDetalle[];         // desglose real
+    tipoPago?: string; // compat si no mandas pagos
+    pagos?: TicketPagoDetalle[]; // desglose real
     referencia?: string | number;
-    entrenadorNombre?: string;           // entrenador RA
+    entrenadorNombre?: string; // entrenador RA
   }) {
     const base = (Number(p.precioPaquete) || 0) + (Number(p.costoInscripcion) || 0);
     const desc = Number(p.descuento) || 0;
@@ -338,9 +349,11 @@ export class TicketService {
 
     // fallback a tipoPago si no hay pagos[]
     const pagosDet: TicketPagoDetalle[] | undefined =
-      (p.pagos && p.pagos.length > 0)
+      p.pagos && p.pagos.length > 0
         ? p.pagos
-        : (p.tipoPago ? [{ metodo: p.tipoPago, monto: total }] : undefined);
+        : p.tipoPago
+          ? [{ metodo: p.tipoPago, monto: total }]
+          : undefined;
 
     this.verMembresiaComoHtml({
       negocio: p.ctx.negocio,
@@ -363,13 +376,18 @@ export class TicketService {
   }
 
   imprimirMembresiaDesdeContexto(p: {
-    ctx: VentaContexto; folio: string | number; fecha?: Date | string;
-    socioNombre: string; paqueteNombre?: string | null;
-    precioPaquete: number; descuento: number; costoInscripcion: number;
-    tipoPago?: string;                   // compat si no llegan pagos
-    pagos?: TicketPagoDetalle[];         // desglose real (opcional)
-    referencia?: string | number;        // opcional
-    entrenadorNombre?: string;           // entrenador RA
+    ctx: VentaContexto;
+    folio: string | number;
+    fecha?: Date | string;
+    socioNombre: string;
+    paqueteNombre?: string | null;
+    precioPaquete: number;
+    descuento: number;
+    costoInscripcion: number;
+    tipoPago?: string; // compat si no llegan pagos
+    pagos?: TicketPagoDetalle[]; // desglose real (opcional)
+    referencia?: string | number; // opcional
+    entrenadorNombre?: string; // entrenador RA
   }) {
     const base = (Number(p.precioPaquete) || 0) + (Number(p.costoInscripcion) || 0);
     const desc = Number(p.descuento) || 0;
@@ -404,7 +422,7 @@ export class TicketService {
 
   imprimirCorteDesdeBackend(
     corte: CorteBackend,
-    ctx: { negocio: TicketHeader['negocio']; cajero?: string; brandTitle?: string }
+    ctx: { negocio: TicketHeader['negocio']; cajero?: string; brandTitle?: string },
   ) {
     const desgl = Array.isArray(corte?.desgloses) ? corte!.desgloses! : [];
 
@@ -412,19 +430,31 @@ export class TicketService {
     const pagos = this.sumarPagosPorMetodo(desgl as any);
 
     // Totales por origen
-    const ventas   = this.pickNum(this.toNum(corte?.totalVentas),     this.sumarPorOrigen('VENTA',     desgl as any));
-    const mems     = this.pickNum(this.toNum(corte?.totalMembresias), this.sumarPorOrigen('MEMBRESIA', desgl as any));
-    const accs     = this.pickNum(this.toNum(corte?.totalAccesorias), this.sumarPorOrigen('ACCESORIA', desgl as any));
-    const general  = this.pickNum(this.toNum(corte?.totalGeneral),    ventas + mems + accs);
+    const ventas = this.pickNum(
+      this.toNum(corte?.totalVentas),
+      this.sumarPorOrigen('VENTA', desgl as any),
+    );
+    const mems = this.pickNum(
+      this.toNum(corte?.totalMembresias),
+      this.sumarPorOrigen('MEMBRESIA', desgl as any),
+    );
+    const accs = this.pickNum(
+      this.toNum(corte?.totalAccesorias),
+      this.sumarPorOrigen('ACCESORIA', desgl as any),
+    );
+    const general = this.pickNum(this.toNum(corte?.totalGeneral), ventas + mems + accs);
 
     // Efectivo en el periodo
-    const fondo      = this.toNum(corte?.fondoCajaInicial);
-    const ingEfec    = this.pickNum(this.toNum(corte?.ingresosEfectivo), this.sumarEfectivo(desgl as any));
-    const salidas    = this.toNum(corte?.totalSalidasEfectivo);
-    const esperado   = this.pickNum(this.toNum(corte?.efectivoEsperado), fondo + ingEfec - salidas);
-    const entregado  = this.toNum(corte?.efectivoEntregado);
-    const conteo     = this.toNum(corte?.efectivoEnCajaConteo);
-    const faltante   = this.pickNum(this.toNum(corte?.faltante), esperado - (entregado + conteo));
+    const fondo = this.toNum(corte?.fondoCajaInicial);
+    const ingEfec = this.pickNum(
+      this.toNum(corte?.ingresosEfectivo),
+      this.sumarEfectivo(desgl as any),
+    );
+    const salidas = this.toNum(corte?.totalSalidasEfectivo);
+    const esperado = this.pickNum(this.toNum(corte?.efectivoEsperado), fondo + ingEfec - salidas);
+    const entregado = this.toNum(corte?.efectivoEntregado);
+    const conteo = this.toNum(corte?.efectivoEnCajaConteo);
+    const faltante = this.pickNum(this.toNum(corte?.faltante), esperado - (entregado + conteo));
 
     const tiposIngreso = this.resolverTiposIngreso(corte, { ventas, mems, accs });
 
@@ -433,9 +463,12 @@ export class TicketService {
       folio: corte?.idCorte ?? '',
       idCorte: corte?.idCorte ?? '',
       fecha: this.fechaFin(corte),
-      cajero: ctx.cajero || this.nombreUsuario(corte.cerradoPor) || this.nombreUsuario(corte.usuarioCierre),
+      cajero:
+        ctx.cajero ||
+        this.nombreUsuario(corte.cerradoPor) ||
+        this.nombreUsuario(corte.usuarioCierre),
       totales: { ventas, membresias: mems, accesorias: accs, general },
-      pagos
+      pagos,
     };
 
     const html = this.htmlCorte(
@@ -444,33 +477,51 @@ export class TicketService {
       this.fechaIni(corte),
       this.fechaFin(corte),
       {
-        fondo, ingEfec, salidas, esperado, entregado, conteo, faltante,
+        fondo,
+        ingEfec,
+        salidas,
+        esperado,
+        entregado,
+        conteo,
+        faltante,
         tiposIngreso,
-        desgloseOrigenPago: this.normalizarDesglose(corte?.desgloses || [])
-      }
+        desgloseOrigenPago: this.normalizarDesglose(corte?.desgloses || []),
+      },
     );
     this.abrirYImprimir(html, `ticket-corte-${data.folio ?? ''}.html`);
   }
 
   verCorteComoHtml(
     corte: CorteBackend,
-    ctx: { negocio: TicketHeader['negocio']; cajero?: string; brandTitle?: string }
+    ctx: { negocio: TicketHeader['negocio']; cajero?: string; brandTitle?: string },
   ) {
     const desgl = Array.isArray(corte?.desgloses) ? corte!.desgloses! : [];
 
     const pagos = this.sumarPagosPorMetodo(desgl as any);
-    const ventas   = this.pickNum(this.toNum(corte?.totalVentas),     this.sumarPorOrigen('VENTA',     desgl as any));
-    const mems     = this.pickNum(this.toNum(corte?.totalMembresias), this.sumarPorOrigen('MEMBRESIA', desgl as any));
-    const accs     = this.pickNum(this.toNum(corte?.totalAccesorias), this.sumarPorOrigen('ACCESORIA', desgl as any));
-    const general  = this.pickNum(this.toNum(corte?.totalGeneral),    ventas + mems + accs);
+    const ventas = this.pickNum(
+      this.toNum(corte?.totalVentas),
+      this.sumarPorOrigen('VENTA', desgl as any),
+    );
+    const mems = this.pickNum(
+      this.toNum(corte?.totalMembresias),
+      this.sumarPorOrigen('MEMBRESIA', desgl as any),
+    );
+    const accs = this.pickNum(
+      this.toNum(corte?.totalAccesorias),
+      this.sumarPorOrigen('ACCESORIA', desgl as any),
+    );
+    const general = this.pickNum(this.toNum(corte?.totalGeneral), ventas + mems + accs);
 
-    const fondo      = this.toNum(corte?.fondoCajaInicial);
-    const ingEfec    = this.pickNum(this.toNum(corte?.ingresosEfectivo), this.sumarEfectivo(desgl as any));
-    const salidas    = this.toNum(corte?.totalSalidasEfectivo);
-    const esperado   = this.pickNum(this.toNum(corte?.efectivoEsperado), fondo + ingEfec - salidas);
-    const entregado  = this.toNum(corte?.efectivoEntregado);
-    const conteo     = this.toNum(corte?.efectivoEnCajaConteo);
-    const faltante   = this.pickNum(this.toNum(corte?.faltante), esperado - (entregado + conteo));
+    const fondo = this.toNum(corte?.fondoCajaInicial);
+    const ingEfec = this.pickNum(
+      this.toNum(corte?.ingresosEfectivo),
+      this.sumarEfectivo(desgl as any),
+    );
+    const salidas = this.toNum(corte?.totalSalidasEfectivo);
+    const esperado = this.pickNum(this.toNum(corte?.efectivoEsperado), fondo + ingEfec - salidas);
+    const entregado = this.toNum(corte?.efectivoEntregado);
+    const conteo = this.toNum(corte?.efectivoEnCajaConteo);
+    const faltante = this.pickNum(this.toNum(corte?.faltante), esperado - (entregado + conteo));
 
     const tiposIngreso = this.resolverTiposIngreso(corte, { ventas, mems, accs });
 
@@ -479,28 +530,40 @@ export class TicketService {
       folio: corte?.idCorte ?? '',
       idCorte: corte?.idCorte ?? '',
       fecha: this.fechaFin(corte),
-      cajero: ctx.cajero || this.nombreUsuario(corte.cerradoPor) || this.nombreUsuario(corte.usuarioCierre),
+      cajero:
+        ctx.cajero ||
+        this.nombreUsuario(corte.cerradoPor) ||
+        this.nombreUsuario(corte.usuarioCierre),
       totales: { ventas, membresias: mems, accesorias: accs, general },
-      pagos
+      pagos,
     };
 
-    const html = this
-      .htmlCorte(
-        data,
-        ctx.brandTitle ?? 'REVOLUCIÓN ATLÉTICA',
-        this.fechaIni(corte),
-        this.fechaFin(corte),
-        {
-          fondo, ingEfec, salidas, esperado, entregado, conteo, faltante,
-          tiposIngreso,
-          desgloseOrigenPago: this.normalizarDesglose(corte?.desgloses || [])
-        }
-      )
-      .replace('onload="window.print();window.close();"', '');
+    const html = this.htmlCorte(
+      data,
+      ctx.brandTitle ?? 'REVOLUCIÓN ATLÉTICA',
+      this.fechaIni(corte),
+      this.fechaFin(corte),
+      {
+        fondo,
+        ingEfec,
+        salidas,
+        esperado,
+        entregado,
+        conteo,
+        faltante,
+        tiposIngreso,
+        desgloseOrigenPago: this.normalizarDesglose(corte?.desgloses || []),
+      },
+    ).replace('onload="window.print();window.close();"', '');
 
     const w = window.open('', '_blank', 'noopener,noreferrer');
-    if (!w) { this.descargarHtml(`ticket-corte-${data.folio ?? ''}.html`, html); return; }
-    w.document.open(); w.document.write(html); w.document.close();
+    if (!w) {
+      this.descargarHtml(`ticket-corte-${data.folio ?? ''}.html`, html);
+      return;
+    }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
   }
 
   imprimirSalidaEfectivo(d: TicketSalidaEfectivo, brandTitle = 'REVOLUCIÓN ATLÉTICA FITNESS') {
@@ -510,7 +573,10 @@ export class TicketService {
   }
 
   verSalidaEfectivoComoHtml(d: TicketSalidaEfectivo, brandTitle = 'REVOLUCIÓN ATLÉTICA FITNESS') {
-    const html = this.htmlSalidaEfectivo(d, brandTitle).replace('onload="window.print();window.close();"', '');
+    const html = this.htmlSalidaEfectivo(d, brandTitle).replace(
+      'onload="window.print();window.close();"',
+      '',
+    );
     this.verComoHtml(html, `ticket-retiro-${d.folio ?? ''}.html`);
   }
 
@@ -562,29 +628,41 @@ export class TicketService {
 
   private htmlVenta(d: TicketVenta): string {
     const brand = d.brandTitle ?? 'REVOLUCIÓN ATLÉTICA';
-    const lateral = d.leyendaLateral ? `<div class="lateral">${this.escape(String(d.leyendaLateral))}</div>` : '';
+    const lateral = d.leyendaLateral
+      ? `<div class="lateral">${this.escape(String(d.leyendaLateral))}</div>`
+      : '';
 
-    const calc = (d.items ?? []).reduce((a, i) => a + this.toInt(i.cantidad) * this.toNum(i.precioUnit), 0);
-    const subtotal  = (Number.isFinite(this.toNum(d.totales?.subtotal)) && this.toNum(d.totales?.subtotal) > 0)
-      ? this.toNum(d.totales?.subtotal) : calc;
-    const descuento = Number.isFinite(this.toNum(d.totales?.descuento)) ? this.toNum(d.totales?.descuento) : 0;
-    const total     = this.toNum(d.totales?.total);
+    const calc = (d.items ?? []).reduce(
+      (a, i) => a + this.toInt(i.cantidad) * this.toNum(i.precioUnit),
+      0,
+    );
+    const subtotal =
+      Number.isFinite(this.toNum(d.totales?.subtotal)) && this.toNum(d.totales?.subtotal) > 0
+        ? this.toNum(d.totales?.subtotal)
+        : calc;
+    const descuento = Number.isFinite(this.toNum(d.totales?.descuento))
+      ? this.toNum(d.totales?.descuento)
+      : 0;
+    const total = this.toNum(d.totales?.total);
 
     const folioGrande = this.docId('FOLIO', d.folio);
 
-    const itemsRows = (d.items ?? []).map(it => {
-      const qty = this.toInt(it.cantidad);
-      const pu  = this.toNum(it.precioUnit);
-      const amt = qty * pu;
-      return `
+    const itemsRows = (d.items ?? [])
+      .map((it) => {
+        const qty = this.toInt(it.cantidad);
+        const pu = this.toNum(it.precioUnit);
+        const amt = qty * pu;
+        return `
         <div class="tbl-line">
           <div class="tbl-qty">x${qty}</div>
           <div class="tbl-desc">${this.escape(String(it.nombre))}</div>
           <div class="tbl-amt">${this.money(amt)}</div>
         </div>`;
-    }).join('');
+      })
+      .join('');
 
-    const itemsBlock = itemsRows ? `
+    const itemsBlock = itemsRows
+      ? `
       <div class="sec">Detalle</div>
       <div class="tbl">
         <div class="tbl-head">
@@ -592,7 +670,8 @@ export class TicketService {
         </div>
         ${itemsRows}
       </div>
-    ` : `
+    `
+      : `
       <div class="sec">Detalle</div>
       <div class="tbl">
         <div class="tbl-head">
@@ -616,15 +695,15 @@ ${this.baseStyles()}
 
   <div class="brand">${this.up(brand)}</div>
   <div class="bizline">${this.up(d.negocio.nombre)}</div>
-  ${ d.negocio.direccion ? `<div class="bizline">${this.up(d.negocio.direccion)}</div>` : '' }
-  ${ d.negocio.telefono  ? `<div class="bizline">TEL: ${this.up(d.negocio.telefono)}</div>` : '' }
+  ${d.negocio.direccion ? `<div class="bizline">${this.up(d.negocio.direccion)}</div>` : ''}
+  ${d.negocio.telefono ? `<div class="bizline">TEL: ${this.up(d.negocio.telefono)}</div>` : ''}
 
   <div class="hr"></div>
 
   <div class="meta">
     <div class="mrow"><div class="k">FECHA:</div><div class="v">${this.fechaConSegundos(d.fecha)}</div></div>
-    ${ d.cajero ? `<div class="mrow"><div class="k">CAJERO:</div><div class="v">${this.escape(String(d.cajero))}</div></div>` : '' }
-    ${ d.socio  ? `<div class="mrow"><div class="k">SOCIO:</div><div class="v">${this.escape(String(d.socio))}</div></div>` : '' }
+    ${d.cajero ? `<div class="mrow"><div class="k">CAJERO:</div><div class="v">${this.escape(String(d.cajero))}</div></div>` : ''}
+    ${d.socio ? `<div class="mrow"><div class="k">SOCIO:</div><div class="v">${this.escape(String(d.socio))}</div></div>` : ''}
   </div>
 
   ${folioGrande}
@@ -635,11 +714,11 @@ ${this.baseStyles()}
 
   <div class="totals">
     <div class="r"><div class="k">SUBTOTAL</div><div class="v">${this.money(subtotal)}</div></div>
-    ${ descuento ? `<div class="r"><div class="k">DESCUENTO</div><div class="v">-${this.money(descuento)}</div></div>` : '' }
+    ${descuento ? `<div class="r"><div class="k">DESCUENTO</div><div class="v">-${this.money(descuento)}</div></div>` : ''}
     <div class="r total"><div class="k">TOTAL</div><div class="v">${this.money(total)}</div></div>
   </div>
 
-  ${ this.renderBloquePagos(d.tipoPago, d.pagos, total, 'PAGOS') }
+  ${this.renderBloquePagos(d.tipoPago, d.pagos, total, 'PAGOS')}
 
   <div class="footer">¡Gracias por su compra!</div>
   <div class="footer">ESTE NO ES UN COMPROBANTE FISCAL</div>
@@ -680,34 +759,34 @@ ${this.baseStyles()}
 <div class="ticket">
   <div class="brand">${this.up('REVOLUCIÓN ATLÉTICA FITNESS')}</div>
   <div class="bizline">${this.up(d.negocio.nombre)}</div>
-  ${ d.negocio.direccion ? `<div class="bizline">${this.up(d.negocio.direccion)}</div>` : '' }
-  ${ d.negocio.telefono  ? `<div class="bizline">TEL: ${this.up(d.negocio.telefono)}</div>` : '' }
+  ${d.negocio.direccion ? `<div class="bizline">${this.up(d.negocio.direccion)}</div>` : ''}
+  ${d.negocio.telefono ? `<div class="bizline">TEL: ${this.up(d.negocio.telefono)}</div>` : ''}
 
   <div class="hr"></div>
 
   <div class="meta">
     <div class="mrow"><div class="k">FECHA:</div><div class="v">${this.fechaConSegundos(d.fecha)}</div></div>
-    ${ d.cajero ? `<div class="mrow"><div class="k">CAJERO:</div><div class="v">${this.escape(String(d.cajero))}</div></div>` : '' }
-    ${ d.socio  ? `<div class="mrow"><div class="k">SOCIO:</div><div class="v">${this.escape(String(d.socio))}</div></div>` : '' }
-    ${ d.entrenador ? `<div class="mrow"><div class="k">ENTRENADOR:</div><div class="v">${this.escape(String(d.entrenador))}</div></div>` : '' }
+    ${d.cajero ? `<div class="mrow"><div class="k">CAJERO:</div><div class="v">${this.escape(String(d.cajero))}</div></div>` : ''}
+    ${d.socio ? `<div class="mrow"><div class="k">SOCIO:</div><div class="v">${this.escape(String(d.socio))}</div></div>` : ''}
+    ${d.entrenador ? `<div class="mrow"><div class="k">ENTRENADOR:</div><div class="v">${this.escape(String(d.entrenador))}</div></div>` : ''}
   </div>
 
   ${folioGrande}
 
   <div class="sec">${this.escape(String(d.concepto))}</div>
-  ${ periodo ? `<div class="note">${this.escape(periodo)}</div>` : '' }
+  ${periodo ? `<div class="note">${this.escape(periodo)}</div>` : ''}
 
   <div class="hr"></div>
 
   <div class="totals">
     ${filaMoney('IMPORTE', d.importe)}
-    ${ this.toNum(d.descuento) ? filaMoney('DESCUENTO', d.descuento) : '' }
+    ${this.toNum(d.descuento) ? filaMoney('DESCUENTO', d.descuento) : ''}
     ${filaMoney('TOTAL', d.total ?? d.importe)}
-    ${ this.toNum(d.abonado) ? filaMoney('ABONADO', d.abonado) : '' }
+    ${this.toNum(d.abonado) ? filaMoney('ABONADO', d.abonado) : ''}
     ${filaMoney('TOTAL A PAGAR', d.totalAPagar ?? d.total ?? d.importe, true)}
   </div>
 
-  ${ this.renderBloquePagos(d.tipoPago, d.pagos, totalParaPago, 'DATOS DEL PAGO') }
+  ${this.renderBloquePagos(d.tipoPago, d.pagos, totalParaPago, 'DATOS DEL PAGO')}
 
   <div class="totals" style="margin-top:4px;">
     ${cambioRow}
@@ -733,15 +812,15 @@ ${this.baseStyles()}
 <div class="ticket">
   <div class="brand">${this.up('REVOLUCIÓN ATLÉTICA')}</div>
   <div class="bizline">${this.up(d.negocio.nombre)}</div>
-  ${ d.negocio.direccion ? `<div class="bizline">${this.up(d.negocio.direccion)}</div>` : '' }
-  ${ d.negocio.telefono  ? `<div class="bizline">TEL: ${this.up(d.negocio.telefono)}</div>` : '' }
+  ${d.negocio.direccion ? `<div class="bizline">${this.up(d.negocio.direccion)}</div>` : ''}
+  ${d.negocio.telefono ? `<div class="bizline">TEL: ${this.up(d.negocio.telefono)}</div>` : ''}
 
   <div class="hr"></div>
 
   <div class="meta">
     <div class="mrow"><div class="k">FECHA:</div><div class="v">${this.fechaConSegundos(d.fecha)}</div></div>
-    ${ d.cajero ? `<div class="mrow"><div class="k">ATENDIÓ:</div><div class="v">${this.escape(String(d.cajero))}</div></div>` : '' }
-    ${ d.socio  ? `<div class="mrow"><div class="k">CLIENTE:</div><div class="v">${this.escape(String(d.socio))}</div></div>` : '' }
+    ${d.cajero ? `<div class="mrow"><div class="k">ATENDIÓ:</div><div class="v">${this.escape(String(d.cajero))}</div></div>` : ''}
+    ${d.socio ? `<div class="mrow"><div class="k">CLIENTE:</div><div class="v">${this.escape(String(d.socio))}</div></div>` : ''}
   </div>
 
   ${folioGrande}
@@ -759,7 +838,7 @@ ${this.baseStyles()}
     <div class="r total"><div class="k">IMPORTE</div><div class="v">${this.money(total)}</div></div>
   </div>
 
-  ${ this.renderBloquePagos(d.tipoPago, d.pagos, total, 'PAGOS') }
+  ${this.renderBloquePagos(d.tipoPago, d.pagos, total, 'PAGOS')}
 
   <div class="footer">¡Gracias!</div>
   <div class="footer">ESTE NO ES UN COMPROBANTE FISCAL</div>
@@ -789,17 +868,17 @@ ${this.baseStyles()}
 <div class="ticket">
   <div class="brand">${this.up('REVOLUCIÓN ATLÉTICA FITNESS')}</div>
   <div class="bizline">${this.up(d.negocio.nombre)}</div>
-  ${ d.negocio.direccion ? `<div class="bizline">${this.up(d.negocio.direccion)}</div>` : '' }
-  ${ d.negocio.telefono  ? `<div class="bizline">TEL: ${this.up(d.negocio.telefono)}</div>` : '' }
+  ${d.negocio.direccion ? `<div class="bizline">${this.up(d.negocio.direccion)}</div>` : ''}
+  ${d.negocio.telefono ? `<div class="bizline">TEL: ${this.up(d.negocio.telefono)}</div>` : ''}
 
   <div class="hr"></div>
 
   <div class="meta">
     <div class="mrow"><div class="k">FECHA:</div><div class="v">${this.fechaConSegundos(d.fecha)}</div></div>
-    ${ d.cajero ? `<div class="mrow"><div class="k">CAJERO:</div><div class="v">${this.escape(String(d.cajero))}</div></div>` : '' }
-    ${ d.socio  ? `<div class="mrow"><div class="k">SOCIO:</div><div class="v">${this.escape(String(d.socio))}</div></div>` : '' }
-    ${ d.entrenador ? `<div class="mrow"><div class="k">ENTRENADOR:</div><div class="v">${this.escape(String(d.entrenador))}</div></div>` : '' }
-    ${ d.tiempo ? `<div class="mrow"><div class="k">TIEMPO:</div><div class="v">${this.escape(String(d.tiempo))}</div></div>` : '' }
+    ${d.cajero ? `<div class="mrow"><div class="k">CAJERO:</div><div class="v">${this.escape(String(d.cajero))}</div></div>` : ''}
+    ${d.socio ? `<div class="mrow"><div class="k">SOCIO:</div><div class="v">${this.escape(String(d.socio))}</div></div>` : ''}
+    ${d.entrenador ? `<div class="mrow"><div class="k">ENTRENADOR:</div><div class="v">${this.escape(String(d.entrenador))}</div></div>` : ''}
+    ${d.tiempo ? `<div class="mrow"><div class="k">TIEMPO:</div><div class="v">${this.escape(String(d.tiempo))}</div></div>` : ''}
   </div>
 
   ${folioGrande}
@@ -815,11 +894,11 @@ ${this.baseStyles()}
 
   <div class="totals">
     ${filaMoney('IMPORTE', d.importe)}
-    ${ this.toNum(d.descuento) ? filaMoney('DESCUENTO', d.descuento) : '' }
+    ${this.toNum(d.descuento) ? filaMoney('DESCUENTO', d.descuento) : ''}
     ${filaMoney('TOTAL', d.total ?? d.importe, true)}
   </div>
 
-  ${ this.renderBloquePagos(d.tipoPago, d.pagos, total, 'PAGOS') }
+  ${this.renderBloquePagos(d.tipoPago, d.pagos, total, 'PAGOS')}
 
   <div class="totals" style="margin-top:4px;">
     ${refRow}
@@ -847,8 +926,8 @@ ${this.baseStyles()}
 <div class="ticket">
   <div class="brand">${this.up(brandTitle)}</div>
   <div class="bizline">${this.up(d.negocio.nombre)}</div>
-  ${ d.negocio.direccion ? `<div class="bizline">${this.up(d.negocio.direccion)}</div>` : '' }
-  ${ d.negocio.telefono  ? `<div class="bizline">TEL: ${this.up(d.negocio.telefono)}</div>` : '' }
+  ${d.negocio.direccion ? `<div class="bizline">${this.up(d.negocio.direccion)}</div>` : ''}
+  ${d.negocio.telefono ? `<div class="bizline">TEL: ${this.up(d.negocio.telefono)}</div>` : ''}
 
   <div class="banner">::: RETIRO DE EFECTIVO :::</div>
 
@@ -856,8 +935,8 @@ ${this.baseStyles()}
 
   <div class="meta">
     <div class="mrow"><div class="k">FECHA:</div><div class="v">${this.fechaConSegundos(d.fecha)}</div></div>
-    ${ d.cajero ? `<div class="mrow"><div class="k">USUARIO:</div><div class="v">${this.escape(String(d.cajero))}</div></div>` : '' }
-    ${ d.idCorte ? `<div class="mrow"><div class="k">CORTE #:</div><div class="v">${this.escape(String(d.idCorte))}</div></div>` : '' }
+    ${d.cajero ? `<div class="mrow"><div class="k">USUARIO:</div><div class="v">${this.escape(String(d.cajero))}</div></div>` : ''}
+    ${d.idCorte ? `<div class="mrow"><div class="k">CORTE #:</div><div class="v">${this.escape(String(d.idCorte))}</div></div>` : ''}
   </div>
 
   ${folioGrande}
@@ -892,28 +971,45 @@ ${this.baseStyles()}
     desde?: Date | string,
     hasta?: Date | string,
     extra?: {
-      fondo?: number; ingEfec?: number; salidas?: number; esperado?: number;
-      entregado?: number; conteo?: number; faltante?: number;
+      fondo?: number;
+      ingEfec?: number;
+      salidas?: number;
+      esperado?: number;
+      entregado?: number;
+      conteo?: number;
+      faltante?: number;
       tiposIngreso?: Array<{ label: string; total: number }>;
-      desgloseOrigenPago?: Array<{ origen: string; tipoPago: string; operaciones: number; total: number }>;
-    }
+      desgloseOrigenPago?: Array<{
+        origen: string;
+        tipoPago: string;
+        operaciones: number;
+        total: number;
+      }>;
+    },
   ): string {
-    const brand  = this.up(brandTitle);
+    const brand = this.up(brandTitle);
     const nombre = this.up(d.negocio.nombre);
-    const dir    = d.negocio.direccion ? `<div class="bizline">${this.up(d.negocio.direccion)}</div>` : '';
-    const tel    = d.negocio.telefono  ? `<div class="bizline">TEL: ${this.up(d.negocio.telefono)}</div>` : '';
+    const dir = d.negocio.direccion
+      ? `<div class="bizline">${this.up(d.negocio.direccion)}</div>`
+      : '';
+    const tel = d.negocio.telefono
+      ? `<div class="bizline">TEL: ${this.up(d.negocio.telefono)}</div>`
+      : '';
 
     const desdeTxt = desde ? this.fechaConSegundos(desde) : '';
     const hastaTxt = hasta ? this.fechaConSegundos(hasta) : this.fechaConSegundos(new Date());
     const folioGrande = this.docId('CORTE', d.folio);
 
     const fila = (lbl: string, val?: number) =>
-      (this.toNum(val) || val === 0)
+      this.toNum(val) || val === 0
         ? `<div class="row"><div>${this.escape(lbl)}</div><div class="amount">${this.money(this.toNum(val))}</div></div>`
         : '';
 
     const tiposHtml = (extra?.tiposIngreso ?? [])
-      .map(t => `<div class="row"><div>${this.escape(t.label)}</div><div class="amount">${this.money(this.toNum(t.total))}</div></div>`)
+      .map(
+        (t) =>
+          `<div class="row"><div>${this.escape(t.label)}</div><div class="amount">${this.money(this.toNum(t.total))}</div></div>`,
+      )
       .join('');
 
     // Sumario de formas de pago
@@ -921,13 +1017,17 @@ ${this.baseStyles()}
 
     // Detalle por origen y método
     const det = extra?.desgloseOrigenPago ?? [];
-    const detalleRows = det.map(r => `
+    const detalleRows = det
+      .map(
+        (r) => `
       <div class="grid4">
         <div class="c1">${this.escape(r.origen)}</div>
         <div class="c2">${this.escape(r.tipoPago)}</div>
         <div class="c3">${this.toInt(r.operaciones)}</div>
         <div class="c4">${this.money(this.toNum(r.total))}</div>
-      </div>`).join('');
+      </div>`,
+      )
+      .join('');
 
     return `<!doctype html>
 <html><head><meta charset="utf-8"><title>Ticket Corte</title>
@@ -967,10 +1067,10 @@ ${this.baseStyles()}
   <div class="banner">::: CORTE DE CAJA :::</div>
   <div class="center muted">— resumen —</div>
 
-  ${ d.idCorte ? `<div class="info">CORTE # ${this.escape(String(d.idCorte))}</div>` : '' }
-  ${ desdeTxt ? `<div class="info">APERTURA: ${desdeTxt}</div>` : '' }
+  ${d.idCorte ? `<div class="info">CORTE # ${this.escape(String(d.idCorte))}</div>` : ''}
+  ${desdeTxt ? `<div class="info">APERTURA: ${desdeTxt}</div>` : ''}
   <div class="info">FECHA: ${hastaTxt}</div>
-  ${ d.cajero ? `<div class="info">CAJERO: ${this.escape(String(d.cajero))}</div>` : '' }
+  ${d.cajero ? `<div class="info">CAJERO: ${this.escape(String(d.cajero))}</div>` : ''}
 
   ${folioGrande}
 
@@ -982,8 +1082,8 @@ ${this.baseStyles()}
 
   <div class="sec">EFECTIVO EN CAJA</div>
   ${fila('EFECTIVO EN CAJA', extra?.esperado)}
-  ${fila('EFEC. ENTREGADO',  extra?.entregado)}
-  ${fila('FALTANTE',         extra?.faltante)}
+  ${fila('EFEC. ENTREGADO', extra?.entregado)}
+  ${fila('FALTANTE', extra?.faltante)}
 
   <div class="sec">CANTIDADES ENTREGADAS POR EL CAJERO</div>
   ${fila('EFECTIVO', extra?.entregado)}
@@ -992,18 +1092,20 @@ ${this.baseStyles()}
   ${fila('FICHAS DE DEP.', 0)}
 
   <div class="sec">TIPOS DE INGRESOS</div>
-  ${ tiposHtml || (
-      fila('INSCRIPCIONES', d.totales.membresias ? 0 : 0) +
+  ${
+    tiposHtml ||
+    fila('INSCRIPCIONES', d.totales.membresias ? 0 : 0) +
       fila('SUSCRIPCIONES', d.totales.membresias) +
       fila('VENTAS', d.totales.ventas) +
       fila('ACCESORÍAS', d.totales.accesorias)
-    )
   }
 
   <div class="sec">FORMAS DE PAGO</div>
-  ${ this.renderBloquePagos(undefined, pagosList, undefined, undefined) || '<div class="row"><div>—</div><div class="amount">$0.00</div></div>' }
+  ${this.renderBloquePagos(undefined, pagosList, undefined, undefined) || '<div class="row"><div>—</div><div class="amount">$0.00</div></div>'}
 
-  ${ det.length ? `
+  ${
+    det.length
+      ? `
     <div class="sec">DESGLOSE POR ORIGEN Y PAGO</div>
     <div class="grid4 head4">
       <div class="c1">ORIGEN</div>
@@ -1012,7 +1114,9 @@ ${this.baseStyles()}
       <div class="c4">TOTAL</div>
     </div>
     ${detalleRows}
-  ` : ''}
+  `
+      : ''
+  }
 
   <div class="sp"></div>
   <div class="row total"><div>TOTAL</div><div class="amount">${this.money(this.toNum(d.totales.general))}</div></div>
@@ -1029,13 +1133,27 @@ ${this.baseStyles()}
     const electronApi = (window as any)?.electron;
     if (electronApi?.printTicket) {
       const preferred = localStorage.getItem('ra_printer_name') || undefined;
-      electronApi.printTicket(sanitized, preferred).catch((err: any) => console.error('[TicketService] print:', err));
+      electronApi
+        .printTicket(sanitized, preferred)
+        .catch((err: any) => console.error('[TicketService] print:', err));
       return;
     }
     const win = window.open('', '_blank', 'width=330,height=600,noopener,noreferrer');
-    if (!win) { this.descargarHtml(nombreArchivo, sanitized); return; }
-    win.document.open(); win.document.write(sanitized); win.document.close();
-    const doPrint = () => { try { win.focus(); win.print(); } finally { setTimeout(() => win.close(), 300); } };
+    if (!win) {
+      this.descargarHtml(nombreArchivo, sanitized);
+      return;
+    }
+    win.document.open();
+    win.document.write(sanitized);
+    win.document.close();
+    const doPrint = () => {
+      try {
+        win.focus();
+        win.print();
+      } finally {
+        setTimeout(() => win.close(), 300);
+      }
+    };
     if (win.document.readyState === 'complete') setTimeout(doPrint, 100);
     else win.addEventListener('load', () => setTimeout(doPrint, 100));
   }
@@ -1045,16 +1163,24 @@ ${this.baseStyles()}
       .replace('onload="window.print();window.close();"', '')
       .replace('<body', '<body data-debug="1"');
     const w = window.open('', '_blank', 'noopener,noreferrer');
-    if (!w) { this.descargarHtml(nombre, h); return; }
-    w.document.open(); w.document.write(h); w.document.close();
+    if (!w) {
+      this.descargarHtml(nombre, h);
+      return;
+    }
+    w.document.open();
+    w.document.write(h);
+    w.document.close();
   }
 
   private descargarHtml(nombre: string, html: string) {
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = nombre || 'ticket.html';
-    document.body.appendChild(a); a.click(); a.remove();
+    a.href = url;
+    a.download = nombre || 'ticket.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
     URL.revokeObjectURL(url);
   }
 
@@ -1064,12 +1190,12 @@ ${this.baseStyles()}
 
   private rollMm(): number {
     const n = Number(localStorage.getItem('ra_roll_mm') || '44'); // contenido estrecho seguro
-    return (n >= 42 && n <= 58) ? n : 44;
+    return n >= 42 && n <= 58 ? n : 44;
   }
 
   private shiftMm(): number {
     const n = Number(localStorage.getItem('ra_shift_mm') || '-1.4'); // desplaza a la IZQ
-    return (n >= -3 && n <= 3) ? n : -1.4;
+    return n >= -3 && n <= 3 ? n : -1.4;
   }
 
   private baseStyles(mm: number = this.rollMm(), shift: number = this.shiftMm()): string {
@@ -1175,18 +1301,23 @@ ${this.baseStyles()}
     const s = new Intl.NumberFormat('es-MX', {
       style: 'currency',
       currency: 'MXN',
-      minimumFractionDigits: 2
+      minimumFractionDigits: 2,
     }).format(v);
     return s.replace(/\u00A0|\s/g, '');
   }
 
   private fechaConSegundos(d: Date | string): string {
     const date = typeof d === 'string' ? new Date(d) : d;
-    return new Intl.DateTimeFormat('es-MX', { dateStyle: 'short', timeStyle: 'medium' }).format(date);
+    return new Intl.DateTimeFormat('es-MX', { dateStyle: 'short', timeStyle: 'medium' }).format(
+      date,
+    );
   }
 
   private escape(s: string) {
-    return (s ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]!));
+    return (s ?? '').replace(
+      /[&<>"']/g,
+      (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]!,
+    );
   }
 
   private toNum(v: unknown): number {
@@ -1227,10 +1358,14 @@ ${this.baseStyles()}
   private normalizarItemsDesdeBackend(venta: VentaBackend): TicketItem[] {
     const lista = Array.isArray(venta?.detalles) ? venta!.detalles! : [];
     return lista.map((d: any) => {
-      const qty: number    = Number(d?.cantidad ?? 0) || 0;
+      const qty: number = Number(d?.cantidad ?? 0) || 0;
       const pVenta: number = Number(d?.producto?.precioVenta);
       const subTot: number = Number(d?.subTotal);
-      const unit: number   = Number.isFinite(pVenta) ? pVenta : (qty > 0 && Number.isFinite(subTot) ? subTot / qty : 0);
+      const unit: number = Number.isFinite(pVenta)
+        ? pVenta
+        : qty > 0 && Number.isFinite(subTot)
+          ? subTot / qty
+          : 0;
       return { nombre: d?.producto?.nombre ?? '—', cantidad: qty, precioUnit: unit };
     });
   }
@@ -1247,7 +1382,7 @@ ${this.baseStyles()}
   private sumarPorOrigen(origen: string, arr: Array<{ origen?: string; total?: number }>): number {
     if (!Array.isArray(arr)) return 0;
     return arr
-      .filter(d => String(d?.origen).toUpperCase() === String(origen).toUpperCase())
+      .filter((d) => String(d?.origen).toUpperCase() === String(origen).toUpperCase())
       .reduce((a, d) => a + (this.toNum(d?.total) || 0), 0);
   }
 
@@ -1266,11 +1401,11 @@ ${this.baseStyles()}
 
   /** Suma por método de pago y devuelve objeto {EFECTIVO, TARJETA, TRANSFERENCIA, OTRO}. */
   private sumarPagosPorMetodo(
-    arr: Array<{ metodo?: string; tipoPago?: string; total?: number }>
+    arr: Array<{ metodo?: string; tipoPago?: string; total?: number }>,
   ): TicketCorte['pagos'] {
     const out: TicketCorte['pagos'] = { EFECTIVO: 0, TARJETA: 0, TRANSFERENCIA: 0, OTRO: 0 };
 
-    for (const d of (arr || [])) {
+    for (const d of arr || []) {
       const rawMetodo = this.metodoFromDesglose(d);
       const bucket = this.normalizeMetodoPago(rawMetodo);
       const v = this.toNum(d?.total);
@@ -1279,23 +1414,41 @@ ${this.baseStyles()}
     return out;
   }
 
-  private normalizeMetodoPago(v?: string): 'EFECTIVO'|'TARJETA'|'TRANSFERENCIA'|'OTRO' {
-    const s = String(v ?? '').trim().toUpperCase();
-    const norm = s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[.\s_-]+/g,'');
+  private normalizeMetodoPago(v?: string): 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'OTRO' {
+    const s = String(v ?? '')
+      .trim()
+      .toUpperCase();
+    const norm = s
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[.\s_-]+/g, '');
 
-    const mapEq: Record<string,'EFECTIVO'|'TARJETA'|'TRANSFERENCIA'|'OTRO'> = {
-      'EFECTIVO':'EFECTIVO','CASH':'EFECTIVO','CONTADO':'EFECTIVO',
-      'TARJETA':'TARJETA','CARD':'TARJETA','CREDITO':'TARJETA','CRÉDITO':'TARJETA',
-      'DEBITO':'TARJETA','DÉBITO':'TARJETA','VISA':'TARJETA','MASTERCARD':'TARJETA',
-      'TRANSFERENCIA':'TRANSFERENCIA','TRANSFER':'TRANSFERENCIA',
-      'SPEI':'TRANSFERENCIA','DEPOSITO':'TRANSFERENCIA','DEPÓSITO':'TRANSFERENCIA',
-      'MIXTO':'OTRO','OTRO':'OTRO'
+    const mapEq: Record<string, 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'OTRO'> = {
+      EFECTIVO: 'EFECTIVO',
+      CASH: 'EFECTIVO',
+      CONTADO: 'EFECTIVO',
+      TARJETA: 'TARJETA',
+      CARD: 'TARJETA',
+      CREDITO: 'TARJETA',
+      CRÉDITO: 'TARJETA',
+      DEBITO: 'TARJETA',
+      DÉBITO: 'TARJETA',
+      VISA: 'TARJETA',
+      MASTERCARD: 'TARJETA',
+      TRANSFERENCIA: 'TRANSFERENCIA',
+      TRANSFER: 'TRANSFERENCIA',
+      SPEI: 'TRANSFERENCIA',
+      DEPOSITO: 'TRANSFERENCIA',
+      DEPÓSITO: 'TRANSFERENCIA',
+      MIXTO: 'OTRO',
+      OTRO: 'OTRO',
     };
     if (mapEq[s]) return mapEq[s];
     if (mapEq[norm]) return mapEq[norm];
 
     if (/EFECT/.test(s) || /CASH/.test(s)) return 'EFECTIVO';
-    if (/TARJ/.test(s) || /CARD/.test(s) || /CREDIT/.test(norm) || /DEBIT/.test(norm)) return 'TARJETA';
+    if (/TARJ/.test(s) || /CARD/.test(s) || /CREDIT/.test(norm) || /DEBIT/.test(norm))
+      return 'TARJETA';
     if (/TRANSF/.test(s) || /SPEI/.test(s) || /DEPOS/.test(norm)) return 'TRANSFERENCIA';
     return 'OTRO';
   }
@@ -1307,15 +1460,21 @@ ${this.baseStyles()}
       const n = this.toNum(val);
       if (n > 0) list.push({ metodo, monto: n });
     };
-    push('EFECTIVO',      (_p as any).EFECTIVO);
-    push('TARJETA',       (_p as any).TARJETA);
+    push('EFECTIVO', (_p as any).EFECTIVO);
+    push('TARJETA', (_p as any).TARJETA);
     push('TRANSFERENCIA', (_p as any).TRANSFERENCIA);
-    push('OTRO',          (_p as any).OTRO);
+    push('OTRO', (_p as any).OTRO);
     return list;
   }
 
   private normalizarDesglose(
-    arr: Array<{ origen?: string; tipoPago?: string; metodo?: string; operaciones?: number; total?: number }>
+    arr: Array<{
+      origen?: string;
+      tipoPago?: string;
+      metodo?: string;
+      operaciones?: number;
+      total?: number;
+    }>,
   ) {
     const niceOrigen = (o?: string) => {
       const s = String(o ?? '').toUpperCase();
@@ -1326,7 +1485,7 @@ ${this.baseStyles()}
     };
 
     return (arr || [])
-      .map(d => {
+      .map((d) => {
         const metodo = this.metodoFromDesglose(d);
         return {
           origen: niceOrigen(d.origen),
@@ -1335,7 +1494,7 @@ ${this.baseStyles()}
           total: this.toNum(d.total),
         };
       })
-      .filter(x => x.total > 0 || x.operaciones > 0);
+      .filter((x) => x.total > 0 || x.operaciones > 0);
   }
 
   private pagoLabel(v?: string): string {
@@ -1347,11 +1506,11 @@ ${this.baseStyles()}
     const base = this.pagoLabel(v).toUpperCase().trim();
 
     if (base.startsWith('EFECT')) return 'EFEC';
-    if (base.startsWith('TARJ'))  return 'TARJ';
-    if (base.includes('TRANS'))   return 'TRASF';
-    if (base.includes('SPEI'))    return 'SPEI';
-    if (base.includes('DEPOS'))   return 'DEP.';
-    if (base.includes('OTRO'))    return 'OTRO';
+    if (base.startsWith('TARJ')) return 'TARJ';
+    if (base.includes('TRANS')) return 'TRASF';
+    if (base.includes('SPEI')) return 'SPEI';
+    if (base.includes('DEPOS')) return 'DEP.';
+    if (base.includes('OTRO')) return 'OTRO';
 
     return base.slice(0, 6);
   }
@@ -1361,35 +1520,49 @@ ${this.baseStyles()}
       const date = d ? (typeof d === 'string' ? new Date(d) : d) : new Date();
       return new Intl.DateTimeFormat('es-MX', { month: 'long', year: 'numeric' })
         .format(date)
-        .replace(/^\p{Ll}/u, c => c.toUpperCase());
-    } catch { return ''; }
+        .replace(/^\p{Ll}/u, (c) => c.toUpperCase());
+    } catch {
+      return '';
+    }
   }
 
   private sumarEfectivo(
-    arr: Array<{ tipoPago?: string; metodo?: string; total?: number }>
+    arr: Array<{ tipoPago?: string; metodo?: string; total?: number }>,
   ): number {
     return (arr || [])
-      .filter(d => this.normalizeMetodoPago(this.metodoFromDesglose(d)) === 'EFECTIVO')
+      .filter((d) => this.normalizeMetodoPago(this.metodoFromDesglose(d)) === 'EFECTIVO')
       .reduce((a, d) => a + this.toNum(d?.total), 0);
   }
 
-  private resolverTiposIngreso(corte: CorteBackend, fb?: { ventas: number; mems: number; accs: number }) {
+  private resolverTiposIngreso(
+    corte: CorteBackend,
+    fb?: { ventas: number; mems: number; accs: number },
+  ) {
     if (Array.isArray(corte?.tiposDeIngreso) && corte!.tiposDeIngreso!.length) {
-      return corte!.tiposDeIngreso!
-        .filter(x => this.toNum((x as any).total) > 0)
-        .map(x => ({ label: String((x as any).tipo).replace('_',' ').toUpperCase(), total: this.toNum((x as any).total) }));
+      return corte!
+        .tiposDeIngreso!.filter((x) => this.toNum((x as any).total) > 0)
+        .map((x) => ({
+          label: String((x as any).tipo)
+            .replace('_', ' ')
+            .toUpperCase(),
+          total: this.toNum((x as any).total),
+        }));
     }
     return [
-      { label: 'VENTAS',        total: this.toNum(fb?.ventas) },
+      { label: 'VENTAS', total: this.toNum(fb?.ventas) },
       { label: 'SUSCRIPCIONES', total: this.toNum(fb?.mems) },
-      { label: 'ACCESORÍAS',    total: this.toNum(fb?.accs) },
-    ].filter(x => x.total > 0);
+      { label: 'ACCESORÍAS', total: this.toNum(fb?.accs) },
+    ].filter((x) => x.total > 0);
   }
 
-  private fechaIni(c: CorteBackend) { return c.desde ?? c.apertura; }
-  private fechaFin(c: CorteBackend) { return c.hasta ?? c.cierre ?? new Date(); }
+  private fechaIni(c: CorteBackend) {
+    return c.desde ?? c.apertura;
+  }
+  private fechaFin(c: CorteBackend) {
+    return c.hasta ?? c.cierre ?? new Date();
+  }
   private nombreUsuario(u: any): string {
-    return typeof u === 'string' ? u : (u?.nombreUsuario || '');
+    return typeof u === 'string' ? u : u?.nombreUsuario || '';
   }
 
   /**
@@ -1402,16 +1575,18 @@ ${this.baseStyles()}
     tipoPago?: string,
     pagos?: TicketPagoDetalle[],
     totalFallback?: number,
-    title?: string
+    title?: string,
   ): string {
-    const list = (pagos ?? []).filter(p => this.toNum(p.monto) > 0);
+    const list = (pagos ?? []).filter((p) => this.toNum(p.monto) > 0);
 
     let rows = '';
     if (list.length) {
-      rows = list.map(p => {
-        const label = this.pagoLabel(String(p.metodo ?? p.tipoPago ?? '')).toUpperCase();
-        return `<div class="r"><div class="k">${this.escape(label)}</div><div class="v">${this.money(this.toNum(p.monto))}</div></div>`;
-      }).join('');
+      rows = list
+        .map((p) => {
+          const label = this.pagoLabel(String(p.metodo ?? p.tipoPago ?? '')).toUpperCase();
+          return `<div class="r"><div class="k">${this.escape(label)}</div><div class="v">${this.money(this.toNum(p.monto))}</div></div>`;
+        })
+        .join('');
     } else if (tipoPago) {
       const label = this.pagoLabel(tipoPago).toUpperCase();
       const amount = Number.isFinite(this.toNum(totalFallback))
@@ -1424,7 +1599,7 @@ ${this.baseStyles()}
 
     return `
       <div class="hr"></div>
-      ${ title ? `<div class="sec">${this.escape(title)}</div>` : '' }
+      ${title ? `<div class="sec">${this.escape(title)}</div>` : ''}
       <div class="totals">
         ${rows}
       </div>

@@ -94,14 +94,14 @@ function sanitizePreferencias(input: Partial<PreferenciasUsuario>): Preferencias
 }
 
 function sanitizeAvatar(value: unknown): AvatarStyle {
-  return value === 'azul'
-    || value === 'verde'
-    || value === 'rojo'
-    || value === 'morado'
-    || value === 'sticker_rayo'
-    || value === 'sticker_cohete'
-    || value === 'sticker_estrella'
-    || value === 'sticker_fuego'
+  return value === 'azul' ||
+    value === 'verde' ||
+    value === 'rojo' ||
+    value === 'morado' ||
+    value === 'sticker_rayo' ||
+    value === 'sticker_cohete' ||
+    value === 'sticker_estrella' ||
+    value === 'sticker_fuego'
     ? value
     : RA_PREFS_DEFAULT.avatarStyle;
 }
@@ -115,7 +115,7 @@ function sanitizeFraseMode(value: unknown): FraseHomeMode {
 function stableHash(value: string): number {
   let h = 0;
   for (let i = 0; i < value.length; i++) {
-    h = ((h << 5) - h) + value.charCodeAt(i);
+    h = (h << 5) - h + value.charCodeAt(i);
     h |= 0;
   }
   return Math.abs(h);

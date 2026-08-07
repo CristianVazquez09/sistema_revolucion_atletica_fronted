@@ -19,7 +19,7 @@ export const adminGuard: CanMatchFn = () => {
       ...(Array.isArray(d?.realm_access?.roles) ? d.realm_access.roles : []),
     ]
       .concat([d?.role, d?.rol, d?.perfil].filter(Boolean) as string[])
-      .map(r => String(r).toUpperCase());
+      .map((r) => String(r).toUpperCase());
 
     const ok = d?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     return ok ? true : router.parseUrl('/pages');

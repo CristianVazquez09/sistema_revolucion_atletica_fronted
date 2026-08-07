@@ -69,7 +69,7 @@ describe('AsesoriaNutricionalService', () => {
   afterEach(() => httpMock.verify());
 
   it('buscarTodos GET base devuelve array de asesorías', () => {
-    service.buscarTodos().subscribe(result => {
+    service.buscarTodos().subscribe((result) => {
       expect(result).toEqual([responseFixture]);
     });
     const req = httpMock.expectOne(BASE);

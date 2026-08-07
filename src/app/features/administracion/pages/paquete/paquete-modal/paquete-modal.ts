@@ -6,7 +6,7 @@ import {
   OnInit,
   Output,
   computed,
-  inject
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, Validators, FormGroup, FormControl } from '@angular/forms';
@@ -31,10 +31,9 @@ import { environment } from '../../../../../../environments/environment';
   selector: 'app-paquete-modal',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, TiempoPlanLabelPipe],
-  templateUrl: './paquete-modal.html'
+  templateUrl: './paquete-modal.html',
 })
 export class PaqueteModal implements OnInit, OnDestroy {
-
   @Input() paquete: PaqueteData | null = null;
   @Output() cancelar = new EventEmitter<void>();
   @Output() guardado = new EventEmitter<void>();
@@ -49,7 +48,9 @@ export class PaqueteModal implements OnInit, OnDestroy {
   cargandoGimnasios = false;
 
   // Enum -> opciones de tiempo
-  tiempos = (Object.values(TiempoPlan).filter(v => typeof v === 'string') as string[]) as unknown as TiempoPlan[];
+  tiempos = Object.values(TiempoPlan).filter(
+    (v) => typeof v === 'string',
+  ) as string[] as unknown as TiempoPlan[];
 
   // Opciones de tipo de paquete
   TipoPaquete = TipoPaquete;
@@ -57,36 +58,39 @@ export class PaqueteModal implements OnInit, OnDestroy {
 
   // Opciones de modalidad
   ModalidadPaquete = ModalidadPaquete;
-  modalidades: ModalidadPaquete[] =
-    (Object.values(ModalidadPaquete).filter(v => typeof v === 'string') as string[]) as unknown as ModalidadPaquete[];
+  modalidades: ModalidadPaquete[] = Object.values(ModalidadPaquete).filter(
+    (v) => typeof v === 'string',
+  ) as string[] as unknown as ModalidadPaquete[];
 
-  titulo = computed(() => this.paquete ? 'Editar paquete' : 'Agregar paquete');
+  titulo = computed(() => (this.paquete ? 'Editar paquete' : 'Agregar paquete'));
 
   fb: FormGroup = new FormGroup({
-    idPaquete:         new FormControl(0),
-    nombre:            new FormControl('', [Validators.required, Validators.maxLength(100)]),
-    tiempo:            new FormControl<TiempoPlan | null>(null, [Validators.required]),
-    precio:            new FormControl(0, [Validators.required, Validators.min(0)]),
-    costoInscripcion:  new FormControl(0, [Validators.required, Validators.min(0)]),
-    gimnasioId:        new FormControl<number | null>(null),
+    idPaquete: new FormControl(0),
+    nombre: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+    tiempo: new FormControl<TiempoPlan | null>(null, [Validators.required]),
+    precio: new FormControl(0, [Validators.required, Validators.min(0)]),
+    costoInscripcion: new FormControl(0, [Validators.required, Validators.min(0)]),
+    gimnasioId: new FormControl<number | null>(null),
 
     // Para planes por visitas
-    visitasMaximas:    new FormControl<number | null>(null),
+    visitasMaximas: new FormControl<number | null>(null),
 
     // Solo fines de semana
     soloFinesDeSemana: new FormControl<boolean>(false),
 
     // Tipo de paquete
-    tipoPaquete:       new FormControl<TipoPaquete | null>(TipoPaquete.GIMNASIO, [Validators.required]),
+    tipoPaquete: new FormControl<TipoPaquete | null>(TipoPaquete.GIMNASIO, [Validators.required]),
 
     // Modalidad (DEFAULT: INDIVIDUAL)
-    modalidad:         new FormControl<ModalidadPaquete | null>(ModalidadPaquete.INDIVIDUAL, [Validators.required]),
+    modalidad: new FormControl<ModalidadPaquete | null>(ModalidadPaquete.INDIVIDUAL, [
+      Validators.required,
+    ]),
 
     // Paquete estudiantil
-    estudiantil:       new FormControl<boolean>(false),
+    estudiantil: new FormControl<boolean>(false),
 
     // Paquete RA (requiere entrenador RA al inscribir)
-    esRA:              new FormControl<boolean>(false),
+    esRA: new FormControl<boolean>(false),
   });
 
   // Bandera reactiva
@@ -146,7 +150,7 @@ export class PaqueteModal implements OnInit, OnDestroy {
         ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
       ]
         .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
-        .map(r => String(r).toUpperCase());
+        .map((r) => String(r).toUpperCase());
 
       return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     } catch {
@@ -160,13 +164,16 @@ export class PaqueteModal implements OnInit, OnDestroy {
       next: (lista) => {
         const vistos = new Set<number>();
         this.gimnasios = (lista ?? [])
-          .map((g: any) => ({
-            idGimnasio: typeof g.idGimnasio === 'number' ? g.idGimnasio : Number(g.id),
-            nombre: g.nombre,
-            direccion: g.direccion,
-            telefono: g.telefono
-          } as GimnasioData))
-          .filter(g => {
+          .map(
+            (g: any) =>
+              ({
+                idGimnasio: typeof g.idGimnasio === 'number' ? g.idGimnasio : Number(g.id),
+                nombre: g.nombre,
+                direccion: g.direccion,
+                telefono: g.telefono,
+              }) as GimnasioData,
+          )
+          .filter((g) => {
             if (!g.idGimnasio) return false;
             if (vistos.has(g.idGimnasio)) return false;
             vistos.add(g.idGimnasio);
@@ -183,7 +190,7 @@ export class PaqueteModal implements OnInit, OnDestroy {
       error: () => {
         this.cargandoGimnasios = false;
         done?.();
-      }
+      },
     });
   }
 
@@ -191,30 +198,33 @@ export class PaqueteModal implements OnInit, OnDestroy {
     if (!this.paquete) return;
 
     this.fb.patchValue({
-      idPaquete:         this.paquete.idPaquete,
-      nombre:            this.paquete.nombre,
-      tiempo:            this.paquete.tiempo,
-      precio:            this.paquete.precio,
-      costoInscripcion:  this.paquete.costoInscripcion,
-      visitasMaximas:    this.paquete.visitasMaximas ?? null,
+      idPaquete: this.paquete.idPaquete,
+      nombre: this.paquete.nombre,
+      tiempo: this.paquete.tiempo,
+      precio: this.paquete.precio,
+      costoInscripcion: this.paquete.costoInscripcion,
+      visitasMaximas: this.paquete.visitasMaximas ?? null,
       soloFinesDeSemana: !!this.paquete.soloFinesDeSemana,
-      tipoPaquete:       this.paquete.tipoPaquete ?? TipoPaquete.GIMNASIO,
+      tipoPaquete: this.paquete.tipoPaquete ?? TipoPaquete.GIMNASIO,
 
       // modalidad (fallback a INDIVIDUAL)
-      modalidad:         (this.paquete as any).modalidad ?? ModalidadPaquete.INDIVIDUAL,
+      modalidad: (this.paquete as any).modalidad ?? ModalidadPaquete.INDIVIDUAL,
 
       // estudiantil (default false)
-      estudiantil:       (this.paquete as any).estudiantil === true,
+      estudiantil: (this.paquete as any).estudiantil === true,
 
       // esRA (default false)
-      esRA:              (this.paquete as any).esRA === true,
+      esRA: (this.paquete as any).esRA === true,
     });
 
     if (this.isAdmin) {
       const anyG = this.paquete.gimnasio as any;
       const gymId =
-        (typeof anyG?.idGimnasio === 'number' ? anyG.idGimnasio :
-        (typeof anyG?.id === 'number' ? anyG.id : null));
+        typeof anyG?.idGimnasio === 'number'
+          ? anyG.idGimnasio
+          : typeof anyG?.id === 'number'
+            ? anyG.id
+            : null;
 
       if (gymId != null) {
         this.fb.controls['gimnasioId'].setValue(gymId);
@@ -287,13 +297,13 @@ export class PaqueteModal implements OnInit, OnDestroy {
 
     const payloadCrear: any = {
       ...base,
-      ...(this.isAdmin && f.gimnasioId != null ? { gimnasio: { id: Number(f.gimnasioId) } } : {})
+      ...(this.isAdmin && f.gimnasioId != null ? { gimnasio: { id: Number(f.gimnasioId) } } : {}),
     };
 
     const payloadUpdate: any = {
       idPaquete: Number(f.idPaquete ?? this.paquete?.idPaquete),
       ...base,
-      ...(this.isAdmin && f.gimnasioId != null ? { gimnasio: { id: Number(f.gimnasioId) } } : {})
+      ...(this.isAdmin && f.gimnasioId != null ? { gimnasio: { id: Number(f.gimnasioId) } } : {}),
     };
 
     const obs = this.paquete
@@ -309,7 +319,7 @@ export class PaqueteModal implements OnInit, OnDestroy {
         console.error(err);
         this.guardando = false;
         this.error = 'No se pudo guardar el paquete.';
-      }
+      },
     });
   }
 }

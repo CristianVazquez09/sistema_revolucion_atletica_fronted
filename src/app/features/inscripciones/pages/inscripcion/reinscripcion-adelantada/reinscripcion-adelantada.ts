@@ -1,11 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  OnInit,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
@@ -38,7 +31,10 @@ import { environment } from 'src/environments/environment';
 import { calcularFechaFin, hoyISO as hoyISOUtil } from 'src/app/shared/util/fechas-precios';
 import { TiempoPlan } from 'src/app/shared/util/enums/tiempo-plan';
 
-import { HuellaModal, HuellaResultado } from '../../../../../shared/huella/huella-modal/huella-modal';
+import {
+  HuellaModal,
+  HuellaResultado,
+} from '../../../../../shared/huella/huella-modal/huella-modal';
 
 // ✅ Asesoría Nutricional (nuevo endpoint estado)
 import {
@@ -243,16 +239,22 @@ export class ReinscripcionAdelantada implements OnInit {
   socioPrincipalSig = computed(() => this.miembrosSig()[0]?.socio ?? null);
   vigentePrincipalSig = computed(() => this.miembrosSig()[0]?.vigente ?? null);
 
-  modalidadVigenteSig = computed<Modalidad>(() => this.modalidadVigenteDe(this.vigentePrincipalSig()));
+  modalidadVigenteSig = computed<Modalidad>(() =>
+    this.modalidadVigenteDe(this.vigentePrincipalSig()),
+  );
   requeridoSig = computed(() => this.cantidadRequerida(this.modalidadVigenteSig()));
   esGrupalSig = computed(() => this.requeridoSig() > 1);
 
   paqueteActualSig = computed(() => {
     const id = Number(this.paqueteIdSig() ?? 0);
-    return (this.listaPaquetesSig() ?? []).find(p => Number((p as any)?.idPaquete) === id) ?? null;
+    return (
+      (this.listaPaquetesSig() ?? []).find((p) => Number((p as any)?.idPaquete) === id) ?? null
+    );
   });
 
-  modalidadSeleccionadaSig = computed<Modalidad>(() => this.modalidadPaquete(this.paqueteActualSig()));
+  modalidadSeleccionadaSig = computed<Modalidad>(() =>
+    this.modalidadPaquete(this.paqueteActualSig()),
+  );
 
   // ✅ Regla: en adelantada NO se cambia modalidad (debe coincidir con la vigente)
   modalidadCompatibleSig = computed(() => {
@@ -267,7 +269,7 @@ export class ReinscripcionAdelantada implements OnInit {
     if (!principal?.fechaFin) return all;
 
     const mod = this.modalidadVigenteSig();
-    return all.filter(p => this.modalidadPaquete(p) === mod);
+    return all.filter((p) => this.modalidadPaquete(p) === mod);
   });
 
   // ✅ lista sugerida para dropdown por nombre
@@ -278,7 +280,11 @@ export class ReinscripcionAdelantada implements OnInit {
     if (!q) return lista.slice(0, 12);
 
     return lista
-      .filter(p => String((p as any)?.nombre ?? '').toLowerCase().includes(q))
+      .filter((p) =>
+        String((p as any)?.nombre ?? '')
+          .toLowerCase()
+          .includes(q),
+      )
       .slice(0, 25);
   });
 
@@ -321,7 +327,7 @@ export class ReinscripcionAdelantada implements OnInit {
   });
 
   faltanPagosSig = computed(() => {
-    return (this.miembrosSig() ?? []).filter(m => !(m.pagos?.length)).length;
+    return (this.miembrosSig() ?? []).filter((m) => !m.pagos?.length).length;
   });
 
   // =====================
@@ -421,7 +427,7 @@ export class ReinscripcionAdelantada implements OnInit {
     if (!slots.length) return;
 
     const ids = Array.from(
-      new Set(slots.map(s => Number(s.socio?.idSocio ?? 0)).filter(x => x > 0))
+      new Set(slots.map((s) => Number(s.socio?.idSocio ?? 0)).filter((x) => x > 0)),
     );
     if (!ids.length) return;
 
@@ -433,13 +439,13 @@ export class ReinscripcionAdelantada implements OnInit {
           catchError((err) => {
             console.error('Error estado asesoría', id, err);
             return of(null as any);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     )
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.cargandoEstadoAsesoriaSig.set(false))
+        finalize(() => this.cargandoEstadoAsesoriaSig.set(false)),
       )
       .subscribe((arr) => {
         const map: Record<string, AsesoriaNutricionalEstadoDTO> = {};
@@ -467,7 +473,7 @@ export class ReinscripcionAdelantada implements OnInit {
     this.validandoAsesoriaSig.set(true);
     this.mensajeError = null;
 
-    const ids = slots.map(s => Number(s.socio?.idSocio ?? 0));
+    const ids = slots.map((s) => Number(s.socio?.idSocio ?? 0));
 
     forkJoin(
       ids.map((id) =>
@@ -483,17 +489,19 @@ export class ReinscripcionAdelantada implements OnInit {
               fechaFin: null,
               idAsesoriaNutricional: null,
             } as AsesoriaNutricionalEstadoDTO);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     )
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.validandoAsesoriaSig.set(false))
+        finalize(() => this.validandoAsesoriaSig.set(false)),
       )
       .subscribe((arr) => {
         // refresca cache UI (solo asesorados)
-        const map: Record<string, AsesoriaNutricionalEstadoDTO> = { ...(this.estadoAsesoriaBySocioIdSig() ?? {}) };
+        const map: Record<string, AsesoriaNutricionalEstadoDTO> = {
+          ...(this.estadoAsesoriaBySocioIdSig() ?? {}),
+        };
         for (let i = 0; i < ids.length; i++) {
           const dto = arr[i];
           if (dto?.asesorado) map[this.key(ids[i])] = dto;
@@ -543,7 +551,7 @@ export class ReinscripcionAdelantada implements OnInit {
     }
 
     const lista = this.listaPaquetesSig() ?? [];
-    const sel = lista.find(x => Number((x as any)?.idPaquete) === id) ?? null;
+    const sel = lista.find((x) => Number((x as any)?.idPaquete) === id) ?? null;
     this.paqueteBusquedaSig.set(this.paqueteLabel(sel));
   }
 
@@ -606,13 +614,16 @@ export class ReinscripcionAdelantada implements OnInit {
         const seen = new Set<number>();
         const activos = (lista ?? [])
           .filter((e: any) => e?.activo !== false)
-          .map((e: any) => ({
-            idEntrenador: Number(e?.idEntrenador ?? e?.id ?? 0),
-            nombre: String(e?.nombre ?? ''),
-            apellido: String(e?.apellido ?? ''),
-            activo: e?.activo !== false,
-            gimnasio: e?.gimnasio,
-          } as EntrenadorData))
+          .map(
+            (e: any) =>
+              ({
+                idEntrenador: Number(e?.idEntrenador ?? e?.id ?? 0),
+                nombre: String(e?.nombre ?? ''),
+                apellido: String(e?.apellido ?? ''),
+                activo: e?.activo !== false,
+                gimnasio: e?.gimnasio,
+              }) as EntrenadorData,
+          )
           .filter((e) => {
             if (!e.idEntrenador) return false;
             if (seen.has(e.idEntrenador)) return false;
@@ -699,7 +710,8 @@ export class ReinscripcionAdelantada implements OnInit {
     this.cargandoSocio = true;
     this.mensajeError = null;
 
-    this.socioSrv.buscarPorId(id)
+    this.socioSrv
+      .buscarPorId(id)
       .pipe(finalize(() => (this.cargandoSocio = false)))
       .subscribe({
         next: (s) => {
@@ -746,13 +758,14 @@ export class ReinscripcionAdelantada implements OnInit {
     this.cargandoSocio = true;
     this.mensajeError = null;
 
-    this.socioSrv.buscarPorHuella(huellaBase64)
+    this.socioSrv
+      .buscarPorHuella(huellaBase64)
       .pipe(
-        catchError(err => {
+        catchError((err) => {
           if (err?.status === 403 || err?.status === 404) return of(null);
           throw err;
         }),
-        finalize(() => (this.cargandoSocio = false))
+        finalize(() => (this.cargandoSocio = false)),
       )
       .subscribe({
         next: (s) => {
@@ -768,14 +781,16 @@ export class ReinscripcionAdelantada implements OnInit {
   }
 
   private setPrincipal(s: SocioData): void {
-    this.miembrosSig.set([{
-      socio: s,
-      vigente: null,
-      pagos: null,
-      cargando: true,
-      error: null,
-      principal: true,
-    }]);
+    this.miembrosSig.set([
+      {
+        socio: s,
+        vigente: null,
+        pagos: null,
+        cargando: true,
+        error: null,
+        principal: true,
+      },
+    ]);
 
     // ✅ resetea asesorías (UI limpia si no hay)
     this.estadoAsesoriaBySocioIdSig.set({});
@@ -834,7 +849,7 @@ export class ReinscripcionAdelantada implements OnInit {
 
     this.membresiaSrv.buscarMembresiasVigentesPorSocio(idSocio).subscribe({
       next: (list) => {
-        const vigentes = (list ?? []).filter(m => !!m?.fechaFin);
+        const vigentes = (list ?? []).filter((m) => !!m?.fechaFin);
 
         if (!vigentes.length) {
           if (index === 0) {
@@ -843,18 +858,22 @@ export class ReinscripcionAdelantada implements OnInit {
               vigente: null,
               error: 'No tiene membresía vigente. Adelantada no aplica.',
             });
-            this.notify.aviso('Este socio no tiene membresía vigente. La reinscripción adelantada no aplica.');
+            this.notify.aviso(
+              'Este socio no tiene membresía vigente. La reinscripción adelantada no aplica.',
+            );
             return;
           }
 
-          this.notify.aviso('El integrante no tiene membresía vigente. No se puede usar en adelantada grupal.');
+          this.notify.aviso(
+            'El integrante no tiene membresía vigente. No se puede usar en adelantada grupal.',
+          );
           this.quitarMiembroByIndex(index);
           return;
         }
 
         const max = vigentes.reduce((acc, cur) => {
           if (!acc) return cur;
-          return (cur.fechaFin > acc.fechaFin) ? cur : acc;
+          return cur.fechaFin > acc.fechaFin ? cur : acc;
         }, null as any);
 
         this.setSlot(index, { cargando: false, vigente: max, error: null });
@@ -865,7 +884,7 @@ export class ReinscripcionAdelantada implements OnInit {
 
           const idPaqueteVigente = Number((max as any)?.paquete?.idPaquete ?? 0);
           const existe = (this.listaPaquetesSig() ?? []).some(
-            p => Number((p as any)?.idPaquete) === idPaqueteVigente
+            (p) => Number((p as any)?.idPaquete) === idPaqueteVigente,
           );
 
           if (existe && idPaqueteVigente > 0) {
@@ -897,13 +916,17 @@ export class ReinscripcionAdelantada implements OnInit {
           const modMiembro = this.modalidadVigenteDe(max);
 
           if (modMiembro !== modPrincipal) {
-            this.notify.aviso(`Ese socio tiene modalidad ${modMiembro}. Debe coincidir con ${modPrincipal}.`);
+            this.notify.aviso(
+              `Ese socio tiene modalidad ${modMiembro}. Debe coincidir con ${modPrincipal}.`,
+            );
             this.quitarMiembroByIndex(index);
             return;
           }
 
           if (max.fechaFin !== principalV.fechaFin) {
-            this.notify.aviso('Para adelantada grupal, todos deben vencer el mismo día (fechaFin).');
+            this.notify.aviso(
+              'Para adelantada grupal, todos deben vencer el mismo día (fechaFin).',
+            );
             this.quitarMiembroByIndex(index);
             return;
           }
@@ -913,13 +936,17 @@ export class ReinscripcionAdelantada implements OnInit {
       },
       error: () => {
         if (index === 0) {
-          this.setSlot(0, { cargando: false, vigente: null, error: 'No se pudo consultar la membresía vigente.' });
+          this.setSlot(0, {
+            cargando: false,
+            vigente: null,
+            error: 'No se pudo consultar la membresía vigente.',
+          });
           this.notify.error('No se pudo consultar la membresía vigente.');
           return;
         }
         this.notify.error('No se pudo consultar la membresía vigente del integrante.');
         this.quitarMiembroByIndex(index);
-      }
+      },
     });
   }
 
@@ -967,7 +994,7 @@ export class ReinscripcionAdelantada implements OnInit {
 
       const vigenteId = Number((principal as any)?.paquete?.idPaquete ?? 0);
       const existe = (this.listaPaquetesSig() ?? []).some(
-        x => Number((x as any)?.idPaquete) === vigenteId
+        (x) => Number((x as any)?.idPaquete) === vigenteId,
       );
 
       const fallback = existe ? vigenteId : 0;
@@ -1000,7 +1027,7 @@ export class ReinscripcionAdelantada implements OnInit {
       return;
     }
 
-    if (this.miembrosSig().some(m => Number(m.socio?.idSocio) === Number(id))) {
+    if (this.miembrosSig().some((m) => Number(m.socio?.idSocio) === Number(id))) {
       this.notify.aviso('Ese socio ya está agregado.');
       return;
     }
@@ -1045,12 +1072,13 @@ export class ReinscripcionAdelantada implements OnInit {
       return;
     }
 
-    this.socioSrv.buscarPorHuella(huellaBase64)
+    this.socioSrv
+      .buscarPorHuella(huellaBase64)
       .pipe(
-        catchError(err => {
+        catchError((err) => {
           if (err?.status === 403 || err?.status === 404) return of(null);
           throw err;
-        })
+        }),
       )
       .subscribe({
         next: (s: any) => {
@@ -1058,7 +1086,7 @@ export class ReinscripcionAdelantada implements OnInit {
             this.notify.aviso('No se encontró socio para esa huella.');
             return;
           }
-          if (this.miembrosSig().some(m => Number(m.socio?.idSocio) === Number(s.idSocio))) {
+          if (this.miembrosSig().some((m) => Number(m.socio?.idSocio) === Number(s.idSocio))) {
             this.notify.aviso('Ese socio ya está agregado.');
             return;
           }
@@ -1090,7 +1118,9 @@ export class ReinscripcionAdelantada implements OnInit {
       return;
     }
 
-    this.miembrosSig.set(this.miembrosSig().filter(m => Number(m.socio?.idSocio) !== Number(idSocio)));
+    this.miembrosSig.set(
+      this.miembrosSig().filter((m) => Number(m.socio?.idSocio) !== Number(idSocio)),
+    );
 
     // ✅ borra estado asesoría (para que no quede “fantasma”)
     const map = { ...(this.estadoAsesoriaBySocioIdSig() ?? {}) };
@@ -1128,7 +1158,7 @@ export class ReinscripcionAdelantada implements OnInit {
   }
 
   private limpiarPagos(): void {
-    const arr = this.miembrosSig().map(m => ({ ...m, pagos: null }));
+    const arr = this.miembrosSig().map((m) => ({ ...m, pagos: null }));
     this.miembrosSig.set(arr);
   }
 
@@ -1163,7 +1193,7 @@ export class ReinscripcionAdelantada implements OnInit {
 
     this.validarAsesoriaAntesDeContinuar(() => {
       const miembros = this.miembrosSig();
-      const idx = miembros.findIndex(m => !(m.pagos?.length));
+      const idx = miembros.findIndex((m) => !m.pagos?.length);
       this.cobrandoIndexSig.set(idx >= 0 ? idx : 0);
 
       this.mensajeError = null;
@@ -1213,7 +1243,7 @@ export class ReinscripcionAdelantada implements OnInit {
 
     this.mostrarResumen.set(false);
 
-    const faltanPagos = this.miembrosSig().filter(m => !(m.pagos?.length)).length;
+    const faltanPagos = this.miembrosSig().filter((m) => !m.pagos?.length).length;
     if (faltanPagos > 0) {
       this.notify.exito(`Pago capturado. Faltan ${faltanPagos} integrante(s) por cobrar.`);
       return;
@@ -1251,7 +1281,7 @@ export class ReinscripcionAdelantada implements OnInit {
       ? `${entrenadorRAObj.nombre} ${entrenadorRAObj.apellido}`.trim()
       : undefined;
 
-    const payloads = miembros.map(m => ({
+    const payloads = miembros.map((m) => ({
       socio: { idSocio: m.socio.idSocio },
       paquete: { idPaquete: (paquete as any).idPaquete },
       movimiento: 'REINSCRIPCION',
@@ -1264,7 +1294,8 @@ export class ReinscripcionAdelantada implements OnInit {
 
     const esBatch = this.esGrupalSig();
     if (esBatch) {
-      this.membresiaSrv.reinscripcionAnticipadaBatch(payloads as any[])
+      this.membresiaSrv
+        .reinscripcionAnticipadaBatch(payloads as any[])
         .pipe(finalize(() => (this.guardando = false)))
         .subscribe({
           next: (respArr: any[]) => {
@@ -1273,7 +1304,15 @@ export class ReinscripcionAdelantada implements OnInit {
             const lista = Array.isArray(respArr) ? respArr : [];
             for (let i = 0; i < miembros.length; i++) {
               const r = lista[i] ?? {};
-              this.imprimirTicket(ctx, r, miembros[i].socio, miembros[i].pagos ?? [], paquete, descuento, entrenadorRANombre);
+              this.imprimirTicket(
+                ctx,
+                r,
+                miembros[i].socio,
+                miembros[i].pagos ?? [],
+                paquete,
+                descuento,
+                entrenadorRANombre,
+              );
             }
 
             this.notify.exito('Reinscripción adelantada grupal guardada.');
@@ -1292,7 +1331,8 @@ export class ReinscripcionAdelantada implements OnInit {
       return;
     }
 
-    this.membresiaSrv.reinscripcionAnticipada(payloads[0] as any)
+    this.membresiaSrv
+      .reinscripcionAnticipada(payloads[0] as any)
       .pipe(finalize(() => (this.guardando = false)))
       .subscribe({
         next: (resp: any) => {
@@ -1323,11 +1363,11 @@ export class ReinscripcionAdelantada implements OnInit {
     pagos: PagoData[],
     paquete: PaqueteData | null,
     descuento: number,
-    entrenadorNombre?: string
+    entrenadorNombre?: string,
   ): void {
     const pagosDet = (pagos ?? [])
-      .filter(p => (Number(p.monto) || 0) > 0)
-      .map(p => ({ metodo: p.tipoPago, monto: Number(p.monto) || 0 }));
+      .filter((p) => (Number(p.monto) || 0) > 0)
+      .map((p) => ({ metodo: p.tipoPago, monto: Number(p.monto) || 0 }));
 
     const folioTicket = resp?.folio;
 

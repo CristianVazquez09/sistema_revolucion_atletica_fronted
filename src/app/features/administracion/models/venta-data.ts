@@ -7,11 +7,11 @@ import { GimnasioData } from '../../../shared/models/gimnasio-data';
 export interface VentaData {
   idVenta?: number;
   folio?: number;
-  fecha?: string;            // la coloca tu backend
+  fecha?: string; // la coloca tu backend
   total: number;
-  descuento?: number;        // descuento aplicado (0 si no hay)
-  pagos: PagoData[];         // 👈 reemplaza al tipoPago único
+  descuento?: number; // descuento aplicado (0 si no hay)
+  pagos: PagoData[]; // 👈 reemplaza al tipoPago único
   detalles: DetalleVentaData[];
-  usuario?: UsuarioData
-  gimnasio?: GimnasioData
+  usuario?: UsuarioData;
+  gimnasio?: GimnasioData;
 }

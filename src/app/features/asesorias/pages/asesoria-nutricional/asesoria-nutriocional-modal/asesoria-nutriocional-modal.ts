@@ -73,9 +73,7 @@ export class AsesoriaNutriocionalModal implements OnInit, OnDestroy {
   // ✅ modo edición
   esEdicion = computed(() => this.getAsesoriaId() > 0);
 
-  titulo = computed(() =>
-    this.esEdicion() ? 'Renovar / Editar asesoría' : 'Agregar asesorado'
-  );
+  titulo = computed(() => (this.esEdicion() ? 'Renovar / Editar asesoría' : 'Agregar asesorado'));
 
   // ✅ formulario
   form = this.fb.group({
@@ -96,7 +94,7 @@ export class AsesoriaNutriocionalModal implements OnInit, OnDestroy {
           fechaInicio: String(this.asesoria.fechaInicio ?? ''),
           fechaFin: String(this.asesoria.fechaFin ?? ''),
         },
-        { emitEvent: false }
+        { emitEvent: false },
       );
 
       this.busquedaCtrl.setValue(this.labelSocio(socio), { emitEvent: false });
@@ -134,18 +132,15 @@ export class AsesoriaNutriocionalModal implements OnInit, OnDestroy {
           }),
           switchMap((term) =>
             this.socioSrv.buscarSociosPorNombre(term, 0, 10, null, null, null).pipe(
-              map(
-                (resp: PagedResponse<SocioData>) =>
-                  (resp?.contenido ?? []) as SocioData[]
-              ),
+              map((resp: PagedResponse<SocioData>) => (resp?.contenido ?? []) as SocioData[]),
               catchError((err) => {
                 console.error(err);
                 this.error = 'No se pudieron buscar socios.';
                 return of([] as SocioData[]);
               }),
-              finalize(() => (this.buscandoSocios = false))
-            )
-          )
+              finalize(() => (this.buscandoSocios = false)),
+            ),
+          ),
         )
         .subscribe((list) => {
           this.sociosEncontradosSig.set(list ?? []);
@@ -195,7 +190,7 @@ export class AsesoriaNutriocionalModal implements OnInit, OnDestroy {
       .buscarSociosPorNombre(term, 0, 10, null, null, null)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        finalize(() => (this.buscandoSocios = false))
+        finalize(() => (this.buscandoSocios = false)),
       )
       .subscribe({
         next: (resp: PagedResponse<SocioData>) =>
@@ -290,13 +285,11 @@ export class AsesoriaNutriocionalModal implements OnInit, OnDestroy {
     obs
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        finalize(() => (this.guardando = false))
+        finalize(() => (this.guardando = false)),
       )
       .subscribe({
         next: () => {
-          this.noti.exito?.(
-            idAsesoria > 0 ? 'Asesoría actualizada.' : 'Asesoría creada.'
-          );
+          this.noti.exito?.(idAsesoria > 0 ? 'Asesoría actualizada.' : 'Asesoría creada.');
           this.guardado.emit();
         },
         error: (err) => {
@@ -305,8 +298,7 @@ export class AsesoriaNutriocionalModal implements OnInit, OnDestroy {
           const status = err?.status;
 
           if (status === 409) {
-            this.error =
-              'El socio ya tiene una asesoría registrada. Usa Renovar / Editar.';
+            this.error = 'El socio ya tiene una asesoría registrada. Usa Renovar / Editar.';
           } else if (status === 400) {
             this.error = err?.error?.message || 'Datos inválidos.';
           } else {

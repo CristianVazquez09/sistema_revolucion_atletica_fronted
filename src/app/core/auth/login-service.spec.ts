@@ -21,7 +21,7 @@ describe('LoginService', () => {
 
   it('inicioSesion hace POST a HOST_LOGIN/inicio-sesion con nombreUsuario y contrasenia', () => {
     let resultado: any = undefined;
-    service.inicioSesion('ana', 'secreta').subscribe(r => (resultado = r));
+    service.inicioSesion('ana', 'secreta').subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${environment.HOST_LOGIN}/inicio-sesion`);
     expect(req.request.method).toBe('POST');

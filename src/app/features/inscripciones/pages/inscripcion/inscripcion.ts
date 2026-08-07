@@ -141,7 +141,7 @@ export class Inscripcion implements OnInit {
 
   constructor(
     private paqueteSrv: PaqueteService,
-    private membresiaSrv: MembresiaService
+    private membresiaSrv: MembresiaService,
   ) {}
 
   private gymSrv = inject(GimnasioService);
@@ -187,30 +187,27 @@ export class Inscripcion implements OnInit {
   private readonly esElectronApp = this.detectarElectron();
 
   // ✅ Usaremos el pipe también en TS para que "UNA_SEMANA" -> "1 semana"
-private tiempoPlanPipe = new TiempoPlanLabelPipe();
+  private tiempoPlanPipe = new TiempoPlanLabelPipe();
 
-paquetesSugeridosSig = computed<PaqueteUI[]>(() => {
-  const qRaw = (this.paqueteBusquedaSig() ?? '').trim();
-  const lista = this.listaPaquetesSig() ?? [];
-  const remote = this.paquetesResultadosSig() ?? [];
+  paquetesSugeridosSig = computed<PaqueteUI[]>(() => {
+    const qRaw = (this.paqueteBusquedaSig() ?? '').trim();
+    const lista = this.listaPaquetesSig() ?? [];
+    const remote = this.paquetesResultadosSig() ?? [];
 
-  // Sin texto: muestra top
-  if (!qRaw) return lista.slice(0, 12);
+    // Sin texto: muestra top
+    if (!qRaw) return lista.slice(0, 12);
 
-  // ✅ Filtrado local robusto (incluye tiempo/modalidad/estudiantil)
-  const localMatches = lista
-    .filter((p) => this.matchPaquete(p, qRaw))
-    .slice(0, 30);
+    // ✅ Filtrado local robusto (incluye tiempo/modalidad/estudiantil)
+    const localMatches = lista.filter((p) => this.matchPaquete(p, qRaw)).slice(0, 30);
 
-  // ✅ Merge con resultados remotos (por si tu endpoint trae algo extra)
-  const remoteMatches = remote
-    .map((x) => this.normalizePaquete(x))
-    .filter((p) => this.matchPaquete(p, qRaw))
-    .slice(0, 30);
+    // ✅ Merge con resultados remotos (por si tu endpoint trae algo extra)
+    const remoteMatches = remote
+      .map((x) => this.normalizePaquete(x))
+      .filter((p) => this.matchPaquete(p, qRaw))
+      .slice(0, 30);
 
-  return this.mergeUniquePaquetes([...localMatches, ...remoteMatches]).slice(0, 30);
-});
-
+    return this.mergeUniquePaquetes([...localMatches, ...remoteMatches]).slice(0, 30);
+  });
 
   mostrarModalResumen = signal(false);
   mostrarModalHuella = signal(false);
@@ -279,10 +276,7 @@ paquetesSugeridosSig = computed<PaqueteUI[]>(() => {
   fechaPagoVistaSig = this.store.selectSignal(selectFechaPagoVista);
   paqueteIdSelSig = this.store.selectSignal(selectPaqueteId);
 
-
-descuentoManualSig = computed(() => this.descuentoUiSig());
-
-
+  descuentoManualSig = computed(() => this.descuentoUiSig());
 
   paqueteIdFormSig = computed(() => {
     this.formTickSig();
@@ -316,11 +310,11 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
   });
 
   promoInscripcionGratisSig = computed(() =>
-    Boolean((this.promocionAplicadaSig() as any)?.sinCostoInscripcion === true)
+    Boolean((this.promocionAplicadaSig() as any)?.sinCostoInscripcion === true),
   );
 
   promoMesesGratisSig = computed(() =>
-    Math.max(0, Number((this.promocionAplicadaSig() as any)?.mesesGratis ?? 0))
+    Math.max(0, Number((this.promocionAplicadaSig() as any)?.mesesGratis ?? 0)),
   );
 
   promoDescuentoMontoSig = computed(() => {
@@ -370,8 +364,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
   });
 
   ahorroPromoSig = computed(() => {
-    const ahorro =
-      Number(this.totalSinPromoSig() ?? 0) - Number(this.totalConPromoSig() ?? 0);
+    const ahorro = Number(this.totalSinPromoSig() ?? 0) - Number(this.totalConPromoSig() ?? 0);
     return this.round2(Math.max(0, ahorro));
   });
 
@@ -464,11 +457,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
     this.formTickSig();
 
     const faltantes = this.camposFaltantesParaResumen();
-    return (
-      faltantes.length === 0 &&
-      !this.promoCargandoSig() &&
-      !this.guardandoMembresia
-    );
+    return faltantes.length === 0 && !this.promoCargandoSig() && !this.guardandoMembresia;
   });
 
   resumenResetKeySig = signal(0);
@@ -480,33 +469,36 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
     this.cargarEntrenadoresRA();
 
     // ✅ si el store tiene paqueteId, sincronízalo al FORM
-    effect(() => {
-      this.formTickSig();
+    effect(
+      () => {
+        this.formTickSig();
 
-      const pidStore = Number(this.paqueteIdSelSig() ?? 0);
-      const pidForm = Number(this.formularioInscripcion.controls.paqueteId.value ?? 0);
+        const pidStore = Number(this.paqueteIdSelSig() ?? 0);
+        const pidForm = Number(this.formularioInscripcion.controls.paqueteId.value ?? 0);
 
-      if (pidStore > 0 && pidForm !== pidStore) {
-        this.formularioInscripcion.controls.paqueteId.setValue(pidStore, {
-          emitEvent: false,
-        });
-        this.formularioInscripcion.controls.paqueteId.updateValueAndValidity({
-          emitEvent: false,
-        });
+        if (pidStore > 0 && pidForm !== pidStore) {
+          this.formularioInscripcion.controls.paqueteId.setValue(pidStore, {
+            emitEvent: false,
+          });
+          this.formularioInscripcion.controls.paqueteId.updateValueAndValidity({
+            emitEvent: false,
+          });
 
-        const lista = this.listaPaquetesSig();
-        const sel = (lista ?? []).find((p) => Number(p.idPaquete) === pidStore);
-        if (sel) this.paqueteBusquedaSig.set(this.paqueteLabel(sel));
+          const lista = this.listaPaquetesSig();
+          const sel = (lista ?? []).find((p) => Number(p.idPaquete) === pidStore);
+          if (sel) this.paqueteBusquedaSig.set(this.paqueteLabel(sel));
 
-        this.syncValidadoresEstudiantePorPaqueteId(pidStore);
-        this.cargarPromocionesPorPaquete(pidStore);
+          this.syncValidadoresEstudiantePorPaqueteId(pidStore);
+          this.cargarPromocionesPorPaquete(pidStore);
 
-        // ✅ IMPORTANTÍSIMO: como fue emitEvent:false, guardamos borrador aquí
-        this.guardarBorradorEnStorage();
+          // ✅ IMPORTANTÍSIMO: como fue emitEvent:false, guardamos borrador aquí
+          this.guardarBorradorEnStorage();
 
-        this.bumpFormTick();
-      }
-    }, { injector: this.injector });
+          this.bumpFormTick();
+        }
+      },
+      { injector: this.injector },
+    );
 
     // ✅ buscador paquetes (debounced)
     this.paqueteBuscar$
@@ -538,31 +530,34 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
               this.paqueteBusquedaErrorSig.set(this.extraerMensajeError(err));
               return of([] as PaqueteUI[]);
             }),
-            finalize(() => this.paqueteBuscandoSig.set(false))
+            finalize(() => this.paqueteBuscandoSig.set(false)),
           );
         }),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((lista) => this.paquetesResultadosSig.set(lista ?? []));
 
     // ✅ mantener input mostrando el paquete seleccionado (al cerrar dropdown)
-    effect(() => {
-      const dropdownOpen = this.paqueteDropdownAbiertoSig();
-      if (dropdownOpen) return;
+    effect(
+      () => {
+        const dropdownOpen = this.paqueteDropdownAbiertoSig();
+        if (dropdownOpen) return;
 
-      const id =
-        Number(this.formularioInscripcion.controls.paqueteId.value ?? 0) ||
-        Number(this.paqueteIdSelSig() ?? 0);
+        const id =
+          Number(this.formularioInscripcion.controls.paqueteId.value ?? 0) ||
+          Number(this.paqueteIdSelSig() ?? 0);
 
-      const lista = this.listaPaquetesSig();
-      const sel = (lista ?? []).find((p) => Number(p.idPaquete) === id);
+        const lista = this.listaPaquetesSig();
+        const sel = (lista ?? []).find((p) => Number(p.idPaquete) === id);
 
-      if (sel) {
-        this.paqueteBusquedaSig.set(this.paqueteLabel(sel));
-        // ✅ persistimos también el texto (por UX)
-        this.guardarBorradorEnStorage();
-      }
-    }, { injector: this.injector });
+        if (sel) {
+          this.paqueteBusquedaSig.set(this.paqueteLabel(sel));
+          // ✅ persistimos también el texto (por UX)
+          this.guardarBorradorEnStorage();
+        }
+      },
+      { injector: this.injector },
+    );
 
     // paqueteId (si cambia por restore u otra UI)
     this.formularioInscripcion.controls.paqueteId.valueChanges
@@ -572,10 +567,9 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
 
         if (this.batchIniciadoSig()) {
           const actual = this.paqueteIdSelSig();
-          this.formularioInscripcion.controls.paqueteId.setValue(
-            Number(actual ?? 0),
-            { emitEvent: false }
-          );
+          this.formularioInscripcion.controls.paqueteId.setValue(Number(actual ?? 0), {
+            emitEvent: false,
+          });
           this.notificacion.aviso('Para cambiar de paquete, reinicia el lote.');
           this.bumpFormTick();
           return;
@@ -607,8 +601,6 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
         this.bumpFormTick();
       });
 
-    
-
     // ✅ fechaInicio → store + persist
     this.formularioInscripcion.controls.fechaInicio.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -635,11 +627,11 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
 
     // sync validadores por paquete actual del draft
     this.syncValidadoresEstudiantePorPaqueteId(
-      Number(this.formularioInscripcion.controls.paqueteId.value ?? 0)
+      Number(this.formularioInscripcion.controls.paqueteId.value ?? 0),
     );
 
     this.cargarPromocionesPorPaquete(
-      Number(this.formularioInscripcion.controls.paqueteId.value ?? 0)
+      Number(this.formularioInscripcion.controls.paqueteId.value ?? 0),
     );
 
     this.bumpFormTick();
@@ -672,13 +664,11 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
           }
           return acc;
         },
-        { map: new Map<number, boolean>(), arr: [] as PaqueteUI[] }
+        { map: new Map<number, boolean>(), arr: [] as PaqueteUI[] },
       ).arr;
 
     this.listaPaquetesSig.set(nueva);
-    this.store.dispatch(
-      InscripcionActions.setListaPaquetes({ paquetes: nueva as any })
-    );
+    this.store.dispatch(InscripcionActions.setListaPaquetes({ paquetes: nueva as any }));
 
     return picked;
   }
@@ -791,7 +781,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
         // ✅ preferir form, luego store
         const idForm = Number(this.formularioInscripcion.controls.paqueteId.value ?? 0);
         const idStore = Number(this.paqueteIdSelSig() ?? 0);
-        const idPreferido = idForm > 0 ? idForm : (idStore > 0 ? idStore : 0);
+        const idPreferido = idForm > 0 ? idForm : idStore > 0 ? idStore : 0;
 
         const existe = activos.some((p) => Number(p.idPaquete) === Number(idPreferido));
         const idFinal = existe ? idPreferido : 0;
@@ -803,7 +793,9 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
           // no resetees “por resetear” si hay borrador con texto (mejora UX)
           const draftTexto = (this.paqueteBusquedaSig() ?? '').trim();
           this.formularioInscripcion.controls.paqueteId.setValue(0, { emitEvent: false });
-          this.formularioInscripcion.controls.paqueteId.updateValueAndValidity({ emitEvent: false });
+          this.formularioInscripcion.controls.paqueteId.updateValueAndValidity({
+            emitEvent: false,
+          });
           this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: 0 }));
 
           if (!draftTexto) this.paqueteBusquedaSig.set('');
@@ -835,13 +827,16 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
         const seen = new Set<number>();
         const activos = (lista ?? [])
           .filter((e: any) => e?.activo !== false)
-          .map((e: any) => ({
-            idEntrenador: Number(e?.idEntrenador ?? e?.id ?? 0),
-            nombre: String(e?.nombre ?? ''),
-            apellido: String(e?.apellido ?? ''),
-            activo: e?.activo !== false,
-            gimnasio: e?.gimnasio,
-          } as EntrenadorData))
+          .map(
+            (e: any) =>
+              ({
+                idEntrenador: Number(e?.idEntrenador ?? e?.id ?? 0),
+                nombre: String(e?.nombre ?? ''),
+                apellido: String(e?.apellido ?? ''),
+                activo: e?.activo !== false,
+                gimnasio: e?.gimnasio,
+              }) as EntrenadorData,
+          )
           .filter((e) => {
             if (!e.idEntrenador) return false;
             if (seen.has(e.idEntrenador)) return false;
@@ -870,7 +865,9 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
     if (this.guardandoMembresia) return;
 
     if (this.editandoIntegranteSig()) {
-      this.notificacion.aviso('Estás editando un integrante capturado. Guarda o cancela la edición.');
+      this.notificacion.aviso(
+        'Estás editando un integrante capturado. Guarda o cancela la edición.',
+      );
       return;
     }
 
@@ -968,7 +965,9 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
   }
 
   private calcularEdadDesdeISO(fechaISO: string, hoy = new Date()): number {
-    const parts = String(fechaISO ?? '').split('-').map((x) => Number(x));
+    const parts = String(fechaISO ?? '')
+      .split('-')
+      .map((x) => Number(x));
     if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return 0;
 
     const [y, m, d] = parts;
@@ -993,7 +992,9 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
 
     const edad = this.calcularEdadDesdeISO(fn);
     if (edad > 22) {
-      this.notificacion.error(`Paquete estudiantil solo aplica hasta 22 años. Edad actual: ${edad}.`);
+      this.notificacion.error(
+        `Paquete estudiantil solo aplica hasta 22 años. Edad actual: ${edad}.`,
+      );
       return false;
     }
 
@@ -1048,7 +1049,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
         comentarios: socio?.comentarios ?? null,
         credencialEstudianteVigencia: socio?.credencialEstudianteVigencia ?? null,
       },
-      { emitEvent: false }
+      { emitEvent: false },
     );
 
     this.huellaDigitalBase64 = socio?.huellaDigital ?? null;
@@ -1186,7 +1187,6 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
         this.store.dispatch(InscripcionActions.setDescuento({ descuento: desc }));
 
         this.descuentoUiSig.set(this.normalizarMonto(desc));
-
       }
 
       this.huellaDigitalBase64 = draft?.huellaDigitalBase64 ?? null;
@@ -1222,7 +1222,6 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
       // noop
     }
   }
-
 
   // =========================
   // Batch controls
@@ -1308,9 +1307,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
     const totalUI =
       Number(this.totalEnModalSig() ?? 0) > 0 ? Number(this.totalEnModalSig()) : snap.total;
 
-    let pagos: PagoData[] = Array.isArray(evento)
-      ? evento
-      : [{ tipoPago: evento, monto: totalUI }];
+    let pagos: PagoData[] = Array.isArray(evento) ? evento : [{ tipoPago: evento, monto: totalUI }];
 
     const sumaPagos = (pagos ?? []).reduce((a, p) => a + (Number(p.monto) || 0), 0);
     if (Math.abs(totalUI - sumaPagos) > 0.01) {
@@ -1318,7 +1315,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
         pagos = [{ ...pagos[0], monto: totalUI }];
       } else {
         this.notificacion.aviso(
-          `La suma de pagos (${sumaPagos.toFixed(2)}) no coincide con el total (${totalUI.toFixed(2)}).`
+          `La suma de pagos (${sumaPagos.toFixed(2)}) no coincide con el total (${totalUI.toFixed(2)}).`,
         );
         return;
       }
@@ -1376,7 +1373,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
           catchError((err: any) => {
             this.notificacion.error(this.extraerMensajeError(err));
             return of(null);
-          })
+          }),
         )
         .subscribe((resp: any) => {
           if (!resp) return;
@@ -1451,7 +1448,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
 
       this.cerrarModalResumen();
       this.notificacion.exito(
-        `Integrante ${nuevos.length}/${requerido} capturado. Continúa con el siguiente.`
+        `Integrante ${nuevos.length}/${requerido} capturado. Continúa con el siguiente.`,
       );
       this.limpiarParaSiguienteIntegrante();
       this.bumpFormTick();
@@ -1485,7 +1482,9 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
             paqueteNombre: resp?.paquete?.nombre ?? paquete?.nombre ?? null,
             precioPaquete: Number(resp?.paquete?.precio ?? this.precioPaqueteUiSig() ?? 0),
             descuento: Number(resp?.descuento ?? d.cuerpo?.descuento ?? 0),
-            costoInscripcion: Number(resp?.paquete?.costoInscripcion ?? this.costoInscripcionUiSig() ?? 0),
+            costoInscripcion: Number(
+              resp?.paquete?.costoInscripcion ?? this.costoInscripcionUiSig() ?? 0,
+            ),
             pagos: pagosDet,
             referencia: resp?.referencia,
             entrenadorNombre: entrenadorRANombre,
@@ -1577,14 +1576,11 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
   } {
     const paquete: any = this.paqueteActualSig();
 
-    const precioPaquete = Math.max(
-      0,
-      Number(paquete?.precio ?? this.precioPaqueteUiSig() ?? 0)
-    );
+    const precioPaquete = Math.max(0, Number(paquete?.precio ?? this.precioPaqueteUiSig() ?? 0));
 
     const costoInscripcion = Math.max(
       0,
-      Number(paquete?.costoInscripcion ?? this.costoInscripcionUiSig() ?? 0)
+      Number(paquete?.costoInscripcion ?? this.costoInscripcionUiSig() ?? 0),
     );
 
     const descManual = this.descuentoManualForm();
@@ -1644,7 +1640,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
   private seleccionarMejorPromocion(
     lista: PromocionUI[],
     precioPaquete: number,
-    costoInscripcion: number
+    costoInscripcion: number,
   ): PromocionUI | null {
     const hoy = hoyISO();
     const vigentes = (lista ?? [])
@@ -1656,7 +1652,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
     const ordenadas = [...vigentes].sort(
       (a, b) =>
         this.scorePromo(b as any, precioPaquete, costoInscripcion) -
-        this.scorePromo(a as any, precioPaquete, costoInscripcion)
+        this.scorePromo(a as any, precioPaquete, costoInscripcion),
     );
 
     return ordenadas[0] ?? null;
@@ -1684,7 +1680,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
         catchError((err: any) => {
           this.promoErrorSig.set(this.extraerMensajeError(err));
           return of([] as PromocionUI[]);
-        })
+        }),
       )
       .subscribe((lista: any) => {
         this.promocionesVigentesSig.set(Array.isArray(lista) ? (lista as PromocionUI[]) : []);
@@ -1776,7 +1772,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
     this.notificacion.exito(
       res.muestras.length > 1
         ? 'Huella registrada (se usará la de mejor calidad).'
-        : 'Huella registrada.'
+        : 'Huella registrada.',
     );
 
     this.bumpFormTick();
@@ -1784,13 +1780,7 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
 
   // ✅ ID robusto
   private getPaqueteId(p: any): number {
-    const raw =
-      p?.idPaquete ??
-      p?.paqueteId ??
-      p?.id ??
-      p?.id_paquete ??
-      p?.idPaqueteFk ??
-      0;
+    const raw = p?.idPaquete ?? p?.paqueteId ?? p?.id ?? p?.id_paquete ?? p?.idPaqueteFk ?? 0;
     const n = Number(raw);
     return Number.isFinite(n) ? n : 0;
   }
@@ -1845,88 +1835,90 @@ descuentoManualSig = computed(() => this.descuentoUiSig());
   }
 
   private normalizarMonto(raw: any): number {
-  const n = Number(raw);
-  return Number.isFinite(n) ? Math.max(0, n) : 0;
-}
+    const n = Number(raw);
+    return Number.isFinite(n) ? Math.max(0, n) : 0;
+  }
 
-onDescuentoInput(raw: any): void {
-  const val = this.normalizarMonto(raw);
+  onDescuentoInput(raw: any): void {
+    const val = this.normalizarMonto(raw);
 
-  // 🔥 Fuerza el FormControl a tener el valor en caliente
-  this.formularioInscripcion.controls.descuento.setValue(val, { emitEvent: false });
-  this.formularioInscripcion.controls.descuento.updateValueAndValidity({ emitEvent: false });
+    // 🔥 Fuerza el FormControl a tener el valor en caliente
+    this.formularioInscripcion.controls.descuento.setValue(val, { emitEvent: false });
+    this.formularioInscripcion.controls.descuento.updateValueAndValidity({ emitEvent: false });
 
-  // Señal (UI) + store + draft + tick
-  this.descuentoUiSig.set(val);
-  this.store.dispatch(InscripcionActions.setDescuento({ descuento: val }));
-  this.guardarBorradorEnStorage();
-  this.bumpFormTick();
-}
-private normText(v: any): string {
-  const s = String(v ?? '').toLowerCase().trim();
-  // quitar acentos (si el runtime lo soporta)
-  try {
-    return s
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, ' ')
+    // Señal (UI) + store + draft + tick
+    this.descuentoUiSig.set(val);
+    this.store.dispatch(InscripcionActions.setDescuento({ descuento: val }));
+    this.guardarBorradorEnStorage();
+    this.bumpFormTick();
+  }
+  private normText(v: any): string {
+    const s = String(v ?? '')
+      .toLowerCase()
       .trim();
-  } catch {
-    return s.replace(/\s+/g, ' ').trim();
+    // quitar acentos (si el runtime lo soporta)
+    try {
+      return s
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    } catch {
+      return s.replace(/\s+/g, ' ').trim();
+    }
   }
-}
 
-private paqueteSearchText(p: PaqueteUI): string {
-  const nombre = String(p?.nombre ?? '');
+  private paqueteSearchText(p: PaqueteUI): string {
+    const nombre = String(p?.nombre ?? '');
 
-  // tiempo puede venir como: p.tiempo, p.tiempoPlan, etc.
-  const tiempoRaw = (p as any)?.tiempo ?? (p as any)?.tiempoPlan ?? '';
-  const tiempo = this.tiempoPlanPipe.transform(tiempoRaw);
+    // tiempo puede venir como: p.tiempo, p.tiempoPlan, etc.
+    const tiempoRaw = (p as any)?.tiempo ?? (p as any)?.tiempoPlan ?? '';
+    const tiempo = this.tiempoPlanPipe.transform(tiempoRaw);
 
-  const modalidad = this.modalidadTexto((p as any)?.modalidad);
-  const est = (p as any)?.estudiantil ? 'estudiantil estudiante' : '';
+    const modalidad = this.modalidadTexto((p as any)?.modalidad);
+    const est = (p as any)?.estudiantil ? 'estudiantil estudiante' : '';
 
-  // ✅ Texto completo que sí contiene "1 semana" aunque no esté en el nombre
-  return this.normText(`${nombre} ${tiempo} ${modalidad} ${est}`);
-}
-
-private matchPaquete(p: PaqueteUI, qRaw: string): boolean {
-  const haystack = this.paqueteSearchText(p);
-  const tokens = this.normText(qRaw).split(' ').filter(Boolean);
-
-  // ✅ Match por tokens: "1 seman" -> ["1","seman"] y matchea "1 semana"
-  return tokens.every((t) => haystack.includes(t));
-}
-
-private mergeUniquePaquetes(items: PaqueteUI[]): PaqueteUI[] {
-  const seen = new Set<number>();
-  const out: PaqueteUI[] = [];
-
-  for (const p of items) {
-    const id = this.getPaqueteId(p);
-    if (!id || seen.has(id)) continue;
-    seen.add(id);
-    out.push(p);
+    // ✅ Texto completo que sí contiene "1 semana" aunque no esté en el nombre
+    return this.normText(`${nombre} ${tiempo} ${modalidad} ${est}`);
   }
-  return out;
-}
+
+  private matchPaquete(p: PaqueteUI, qRaw: string): boolean {
+    const haystack = this.paqueteSearchText(p);
+    const tokens = this.normText(qRaw).split(' ').filter(Boolean);
+
+    // ✅ Match por tokens: "1 seman" -> ["1","seman"] y matchea "1 semana"
+    return tokens.every((t) => haystack.includes(t));
+  }
+
+  private mergeUniquePaquetes(items: PaqueteUI[]): PaqueteUI[] {
+    const seen = new Set<number>();
+    const out: PaqueteUI[] = [];
+
+    for (const p of items) {
+      const id = this.getPaqueteId(p);
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      out.push(p);
+    }
+    return out;
+  }
 
   onVigenciaEstudianteInput(raw: any): void {
-  const v = String(raw ?? '').trim();
-  const val: string | null = v ? v : null;
+    const v = String(raw ?? '').trim();
+    const val: string | null = v ? v : null;
 
-  // fuerza el valor en el form control INMEDIATO
-  this.formularioInscripcion.controls.credencialEstudianteVigencia.setValue(val, {
-    emitEvent: false,
-  });
-  this.formularioInscripcion.controls.credencialEstudianteVigencia.updateValueAndValidity({
-    emitEvent: false,
-  });
+    // fuerza el valor en el form control INMEDIATO
+    this.formularioInscripcion.controls.credencialEstudianteVigencia.setValue(val, {
+      emitEvent: false,
+    });
+    this.formularioInscripcion.controls.credencialEstudianteVigencia.updateValueAndValidity({
+      emitEvent: false,
+    });
 
-  // persist + recompute signals
-  this.guardarBorradorEnStorage();
-  this.bumpFormTick();
-}
+    // persist + recompute signals
+    this.guardarBorradorEnStorage();
+    this.bumpFormTick();
+  }
 
   // =========================
   // Storage borrador (Electron robusto)
@@ -1957,6 +1949,4 @@ private mergeUniquePaquetes(items: PaqueteUI[]): PaqueteUI[] {
     const ua = String(navigator?.userAgent ?? '').toLowerCase();
     return ua.includes('electron');
   }
-
-
 }

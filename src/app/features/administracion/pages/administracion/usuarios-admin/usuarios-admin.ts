@@ -11,10 +11,9 @@ import { UsuariosAdminModal } from './usuarios-admin-modal/usuarios-admin-modal'
   standalone: true,
   imports: [CommonModule, FormsModule, UsuariosAdminModal],
   templateUrl: './usuarios-admin.html',
-  styleUrl: './usuarios-admin.css'
+  styleUrl: './usuarios-admin.css',
 })
 export class UsuariosAdmin {
-
   private srv = inject(UsuarioService);
 
   rows: UsuarioData[] = [];
@@ -28,28 +27,55 @@ export class UsuariosAdmin {
   menuDropUpIdx: number | null = null;
   menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
-  ngOnInit(): void { this.cargar(); }
+  ngOnInit(): void {
+    this.cargar();
+  }
 
   cargar(): void {
-    this.error = null; this.cargando = true;
+    this.error = null;
+    this.cargando = true;
     this.srv.buscarTodos().subscribe({
-      next: (list) => { this.rows = list ?? []; this.cargando = false; },
-      error: () => { this.error = 'No se pudieron cargar los usuarios.'; this.cargando = false; }
+      next: (list) => {
+        this.rows = list ?? [];
+        this.cargando = false;
+      },
+      error: () => {
+        this.error = 'No se pudieron cargar los usuarios.';
+        this.cargando = false;
+      },
     });
   }
 
-  crear(): void { this.idEditando = null; this.modalAbierto.set(true); }
-  editar(u: UsuarioData): void { this.idEditando = u.id ?? null; this.modalAbierto.set(true); }
-  cerrarModal(): void { this.modalAbierto.set(false); this.idEditando = null; }
-  onGuardado(): void { this.cerrarModal(); this.cargar(); }
+  crear(): void {
+    this.idEditando = null;
+    this.modalAbierto.set(true);
+  }
+  editar(u: UsuarioData): void {
+    this.idEditando = u.id ?? null;
+    this.modalAbierto.set(true);
+  }
+  cerrarModal(): void {
+    this.modalAbierto.set(false);
+    this.idEditando = null;
+  }
+  onGuardado(): void {
+    this.cerrarModal();
+    this.cargar();
+  }
 
   eliminar(u: UsuarioData): void {
     if (!u.id) return;
     if (!confirm(`¿Eliminar el usuario "${u.nombreUsuario}" (#${u.id})?`)) return;
     this.cargando = true;
     this.srv.eliminar(u.id).subscribe({
-      next: () => { this.cargando = false; this.cargar(); },
-      error: () => { this.cargando = false; this.error = 'No se pudo eliminar el usuario.'; }
+      next: () => {
+        this.cargando = false;
+        this.cargar();
+      },
+      error: () => {
+        this.cargando = false;
+        this.error = 'No se pudo eliminar el usuario.';
+      },
     });
   }
 
@@ -59,13 +85,17 @@ export class UsuariosAdmin {
 
   gymNombre(u: UsuarioData): string {
     const g: any = u?.gimnasio;
-    return g?.nombre ?? (g?.id ?? g?.idGimnasio ? `#${g?.id ?? g?.idGimnasio}` : '—');
+    return g?.nombre ?? ((g?.id ?? g?.idGimnasio) ? `#${g?.id ?? g?.idGimnasio}` : '—');
   }
 
   trackById = (_: number, it: UsuarioData) => it.id!;
 
   @HostListener('document:click')
-  closeMenuRows(): void { this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null; }
+  closeMenuRows(): void {
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
+  }
 
   toggleMenuRow(i: number, event: MouseEvent): void {
     event.stopPropagation();
@@ -85,9 +115,10 @@ export class UsuariosAdmin {
     this.menuRowIdx = i;
     this.menuDropUpIdx = openUp ? i : null;
     this.menuDropdownStyle = openUp
-      ? { bottom: `${viewportHeight - rect.top + gap}px`, right: `${window.innerWidth - rect.right}px` }
+      ? {
+          bottom: `${viewportHeight - rect.top + gap}px`,
+          right: `${window.innerWidth - rect.right}px`,
+        }
       : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }
-
-

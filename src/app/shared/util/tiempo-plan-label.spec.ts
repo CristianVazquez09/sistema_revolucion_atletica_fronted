@@ -14,8 +14,8 @@ describe('TiempoPlanLabelPipe', () => {
     expect(pipe.transform(TiempoPlan.QUINCE_DIAS)).toBe('15 días');
     expect(pipe.transform(TiempoPlan.UNA_SEMANA)).toBe('1 semana');
     expect(pipe.transform(TiempoPlan.DOS_SEMANAS)).toBe('2 semanas');
-    expect(pipe.transform(TiempoPlan.MENSUAL)).toBe('1 mes');       // enum MENSUAL = 'UN_MES'
-    expect(pipe.transform(TiempoPlan.TRIMESTRAL)).toBe('3 meses');  // enum TRIMESTRAL = 'TRES_MESES'
+    expect(pipe.transform(TiempoPlan.MENSUAL)).toBe('1 mes'); // enum MENSUAL = 'UN_MES'
+    expect(pipe.transform(TiempoPlan.TRIMESTRAL)).toBe('3 meses'); // enum TRIMESTRAL = 'TRES_MESES'
     expect(pipe.transform(TiempoPlan.SEMESTRAL)).toBe('6 meses');
     expect(pipe.transform(TiempoPlan.ANUAL)).toBe('1 año');
   });

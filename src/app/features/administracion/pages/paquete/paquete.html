@@ -2,24 +2,25 @@
 <div class="mx-1 mb-3 flex justify-end">
   <button
     (click)="abrirModalParaCrear()"
-    class="inline-flex items-center gap-2 rounded-md bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card px-3 py-1.5 text-xs whitespace-nowrap"
+    class="bg-ra-azul-fuerte text-ra-white shadow-card inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs whitespace-nowrap hover:brightness-110"
   >
-    <img src="iconos/agregar.svg" alt="" class="shrink-0 w-4 h-4" />
+    <img src="iconos/agregar.svg" alt="" class="h-4 w-4 shrink-0" />
     <span>Agregar paquete</span>
   </button>
 </div>
 
 <!-- CARD PRINCIPAL -->
-<div class="mx-1 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden">
-
+<div class="shadow-card mx-1 overflow-hidden rounded-xl bg-white ring-1 ring-black/10">
   <!-- TOOLBAR -->
-  <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
-    <h1 class="text-base sm:text-lg font-semibold text-ra-slate shrink-0">Paquetes</h1>
-    <div class="w-px h-5 bg-gray-200 shrink-0"></div>
-    <div class="flex items-center gap-1.5 shrink-0">
+  <div
+    class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-gray-100 px-4 py-3"
+  >
+    <h1 class="text-ra-slate shrink-0 text-base font-semibold sm:text-lg">Paquetes</h1>
+    <div class="h-5 w-px shrink-0 bg-gray-200"></div>
+    <div class="flex shrink-0 items-center gap-1.5">
       <input
         type="search"
-        class="w-[240px] h-8 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
+        class="h-8 w-[240px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
         placeholder="Buscar paquete…"
         [value]="busqueda()"
         (input)="onBuscarInput($event)"
@@ -27,7 +28,7 @@
       @if (busqueda()) {
         <button
           type="button"
-          class="h-8 px-3 rounded-lg border border-gray-200 text-xs text-ra-slate hover:bg-gray-50 shrink-0"
+          class="text-ra-slate h-8 shrink-0 rounded-lg border border-gray-200 px-3 text-xs hover:bg-gray-50"
           (click)="limpiarBusqueda()"
         >
           Limpiar
@@ -39,80 +40,109 @@
   <!-- TABLA -->
   <div class="overflow-x-auto">
     <div>
-      <table class="w-full min-w-[700px] border-collapse table-fixed text-xs">
+      <table class="w-full min-w-[700px] table-fixed border-collapse text-xs">
         <colgroup>
-          <col [class]="isAdmin ? 'w-[25%]' : 'w-[37%]'">
-          <col [class]="isAdmin ? 'w-[12%]' : 'w-[15%]'">
-          <col [class]="isAdmin ? 'w-[12%]' : 'w-[14%]'">
-          <col [class]="isAdmin ? 'w-[12%]' : 'w-[14%]'">
-          <col [class]="isAdmin ? 'w-[12%]' : 'w-[14%]'">
-          @if (isAdmin) { <col class="w-[21%]"> }
-          <col class="w-[6%]">
+          <col [class]="isAdmin ? 'w-[25%]' : 'w-[37%]'" />
+          <col [class]="isAdmin ? 'w-[12%]' : 'w-[15%]'" />
+          <col [class]="isAdmin ? 'w-[12%]' : 'w-[14%]'" />
+          <col [class]="isAdmin ? 'w-[12%]' : 'w-[14%]'" />
+          <col [class]="isAdmin ? 'w-[12%]' : 'w-[14%]'" />
+          @if (isAdmin) {
+            <col class="w-[21%]" />
+          }
+          <col class="w-[6%]" />
         </colgroup>
 
-        <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+        <thead class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
           <tr>
-            <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Nombre</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Tipo</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Tiempo</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Precio</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Inscripción</th>
+            <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+              Nombre
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Tipo
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Tiempo
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Precio
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Inscripción
+            </th>
             @if (isAdmin) {
-              <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Gimnasio</th>
+              <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+                Gimnasio
+              </th>
             }
-            <th class="py-3 px-1 text-center text-ra-slate" aria-label="Acciones"></th>
+            <th class="text-ra-slate px-1 py-3 text-center" aria-label="Acciones"></th>
           </tr>
         </thead>
 
         <tbody>
           @if (estaCargando) {
-            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Cargando…</td></tr>
+            <tr>
+              <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Cargando…</td>
+            </tr>
           } @else if (mensajeError) {
-            <tr><td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ mensajeError }}</td></tr>
+            <tr>
+              <td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ mensajeError }}</td>
+            </tr>
           } @else if (listaPaquetes.length === 0) {
-            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Sin resultados.</td></tr>
+            <tr>
+              <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Sin resultados.</td>
+            </tr>
           } @else {
             @for (p of listaPaquetes; track p.idPaquete; let i = $index) {
               <tr class="border-t border-gray-100 hover:bg-gray-50/60">
-
                 <!-- Nombre -->
-                <td class="py-2.5 px-3 text-[11px] min-w-0">
-                  <div class="font-medium truncate" [title]="p.nombre">{{ p.nombre }}</div>
+                <td class="min-w-0 px-3 py-2.5 text-[11px]">
+                  <div class="truncate font-medium" [title]="p.nombre">{{ p.nombre }}</div>
                 </td>
 
                 <!-- Tipo -->
-                <td class="py-2.5 px-3 text-center text-[11px]">
-                  <span class="inline-flex items-center justify-center rounded-full bg-ra-grayLight/50 px-2 py-0.5 text-[10px] font-semibold text-ra-slate">
+                <td class="px-3 py-2.5 text-center text-[11px]">
+                  <span
+                    class="bg-ra-grayLight/50 text-ra-slate inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                  >
                     {{ displayTipoPaquete(p) }}
                   </span>
                 </td>
 
                 <!-- Tiempo -->
-                <td class="py-2.5 px-3 text-center text-[11px]">
-                  <div class="font-medium leading-tight">{{ p.tiempo | tiempoPlan }}</div>
+                <td class="px-3 py-2.5 text-center text-[11px]">
+                  <div class="leading-tight font-medium">{{ p.tiempo | tiempoPlan }}</div>
                   @if (p.visitasMaximas != null) {
-                    <div class="text-[10px] text-ra-slate/70 leading-tight">{{ p.visitasMaximas }} visitas</div>
+                    <div class="text-ra-slate/70 text-[10px] leading-tight">
+                      {{ p.visitasMaximas }} visitas
+                    </div>
                   }
                 </td>
 
                 <!-- Precio -->
-                <td class="py-2.5 px-3 text-center font-medium text-[11px]">
-                  {{ p.precio | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                <td class="px-3 py-2.5 text-center text-[11px] font-medium">
+                  {{ p.precio | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
                 </td>
 
                 <!-- Inscripción -->
-                <td class="py-2.5 px-3 text-center font-medium text-[11px]">
-                  {{ p.costoInscripcion | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                <td class="px-3 py-2.5 text-center text-[11px] font-medium">
+                  {{ p.costoInscripcion | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
                 </td>
 
                 <!-- Gimnasio (admin) -->
                 @if (isAdmin) {
-                  <td class="py-2.5 px-3 text-[11px] min-w-0">
+                  <td class="min-w-0 px-3 py-2.5 text-[11px]">
                     <span
-                      class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-[10px] max-w-full"
+                      class="inline-flex max-w-full items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 px-2 py-0.5 text-[10px] text-[color:var(--color-ra-azul-fuerte)]"
                       [title]="displayGimnasio(p)"
                     >
-                      <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                      <svg
+                        viewBox="0 0 24 24"
+                        class="h-3.5 w-3.5 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
                         <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
                       </svg>
                       <span class="truncate">{{ displayGimnasio(p) }}</span>
@@ -121,30 +151,44 @@
                 }
 
                 <!-- Acciones -->
-                <td class="py-2.5 px-1 text-center relative">
+                <td class="relative px-1 py-2.5 text-center">
                   <button
                     (click)="toggleMenuRow(i, $event)"
-                    class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                    class="hover:bg-ra-grayLight/50 mx-auto grid h-6 w-6 place-items-center rounded"
                     title="Acciones"
                   >
-                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
-                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="h-3.5 w-3.5 text-[color:var(--color-ra-azul-fuerte)]"
+                      fill="currentColor"
+                    >
+                      <circle cx="12" cy="5" r="1.5" />
+                      <circle cx="12" cy="12" r="1.5" />
+                      <circle cx="12" cy="19" r="1.5" />
                     </svg>
                   </button>
                   @if (menuRowIdx === i) {
-                    <div class="fixed z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left" [ngStyle]="menuDropdownStyle">
-                      <button (click)="menuRowIdx = null; abrirModalParaEditar(p)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
-                        <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                    <div
+                      class="fixed z-50 w-48 rounded-xl bg-white py-1 text-left shadow-lg ring-1 ring-black/10"
+                      [ngStyle]="menuDropdownStyle"
+                    >
+                      <button
+                        (click)="menuRowIdx = null; abrirModalParaEditar(p)"
+                        class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+                      >
+                        <img src="iconos/editar.svg" alt="Editar" class="h-4 w-4 shrink-0" />
                         Editar
                       </button>
-                      <button (click)="menuRowIdx = null; desactivarPaquete(p)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
-                        <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                      <button
+                        (click)="menuRowIdx = null; desactivarPaquete(p)"
+                        class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+                      >
+                        <img src="iconos/eliminar.svg" alt="Eliminar" class="h-4 w-4 shrink-0" />
                         Eliminar
                       </button>
                     </div>
                   }
                 </td>
-
               </tr>
             }
           }
@@ -152,7 +196,6 @@
       </table>
     </div>
   </div>
-
 </div>
 
 <!-- Modal -->

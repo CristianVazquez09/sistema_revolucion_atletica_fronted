@@ -31,13 +31,13 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   standalone: true,
   imports: [CommonModule, FormsModule, VentasAdminModal, RaGimnasioFilterComponent],
   templateUrl: './ventas-admin.html',
-  styleUrl: './ventas-admin.css'
+  styleUrl: './ventas-admin.css',
 })
 export class VentasAdmin {
   // --- inyección de servicios ---
-  private srv    = inject(VentaService);
-  private noti   = inject(NotificacionService);
-  private jwt    = inject(JwtHelperService);
+  private srv = inject(VentaService);
+  private noti = inject(NotificacionService);
+  private jwt = inject(JwtHelperService);
   private ticket = inject(TicketService);
   private menuSrv = inject(MenuService);
 
@@ -104,11 +104,7 @@ export class VentasAdmin {
     // ✅ Admin: al cambiar gimnasio en el selector => recargar
     if (this.esAdmin) {
       this.tenantCtx.viewTenantChanges$
-        .pipe(
-          distinctUntilChanged(),
-          skip(1),
-          takeUntilDestroyed(this.destroyRef)
-        )
+        .pipe(distinctUntilChanged(), skip(1), takeUntilDestroyed(this.destroyRef))
         .subscribe(() => {
           if (this.destroying) return;
           this.cargar(1);
@@ -151,7 +147,7 @@ export class VentasAdmin {
         ...(Array.isArray(d?.realm_access?.roles) ? d.realm_access.roles : []),
         d?.role,
         d?.rol,
-        d?.perfil
+        d?.perfil,
       ]
         .filter(Boolean)
         .map((r: string) => String(r).toUpperCase());
@@ -160,38 +156,44 @@ export class VentasAdmin {
     }
   }
 
-  get sortSel(): string { return `${this.sortCampo},${this.sortDir}`; }
+  get sortSel(): string {
+    return `${this.sortCampo},${this.sortDir}`;
+  }
 
   // ============= Carga / paginación =============
   cargar(pageUI: number): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
     this.error = null;
 
     if (this.buscandoPorRango && this.fechaDesde && this.fechaHasta) {
       this.cargando = true;
-      this.srv.listarPorRango({
-        desde: this.fechaDesde,
-        hasta: this.fechaHasta,
-        page: pageUI,
-        size: this.sizeSel,
-        sort: this.sortSel
-      }).subscribe({
-        next: (resp: VentaPageResponse) => {
-          this.rows = resp?.content ?? [];
-          this.page = resp?.page ?? {
-            size: this.sizeSel,
-            number: (pageUI - 1),
-            totalElements: 0,
-            totalPages: 0
-          };
-          this.cargando = false;
-        },
-        error: () => {
-          this.error = 'No se pudieron cargar las ventas del rango.';
-          this.noti.error(this.error);
-          this.cargando = false;
-        }
-      });
+      this.srv
+        .listarPorRango({
+          desde: this.fechaDesde,
+          hasta: this.fechaHasta,
+          page: pageUI,
+          size: this.sizeSel,
+          sort: this.sortSel,
+        })
+        .subscribe({
+          next: (resp: VentaPageResponse) => {
+            this.rows = resp?.content ?? [];
+            this.page = resp?.page ?? {
+              size: this.sizeSel,
+              number: pageUI - 1,
+              totalElements: 0,
+              totalPages: 0,
+            };
+            this.cargando = false;
+          },
+          error: () => {
+            this.error = 'No se pudieron cargar las ventas del rango.';
+            this.noti.error(this.error);
+            this.cargando = false;
+          },
+        });
       return;
     }
 
@@ -201,33 +203,44 @@ export class VentasAdmin {
     }
 
     this.cargando = true;
-    this.srv.listar({ page: pageUI, size: this.sizeSel, sort: this.sortSel })
-      .subscribe({
-        next: (resp: VentaPageResponse) => {
-          this.rows = resp?.content ?? [];
-          this.page = resp?.page ?? {
-            size: this.sizeSel,
-            number: (pageUI - 1),
-            totalElements: 0,
-            totalPages: 0
-          };
-          this.cargando = false;
-        },
-        error: () => {
-          this.error = 'No se pudieron cargar las ventas.';
-          this.noti.error(this.error);
-          this.cargando = false;
-        }
-      });
+    this.srv.listar({ page: pageUI, size: this.sizeSel, sort: this.sortSel }).subscribe({
+      next: (resp: VentaPageResponse) => {
+        this.rows = resp?.content ?? [];
+        this.page = resp?.page ?? {
+          size: this.sizeSel,
+          number: pageUI - 1,
+          totalElements: 0,
+          totalPages: 0,
+        };
+        this.cargando = false;
+      },
+      error: () => {
+        this.error = 'No se pudieron cargar las ventas.';
+        this.noti.error(this.error);
+        this.cargando = false;
+      },
+    });
   }
 
   // paginación
-  get pageUI(): number { return (this.page?.number ?? 0) + 1; }
-  get puedePrev(): boolean { return this.pageUI > 1; }
-  get puedeNext(): boolean { return this.pageUI < (this.page?.totalPages ?? 1); }
-  prev(): void { if (this.puedePrev) this.cargar(this.pageUI - 1); }
-  next(): void { if (this.puedeNext) this.cargar(this.pageUI + 1); }
-  go(n: number): void { this.cargar(n); }
+  get pageUI(): number {
+    return (this.page?.number ?? 0) + 1;
+  }
+  get puedePrev(): boolean {
+    return this.pageUI > 1;
+  }
+  get puedeNext(): boolean {
+    return this.pageUI < (this.page?.totalPages ?? 1);
+  }
+  prev(): void {
+    if (this.puedePrev) this.cargar(this.pageUI - 1);
+  }
+  next(): void {
+    if (this.puedeNext) this.cargar(this.pageUI + 1);
+  }
+  go(n: number): void {
+    this.cargar(n);
+  }
 
   // ============= Búsqueda por folio =============
   buscarPorFolio(): void {
@@ -257,7 +270,7 @@ export class VentasAdmin {
         this.buscandoPorFolio = true;
         this.buscandoPorRango = false;
         this.noti.error(`No se encontró la venta con folio #${folio}.`);
-      }
+      },
     });
   }
 
@@ -291,7 +304,10 @@ export class VentasAdmin {
     this.idVer = v.idVenta ?? null;
     this.mostrarModal.set(true);
   }
-  cerrarModal(): void { this.mostrarModal.set(false); this.idVer = null; }
+  cerrarModal(): void {
+    this.mostrarModal.set(false);
+    this.idVer = null;
+  }
 
   onGuardado(venta: VentaData) {
     this.noti.exito?.('Venta actualizada.');
@@ -320,7 +336,7 @@ export class VentasAdmin {
     if (!confirm(`¿Eliminar la venta #${v.folio ?? v.idVenta}?`)) return;
     this.srv.eliminar(v.idVenta).subscribe({
       next: () => this.cargar(this.pageUI),
-      error: () => this.noti.error('No se pudo eliminar la venta.')
+      error: () => this.noti.error('No se pudo eliminar la venta.'),
     });
   }
 
@@ -337,7 +353,8 @@ export class VentasAdmin {
     };
 
     const u = v.usuario as any;
-    const cajero = [u?.nombre, u?.apellido].filter(Boolean).join(' ').trim() || u?.nombreUsuario || '';
+    const cajero =
+      [u?.nombre, u?.apellido].filter(Boolean).join(' ').trim() || u?.nombreUsuario || '';
 
     const socioNombre = (
       `${(v as any).socio?.nombre ?? (v as any).cliente?.nombre ?? ''} ` +
@@ -345,8 +362,8 @@ export class VentasAdmin {
     ).trim();
 
     const pagos: TicketPagoDetalle[] | undefined =
-      (v.pagos && v.pagos.length)
-        ? v.pagos.map(p => ({
+      v.pagos && v.pagos.length
+        ? v.pagos.map((p) => ({
             metodo: (p as any).tipoPago,
             monto: Number((p as any).monto) || 0,
           }))
@@ -357,7 +374,7 @@ export class VentasAdmin {
         v as any,
         { negocio, cajero, socio: socioNombre || undefined },
         undefined,
-        pagos
+        pagos,
       );
       this.noti.info(`Ticket de venta #${v.folio ?? v.idVenta} enviado a impresión.`);
     } catch (e) {
@@ -371,20 +388,23 @@ export class VentasAdmin {
   pagosChip(v: VentaData): string {
     const tot = (tipo: string) =>
       (v.pagos ?? [])
-        .filter(p => p.tipoPago === tipo)
+        .filter((p) => p.tipoPago === tipo)
         .reduce((a, p) => a + (Number(p.monto) || 0), 0);
 
     const fmt = (n: number) =>
       new Intl.NumberFormat('es-MX', {
         style: 'currency',
         currency: 'MXN',
-        minimumFractionDigits: 2
+        minimumFractionDigits: 2,
       }).format(n);
 
     const chips: string[] = [];
-    const e = tot('EFECTIVO');       if (e > 0) chips.push(`Efectivo ${fmt(e)}`);
-    const t = tot('TARJETA');        if (t > 0) chips.push(`Tarjeta ${fmt(t)}`);
-    const tr = tot('TRANSFERENCIA'); if (tr > 0) chips.push(`Transf. ${fmt(tr)}`);
+    const e = tot('EFECTIVO');
+    if (e > 0) chips.push(`Efectivo ${fmt(e)}`);
+    const t = tot('TARJETA');
+    if (t > 0) chips.push(`Tarjeta ${fmt(t)}`);
+    const tr = tot('TRANSFERENCIA');
+    if (tr > 0) chips.push(`Transf. ${fmt(tr)}`);
     return chips.join(' · ') || '—';
   }
 
@@ -407,7 +427,9 @@ export class VentasAdmin {
       map.set(nombre, (map.get(nombre) ?? 0) + qty);
     }
 
-    return Array.from(map.entries()).map(([nombre, qty]) => (qty > 1 ? `${nombre} x${qty}` : nombre));
+    return Array.from(map.entries()).map(([nombre, qty]) =>
+      qty > 1 ? `${nombre} x${qty}` : nombre,
+    );
   }
 
   productoTitleCompleto(v: any): string {
@@ -419,9 +441,11 @@ export class VentasAdmin {
   // Gimnasio
   // ==========================
   private gimnasioObjDeVenta(v: VentaData): any {
-    return (v as any).gimnasio
-      ?? v.detalles?.[0]?.producto?.gimnasio
-      ?? v.detalles?.[0]?.producto?.categoria?.gimnasio;
+    return (
+      (v as any).gimnasio ??
+      v.detalles?.[0]?.producto?.gimnasio ??
+      v.detalles?.[0]?.producto?.categoria?.gimnasio
+    );
   }
 
   gymDeVenta(v: VentaData): string {
@@ -476,7 +500,9 @@ export class VentasAdmin {
 
   @HostListener('document:click')
   closeMenuRows(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
   }
 
   toggleMenuRow(i: number, event: MouseEvent): void {
@@ -497,9 +523,10 @@ export class VentasAdmin {
     this.menuRowIdx = i;
     this.menuDropUpIdx = openUp ? i : null;
     this.menuDropdownStyle = openUp
-      ? { bottom: `${viewportHeight - rect.top + gap}px`, right: `${window.innerWidth - rect.right}px` }
+      ? {
+          bottom: `${viewportHeight - rect.top + gap}px`,
+          right: `${window.innerWidth - rect.right}px`,
+        }
       : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }
-
-

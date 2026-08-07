@@ -10,7 +10,12 @@ describe('GimnasioService', () => {
   let service: GimnasioService;
   let httpMock: HttpTestingController;
 
-  const gimnasio: GimnasioData = { idGimnasio: 1, nombre: 'RA Centro', direccion: 'Av. Principal 123', telefono: '5512345678' };
+  const gimnasio: GimnasioData = {
+    idGimnasio: 1,
+    nombre: 'RA Centro',
+    direccion: 'Av. Principal 123',
+    telefono: '5512345678',
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -24,7 +29,7 @@ describe('GimnasioService', () => {
 
   it('buscarTodos hace GET a la URL base', () => {
     let resultado: GimnasioData[] | undefined;
-    service.buscarTodos().subscribe(r => (resultado = r));
+    service.buscarTodos().subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(BASE);
     expect(req.request.method).toBe('GET');

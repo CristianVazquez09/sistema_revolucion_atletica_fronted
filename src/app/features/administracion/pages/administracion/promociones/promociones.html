@@ -1,29 +1,29 @@
 <div #zoomOuter class="overflow-x-hidden">
   <div class="origin-top-left" [style.zoom]="uiZoom">
-
     <!-- Barra externa: solo el botón Agregar -->
     <div class="mx-1 mb-3 flex justify-end">
       <button
         type="button"
         (click)="nuevo()"
-        class="inline-flex items-center gap-2 rounded-lg bg-ra-azul-fuerte text-ra-white hover:brightness-110 shadow-card h-8 px-3 text-xs whitespace-nowrap"
+        class="bg-ra-azul-fuerte text-ra-white shadow-card inline-flex h-8 items-center gap-2 rounded-lg px-3 text-xs whitespace-nowrap hover:brightness-110"
       >
-        <img src="iconos/agregar.svg" alt="" class="shrink-0 w-4 h-4" />
+        <img src="iconos/agregar.svg" alt="" class="h-4 w-4 shrink-0" />
         <span>Agregar promoción</span>
       </button>
     </div>
 
     <!-- CARD PRINCIPAL -->
-    <div class="mx-1 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden">
-
+    <div class="shadow-card mx-1 overflow-hidden rounded-xl bg-white ring-1 ring-black/10">
       <!-- TOOLBAR -->
-      <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
-        <h1 class="text-base sm:text-lg font-semibold text-ra-slate shrink-0">Promociones</h1>
-        <div class="w-px h-5 bg-gray-200 shrink-0"></div>
+      <div
+        class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-gray-100 px-4 py-3"
+      >
+        <h1 class="text-ra-slate shrink-0 text-base font-semibold sm:text-lg">Promociones</h1>
+        <div class="h-5 w-px shrink-0 bg-gray-200"></div>
 
         @if (esAdmin()) {
-          <div class="flex items-center gap-1.5 shrink-0">
-            <span class="text-xs text-ra-slate/70 whitespace-nowrap">Gimnasio (tabla):</span>
+          <div class="flex shrink-0 items-center gap-1.5">
+            <span class="text-ra-slate/70 text-xs whitespace-nowrap">Gimnasio (tabla):</span>
             <select
               class="h-8 w-[200px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
               [disabled]="cargandoGimnasios()"
@@ -35,21 +35,21 @@
               }
             </select>
           </div>
-          <div class="w-px h-5 bg-gray-200 shrink-0"></div>
+          <div class="h-5 w-px shrink-0 bg-gray-200"></div>
         }
 
         <!-- Buscador -->
-        <div class="flex items-center gap-1.5 shrink-0">
+        <div class="flex shrink-0 items-center gap-1.5">
           <input
             type="text"
-            class="w-[240px] h-8 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
+            class="h-8 w-[240px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
             placeholder="Nombre, tipo, paquete, restricciones…"
             [ngModel]="termino()"
             (ngModelChange)="termino.set($event)"
           />
           <button
             type="button"
-            class="h-8 px-3 rounded-lg border border-gray-200 text-xs text-ra-slate hover:bg-gray-50 shrink-0 disabled:opacity-40"
+            class="text-ra-slate h-8 shrink-0 rounded-lg border border-gray-200 px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
             (click)="termino.set('')"
             [disabled]="!(termino() || '').trim().length"
           >
@@ -57,21 +57,31 @@
           </button>
         </div>
 
-        <div class="w-px h-5 bg-gray-200 shrink-0"></div>
+        <div class="h-5 w-px shrink-0 bg-gray-200"></div>
 
         <!-- Filtros checkbox -->
-        <label class="inline-flex items-center gap-2 text-xs text-ra-slate shrink-0 cursor-pointer">
-          <input type="checkbox" class="h-4 w-4" [ngModel]="soloVigentes()" (ngModelChange)="soloVigentes.set($event)" />
+        <label class="text-ra-slate inline-flex shrink-0 cursor-pointer items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            class="h-4 w-4"
+            [ngModel]="soloVigentes()"
+            (ngModelChange)="soloVigentes.set($event)"
+          />
           <span>Solo vigentes</span>
         </label>
-        <label class="inline-flex items-center gap-2 text-xs text-ra-slate shrink-0 cursor-pointer">
-          <input type="checkbox" class="h-4 w-4" [ngModel]="soloActivas()" (ngModelChange)="soloActivas.set($event)" />
+        <label class="text-ra-slate inline-flex shrink-0 cursor-pointer items-center gap-2 text-xs">
+          <input
+            type="checkbox"
+            class="h-4 w-4"
+            [ngModel]="soloActivas()"
+            (ngModelChange)="soloActivas.set($event)"
+          />
           <span>Solo activas</span>
         </label>
 
         <button
           type="button"
-          class="h-8 px-3 rounded-lg bg-[#0B2C4A] text-white hover:brightness-110 text-xs shrink-0"
+          class="h-8 shrink-0 rounded-lg bg-[#0B2C4A] px-3 text-xs text-white hover:brightness-110"
           (click)="recargar()"
         >
           Recargar
@@ -81,118 +91,173 @@
       <!-- TABLA -->
       <div class="overflow-x-auto">
         <div>
-          <table class="w-full min-w-[700px] border-collapse table-fixed text-xs">
+          <table class="w-full min-w-[700px] table-fixed border-collapse text-xs">
             <colgroup>
-              <col [class]="mostrarGimnasioCol() ? 'w-[18%]' : 'w-[22%]'">
-              <col class="w-[9%]">
-              <col class="w-[8%]">
-              <col [class]="mostrarGimnasioCol() ? 'w-[12%]' : 'w-[16%]'">
-              <col class="w-[11%]">
-              <col class="w-[10%]">
-              @if (mostrarGimnasioCol()) { <col class="w-[10%]"> }
-              <col class="w-[8%]">
-              <col class="w-[4%]">
+              <col [class]="mostrarGimnasioCol() ? 'w-[18%]' : 'w-[22%]'" />
+              <col class="w-[9%]" />
+              <col class="w-[8%]" />
+              <col [class]="mostrarGimnasioCol() ? 'w-[12%]' : 'w-[16%]'" />
+              <col class="w-[11%]" />
+              <col class="w-[10%]" />
+              @if (mostrarGimnasioCol()) {
+                <col class="w-[10%]" />
+              }
+              <col class="w-[8%]" />
+              <col class="w-[4%]" />
             </colgroup>
 
-            <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+            <thead class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
               <tr>
-                <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Promoción</th>
-                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Tipo</th>
-                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Beneficio</th>
-                <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Paquete</th>
-                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Restricciones</th>
-                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Vigencia</th>
+                <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+                  Promoción
+                </th>
+                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+                  Tipo
+                </th>
+                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+                  Beneficio
+                </th>
+                <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+                  Paquete
+                </th>
+                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+                  Restricciones
+                </th>
+                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+                  Vigencia
+                </th>
                 @if (mostrarGimnasioCol()) {
-                  <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Gimnasio</th>
+                  <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+                    Gimnasio
+                  </th>
                 }
-                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Estado</th>
-                <th class="py-3 px-1 text-center text-ra-slate" aria-label="Acciones"></th>
+                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+                  Estado
+                </th>
+                <th class="text-ra-slate px-1 py-3 text-center" aria-label="Acciones"></th>
               </tr>
             </thead>
 
             <tbody>
               @if (cargando()) {
-                <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Cargando…</td></tr>
+                <tr>
+                  <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Cargando…</td>
+                </tr>
               } @else if (filas().length === 0) {
-                <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Sin resultados.</td></tr>
+                <tr>
+                  <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">
+                    Sin resultados.
+                  </td>
+                </tr>
               } @else {
                 @for (p of filas(); track trackById($index, p); let i = $index) {
                   <tr class="border-t border-gray-100 hover:bg-gray-50/60">
-
-                    <td class="py-2.5 px-3 min-w-0">
-                      <div class="font-medium truncate text-[11px] min-w-0" [title]="p.nombre">{{ p.nombre }}</div>
+                    <td class="min-w-0 px-3 py-2.5">
+                      <div class="min-w-0 truncate text-[11px] font-medium" [title]="p.nombre">
+                        {{ p.nombre }}
+                      </div>
                       @if (p.descripcion) {
-                        <div class="text-[10px] text-ra-slate/70 truncate min-w-0" [title]="p.descripcion">{{ p.descripcion }}</div>
+                        <div
+                          class="text-ra-slate/70 min-w-0 truncate text-[10px]"
+                          [title]="p.descripcion"
+                        >
+                          {{ p.descripcion }}
+                        </div>
                       }
                     </td>
 
-                    <td class="py-2.5 px-3 text-center">
+                    <td class="px-3 py-2.5 text-center">
                       @let tb = tipoBadge(p.tipo);
                       <span
-                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1"
+                        class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1"
                         [ngClass]="tb.clase"
                       >
                         {{ tb.texto }}
                       </span>
                     </td>
 
-                    <td class="py-2.5 px-3 text-center">
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold">
+                    <td class="px-3 py-2.5 text-center">
+                      <span
+                        class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+                      >
                         {{ labelBeneficio(p) }}
                       </span>
                     </td>
 
-                    <td class="py-2.5 px-3 min-w-0">
-                      <div class="font-medium truncate text-[11px]" [title]="paqueteLabel(p)">{{ paqueteLabel(p) }}</div>
+                    <td class="min-w-0 px-3 py-2.5">
+                      <div class="truncate text-[11px] font-medium" [title]="paqueteLabel(p)">
+                        {{ paqueteLabel(p) }}
+                      </div>
                     </td>
 
-                    <td class="py-2.5 px-3 text-center min-w-0">
+                    <td class="min-w-0 px-3 py-2.5 text-center">
                       @if (restricciones(p).length === 0) {
                         <span class="text-ra-slate/60">—</span>
                       } @else {
                         <div class="flex flex-wrap justify-center gap-1">
                           @for (r of restricciones(p); track r) {
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">{{ r }}</span>
+                            <span
+                              class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700"
+                              >{{ r }}</span
+                            >
                           }
                         </div>
                       }
                     </td>
 
-                    <td class="py-2.5 px-3 text-center whitespace-nowrap text-[11px] leading-tight">
-                      <div class="text-[10px] text-ra-slate/70">Inicio</div>
+                    <td class="px-3 py-2.5 text-center text-[11px] leading-tight whitespace-nowrap">
+                      <div class="text-ra-slate/70 text-[10px]">Inicio</div>
                       <div class="font-semibold">{{ p.fechaInicio }}</div>
-                      <div class="mt-0.5 text-[10px] text-ra-slate/70">Fin</div>
+                      <div class="text-ra-slate/70 mt-0.5 text-[10px]">Fin</div>
                       <div class="font-semibold">{{ p.fechaFin }}</div>
                     </td>
 
                     @if (mostrarGimnasioCol()) {
-                      <td class="py-2.5 px-3 text-[11px] truncate min-w-0" [title]="promoGymNombre(p)">
+                      <td
+                        class="min-w-0 truncate px-3 py-2.5 text-[11px]"
+                        [title]="promoGymNombre(p)"
+                      >
                         {{ promoGymNombre(p) }}
                       </td>
                     }
 
-                    <td class="py-2.5 px-3 text-center">
+                    <td class="px-3 py-2.5 text-center">
                       @let st = estadoLabel(p);
-                      <span class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1" [ngClass]="st.clase">
+                      <span
+                        class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1"
+                        [ngClass]="st.clase"
+                      >
                         {{ st.texto }}
                       </span>
                     </td>
 
-                    <td class="py-2.5 px-1 text-center relative">
+                    <td class="relative px-1 py-2.5 text-center">
                       <button
                         (click)="toggleMenuRow(i, $event)"
-                        class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                        class="hover:bg-ra-grayLight/50 mx-auto grid h-6 w-6 place-items-center rounded"
                         title="Acciones"
                       >
-                        <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
-                          <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                        <svg
+                          viewBox="0 0 24 24"
+                          class="h-3.5 w-3.5 text-[color:var(--color-ra-azul-fuerte)]"
+                          fill="currentColor"
+                        >
+                          <circle cx="12" cy="5" r="1.5" />
+                          <circle cx="12" cy="12" r="1.5" />
+                          <circle cx="12" cy="19" r="1.5" />
                         </svg>
                       </button>
 
                       @if (menuRowIdx === i) {
-                        <div class="fixed z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left" [ngStyle]="menuDropdownStyle">
-                          <button (click)="menuRowIdx = null; editar(p)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
-                            <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                        <div
+                          class="fixed z-50 w-48 rounded-xl bg-white py-1 text-left shadow-lg ring-1 ring-black/10"
+                          [ngStyle]="menuDropdownStyle"
+                        >
+                          <button
+                            (click)="menuRowIdx = null; editar(p)"
+                            class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+                          >
+                            <img src="iconos/editar.svg" alt="Editar" class="h-4 w-4 shrink-0" />
                             Editar
                           </button>
 
@@ -200,9 +265,15 @@
                             <button
                               (click)="menuRowIdx = null; desactivar(p)"
                               [disabled]="busyDesactivarId() === idRow(p)"
-                              class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
+                              class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
                             >
-                              <svg viewBox="0 0 24 24" class="w-4 h-4 text-amber-700 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                              <svg
+                                viewBox="0 0 24 24"
+                                class="h-4 w-4 shrink-0 text-amber-700"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                              >
                                 <path d="M8 6v12M16 6v12"></path>
                               </svg>
                               Desactivar
@@ -211,11 +282,19 @@
                             <button
                               (click)="menuRowIdx = null; activar(p)"
                               [disabled]="busyDesactivarId() === idRow(p)"
-                              class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
+                              class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
                             >
-                              <svg viewBox="0 0 24 24" class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                              <svg
+                                viewBox="0 0 24 24"
+                                class="h-4 w-4 shrink-0 text-emerald-700"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                              >
                                 <path d="M9 12l2 2 4-4"></path>
-                                <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"></path>
+                                <path
+                                  d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"
+                                ></path>
                               </svg>
                               Activar
                             </button>
@@ -224,15 +303,18 @@
                           <button
                             (click)="menuRowIdx = null; eliminar(p)"
                             [disabled]="busyEliminarId() === idRow(p)"
-                            class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
+                            class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
                           >
-                            <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                            <img
+                              src="iconos/eliminar.svg"
+                              alt="Eliminar"
+                              class="h-4 w-4 shrink-0"
+                            />
                             Eliminar
                           </button>
                         </div>
                       }
                     </td>
-
                   </tr>
                 }
               }
@@ -240,14 +322,16 @@
           </table>
         </div>
       </div>
-
     </div>
 
     <!-- Modal -->
     @if (modalAbierto()) {
       <div class="fixed inset-0 z-50 overflow-y-auto">
-        <div class="min-h-full flex items-start justify-center p-4 sm:p-6">
-          <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModal()"></div>
+        <div class="flex min-h-full items-start justify-center p-4 sm:p-6">
+          <div
+            class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+            (click)="cerrarModal()"
+          ></div>
           <div class="relative z-10 w-full max-w-[760px]">
             <div class="bg-ra-white rounded-xl2 shadow-card ring-1 ring-black/5">
               <app-promocion-modal
@@ -264,6 +348,5 @@
         </div>
       </div>
     }
-
   </div>
 </div>

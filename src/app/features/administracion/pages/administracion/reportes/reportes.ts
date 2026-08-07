@@ -11,10 +11,9 @@ import { environment } from '../../../../../../environments/environment';
   selector: 'app-reportes',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './reportes.html'
+  templateUrl: './reportes.html',
 })
 export class Reportes implements OnInit {
-
   private fb = inject(FormBuilder);
   private reportesSrv = inject(ReportesService);
   private jwt = inject(JwtHelperService);
@@ -23,7 +22,7 @@ export class Reportes implements OnInit {
   isAdmin = false;
 
   // Estado gimnasios
-  gimnasios: any[] = [];   // igual que en Paquetes: lo tratamos como any porque el backend manda id
+  gimnasios: any[] = []; // igual que en Paquetes: lo tratamos como any porque el backend manda id
   loadingGimnasios = false;
 
   // Estado descarga
@@ -59,7 +58,7 @@ export class Reportes implements OnInit {
         ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
       ]
         .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
-        .map(r => String(r).toUpperCase());
+        .map((r) => String(r).toUpperCase());
 
       return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     } catch {
@@ -81,7 +80,7 @@ export class Reportes implements OnInit {
       error: () => {
         this.loadingGimnasios = false;
         this.errorMsg = 'No se pudieron cargar los gimnasios.';
-      }
+      },
     });
   }
 
@@ -148,7 +147,7 @@ export class Reportes implements OnInit {
       error: () => {
         this.loadingExcel = false;
         this.errorMsg = 'No se pudo generar el reporte. Intenta de nuevo.';
-      }
+      },
     });
   }
 }

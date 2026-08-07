@@ -11,11 +11,10 @@ export interface MiPerfilPatch {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UsuarioService extends GenericService<UsuarioData> {
-
-  constructor(protected override http: HttpClient){
+  constructor(protected override http: HttpClient) {
     super(http, `${environment.HOST}/usuarios`);
   }
 

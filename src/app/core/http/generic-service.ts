@@ -1,17 +1,15 @@
-import { HttpClient } from "@angular/common/http";
-import { Inject, Injectable } from "@angular/core";
+import { HttpClient } from '@angular/common/http';
+import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class GenericService <T> {
-
-    constructor(
+export class GenericService<T> {
+  constructor(
     protected http: HttpClient,
-    @Inject("url") protected url: string
-  ) { }
+    @Inject('url') protected url: string,
+  ) {}
 
   buscarTodos(): Observable<T[]> {
     return this.http.get<T[]>(this.url);
@@ -32,5 +30,4 @@ export class GenericService <T> {
   eliminar(id: number): Observable<void> {
     return this.http.delete<void>(`${this.url}/${id}`);
   }
-  
 }

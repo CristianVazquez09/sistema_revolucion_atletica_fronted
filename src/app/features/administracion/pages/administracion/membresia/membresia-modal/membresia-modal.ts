@@ -14,10 +14,9 @@ import { PaqueteData } from '../../../../../../shared/models/paquete-data';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './membresia-modal.html',
-  styleUrl: './membresia-modal.css'
+  styleUrl: './membresia-modal.css',
 })
 export class MembresiaModal implements OnInit {
-
   @Input() idMembresia!: number;
   @Output() cancelar = new EventEmitter<void>();
   @Output() guardado = new EventEmitter<MembresiaData>();
@@ -32,9 +31,9 @@ export class MembresiaModal implements OnInit {
   error: string | null = null;
 
   // -------- edición (signals) --------
-  fechaInicio = signal<string>('');  // yyyy-MM-dd
-  fechaFin    = signal<string>('');  // yyyy-MM-dd
-  descuento   = signal<number>(0);
+  fechaInicio = signal<string>(''); // yyyy-MM-dd
+  fechaFin = signal<string>(''); // yyyy-MM-dd
+  descuento = signal<number>(0);
 
   // pagos
   efectivo = signal(0);
@@ -68,9 +67,10 @@ export class MembresiaModal implements OnInit {
         this.descuento.set(Number(m.descuento || 0));
 
         // pagos (cargar tal cual)
-        const sum = (tipo: string) => (m.pagos ?? [])
-          .filter(p => p.tipoPago === tipo)
-          .reduce((a, p) => a + Number(p.monto || 0), 0);
+        const sum = (tipo: string) =>
+          (m.pagos ?? [])
+            .filter((p) => p.tipoPago === tipo)
+            .reduce((a, p) => a + Number(p.monto || 0), 0);
         this.efectivo.set(sum('EFECTIVO'));
         this.tarjeta.set(sum('TARJETA'));
         this.transferencia.set(sum('TRANSFERENCIA'));
@@ -80,7 +80,10 @@ export class MembresiaModal implements OnInit {
 
         this.cargando = false;
       },
-      error: () => { this.error = 'No se pudo cargar la membresía.'; this.cargando = false; }
+      error: () => {
+        this.error = 'No se pudo cargar la membresía.';
+        this.cargando = false;
+      },
     });
   }
 
@@ -102,11 +105,15 @@ export class MembresiaModal implements OnInit {
   }
 
   totalCalculadoVista(): number {
-    return this.round2(this.precioBaseVista() + this.inscripcionVista() - Number(this.descuento() || 0));
+    return this.round2(
+      this.precioBaseVista() + this.inscripcionVista() - Number(this.descuento() || 0),
+    );
   }
 
   sumaPagos(): number {
-    return this.round2((this.efectivo() || 0) + (this.tarjeta() || 0) + (this.transferencia() || 0));
+    return this.round2(
+      (this.efectivo() || 0) + (this.tarjeta() || 0) + (this.transferencia() || 0),
+    );
   }
 
   desbalance(): number {
@@ -118,23 +125,25 @@ export class MembresiaModal implements OnInit {
     this.cargandoListaPaquetes = true;
     this.paqueteSrv.buscarTodos().subscribe({
       next: (lista) => {
-        this.listaPaquetes = (lista ?? []).filter(p => p?.activo !== false);
+        this.listaPaquetes = (lista ?? []).filter((p) => p?.activo !== false);
         this.cargandoListaPaquetes = false;
       },
       error: () => {
         this.cargandoListaPaquetes = false;
         this.error = 'No se pudieron cargar los paquetes.';
-      }
+      },
     });
   }
 
   onSeleccionPaqueteNuevo(id: number | null) {
-    this.paqueteNuevoId = (id && id > 0) ? id : null;
+    this.paqueteNuevoId = id && id > 0 ? id : null;
     this.paqueteNuevo = null;
 
     if (!this.paqueteNuevoId) return;
 
-    const encontrado = this.listaPaquetes.find(p => Number(p.idPaquete) === Number(this.paqueteNuevoId));
+    const encontrado = this.listaPaquetes.find(
+      (p) => Number(p.idPaquete) === Number(this.paqueteNuevoId),
+    );
     this.paqueteNuevo = encontrado ?? null;
 
     if (!this.paqueteNuevo) {
@@ -156,8 +165,8 @@ export class MembresiaModal implements OnInit {
 
     // congelamos valores
     const yInicio = this.fechaInicio();
-    const yFin    = this.fechaFin();
-    const desc    = this.round2(this.descuento() || 0);
+    const yFin = this.fechaFin();
+    const desc = this.round2(this.descuento() || 0);
 
     // total vista ya considera que si es REINSCRIPCION no cobra costoInscripcion
     const totalVista = this.totalCalculadoVista();
@@ -199,7 +208,7 @@ export class MembresiaModal implements OnInit {
 
       const pagos: PagoData[] = [];
       if (ef > 0) pagos.push({ tipoPago: 'EFECTIVO' as any, monto: ef });
-      if (tj > 0) pagos.push({ tipoPago: 'TARJETA'  as any, monto: tj });
+      if (tj > 0) pagos.push({ tipoPago: 'TARJETA' as any, monto: tj });
       if (tr > 0) pagos.push({ tipoPago: 'TRANSFERENCIA' as any, monto: tr });
       acciones.push({ op: 'REEMPLAZAR_PAGOS', pagos });
     }
@@ -217,9 +226,10 @@ export class MembresiaModal implements OnInit {
         this.fechaFin.set(this.ymd(actualizada.fechaFin));
         this.descuento.set(Number(actualizada.descuento || 0));
 
-        const sum = (tipo: string) => (actualizada.pagos ?? [])
-          .filter(p => p.tipoPago === tipo)
-          .reduce((a, p) => a + Number(p.monto || 0), 0);
+        const sum = (tipo: string) =>
+          (actualizada.pagos ?? [])
+            .filter((p) => p.tipoPago === tipo)
+            .reduce((a, p) => a + Number(p.monto || 0), 0);
         this.efectivo.set(sum('EFECTIVO'));
         this.tarjeta.set(sum('TARJETA'));
         this.transferencia.set(sum('TRANSFERENCIA'));
@@ -232,7 +242,7 @@ export class MembresiaModal implements OnInit {
       error: (err) => {
         this.guardando = false;
         this.error = err?.error?.detail || 'No se pudo guardar los cambios.';
-      }
+      },
     });
   }
 
@@ -247,15 +257,13 @@ export class MembresiaModal implements OnInit {
     return Math.round((Number(n) || 0) * 100) / 100;
   }
   // dentro de la clase MembresiaModal
-canSave(): boolean {
-  const paquetePendienteInvalido = !!this.paqueteNuevoId && !this.paqueteNuevo;
-  return !!this.data && !this.cargando && !this.guardando && !paquetePendienteInvalido;
-}
-
+  canSave(): boolean {
+    const paquetePendienteInvalido = !!this.paqueteNuevoId && !this.paqueteNuevo;
+    return !!this.data && !this.cargando && !this.guardando && !paquetePendienteInvalido;
+  }
 }
 
 // helper local para no “this.” en una línea
 function selfRound2(n: number): number {
   return Math.round((Number(n) || 0) * 100) / 100;
 }
-

@@ -12,10 +12,9 @@ import { PagedResponse } from '../../../../../shared/models/paged-response';
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './socio-informacion.html',
-  styleUrl: './socio-informacion.css'
+  styleUrl: './socio-informacion.css',
 })
 export class SocioInformacion implements OnInit {
-
   // Ruta /pages/socio/:id/historial
   idSocio!: number;
 
@@ -29,7 +28,7 @@ export class SocioInformacion implements OnInit {
   error: string | null = null;
 
   // Paginación
-  pagina = 0;             // 0-based
+  pagina = 0; // 0-based
   tamanio = 10;
   totalPaginas = 0;
   totalElementos = 0;
@@ -37,7 +36,7 @@ export class SocioInformacion implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private membresiaSrv: MembresiaService
+    private membresiaSrv: MembresiaService,
   ) {}
 
   ngOnInit(): void {
@@ -59,8 +58,9 @@ export class SocioInformacion implements OnInit {
     this.cargando = true;
     this.error = null;
 
-    this.membresiaSrv.buscarMembresiasPorSocio(this.idSocio, this.pagina, this.tamanio)
-      .pipe(finalize(() => this.cargando = false))
+    this.membresiaSrv
+      .buscarMembresiasPorSocio(this.idSocio, this.pagina, this.tamanio)
+      .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (resp: PagedResponse<MembresiaData>) => {
           this.movimientos = resp.contenido ?? [];
@@ -83,7 +83,7 @@ export class SocioInformacion implements OnInit {
         error: (err) => {
           console.error(err);
           this.error = 'No se pudo cargar el historial.';
-        }
+        },
       });
   }
 
@@ -117,15 +117,19 @@ export class SocioInformacion implements OnInit {
 
   // ===== Pagos (helpers para la vista) =====
   pagosConMonto(pagos?: PagoData[] | null): PagoData[] {
-    return (pagos ?? []).filter(p => Number(p?.monto) > 0);
+    return (pagos ?? []).filter((p) => Number(p?.monto) > 0);
   }
 
   labelPago(tipo: PagoData['tipoPago'] | string): string {
     switch (tipo) {
-      case 'EFECTIVO': return 'Efectivo';
-      case 'TARJETA': return 'Tarjeta';
-      case 'TRANSFERENCIA': return 'Transferencia';
-      default: return String(tipo);
+      case 'EFECTIVO':
+        return 'Efectivo';
+      case 'TARJETA':
+        return 'Tarjeta';
+      case 'TRANSFERENCIA':
+        return 'Transferencia';
+      default:
+        return String(tipo);
     }
   }
 }

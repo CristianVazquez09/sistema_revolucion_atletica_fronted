@@ -23,12 +23,12 @@ import {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './mi-perfil.html',
-  styles: ``
+  styles: ``,
 })
 export class MiPerfil implements OnInit {
   private srv = inject(UsuarioService);
   private jwt = inject(JwtHelperService);
-  private fb  = inject(FormBuilder);
+  private fb = inject(FormBuilder);
   private router = inject(Router);
 
   nombreUsuario = '';
@@ -42,7 +42,7 @@ export class MiPerfil implements OnInit {
   frasePreview = '';
 
   perfilForm = this.fb.nonNullable.group({
-    nombre:   [''],
+    nombre: [''],
     apellido: [''],
   });
 
@@ -71,7 +71,7 @@ export class MiPerfil implements OnInit {
   ngOnInit(): void {
     this.nombreUsuario = sessionStorage.getItem('username') ?? '';
     this.perfilForm.patchValue({
-      nombre:   sessionStorage.getItem('nombre')   ?? '',
+      nombre: sessionStorage.getItem('nombre') ?? '',
       apellido: sessionStorage.getItem('apellido') ?? '',
     });
     this.initiales = this.calcularInitiales();
@@ -85,7 +85,7 @@ export class MiPerfil implements OnInit {
     this.errorPerfil = null;
     const { nombre, apellido } = this.perfilForm.getRawValue();
     const body: any = {};
-    if (nombre.trim())   body.nombre   = nombre.trim();
+    if (nombre.trim()) body.nombre = nombre.trim();
     if (apellido.trim()) body.apellido = apellido.trim();
 
     this.guardandoPerfil = true;
@@ -93,17 +93,17 @@ export class MiPerfil implements OnInit {
       next: (u) => {
         this.guardandoPerfil = false;
         this.exitoPerfil = true;
-        if (u.nombre)   sessionStorage.setItem('nombre',   u.nombre);
-        else            sessionStorage.removeItem('nombre');
+        if (u.nombre) sessionStorage.setItem('nombre', u.nombre);
+        else sessionStorage.removeItem('nombre');
         if (u.apellido) sessionStorage.setItem('apellido', u.apellido);
-        else            sessionStorage.removeItem('apellido');
+        else sessionStorage.removeItem('apellido');
         this.initiales = this.calcularInitiales();
-        setTimeout(() => this.exitoPerfil = false, 3000);
+        setTimeout(() => (this.exitoPerfil = false), 3000);
       },
       error: (e) => {
         this.guardandoPerfil = false;
         this.errorPerfil = e?.error?.message ?? e?.error?.detail ?? 'No se pudo guardar el perfil.';
-      }
+      },
     });
   }
 
@@ -118,7 +118,7 @@ export class MiPerfil implements OnInit {
     this.exitoPreferencias = true;
     this.actualizarFrasePreview();
     window.dispatchEvent(new CustomEvent('ra-preferencias-updated'));
-    setTimeout(() => this.exitoPreferencias = false, 2500);
+    setTimeout(() => (this.exitoPreferencias = false), 2500);
   }
 
   restaurarPreferencias(): void {
@@ -130,7 +130,10 @@ export class MiPerfil implements OnInit {
   }
 
   actualizarFrasePreview(): void {
-    this.frasePreview = fraseHomeByMode(this.preferenciasForm.controls.fraseHome.value, this.nombreUsuario);
+    this.frasePreview = fraseHomeByMode(
+      this.preferenciasForm.controls.fraseHome.value,
+      this.nombreUsuario,
+    );
   }
 
   verOtraFrase(): void {
@@ -147,7 +150,7 @@ export class MiPerfil implements OnInit {
   }
 
   get nombreCompleto(): string {
-    const n = (sessionStorage.getItem('nombre')   ?? '').trim();
+    const n = (sessionStorage.getItem('nombre') ?? '').trim();
     const a = (sessionStorage.getItem('apellido') ?? '').trim();
     return [n, a].filter(Boolean).join(' ') || this.nombreUsuario;
   }
@@ -167,10 +170,10 @@ export class MiPerfil implements OnInit {
   }
 
   private calcularInitiales(): string {
-    const n = (sessionStorage.getItem('nombre')   ?? '').trim();
+    const n = (sessionStorage.getItem('nombre') ?? '').trim();
     const a = (sessionStorage.getItem('apellido') ?? '').trim();
     if (n && a) return (n[0] + a[0]).toUpperCase();
-    if (n)      return n.substring(0, 2).toUpperCase();
+    if (n) return n.substring(0, 2).toUpperCase();
     return (sessionStorage.getItem('username') ?? 'U').substring(0, 2).toUpperCase();
   }
 
@@ -180,7 +183,7 @@ export class MiPerfil implements OnInit {
       if (!token) return '';
       const d: any = this.jwt.decodeToken(token);
       const roles: string[] = [
-        ...(Array.isArray(d?.roles)       ? d.roles       : []),
+        ...(Array.isArray(d?.roles) ? d.roles : []),
         ...(Array.isArray(d?.authorities) ? d.authorities : []),
         ...(Array.isArray(d?.realm_access?.roles) ? d.realm_access.roles : []),
         ...[d?.role, d?.rol].filter(Boolean),
@@ -190,7 +193,9 @@ export class MiPerfil implements OnInit {
       if (roles.includes('gerente')) return 'gerente';
       if (roles.includes('recepcionista')) return 'recepcionista';
       return '';
-    } catch { return ''; }
+    } catch {
+      return '';
+    }
   }
 
   private labelRol(rol: 'admin' | 'gerente' | 'recepcionista' | ''): string {

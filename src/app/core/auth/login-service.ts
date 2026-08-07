@@ -2,22 +2,17 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 
-
 interface IInicioSesionRequest {
   nombreUsuario: string;
   contrasenia: string;
 }
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class LoginService{
-  
-  private url:string = `${environment.HOST_LOGIN}/inicio-sesion`//`https://revolucion-atletica-97c72a7f123a.herokuapp.com/inicio-sesion`;
+export class LoginService {
+  private url: string = `${environment.HOST_LOGIN}/inicio-sesion`; //`https://revolucion-atletica-97c72a7f123a.herokuapp.com/inicio-sesion`;
 
-  constructor(
-    private http: HttpClient
-  ) {}
-
+  constructor(private http: HttpClient) {}
 
   inicioSesion(nombreUsuario: string, contrasenia: string) {
     const body: IInicioSesionRequest = { nombreUsuario, contrasenia };

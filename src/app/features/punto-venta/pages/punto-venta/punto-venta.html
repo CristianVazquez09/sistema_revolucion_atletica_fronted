@@ -1,37 +1,44 @@
-<div class="mx-1 my-3 min-h-[calc(100vh-120px)] grid grid-cols-1 lg:grid-cols-[520px_1fr] gap-4">
-
+<div class="mx-1 my-3 grid min-h-[calc(100vh-120px)] grid-cols-1 gap-4 lg:grid-cols-[520px_1fr]">
   <!-- ───────── CARRITO ───────── -->
-  <section class="rounded-xl bg-white ring-1 ring-black/10 shadow-card flex flex-col overflow-hidden">
-    <header class="px-4 py-3 border-b border-gray-100">
-      <h2 class="text-base font-semibold text-ra-slate">Lista</h2>
+  <section
+    class="shadow-card flex flex-col overflow-hidden rounded-xl bg-white ring-1 ring-black/10"
+  >
+    <header class="border-b border-gray-100 px-4 py-3">
+      <h2 class="text-ra-slate text-base font-semibold">Lista</h2>
     </header>
 
-    <div class="p-3 flex-1">
-      <div class="rounded-lg border border-gray-200 bg-gray-50 h-full overflow-auto">
+    <div class="flex-1 p-3">
+      <div class="h-full overflow-auto rounded-lg border border-gray-200 bg-gray-50">
         <table class="w-full border-collapse text-xs">
-          <thead class="sticky top-0 bg-gray-100 z-10">
+          <thead class="sticky top-0 z-10 bg-gray-100">
             <tr class="text-ra-slate/90">
-              <th class="text-left px-3 py-2.5 font-semibold uppercase text-[11px]">Producto</th>
-              <th class="text-center px-3 py-2.5 font-semibold uppercase text-[11px] w-[110px]">Cantidad</th>
-              <th class="text-right px-3 py-2.5 font-semibold uppercase text-[11px] w-[120px]">Precio</th>
+              <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase">Producto</th>
+              <th class="w-[110px] px-3 py-2.5 text-center text-[11px] font-semibold uppercase">
+                Cantidad
+              </th>
+              <th class="w-[120px] px-3 py-2.5 text-right text-[11px] font-semibold uppercase">
+                Precio
+              </th>
             </tr>
           </thead>
           <tbody>
             @if (carrito.length === 0) {
               <tr>
-                <td colspan="3" class="px-3 py-10 text-center text-ra-slate text-xs">
+                <td colspan="3" class="text-ra-slate px-3 py-10 text-center text-xs">
                   Selecciona una categoría o usa el buscador para ver productos.
                 </td>
               </tr>
             } @else {
               @for (linea of carrito; track $index) {
-                <tr class="border-t border-gray-200 hover:bg-white/70 cursor-pointer"
-                    [class.bg-red-50]="$index === indiceCarritoSeleccionado"
-                    (click)="seleccionarLineaCarrito($index)">
-                  <td class="px-3 py-2 truncate text-xs">{{ linea.nombre }}</td>
+                <tr
+                  class="cursor-pointer border-t border-gray-200 hover:bg-white/70"
+                  [class.bg-red-50]="$index === indiceCarritoSeleccionado"
+                  (click)="seleccionarLineaCarrito($index)"
+                >
+                  <td class="truncate px-3 py-2 text-xs">{{ linea.nombre }}</td>
                   <td class="px-3 py-2 text-center text-xs">{{ linea.cantidad }}</td>
                   <td class="px-3 py-2 text-right text-xs">
-                    {{ linea.precioUnit * linea.cantidad | currency:'$':'symbol':'1.2-2' }}
+                    {{ linea.precioUnit * linea.cantidad | currency: '$' : 'symbol' : '1.2-2' }}
                   </td>
                 </tr>
               }
@@ -44,48 +51,74 @@
     <!-- Total + descuento + acciones -->
     <div class="px-3">
       @if ((descuento || 0) > 0) {
-        <div class="flex items-center justify-between rounded-lg bg-gray-100 border border-gray-200 px-3 py-2 text-xs text-gray-600">
+        <div
+          class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-xs text-gray-600"
+        >
           <div>Subtotal</div>
-          <div>{{ total | currency:'$':'symbol':'1.2-2' }}</div>
+          <div>{{ total | currency: '$' : 'symbol' : '1.2-2' }}</div>
         </div>
       }
 
       <div class="mt-2">
-        <label class="block text-xs font-medium text-ra-slate mb-1">Descuento</label>
-        <input type="number" min="0" step="0.01" class="input-filled text-xs" [(ngModel)]="descuento" placeholder="0.00">
+        <label class="text-ra-slate mb-1 block text-xs font-medium">Descuento</label>
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          class="input-filled text-xs"
+          [(ngModel)]="descuento"
+          placeholder="0.00"
+        />
       </div>
 
-      <div class="mt-2 flex items-center justify-between rounded-lg bg-gray-100 border border-gray-200 px-3 py-2">
-        <div class="font-semibold text-ra-slate text-xs">TOTAL A PAGAR</div>
-        <div class="font-bold text-xs">{{ totalConDescuento | currency:'$':'symbol':'1.2-2' }}</div>
+      <div
+        class="mt-2 flex items-center justify-between rounded-lg border border-gray-200 bg-gray-100 px-3 py-2"
+      >
+        <div class="text-ra-slate text-xs font-semibold">TOTAL A PAGAR</div>
+        <div class="text-xs font-bold">
+          {{ totalConDescuento | currency: '$' : 'symbol' : '1.2-2' }}
+        </div>
       </div>
 
       <div class="mt-3 flex items-center gap-2">
         <button class="icon-btn" (click)="sumar()" title="Sumar">+</button>
         <button class="icon-btn" (click)="restar()" title="Restar">−</button>
         <button
-          class="h-8 px-3 rounded-lg bg-ra-rojo-oscuro/90 text-white hover:bg-ra-rojo-oscuro text-xs"
-          (click)="eliminarSeleccionado()">Eliminar</button>
+          class="bg-ra-rojo-oscuro/90 hover:bg-ra-rojo-oscuro h-8 rounded-lg px-3 text-xs text-white"
+          (click)="eliminarSeleccionado()"
+        >
+          Eliminar
+        </button>
       </div>
     </div>
 
-    <footer class="mt-auto p-3 flex items-center gap-3">
+    <footer class="mt-auto flex items-center gap-3 p-3">
       <button class="btn-green flex-1" (click)="abrirModalResumen()">Pagar</button>
       <button class="btn-red flex-1" (click)="cancelar()">Cancelar</button>
     </footer>
   </section>
 
   <!-- ───────── PANEL DERECHO ───────── -->
-  <section class="rounded-xl bg-white ring-1 ring-black/10 shadow-card p-4 flex flex-col gap-4 overflow-hidden">
-
+  <section
+    class="shadow-card flex flex-col gap-4 overflow-hidden rounded-xl bg-white p-4 ring-1 ring-black/10"
+  >
     <!-- Encabezado dinámico -->
     <div class="flex items-center justify-between">
       @if (modo === 'productos') {
         <div class="flex items-center gap-2">
-          <button type="button" (click)="volverACategorias()"
-                  class="group inline-flex items-center gap-2 h-8 px-3 rounded-lg border border-gray-200 bg-white text-xs font-medium text-ra-slate hover:bg-gray-50 focus:outline-none">
-            <svg viewBox="0 0 24 24" fill="none" class="w-4 h-4">
-              <path d="M15 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          <button
+            type="button"
+            (click)="volverACategorias()"
+            class="group text-ra-slate inline-flex h-8 items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium hover:bg-gray-50 focus:outline-none"
+          >
+            <svg viewBox="0 0 24 24" fill="none" class="h-4 w-4">
+              <path
+                d="M15 19l-7-7 7-7"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
             Volver
           </button>
@@ -94,15 +127,19 @@
         <div></div>
       }
 
-      <div class="w-full max-w-[520px] ml-auto">
-        <input class="input-filled text-xs" placeholder="Buscar producto por nombre o código…"
-               [ngModel]="terminoBusqueda" (ngModelChange)="onBuscarChange($event)">
+      <div class="ml-auto w-full max-w-[520px]">
+        <input
+          class="input-filled text-xs"
+          placeholder="Buscar producto por nombre o código…"
+          [ngModel]="terminoBusqueda"
+          (ngModelChange)="onBuscarChange($event)"
+        />
       </div>
     </div>
 
     <!-- Vista CATEGORÍAS -->
     @if (modo === 'categorias') {
-      <div class="flex-1 flex flex-col">
+      <div class="flex flex-1 flex-col">
         <div class="cat-grid flex-1">
           @if (cargandoCategorias) {
             <div class="cat-grid__empty">Cargando categorías…</div>
@@ -110,11 +147,15 @@
             <div class="cat-grid__empty">Sin categorías.</div>
           } @else {
             @for (c of categoriasVisibles; track c.idCategoria) {
-              <button class="cat-card" title="{{ c.nombre }}"
-                      (mouseenter)="onCategoriaHover(c)" (mouseleave)="onCategoriaHover()"
-                      (click)="seleccionarCategoria(c)"
-                      [class.cat-card--active]="categoriaActivaId === (c.idCategoria ?? null)"
-                      [class.cat-card--hover]="categoriaHoverId === (c.idCategoria ?? null)">
+              <button
+                class="cat-card"
+                title="{{ c.nombre }}"
+                (mouseenter)="onCategoriaHover(c)"
+                (mouseleave)="onCategoriaHover()"
+                (click)="seleccionarCategoria(c)"
+                [class.cat-card--active]="categoriaActivaId === (c.idCategoria ?? null)"
+                [class.cat-card--hover]="categoriaHoverId === (c.idCategoria ?? null)"
+              >
                 <span class="cat-card__label truncate">{{ c.nombre }}</span>
               </button>
             }
@@ -122,50 +163,70 @@
         </div>
 
         <div class="mt-3 flex items-center justify-end gap-2">
-          <button class="pager-btn pager-btn--ghost" (click)="anteriorPaginaCategorias()" [disabled]="paginaCategorias === 0">←</button>
-          <button class="pager-btn pager-btn--ghost" (click)="siguientePaginaCategorias()" [disabled]="paginaCategorias + 1 >= totalPagCats">→</button>
+          <button
+            class="pager-btn pager-btn--ghost"
+            (click)="anteriorPaginaCategorias()"
+            [disabled]="paginaCategorias === 0"
+          >
+            ←
+          </button>
+          <button
+            class="pager-btn pager-btn--ghost"
+            (click)="siguientePaginaCategorias()"
+            [disabled]="paginaCategorias + 1 >= totalPagCats"
+          >
+            →
+          </button>
         </div>
       </div>
     }
 
     <!-- Vista PRODUCTOS -->
     @if (modo === 'productos') {
-      <div class="rounded-lg border border-gray-200 bg-gray-50 overflow-x-auto flex-1">
-        <div class="overflow-y-auto max-h-[calc(100vh-300px)]">
+      <div class="flex-1 overflow-x-auto rounded-lg border border-gray-200 bg-gray-50">
+        <div class="max-h-[calc(100vh-300px)] overflow-y-auto">
           <table class="w-full min-w-[500px] border-collapse text-xs">
             <colgroup>
-              <col class="w-[60%]">
-              <col class="w-[20%]">
-              <col class="w-[20%]">
+              <col class="w-[60%]" />
+              <col class="w-[20%]" />
+              <col class="w-[20%]" />
             </colgroup>
-            <thead class="sticky top-0 bg-gray-100 text-ra-slate/90 z-10">
+            <thead class="text-ra-slate/90 sticky top-0 z-10 bg-gray-100">
               <tr>
-                <th class="px-3 py-2.5 text-left font-semibold uppercase text-[11px]">Producto</th>
-                <th class="px-3 py-2.5 text-center font-semibold uppercase text-[11px]">Stock</th>
-                <th class="px-3 py-2.5 text-right font-semibold uppercase text-[11px]">Precio</th>
+                <th class="px-3 py-2.5 text-left text-[11px] font-semibold uppercase">Producto</th>
+                <th class="px-3 py-2.5 text-center text-[11px] font-semibold uppercase">Stock</th>
+                <th class="px-3 py-2.5 text-right text-[11px] font-semibold uppercase">Precio</th>
               </tr>
             </thead>
             <tbody>
               @if (cargandoProductos) {
-                <tr><td colspan="3" class="px-3 py-8 text-center text-ra-slate">Cargando…</td></tr>
+                <tr>
+                  <td colspan="3" class="text-ra-slate px-3 py-8 text-center">Cargando…</td>
+                </tr>
               } @else if (productosFiltrados.length === 0) {
-                <tr><td colspan="3" class="px-3 py-8 text-center text-ra-slate">Sin resultados.</td></tr>
+                <tr>
+                  <td colspan="3" class="text-ra-slate px-3 py-8 text-center">Sin resultados.</td>
+                </tr>
               } @else {
                 @for (p of productosFiltrados; track p.idProducto) {
-                  <tr class="border-t border-gray-200 cursor-pointer"
-                      [class.opacity-60]="toNumber(p.cantidad) <= 0"
-                      [class.text-red-600]="toNumber(p.cantidad) <= 0"
-                      [class.pointer-events-none]="toNumber(p.cantidad) <= 0"
-                      [class.bg-red-50]="productoSeleccionado?.idProducto === p.idProducto"
-                      (click)="seleccionarProducto(p)">
-                    <td class="px-3 py-2 truncate" [title]="p.nombre">{{ p.nombre }}</td>
+                  <tr
+                    class="cursor-pointer border-t border-gray-200"
+                    [class.opacity-60]="toNumber(p.cantidad) <= 0"
+                    [class.text-red-600]="toNumber(p.cantidad) <= 0"
+                    [class.pointer-events-none]="toNumber(p.cantidad) <= 0"
+                    [class.bg-red-50]="productoSeleccionado?.idProducto === p.idProducto"
+                    (click)="seleccionarProducto(p)"
+                  >
+                    <td class="truncate px-3 py-2" [title]="p.nombre">{{ p.nombre }}</td>
                     <td class="px-3 py-2 text-center">
                       {{ toNumber(p.cantidad) }}
                       @if (toNumber(p.cantidad) <= 0) {
                         <span class="ml-1 text-[10px] font-semibold">(Sin stock)</span>
                       }
                     </td>
-                    <td class="px-3 py-2 text-right">{{ toNumber(p.precioVenta) | currency:'$':'symbol':'1.2-2' }}</td>
+                    <td class="px-3 py-2 text-right">
+                      {{ toNumber(p.precioVenta) | currency: '$' : 'symbol' : '1.2-2' }}
+                    </td>
                   </tr>
                 }
               }
@@ -174,25 +235,38 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-end gap-3 mt-1">
-        <label class="text-xs text-ra-slate">Cantidad:</label>
-        <input type="number" min="1" class="w-24 input-filled text-xs" [(ngModel)]="cantidadParaAgregar">
-        <button class="btn-red text-xs"
-                [disabled]="!productoSeleccionado || cantidadParaAgregar < 1 || stockDisponible(productoSeleccionado!) <= 0"
-                (click)="agregarAlCarrito()">
+      <div class="mt-1 flex items-center justify-end gap-3">
+        <label class="text-ra-slate text-xs">Cantidad:</label>
+        <input
+          type="number"
+          min="1"
+          class="input-filled w-24 text-xs"
+          [(ngModel)]="cantidadParaAgregar"
+        />
+        <button
+          class="btn-red text-xs"
+          [disabled]="
+            !productoSeleccionado ||
+            cantidadParaAgregar < 1 ||
+            stockDisponible(productoSeleccionado!) <= 0
+          "
+          (click)="agregarAlCarrito()"
+        >
           Agregar
         </button>
       </div>
     }
-
   </section>
 </div>
 
 <!-- Modal Resumen de Venta -->
 @if (mostrarModalResumen) {
   <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModalResumen()"></div>
-    <div class="relative z-10 w-full max-w-[560px] mx-4" (click)="$event.stopPropagation()">
+    <div
+      class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+      (click)="cerrarModalResumen()"
+    ></div>
+    <div class="relative z-10 mx-4 w-full max-w-[560px]" (click)="$event.stopPropagation()">
       <app-resumen-venta
         [fecha]="fechaHoy"
         [items]="carrito"
@@ -200,7 +274,8 @@
         [descuento]="descuento"
         [guardando]="realizandoPago"
         (cancelar)="cerrarModalResumen()"
-        (confirmar)="confirmarVentaDesdeModal($event)">
+        (confirmar)="confirmarVentaDesdeModal($event)"
+      >
       </app-resumen-venta>
     </div>
   </div>

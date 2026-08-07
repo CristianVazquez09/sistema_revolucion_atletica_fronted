@@ -26,7 +26,7 @@ describe('MenuService', () => {
 
   it('buscarTodos hace GET a la URL base', () => {
     let resultado: MenuData[] | undefined;
-    service.buscarTodos().subscribe(r => (resultado = r));
+    service.buscarTodos().subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(BASE);
     expect(req.request.method).toBe('GET');

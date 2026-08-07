@@ -50,23 +50,16 @@ export class EntrenadorInfoAsesoria implements OnInit, AfterViewInit, OnDestroy 
   totalElementos = 0;
   tamaniosDisponibles = [5, 10, 20, 50];
 
-  
-
-
-    // ✅ menu
+  // ✅ menu
   private menuSrv = inject(MenuService);
   menuAbierto = this.menuSrv.menuAbierto;
 
   es2xlUp = signal(
-    typeof window !== 'undefined'
-      ? window.matchMedia('(min-width: 1536px)').matches
-      : false
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 1536px)').matches : false,
   );
 
   esLgUp = signal(
-    typeof window !== 'undefined'
-      ? window.matchMedia('(min-width: 1024px)').matches
-      : false
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 1024px)').matches : false,
   );
 
   // Pagos: visible en 2xl+ siempre; en lg-xl solo si menú cerrado; en md oculto siempre
@@ -79,7 +72,6 @@ export class EntrenadorInfoAsesoria implements OnInit, AfterViewInit, OnDestroy 
   get tablaMinWidth(): string {
     return this.mostrarPagosCol() ? 'min-w-[1100px]' : '';
   }
-
 
   // ===================== ZOOM / LAYOUT =====================
   @ViewChild('zoomOuter', { static: true }) zoomOuter!: ElementRef<HTMLElement>;
@@ -98,7 +90,6 @@ export class EntrenadorInfoAsesoria implements OnInit, AfterViewInit, OnDestroy 
 
     this.es2xlUp.set(window.matchMedia('(min-width: 1536px)').matches);
     this.esLgUp.set(window.matchMedia('(min-width: 1024px)').matches);
-
 
     // Mobile: no encoger
     const isMdUp = window.matchMedia('(min-width: 768px)').matches;
@@ -120,7 +111,10 @@ export class EntrenadorInfoAsesoria implements OnInit, AfterViewInit, OnDestroy 
     this.asesoriasMaxH = Math.max(420, Math.floor(available / this.uiZoom));
   };
 
-  constructor(private route: ActivatedRoute, private entrenadorSrv: EntrenadorService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private entrenadorSrv: EntrenadorService,
+  ) {}
 
   ngOnInit(): void {
     this.idEntrenador = Number(this.route.snapshot.paramMap.get('idEntrenador'));
@@ -312,6 +306,4 @@ export class EntrenadorInfoAsesoria implements OnInit, AfterViewInit, OnDestroy 
     const s = a.socio as any;
     return s?.email || '—';
   }
-
-  
 }

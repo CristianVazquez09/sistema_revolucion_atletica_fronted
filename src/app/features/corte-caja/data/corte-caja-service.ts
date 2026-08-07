@@ -38,12 +38,10 @@ export class CorteCajaService extends GenericService<CorteCajaResponseDTO> {
   }
 
   consultarAbierto(): Observable<CorteCajaResponseDTO | null> {
-    return this.http
-      .get<CorteCajaResponseDTO>(`${this.url}/abierto`, { observe: 'response' })
-      .pipe(
-        map((resp: HttpResponse<CorteCajaResponseDTO>) => resp.body ?? null),
-        catchError((err) => (err?.status === 404 ? of(null) : throwError(() => err)))
-      );
+    return this.http.get<CorteCajaResponseDTO>(`${this.url}/abierto`, { observe: 'response' }).pipe(
+      map((resp: HttpResponse<CorteCajaResponseDTO>) => resp.body ?? null),
+      catchError((err) => (err?.status === 404 ? of(null) : throwError(() => err))),
+    );
   }
 
   previsualizar(idCorte: number, hasta?: string): Observable<CorteCajaPreviewDTO> {
@@ -58,7 +56,10 @@ export class CorteCajaService extends GenericService<CorteCajaResponseDTO> {
     return this.http.get<CorteCajaPreviewDTO>(`${this.url}/abierto/preview`, { params });
   }
 
-  registrarSalida(idCorte: number, req: RegistrarSalidaEfectivoRequest): Observable<SalidaEfectivo> {
+  registrarSalida(
+    idCorte: number,
+    req: RegistrarSalidaEfectivoRequest,
+  ): Observable<SalidaEfectivo> {
     return this.http.post<SalidaEfectivo>(`${this.url}/${idCorte}/salidas`, req);
   }
 
@@ -90,8 +91,7 @@ export class CorteCajaService extends GenericService<CorteCajaResponseDTO> {
   }
 
   // Desglose por ID (corte cerrado o abierto)
-desglose(idCorte: number): Observable<CorteDesgloseDTO> {
-  return this.http.get<CorteDesgloseDTO>(`${this.url}/${idCorte}/desglose`);
-}
-
+  desglose(idCorte: number): Observable<CorteDesgloseDTO> {
+    return this.http.get<CorteDesgloseDTO>(`${this.url}/${idCorte}/desglose`);
+  }
 }

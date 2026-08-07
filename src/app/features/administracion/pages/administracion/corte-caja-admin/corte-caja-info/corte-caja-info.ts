@@ -12,17 +12,14 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { finalize } from 'rxjs';
-import {
-  CorteCajaListado,
-  CorteMovimientoViewDTO,
-} from 'src/app/shared/models/corte-caja-data';
+import { CorteCajaListado, CorteMovimientoViewDTO } from 'src/app/shared/models/corte-caja-data';
 import { CorteCajaService } from 'src/app/features/corte-caja/data/corte-caja-service';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-corte-caja-info',
   standalone: true,
-  imports: [CommonModule,FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './corte-caja-info.html',
   styleUrl: './corte-caja-info.css',
 })
@@ -32,8 +29,8 @@ export class CorteCajaInfo implements OnInit, AfterViewInit, OnDestroy {
 
   private srv = inject(CorteCajaService);
 
-  detalle: any = null;        // CorteCajaResponseDTO
-  salidas: any[] = [];        // SalidaEfectivo[]
+  detalle: any = null; // CorteCajaResponseDTO
+  salidas: any[] = []; // SalidaEfectivo[]
   movimientos: CorteMovimientoViewDTO[] = [];
 
   cargando = false;
@@ -122,10 +119,7 @@ export class CorteCajaInfo implements OnInit, AfterViewInit, OnDestroy {
   }
 
   totalSalidasLocal(): number {
-    return (this.salidas ?? []).reduce(
-      (acc, s) => acc + (Number(s?.monto ?? 0) || 0),
-      0
-    );
+    return (this.salidas ?? []).reduce((acc, s) => acc + (Number(s?.monto ?? 0) || 0), 0);
   }
 
   esCerrado(): boolean {
@@ -139,7 +133,9 @@ export class CorteCajaInfo implements OnInit, AfterViewInit, OnDestroy {
   }
 
   moduloLabel(mod: unknown): 'VENTA' | 'MEMBRESIA' | 'ASESORIA' | string {
-    const m = String(mod ?? '').toUpperCase().trim();
+    const m = String(mod ?? '')
+      .toUpperCase()
+      .trim();
     if (m === 'ACCESORIA') return 'ASESORIA';
     return m;
   }
@@ -157,7 +153,10 @@ export class CorteCajaInfo implements OnInit, AfterViewInit, OnDestroy {
 
       if (!q) return true;
 
-      const hay = (v: unknown) => String(v ?? '').toLowerCase().includes(q);
+      const hay = (v: unknown) =>
+        String(v ?? '')
+          .toLowerCase()
+          .includes(q);
 
       return (
         hay(modulo) ||
@@ -171,10 +170,7 @@ export class CorteCajaInfo implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get totalMovimientosFiltrados(): number {
-    return this.movimientosFiltrados.reduce(
-      (acc, m) => acc + Number(m?.monto ?? 0),
-      0
-    );
+    return this.movimientosFiltrados.reduce((acc, m) => acc + Number(m?.monto ?? 0), 0);
   }
 
   // ===== zoom helpers =====

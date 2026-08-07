@@ -1,80 +1,144 @@
 <!-- src/app/pages/corte-caja-info/corte-caja-info.html -->
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
-  <div class="mx-4 w-full max-w-6xl rounded-xl bg-white ring-1 ring-black/10 shadow-card max-h-[90vh] flex flex-col overflow-hidden">
-
+  <div
+    class="shadow-card mx-4 flex max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white ring-1 ring-black/10"
+  >
     <!-- Header -->
-    <div class="flex items-start justify-between px-6 pt-5 pb-3 border-b border-gray-100">
+    <div class="flex items-start justify-between border-b border-gray-100 px-6 pt-5 pb-3">
       <div>
-        <h2 class="text-base font-semibold text-ra-slate">Corte de caja #{{ corte.idCorte }}</h2>
-        <p class="text-xs text-ra-slate/70">
-          Apertura: {{ corte.apertura | date:'dd/MM/yyyy HH:mm' }}
-          @if (corte.cierre) { · Cierre: {{ corte.cierre | date:'dd/MM/yyyy HH:mm' }} }
+        <h2 class="text-ra-slate text-base font-semibold">Corte de caja #{{ corte.idCorte }}</h2>
+        <p class="text-ra-slate/70 text-xs">
+          Apertura: {{ corte.apertura | date: 'dd/MM/yyyy HH:mm' }}
+          @if (corte.cierre) {
+            · Cierre: {{ corte.cierre | date: 'dd/MM/yyyy HH:mm' }}
+          }
         </p>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <button type="button"
-                class="h-8 px-3 rounded-lg border border-gray-200 bg-white text-ra-slate hover:bg-gray-50 text-xs"
-                (click)="refrescar()" [disabled]="cargando">
-          @if (cargando) { Cargando… } @else { Actualizar }
+      <div class="flex shrink-0 items-center gap-2">
+        <button
+          type="button"
+          class="text-ra-slate h-8 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50"
+          (click)="refrescar()"
+          [disabled]="cargando"
+        >
+          @if (cargando) {
+            Cargando…
+          } @else {
+            Actualizar
+          }
         </button>
         <button
-          class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
-          (click)="cerrarModal()" aria-label="Cerrar">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          class="grid h-8 w-8 place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-red-300 focus:outline-none"
+          (click)="cerrarModal()"
+          aria-label="Cerrar"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
     </div>
 
     <!-- Body -->
-    <div class="px-6 py-4 space-y-4 overflow-y-auto text-xs">
-
+    <div class="space-y-4 overflow-y-auto px-6 py-4 text-xs">
       @if (cargando) {
-        <div class="py-4 text-ra-slate">Cargando información del corte…</div>
+        <div class="text-ra-slate py-4">Cargando información del corte…</div>
       } @else if (error) {
         <div class="py-4 text-red-600">{{ error }}</div>
       } @else if (detalle) {
-
         <!-- Totales principales -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
           <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
-            <div class="text-[10px] text-ra-slate/70 mb-1">Ventas</div>
-            <div class="font-semibold text-[11px]">{{ detalle.totalVentas | currency:'MXN':'symbol-narrow':'1.2-2' }}</div>
+            <div class="text-ra-slate/70 mb-1 text-[10px]">Ventas</div>
+            <div class="text-[11px] font-semibold">
+              {{ detalle.totalVentas | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+            </div>
           </div>
           <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
-            <div class="text-[10px] text-ra-slate/70 mb-1">Membresías</div>
-            <div class="font-semibold text-[11px]">{{ detalle.totalMembresias | currency:'MXN':'symbol-narrow':'1.2-2' }}</div>
+            <div class="text-ra-slate/70 mb-1 text-[10px]">Membresías</div>
+            <div class="text-[11px] font-semibold">
+              {{ detalle.totalMembresias | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+            </div>
           </div>
           <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
-            <div class="text-[10px] text-ra-slate/70 mb-1">Asesorías</div>
-            <div class="font-semibold text-[11px]">{{ detalle.totalAccesorias | currency:'MXN':'symbol-narrow':'1.2-2' }}</div>
+            <div class="text-ra-slate/70 mb-1 text-[10px]">Asesorías</div>
+            <div class="text-[11px] font-semibold">
+              {{ detalle.totalAccesorias | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+            </div>
           </div>
           <div class="rounded-xl border border-gray-200 bg-gray-50 p-3">
-            <div class="text-[10px] text-ra-slate/70 mb-1">Total general</div>
-            <div class="font-semibold text-[11px]">{{ detalle.totalGeneral | currency:'MXN':'symbol-narrow':'1.2-2' }}</div>
+            <div class="text-ra-slate/70 mb-1 text-[10px]">Total general</div>
+            <div class="text-[11px] font-semibold">
+              {{ detalle.totalGeneral | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+            </div>
           </div>
         </div>
 
         <!-- Caja y efectivo -->
-        <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 md:p-4 space-y-2">
-          <div class="text-xs font-semibold text-ra-slate mb-1">Caja y efectivo</div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-            <div><div class="text-[10px] text-ra-slate/70">Fondo inicial</div><div class="font-medium text-[11px]">{{ detalle.fondoCajaInicial | currency:'MXN':'symbol-narrow':'1.2-2' }}</div></div>
-            <div><div class="text-[10px] text-ra-slate/70">Ingresos en efectivo</div><div class="font-medium text-[11px]">{{ detalle.ingresosEfectivo | currency:'MXN':'symbol-narrow':'1.2-2' }}</div></div>
-            <div><div class="text-[10px] text-ra-slate/70">Salidas de efectivo</div><div class="font-medium text-[11px]">{{ detalle.totalSalidasEfectivo | currency:'MXN':'symbol-narrow':'1.2-2' }}</div></div>
-            <div><div class="text-[10px] text-ra-slate/70">Efectivo esperado</div><div class="font-semibold text-emerald-700 text-[11px]">{{ detalle.efectivoEsperado | currency:'MXN':'symbol-narrow':'1.2-2' }}</div></div>
+        <div class="space-y-2 rounded-xl border border-gray-200 bg-gray-50 p-3 md:p-4">
+          <div class="text-ra-slate mb-1 text-xs font-semibold">Caja y efectivo</div>
+          <div class="grid grid-cols-2 gap-2 md:grid-cols-4">
+            <div>
+              <div class="text-ra-slate/70 text-[10px]">Fondo inicial</div>
+              <div class="text-[11px] font-medium">
+                {{ detalle.fondoCajaInicial | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+              </div>
+            </div>
+            <div>
+              <div class="text-ra-slate/70 text-[10px]">Ingresos en efectivo</div>
+              <div class="text-[11px] font-medium">
+                {{ detalle.ingresosEfectivo | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+              </div>
+            </div>
+            <div>
+              <div class="text-ra-slate/70 text-[10px]">Salidas de efectivo</div>
+              <div class="text-[11px] font-medium">
+                {{ detalle.totalSalidasEfectivo | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+              </div>
+            </div>
+            <div>
+              <div class="text-ra-slate/70 text-[10px]">Efectivo esperado</div>
+              <div class="text-[11px] font-semibold text-emerald-700">
+                {{ detalle.efectivoEsperado | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+              </div>
+            </div>
           </div>
 
           @if (esCerrado()) {
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 pt-2 border-t border-gray-200">
-              <div><div class="text-[10px] text-ra-slate/70">Efectivo entregado</div><div class="font-medium text-[11px]">{{ detalle.efectivoEntregado | currency:'MXN':'symbol-narrow':'1.2-2' }}</div></div>
-              <div><div class="text-[10px] text-ra-slate/70">Efectivo en caja (conteo)</div><div class="font-medium text-[11px]">{{ detalle.efectivoEnCajaConteo | currency:'MXN':'symbol-narrow':'1.2-2' }}</div></div>
+            <div class="mt-2 grid grid-cols-2 gap-2 border-t border-gray-200 pt-2 md:grid-cols-4">
               <div>
-                <div class="text-[10px] text-ra-slate/70">Faltante / sobrante</div>
-                <div class="font-semibold text-[11px]"
-                     [ngClass]="{ 'text-red-600': (detalle.faltante ?? 0) < 0, 'text-emerald-700': (detalle.faltante ?? 0) >= 0 }">
-                  {{ detalle.faltante | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                <div class="text-ra-slate/70 text-[10px]">Efectivo entregado</div>
+                <div class="text-[11px] font-medium">
+                  {{ detalle.efectivoEntregado | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+                </div>
+              </div>
+              <div>
+                <div class="text-ra-slate/70 text-[10px]">Efectivo en caja (conteo)</div>
+                <div class="text-[11px] font-medium">
+                  {{ detalle.efectivoEnCajaConteo | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+                </div>
+              </div>
+              <div>
+                <div class="text-ra-slate/70 text-[10px]">Faltante / sobrante</div>
+                <div
+                  class="text-[11px] font-semibold"
+                  [ngClass]="{
+                    'text-red-600': (detalle.faltante ?? 0) < 0,
+                    'text-emerald-700': (detalle.faltante ?? 0) >= 0,
+                  }"
+                >
+                  {{ detalle.faltante | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
                 </div>
               </div>
             </div>
@@ -83,28 +147,52 @@
 
         <!-- Desglose por forma de pago -->
         <div>
-          <div class="text-xs font-semibold text-ra-slate mb-2">Desglose por forma de pago</div>
-          <div class="bg-white rounded-xl ring-1 ring-black/10 overflow-hidden">
+          <div class="text-ra-slate mb-2 text-xs font-semibold">Desglose por forma de pago</div>
+          <div class="overflow-hidden rounded-xl bg-white ring-1 ring-black/10">
             <div class="overflow-x-auto">
               <table class="w-full min-w-[500px] border-collapse text-xs">
-                <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+                <thead class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
                   <tr>
-                    <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Origen</th>
-                    <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Forma de pago</th>
-                    <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Operaciones</th>
-                    <th class="py-3 px-3 text-right text-ra-slate font-semibold uppercase text-[11px]">Total</th>
+                    <th
+                      class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase"
+                    >
+                      Origen
+                    </th>
+                    <th
+                      class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase"
+                    >
+                      Forma de pago
+                    </th>
+                    <th
+                      class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase"
+                    >
+                      Operaciones
+                    </th>
+                    <th
+                      class="text-ra-slate px-3 py-3 text-right text-[11px] font-semibold uppercase"
+                    >
+                      Total
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   @if (!detalle.desgloses?.length) {
-                    <tr><td colspan="4" class="py-6 px-3 text-center text-ra-slate/70">Sin movimientos registrados.</td></tr>
+                    <tr>
+                      <td colspan="4" class="text-ra-slate/70 px-3 py-6 text-center">
+                        Sin movimientos registrados.
+                      </td>
+                    </tr>
                   } @else {
                     @for (fp of detalle.desgloses; track $index) {
                       <tr class="border-t border-gray-100 hover:bg-gray-50/60">
-                        <td class="py-2.5 px-3 text-[11px] capitalize">{{ fp.origen?.toLowerCase() }}</td>
-                        <td class="py-2.5 px-3 text-[11px]">{{ fp.tipoPago }}</td>
-                        <td class="py-2.5 px-3 text-center text-[11px]">{{ fp.operaciones }}</td>
-                        <td class="py-2.5 px-3 text-right text-[11px]">{{ fp.total | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+                        <td class="px-3 py-2.5 text-[11px] capitalize">
+                          {{ fp.origen?.toLowerCase() }}
+                        </td>
+                        <td class="px-3 py-2.5 text-[11px]">{{ fp.tipoPago }}</td>
+                        <td class="px-3 py-2.5 text-center text-[11px]">{{ fp.operaciones }}</td>
+                        <td class="px-3 py-2.5 text-right text-[11px]">
+                          {{ fp.total | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+                        </td>
                       </tr>
                     }
                   }
@@ -115,17 +203,20 @@
         </div>
 
         <!-- Movimientos del corte -->
-        <div class="bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden">
-          <div class="px-4 py-3 border-b border-gray-100 flex items-start justify-between gap-3">
+        <div class="shadow-card overflow-hidden rounded-xl bg-white ring-1 ring-black/10">
+          <div class="flex items-start justify-between gap-3 border-b border-gray-100 px-4 py-3">
             <div>
-              <div class="text-xs font-semibold text-ra-slate">Movimientos del corte</div>
-              <div class="mt-1 text-[10px] text-ra-slate/70">
-                {{ movimientosFiltrados.length }} movimientos · Total: {{ totalMovimientosFiltrados | currency:'MXN':'symbol-narrow':'1.2-2' }}
+              <div class="text-ra-slate text-xs font-semibold">Movimientos del corte</div>
+              <div class="text-ra-slate/70 mt-1 text-[10px]">
+                {{ movimientosFiltrados.length }} movimientos · Total:
+                {{ totalMovimientosFiltrados | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
               </div>
             </div>
-            <button type="button"
-                    class="h-8 px-3 rounded-lg border border-gray-200 bg-white text-ra-slate hover:bg-gray-50 text-xs shrink-0"
-                    (click)="limpiarFiltrosMov()">
+            <button
+              type="button"
+              class="text-ra-slate h-8 shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50"
+              (click)="limpiarFiltrosMov()"
+            >
               Limpiar filtros
             </button>
           </div>
@@ -133,15 +224,22 @@
           <div #zoomOuter class="px-4 py-4">
             <div class="origin-top-left" [style.zoom]="uiZoom">
               <!-- Filtros -->
-              <div class="bg-gray-50 rounded-xl border border-gray-200 p-3 md:p-4 mb-4">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-3 items-end">
+              <div class="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-3 md:p-4">
+                <div class="grid grid-cols-1 items-end gap-2 md:grid-cols-4 md:gap-3">
                   <div class="md:col-span-2">
-                    <label class="block text-[11px] font-semibold text-ra-slate/70 mb-1">Buscar</label>
-                    <input class="input-filled w-full" [(ngModel)]="filtroMovimientos"
-                           placeholder="folio / socio / concepto / cajero / pago…" />
+                    <label class="text-ra-slate/70 mb-1 block text-[11px] font-semibold"
+                      >Buscar</label
+                    >
+                    <input
+                      class="input-filled w-full"
+                      [(ngModel)]="filtroMovimientos"
+                      placeholder="folio / socio / concepto / cajero / pago…"
+                    />
                   </div>
                   <div>
-                    <label class="block text-[11px] font-semibold text-ra-slate/70 mb-1">Módulo</label>
+                    <label class="text-ra-slate/70 mb-1 block text-[11px] font-semibold"
+                      >Módulo</label
+                    >
                     <select class="input-filled w-full" [(ngModel)]="filtroModulo">
                       <option value="">Todos</option>
                       <option value="VENTA">VENTA</option>
@@ -150,7 +248,9 @@
                     </select>
                   </div>
                   <div>
-                    <label class="block text-[11px] font-semibold text-ra-slate/70 mb-1">Tipo de pago</label>
+                    <label class="text-ra-slate/70 mb-1 block text-[11px] font-semibold"
+                      >Tipo de pago</label
+                    >
                     <select class="input-filled w-full" [(ngModel)]="filtroTipoPago">
                       <option value="">Todos</option>
                       <option value="EFECTIVO">EFECTIVO</option>
@@ -158,42 +258,88 @@
                       <option value="TRANSFERENCIA">TRANSFERENCIA</option>
                     </select>
                   </div>
-                  <div class="md:col-span-4 mt-1 text-[11px] text-ra-slate/70">
-                    Tip: filtra por <span class="font-semibold">concepto</span> o <span class="font-semibold">cajero</span>.
+                  <div class="text-ra-slate/70 mt-1 text-[11px] md:col-span-4">
+                    Tip: filtra por <span class="font-semibold">concepto</span> o
+                    <span class="font-semibold">cajero</span>.
                   </div>
                 </div>
               </div>
 
               <!-- Tabla movimientos -->
               <div class="overflow-x-auto">
-                <div class="overflow-y-auto rounded-lg ring-1 ring-black/5" [style.maxHeight.px]="tablaMaxH">
+                <div
+                  class="overflow-y-auto rounded-lg ring-1 ring-black/5"
+                  [style.maxHeight.px]="tablaMaxH"
+                >
                   <table class="w-full min-w-[1000px] border-collapse text-xs">
-                    <thead class="sticky top-0 bg-gray-100 backdrop-blur z-10">
+                    <thead class="sticky top-0 z-10 bg-gray-100 backdrop-blur">
                       <tr>
-                        <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Fecha</th>
-                        <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Módulo</th>
-                        <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Folio</th>
-                        <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Socio</th>
-                        <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Concepto</th>
-                        <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Pago</th>
-                        <th class="py-3 px-3 text-right text-ra-slate font-semibold uppercase text-[11px]">Monto</th>
-                        <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Cajero</th>
+                        <th
+                          class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase"
+                        >
+                          Fecha
+                        </th>
+                        <th
+                          class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase"
+                        >
+                          Módulo
+                        </th>
+                        <th
+                          class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase"
+                        >
+                          Folio
+                        </th>
+                        <th
+                          class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase"
+                        >
+                          Socio
+                        </th>
+                        <th
+                          class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase"
+                        >
+                          Concepto
+                        </th>
+                        <th
+                          class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase"
+                        >
+                          Pago
+                        </th>
+                        <th
+                          class="text-ra-slate px-3 py-3 text-right text-[11px] font-semibold uppercase"
+                        >
+                          Monto
+                        </th>
+                        <th
+                          class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase"
+                        >
+                          Cajero
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
                       @if (!movimientosFiltrados.length) {
-                        <tr><td colspan="8" class="py-8 px-3 text-center text-ra-slate">Sin movimientos para mostrar.</td></tr>
+                        <tr>
+                          <td colspan="8" class="text-ra-slate px-3 py-8 text-center">
+                            Sin movimientos para mostrar.
+                          </td>
+                        </tr>
                       } @else {
                         @for (m of movimientosFiltrados; track $index) {
                           <tr class="border-t border-gray-100 hover:bg-gray-50/60">
-                            <td class="py-2.5 px-3 text-[11px] whitespace-nowrap">{{ m.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
-                            <td class="py-2.5 px-3 text-[11px] font-semibold">{{ moduloLabel(m.origen) }}</td>
-                            <td class="py-2.5 px-3 text-[11px]">{{ m.folio ?? '—' }}</td>
-                            <td class="py-2.5 px-3 text-[11px]">{{ m.socio ?? '—' }}</td>
-                            <td class="py-2.5 px-3 text-[11px]">{{ m.concepto ?? '—' }}</td>
-                            <td class="py-2.5 px-3 text-[11px]">{{ m.tipoPago }}</td>
-                            <td class="py-2.5 px-3 text-right text-[11px] font-semibold">{{ m.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
-                            <td class="py-2.5 px-3 text-[11px]">{{ m.cajero ?? '—' }}</td>
+                            <td class="px-3 py-2.5 text-[11px] whitespace-nowrap">
+                              {{ m.fecha | date: 'dd/MM/yyyy HH:mm' }}
+                            </td>
+                            <td class="px-3 py-2.5 text-[11px] font-semibold">
+                              {{ moduloLabel(m.origen) }}
+                            </td>
+                            <td class="px-3 py-2.5 text-[11px]">{{ m.folio ?? '—' }}</td>
+                            <td class="px-3 py-2.5 text-[11px]">{{ m.socio ?? '—' }}</td>
+                            <td class="px-3 py-2.5 text-[11px]">{{ m.concepto ?? '—' }}</td>
+                            <td class="px-3 py-2.5 text-[11px]">{{ m.tipoPago }}</td>
+                            <td class="px-3 py-2.5 text-right text-[11px] font-semibold">
+                              {{ m.monto | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+                            </td>
+                            <td class="px-3 py-2.5 text-[11px]">{{ m.cajero ?? '—' }}</td>
                           </tr>
                         }
                       }
@@ -207,29 +353,51 @@
 
         <!-- Salidas de efectivo -->
         <div>
-          <div class="flex items-center justify-between mb-2">
-            <div class="text-xs font-semibold text-ra-slate">Salidas de efectivo</div>
-            <div class="text-[10px] text-ra-slate/70">Total salidas: {{ totalSalidasLocal() | currency:'MXN':'symbol-narrow':'1.2-2' }}</div>
+          <div class="mb-2 flex items-center justify-between">
+            <div class="text-ra-slate text-xs font-semibold">Salidas de efectivo</div>
+            <div class="text-ra-slate/70 text-[10px]">
+              Total salidas: {{ totalSalidasLocal() | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+            </div>
           </div>
-          <div class="bg-white rounded-xl ring-1 ring-black/10 overflow-hidden">
+          <div class="overflow-hidden rounded-xl bg-white ring-1 ring-black/10">
             <div class="overflow-x-auto">
               <table class="w-full min-w-[400px] border-collapse text-xs">
-                <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+                <thead class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
                   <tr>
-                    <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Fecha</th>
-                    <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Concepto</th>
-                    <th class="py-3 px-3 text-right text-ra-slate font-semibold uppercase text-[11px]">Monto</th>
+                    <th
+                      class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase"
+                    >
+                      Fecha
+                    </th>
+                    <th
+                      class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase"
+                    >
+                      Concepto
+                    </th>
+                    <th
+                      class="text-ra-slate px-3 py-3 text-right text-[11px] font-semibold uppercase"
+                    >
+                      Monto
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   @if (!salidas.length) {
-                    <tr><td colspan="3" class="py-6 px-3 text-center text-ra-slate/70">No hay salidas registradas en este corte.</td></tr>
+                    <tr>
+                      <td colspan="3" class="text-ra-slate/70 px-3 py-6 text-center">
+                        No hay salidas registradas en este corte.
+                      </td>
+                    </tr>
                   } @else {
                     @for (s of salidas; track s.idSalida) {
                       <tr class="border-t border-gray-100 hover:bg-gray-50/60">
-                        <td class="py-2.5 px-3 text-[11px] whitespace-nowrap">{{ s.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
-                        <td class="py-2.5 px-3 text-[11px]">{{ s.concepto }}</td>
-                        <td class="py-2.5 px-3 text-right text-[11px]">{{ s.monto | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+                        <td class="px-3 py-2.5 text-[11px] whitespace-nowrap">
+                          {{ s.fecha | date: 'dd/MM/yyyy HH:mm' }}
+                        </td>
+                        <td class="px-3 py-2.5 text-[11px]">{{ s.concepto }}</td>
+                        <td class="px-3 py-2.5 text-right text-[11px]">
+                          {{ s.monto | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+                        </td>
                       </tr>
                     }
                   }
@@ -238,15 +406,16 @@
             </div>
           </div>
         </div>
-
       }
     </div>
 
     <!-- Footer -->
-    <div class="px-6 py-3 border-t border-gray-100 flex justify-end">
-      <button type="button"
-              class="h-8 px-4 rounded-lg border border-gray-200 bg-white text-ra-slate hover:bg-gray-50 text-xs"
-              (click)="cerrarModal()">
+    <div class="flex justify-end border-t border-gray-100 px-6 py-3">
+      <button
+        type="button"
+        class="text-ra-slate h-8 rounded-lg border border-gray-200 bg-white px-4 text-xs hover:bg-gray-50"
+        (click)="cerrarModal()"
+      >
         Cerrar
       </button>
     </div>

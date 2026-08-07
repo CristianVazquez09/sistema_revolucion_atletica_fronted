@@ -1,135 +1,167 @@
 <div class="w-full rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
-
   <!-- Header -->
-  <div class="flex items-start justify-between px-4 sm:px-6 pt-4 sm:pt-5">
-    <h2 class="text-lg sm:text-[20px] font-bold text-ra-slate leading-none">
+  <div class="flex items-start justify-between px-4 pt-4 sm:px-6 sm:pt-5">
+    <h2 class="text-ra-slate text-lg leading-none font-bold sm:text-[20px]">
       {{ titulo() }}
     </h2>
 
     <button
-      class="w-8 h-8 grid place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+      class="grid h-8 w-8 place-items-center rounded-full bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-red-300 focus:outline-none"
       (click)="cancelar.emit()"
-      aria-label="Cerrar">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      aria-label="Cerrar"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-4 w-4"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M6 18L18 6M6 6l12 12"
+        />
       </svg>
     </button>
   </div>
 
   <!-- Body / Form -->
-  <form class="px-4 sm:px-6 pb-5 sm:pb-6 pt-3 sm:pt-4 space-y-4" (submit)="guardar()" [formGroup]="fb">
-
+  <form
+    class="space-y-4 px-4 pt-3 pb-5 sm:px-6 sm:pt-4 sm:pb-6"
+    (submit)="guardar()"
+    [formGroup]="fb"
+  >
     <!-- SOLO ADMIN: Gimnasio -->
     @if (isAdmin) {
       <div>
-        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Gimnasio</label>
+        <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Gimnasio</label>
         <select
           formControlName="gimnasioId"
-          class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent">
+          class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner focus:border-transparent focus:ring-2 focus:outline-none"
+        >
           <option [ngValue]="null" disabled>Selecciona un gimnasio</option>
           @for (g of gimnasios; track g.idGimnasio) {
             <option [ngValue]="g.idGimnasio">{{ g.nombre }}</option>
           }
         </select>
         @if ((intentoGuardar || fb.get('gimnasioId')?.touched) && fb.get('gimnasioId')?.invalid) {
-          <p class="text-sm text-red-600 mt-1">Selecciona un gimnasio.</p>
+          <p class="mt-1 text-sm text-red-600">Selecciona un gimnasio.</p>
         }
       </div>
     }
 
     <!-- Nombre -->
     <div>
-      <label class="block text-sm font-semibold text-ra-slate mb-1.5">Nombre</label>
+      <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Nombre</label>
       <input
         type="text"
         formControlName="nombre"
-        class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
-        placeholder="Ej. Paquete Estudiante" />
+        class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner focus:border-transparent focus:ring-2 focus:outline-none"
+        placeholder="Ej. Paquete Estudiante"
+      />
       @if (fb.get('nombre')?.touched && fb.get('nombre')?.invalid) {
-        <p class="text-sm text-red-600 mt-1">El nombre es obligatorio.</p>
+        <p class="mt-1 text-sm text-red-600">El nombre es obligatorio.</p>
       }
     </div>
 
     <!-- Tipo de paquete -->
     <div>
-      <label class="block text-sm font-semibold text-ra-slate mb-1.5">Tipo de paquete</label>
-      <div class="grid grid-cols-1 min-[380px]:grid-cols-3 gap-2">
+      <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Tipo de paquete</label>
+      <div class="grid grid-cols-1 gap-2 min-[380px]:grid-cols-3">
         @for (tipo of tiposPaquete; track tipo) {
-          <label class="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 cursor-pointer hover:border-ra-green transition-colors">
+          <label
+            class="hover:border-ra-green flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 transition-colors"
+          >
             <input
               type="radio"
               class="h-4 w-4 flex-shrink-0"
               [value]="tipo"
-              formControlName="tipoPaquete">
-            <span class="text-sm text-ra-slate">{{ labelTipoPaquete(tipo) }}</span>
+              formControlName="tipoPaquete"
+            />
+            <span class="text-ra-slate text-sm">{{ labelTipoPaquete(tipo) }}</span>
           </label>
         }
       </div>
       @if ((intentoGuardar || fb.get('tipoPaquete')?.touched) && fb.get('tipoPaquete')?.invalid) {
-        <p class="text-sm text-red-600 mt-1">Selecciona el tipo de paquete.</p>
+        <p class="mt-1 text-sm text-red-600">Selecciona el tipo de paquete.</p>
       }
     </div>
 
     <!-- Modalidad -->
     <div>
-      <label class="block text-sm font-semibold text-ra-slate mb-1.5">Modalidad</label>
-      <div class="grid grid-cols-2 min-[380px]:grid-cols-4 gap-2">
+      <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Modalidad</label>
+      <div class="grid grid-cols-2 gap-2 min-[380px]:grid-cols-4">
         @for (m of modalidades; track m) {
-          <label class="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 cursor-pointer hover:border-ra-green transition-colors">
+          <label
+            class="hover:border-ra-green flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 transition-colors"
+          >
             <input
               type="radio"
               class="h-4 w-4 flex-shrink-0"
               [value]="m"
-              formControlName="modalidad">
-            <span class="text-sm text-ra-slate">{{ labelModalidad(m) }}</span>
+              formControlName="modalidad"
+            />
+            <span class="text-ra-slate text-sm">{{ labelModalidad(m) }}</span>
           </label>
         }
       </div>
       @if ((intentoGuardar || fb.get('modalidad')?.touched) && fb.get('modalidad')?.invalid) {
-        <p class="text-sm text-red-600 mt-1">Selecciona la modalidad.</p>
+        <p class="mt-1 text-sm text-red-600">Selecciona la modalidad.</p>
       }
     </div>
 
     <!-- Tiempo -->
     <div>
-      <label class="block text-sm font-semibold text-ra-slate mb-1.5">Tiempo</label>
+      <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Tiempo</label>
       <div class="relative">
         <select
           formControlName="tiempo"
-          class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 pr-10 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent">
+          class="focus:ring-ra-green w-full appearance-none rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 pr-10 text-gray-900 shadow-inner focus:border-transparent focus:ring-2 focus:outline-none"
+        >
           <option [ngValue]="null" disabled>Selecciona una opción</option>
           @for (t of tiempos; track t) {
             <option [ngValue]="t">{{ t | tiempoPlan }}</option>
           }
         </select>
         <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 text-gray-500"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
             <path
               fill-rule="evenodd"
               d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.06l3.71-3.83a.75.75 0 1 1 1.08 1.04l-4.25 4.39a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06z"
-              clip-rule="evenodd" />
+              clip-rule="evenodd"
+            />
           </svg>
         </div>
       </div>
       @if (fb.get('tiempo')?.touched && fb.get('tiempo')?.invalid) {
-        <p class="text-sm text-red-600 mt-1">Selecciona el tiempo del plan.</p>
+        <p class="mt-1 text-sm text-red-600">Selecciona el tiempo del plan.</p>
       }
     </div>
 
     <!-- Visitas (solo para VISITA_10 | VISITA_15) -->
     @if (isPlanPorVisitas()) {
       <div>
-        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Visitas máximas</label>
+        <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Visitas máximas</label>
         <input
           type="number"
           step="1"
           formControlName="visitasMaximas"
-          class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
-          placeholder="Ej. 10 o 15" />
-        @if ((intentoGuardar || fb.get('visitasMaximas')?.touched) && fb.get('visitasMaximas')?.invalid) {
-          <p class="text-sm text-red-600 mt-1">Indica un número de visitas válido.</p>
+          class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner focus:border-transparent focus:ring-2 focus:outline-none"
+          placeholder="Ej. 10 o 15"
+        />
+        @if (
+          (intentoGuardar || fb.get('visitasMaximas')?.touched) && fb.get('visitasMaximas')?.invalid
+        ) {
+          <p class="mt-1 text-sm text-red-600">Indica un número de visitas válido.</p>
         }
-        <p class="text-xs text-ra-slate/70 mt-1">
+        <p class="text-ra-slate/70 mt-1 text-xs">
           Sugerencia automática: 10 para "10 visitas" y 15 para "15 visitas".
         </p>
       </div>
@@ -137,70 +169,88 @@
 
     <!-- Opciones de acceso y tipo especial -->
     <div class="space-y-2">
-
       <!-- Solo fines de semana -->
-      <label class="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-ra-green transition-colors">
-        <input id="soloFines" type="checkbox" formControlName="soloFinesDeSemana"
-          class="h-5 w-5 flex-shrink-0 rounded border-gray-300 accent-[#0B2C4A]">
+      <label
+        class="hover:border-ra-green flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 transition-colors"
+      >
+        <input
+          id="soloFines"
+          type="checkbox"
+          formControlName="soloFinesDeSemana"
+          class="h-5 w-5 flex-shrink-0 rounded border-gray-300 accent-[#0B2C4A]"
+        />
         <div>
-          <span class="text-sm font-semibold text-ra-slate">Solo fines de semana</span>
-          <p class="text-xs text-ra-slate/60 mt-0.5">Acceso permitido únicamente Vie / Sáb / Dom</p>
+          <span class="text-ra-slate text-sm font-semibold">Solo fines de semana</span>
+          <p class="text-ra-slate/60 mt-0.5 text-xs">Acceso permitido únicamente Vie / Sáb / Dom</p>
         </div>
       </label>
 
       <!-- Paquete estudiantil -->
-      <label class="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-ra-green transition-colors">
-        <input type="checkbox" formControlName="estudiantil"
-          class="h-5 w-5 flex-shrink-0 rounded border-gray-300 accent-[#0B2C4A]">
+      <label
+        class="hover:border-ra-green flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 transition-colors"
+      >
+        <input
+          type="checkbox"
+          formControlName="estudiantil"
+          class="h-5 w-5 flex-shrink-0 rounded border-gray-300 accent-[#0B2C4A]"
+        />
         <div>
-          <span class="text-sm font-semibold text-ra-slate">Paquete estudiantil</span>
-          <p class="text-xs text-ra-slate/60 mt-0.5">Aplica condiciones especiales para alumnos</p>
+          <span class="text-ra-slate text-sm font-semibold">Paquete estudiantil</span>
+          <p class="text-ra-slate/60 mt-0.5 text-xs">Aplica condiciones especiales para alumnos</p>
         </div>
       </label>
 
       <!-- Paquete RA -->
-      <label class="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-ra-green transition-colors">
-        <input type="checkbox" formControlName="esRA"
-          class="h-5 w-5 flex-shrink-0 rounded border-gray-300 accent-[#0B2C4A]">
+      <label
+        class="hover:border-ra-green flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 transition-colors"
+      >
+        <input
+          type="checkbox"
+          formControlName="esRA"
+          class="h-5 w-5 flex-shrink-0 rounded border-gray-300 accent-[#0B2C4A]"
+        />
         <div>
-          <span class="text-sm font-semibold text-ra-slate">Paquete Revolución Atlética (RA)</span>
-          <p class="text-xs text-ra-slate/60 mt-0.5">Requiere asignar un entrenador RA al inscribir o reinscribir</p>
+          <span class="text-ra-slate text-sm font-semibold">Paquete Revolución Atlética (RA)</span>
+          <p class="text-ra-slate/60 mt-0.5 text-xs">
+            Requiere asignar un entrenador RA al inscribir o reinscribir
+          </p>
         </div>
       </label>
-
     </div>
 
     <!-- Precio / Inscripción -->
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Precio</label>
+        <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Precio</label>
         <input
           type="number"
           step="0.01"
           formControlName="precio"
-          class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
-          placeholder="0.00" />
+          class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner focus:border-transparent focus:ring-2 focus:outline-none"
+          placeholder="0.00"
+        />
         @if (fb.get('precio')?.touched && fb.get('precio')?.invalid) {
-          <p class="text-sm text-red-600 mt-1">Ingresa un precio válido.</p>
+          <p class="mt-1 text-sm text-red-600">Ingresa un precio válido.</p>
         }
       </div>
 
       <div>
-        <label class="block text-sm font-semibold text-ra-slate mb-1.5">Inscripción</label>
+        <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Inscripción</label>
         <input
           type="number"
           step="0.01"
           formControlName="costoInscripcion"
-          class="w-full rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 shadow-inner focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
-          placeholder="0.00" />
+          class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-gray-900 shadow-inner focus:border-transparent focus:ring-2 focus:outline-none"
+          placeholder="0.00"
+        />
         @if (fb.get('costoInscripcion')?.touched && fb.get('costoInscripcion')?.invalid) {
-          <p class="text-sm text-red-600 mt-1">Ingresa un costo válido.</p>
+          <p class="mt-1 text-sm text-red-600">Ingresa un costo válido.</p>
         }
       </div>
     </div>
 
     @if (error) {
-      <div class="text-red-600 text-sm">{{ error }}</div>
+      <div class="text-sm text-red-600">{{ error }}</div>
     }
 
     <!-- Footer -->
@@ -208,17 +258,18 @@
       <button
         type="button"
         (click)="cancelar.emit()"
-        class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm">
+        class="rounded-full border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+      >
         Cancelar
       </button>
 
       <button
         type="submit"
         [disabled]="guardando"
-        class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60 text-sm">
+        class="rounded-full bg-[#0B2C4A] px-5 py-2.5 text-sm text-white shadow-md hover:bg-[#0A2540] disabled:opacity-60"
+      >
         {{ guardando ? 'Guardando...' : 'Guardar' }}
       </button>
     </div>
-
   </form>
 </div>

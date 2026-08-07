@@ -1,13 +1,6 @@
 // src/app/pages/reinscripcion/reinscripcion.ts
 
-import {
-  Component,
-  OnInit,
-  inject,
-  signal,
-  DestroyRef,
-  computed,
-} from '@angular/core';
+import { Component, OnInit, inject, signal, DestroyRef, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -104,7 +97,6 @@ type EstudiantilCheck = {
   styleUrl: './reinscripcion.css',
 })
 export class Reinscripcion implements OnInit {
-  
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -285,7 +277,8 @@ export class Reinscripcion implements OnInit {
     this.promoCargandoSig.set(true);
     this.promoErrorSig.set(null);
 
-    this.paqueteSrv.buscarPromocionesVigentes(id)
+    this.paqueteSrv
+      .buscarPromocionesVigentes(id)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.promoCargandoSig.set(false)),
@@ -293,7 +286,7 @@ export class Reinscripcion implements OnInit {
           console.error('Error cargando promociones vigentes', err);
           this.promoErrorSig.set('No se pudieron cargar promociones vigentes.');
           return of([] as PromocionData[]);
-        })
+        }),
       )
       .subscribe((promos) => {
         const best = this.elegirMejorPromo(promos ?? []);
@@ -375,9 +368,7 @@ export class Reinscripcion implements OnInit {
     this.form.controls.descuento.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((d) =>
-        this.store.dispatch(
-          ReinscripcionActions.setDescuento({ descuento: Number(d ?? 0) })
-        )
+        this.store.dispatch(ReinscripcionActions.setDescuento({ descuento: Number(d ?? 0) })),
       );
 
     this.form.controls.fechaInicio.valueChanges
@@ -386,8 +377,8 @@ export class Reinscripcion implements OnInit {
         this.store.dispatch(
           ReinscripcionActions.setFechaInicio({
             fechaInicio: String(f ?? hoyISO()),
-          })
-        )
+          }),
+        ),
       );
   }
 
@@ -604,7 +595,8 @@ export class Reinscripcion implements OnInit {
       const id = Number((m as any)?.idSocio ?? 0);
       if (!id) continue;
 
-      const nombre = `${(m as any)?.nombre ?? ''} ${(m as any)?.apellido ?? ''}`.trim() || `ID ${id}`;
+      const nombre =
+        `${(m as any)?.nombre ?? ''} ${(m as any)?.apellido ?? ''}`.trim() || `ID ${id}`;
 
       const edad = this.calcularEdad((m as any)?.fechaNacimiento);
       const edadOk = typeof edad === 'number' ? edad <= 22 : false;
@@ -713,41 +705,47 @@ export class Reinscripcion implements OnInit {
       credencialEstudianteVigencia: fecha,
     };
 
-    this.socioSrv.actualizar(Number(idSocio), payload).pipe(
-      finalize(() => {
-        const m = { ...(this.guardandoVigenciaBySocioIdSig() ?? {}) };
-        delete m[this.key(idSocio)];
-        this.guardandoVigenciaBySocioIdSig.set(m);
-      })
-    ).subscribe({
-      next: (updated) => {
-        const lista = (this.miembrosSig() ?? []).map((x: any) =>
-          Number(x?.idSocio) === Number(idSocio)
-            ? { ...(x as any), ...(updated as any), credencialEstudianteVigencia: fecha }
-            : x
-        );
-        this.miembrosSig.set(lista);
+    this.socioSrv
+      .actualizar(Number(idSocio), payload)
+      .pipe(
+        finalize(() => {
+          const m = { ...(this.guardandoVigenciaBySocioIdSig() ?? {}) };
+          delete m[this.key(idSocio)];
+          this.guardandoVigenciaBySocioIdSig.set(m);
+        }),
+      )
+      .subscribe({
+        next: (updated) => {
+          const lista = (this.miembrosSig() ?? []).map((x: any) =>
+            Number(x?.idSocio) === Number(idSocio)
+              ? { ...(x as any), ...(updated as any), credencialEstudianteVigencia: fecha }
+              : x,
+          );
+          this.miembrosSig.set(lista);
 
-        const principal = this.socioPrincipalSig();
-        if ((principal as any)?.idSocio && Number((principal as any).idSocio) === Number(idSocio)) {
-          this.socioPrincipalSig.set({
-            ...(principal as any),
-            ...(updated as any),
-            credencialEstudianteVigencia: fecha,
-          });
-        }
+          const principal = this.socioPrincipalSig();
+          if (
+            (principal as any)?.idSocio &&
+            Number((principal as any).idSocio) === Number(idSocio)
+          ) {
+            this.socioPrincipalSig.set({
+              ...(principal as any),
+              ...(updated as any),
+              credencialEstudianteVigencia: fecha,
+            });
+          }
 
-        const checks = this.generarChecksEstudiantil();
-        this.checksEstudiantilModalSig.set(checks);
-        this.prepararVigenciasNuevas(checks);
+          const checks = this.generarChecksEstudiantil();
+          this.checksEstudiantilModalSig.set(checks);
+          this.prepararVigenciasNuevas(checks);
 
-        this.guardarDraft();
-        this.notify.exito('Vigencia de estudiante actualizada.');
-      },
-      error: (err: HttpErrorResponse) => {
-        this.notify.error(this.extraerMensajeError(err));
-      },
-    });
+          this.guardarDraft();
+          this.notify.exito('Vigencia de estudiante actualizada.');
+        },
+        error: (err: HttpErrorResponse) => {
+          this.notify.error(this.extraerMensajeError(err));
+        },
+      });
   }
 
   private validarEstudiantilAntesDeContinuar(next: () => void): void {
@@ -820,7 +818,9 @@ export class Reinscripcion implements OnInit {
         this.socioPrincipalSig.set(socio);
 
         if ((socio as any)?.idSocio) {
-          const ya = this.miembrosSig().some((x: any) => Number(x?.idSocio) === Number((socio as any).idSocio));
+          const ya = this.miembrosSig().some(
+            (x: any) => Number(x?.idSocio) === Number((socio as any).idSocio),
+          );
           if (!ya) this.miembrosSig.set([socio as any, ...this.miembrosSig()]);
         }
 
@@ -843,7 +843,7 @@ export class Reinscripcion implements OnInit {
         }));
 
         this.store.dispatch(
-          ReinscripcionActions.setListaPaquetes({ paquetes: normalizados as any })
+          ReinscripcionActions.setListaPaquetes({ paquetes: normalizados as any }),
         );
 
         this.cargandoPaquetes = false;
@@ -865,7 +865,9 @@ export class Reinscripcion implements OnInit {
     const miembros = this.miembrosSig() ?? [];
     if (!miembros.length) return;
 
-    const ids = Array.from(new Set(miembros.map((m: any) => Number(m?.idSocio ?? 0)).filter((x) => x > 0)));
+    const ids = Array.from(
+      new Set(miembros.map((m: any) => Number(m?.idSocio ?? 0)).filter((x) => x > 0)),
+    );
     if (!ids.length) return;
 
     this.cargandoEstadoAsesoriaSig.set(true);
@@ -876,13 +878,13 @@ export class Reinscripcion implements OnInit {
           catchError((err) => {
             console.error('Error estado asesoría', id, err);
             return of(null as any);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     )
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.cargandoEstadoAsesoriaSig.set(false))
+        finalize(() => this.cargandoEstadoAsesoriaSig.set(false)),
       )
       .subscribe((arr) => {
         const map: Record<string, AsesoriaNutricionalEstadoDTO> = {};
@@ -938,13 +940,13 @@ export class Reinscripcion implements OnInit {
               fechaFin: null,
               idAsesoriaNutricional: null,
             } as AsesoriaNutricionalEstadoDTO);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     )
       .pipe(
         takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.validandoAsesoriaSig.set(false))
+        finalize(() => this.validandoAsesoriaSig.set(false)),
       )
       .subscribe((arr) => {
         const current = { ...(this.estadoAsesoriaBySocioIdSig() ?? {}) };
@@ -1000,7 +1002,9 @@ export class Reinscripcion implements OnInit {
           return;
         }
 
-        const existe = (this.listaPaquetesSig() ?? []).some((p: any) => Number(p?.idPaquete) === Number(idPaquete));
+        const existe = (this.listaPaquetesSig() ?? []).some(
+          (p: any) => Number(p?.idPaquete) === Number(idPaquete),
+        );
         if (!existe) {
           this.form.controls.paqueteId.setValue(0, { emitEvent: false });
           this.form.controls.paqueteId.enable({ emitEvent: false });
@@ -1028,13 +1032,7 @@ export class Reinscripcion implements OnInit {
   }
 
   private extraerIdPaquete(m: any): number {
-    const id = Number(
-      m?.paquete?.idPaquete ??
-      m?.paquete?.id ??
-      m?.idPaquete ??
-      m?.paqueteId ??
-      0
-    );
+    const id = Number(m?.paquete?.idPaquete ?? m?.paquete?.id ?? m?.idPaquete ?? m?.paqueteId ?? 0);
     return Number.isFinite(id) ? id : 0;
   }
 
@@ -1127,7 +1125,9 @@ export class Reinscripcion implements OnInit {
     delete map[this.key(idSocio)];
     this.pagosBySocioIdSig.set(map);
 
-    this.miembrosSig.set(this.miembrosSig().filter((m: any) => Number(m.idSocio) !== Number(idSocio)));
+    this.miembrosSig.set(
+      this.miembrosSig().filter((m: any) => Number(m.idSocio) !== Number(idSocio)),
+    );
 
     const est = { ...(this.estadoAsesoriaBySocioIdSig() ?? {}) };
     delete est[this.key(idSocio)];
@@ -1157,7 +1157,11 @@ export class Reinscripcion implements OnInit {
     this.mostrarModalHuella.set(false);
 
     let idx = 0;
-    if (Array.isArray(res.calidades) && res.calidades.length === res.muestras.length && res.calidades.length > 0) {
+    if (
+      Array.isArray(res.calidades) &&
+      res.calidades.length === res.muestras.length &&
+      res.calidades.length > 0
+    ) {
       let best = Number.POSITIVE_INFINITY;
       res.calidades.forEach((q, i) => {
         if (q < best) {
@@ -1265,7 +1269,9 @@ export class Reinscripcion implements OnInit {
     this.mostrarResumen.set(false);
 
     const miembros = this.miembrosSig();
-    const faltan = miembros.filter((m: any) => !this.pagosBySocioIdSig()[this.key(m.idSocio!)]).length;
+    const faltan = miembros.filter(
+      (m: any) => !this.pagosBySocioIdSig()[this.key(m.idSocio!)],
+    ).length;
 
     if (faltan > 0) {
       this.notify.exito(`Pago capturado. Faltan ${faltan} integrante(s) por cobrar.`);
@@ -1368,7 +1374,14 @@ export class Reinscripcion implements OnInit {
     });
   }
 
-  private imprimirTicket(resp: any, socio: SocioData, pagos: PagoData[], paquete: any, descuentoTotal: number, entrenadorNombre?: string): void {
+  private imprimirTicket(
+    resp: any,
+    socio: SocioData,
+    pagos: PagoData[],
+    paquete: any,
+    descuentoTotal: number,
+    entrenadorNombre?: string,
+  ): void {
     const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
 
     const pagosDet = (pagos ?? [])
@@ -1399,13 +1412,16 @@ export class Reinscripcion implements OnInit {
         const seen = new Set<number>();
         const activos = (lista ?? [])
           .filter((e: any) => e?.activo !== false)
-          .map((e: any) => ({
-            idEntrenador: Number(e?.idEntrenador ?? e?.id ?? 0),
-            nombre: String(e?.nombre ?? ''),
-            apellido: String(e?.apellido ?? ''),
-            activo: e?.activo !== false,
-            gimnasio: e?.gimnasio,
-          } as EntrenadorData))
+          .map(
+            (e: any) =>
+              ({
+                idEntrenador: Number(e?.idEntrenador ?? e?.id ?? 0),
+                nombre: String(e?.nombre ?? ''),
+                apellido: String(e?.apellido ?? ''),
+                activo: e?.activo !== false,
+                gimnasio: e?.gimnasio,
+              }) as EntrenadorData,
+          )
           .filter((e) => {
             if (!e.idEntrenador) return false;
             if (seen.has(e.idEntrenador)) return false;
@@ -1479,7 +1495,9 @@ export class Reinscripcion implements OnInit {
       const d: Draft = {
         paqueteId: Number(this.form.controls.paqueteId.value ?? 0),
         pagosBySocioId: this.pagosBySocioIdSig(),
-        miembrosIds: (this.miembrosSig() as any[]).map((m) => Number((m as any).idSocio ?? 0)).filter((x) => x > 0),
+        miembrosIds: (this.miembrosSig() as any[])
+          .map((m) => Number((m as any).idSocio ?? 0))
+          .filter((x) => x > 0),
       };
       sessionStorage.setItem(STORAGE_KEY_REINSCRIPCION_GRUPAL, JSON.stringify(d));
     } catch {

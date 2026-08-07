@@ -12,10 +12,8 @@ export class HistorialService {
 
   constructor(private http: HttpClient) {}
 
-  consultar(pagina: number, tamanio: number): Observable<PagedResponse<HistorialData>>{
-    const params = new HttpParams()
-      .set('page', String(pagina))
-      .set('size', String(tamanio));
+  consultar(pagina: number, tamanio: number): Observable<PagedResponse<HistorialData>> {
+    const params = new HttpParams().set('page', String(pagina)).set('size', String(tamanio));
 
     return this.http
       .get(this.url, { params })

@@ -10,11 +10,10 @@ import { AsesoriaContratoData } from '../../../shared/models/asesoria-contrato-d
 import { TipoPaquete } from '../../../shared/util/enums/tipo-paquete';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SocioService extends GenericService<SocioData> {
-
-  constructor(protected override http: HttpClient){
+  constructor(protected override http: HttpClient) {
     super(http, `${environment.HOST}/socios`);
   }
 
@@ -26,13 +25,9 @@ export class SocioService extends GenericService<SocioData> {
     pagina: number,
     tamanio: number,
     tipoPaquete?: TipoPaquete | null,
-    activo?: boolean | null
+    activo?: boolean | null,
   ): Observable<PagedResponse<SocioData>> {
-
-    const params: string[] = [
-      `page=${pagina}`,
-      `size=${tamanio}`
-    ];
+    const params: string[] = [`page=${pagina}`, `size=${tamanio}`];
 
     if (tipoPaquete) {
       params.push(`tipoPaquete=${encodeURIComponent(tipoPaquete)}`);
@@ -43,9 +38,7 @@ export class SocioService extends GenericService<SocioData> {
 
     const url = `${this.url}/buscar?${params.join('&')}`;
 
-    return this.http
-      .get(url)
-      .pipe(map((raw: any) => toPagedResponse<SocioData>(raw)));
+    return this.http.get(url).pipe(map((raw: any) => toPagedResponse<SocioData>(raw)));
   }
 
   /** Listado paginado filtrando por nombre,
@@ -57,12 +50,12 @@ export class SocioService extends GenericService<SocioData> {
     tamanio: number,
     activo?: boolean | null,
     tipoPaquete?: TipoPaquete | null,
-    soloVigentes?: boolean | null
+    soloVigentes?: boolean | null,
   ): Observable<PagedResponse<SocioData>> {
     const params: string[] = [
       `page=${pagina}`,
       `size=${tamanio}`,
-      `nombre=${encodeURIComponent((nombre ?? '').trim())}`
+      `nombre=${encodeURIComponent((nombre ?? '').trim())}`,
     ];
     if (typeof activo === 'boolean') {
       params.push(`activo=${activo}`);
@@ -81,12 +74,10 @@ export class SocioService extends GenericService<SocioData> {
   obtenerAsesoriasDeSocio(
     idSocio: number,
     pagina: number,
-    tamanio: number
+    tamanio: number,
   ): Observable<PagedResponse<AsesoriaContratoData>> {
     const url = `${environment.HOST}/socios/${idSocio}/asesorias?page=${pagina}&size=${tamanio}`;
-    return this.http
-      .get<any>(url)
-      .pipe(map(raw => toPagedResponse<AsesoriaContratoData>(raw)));
+    return this.http.get<any>(url).pipe(map((raw) => toPagedResponse<AsesoriaContratoData>(raw)));
   }
 
   buscarPorHuella(huellaDigital: string): Observable<SocioData> {

@@ -7,7 +7,7 @@ import {
   Output,
   computed,
   inject,
-  signal
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
@@ -19,15 +19,18 @@ import { GimnasioService } from '../../../../../shared/data/gimnasio-service';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../../../environments/environment';
-import { HuellaModal, HuellaResultado } from '../../../../../shared/huella/huella-modal/huella-modal';
+import {
+  HuellaModal,
+  HuellaResultado,
+} from '../../../../../shared/huella/huella-modal/huella-modal';
 
 const MULTI_WS = /\s+/g;
 
 function normalizeText(v: unknown): string {
   if (v == null) return '';
   return String(v)
-    .replace(/\uFEFF/g, '')   // BOM
-    .replace(/\u00A0/g, ' ')  // NBSP -> espacio normal
+    .replace(/\uFEFF/g, '') // BOM
+    .replace(/\u00A0/g, ' ') // NBSP -> espacio normal
     .replace(MULTI_WS, ' ')
     .trim();
 }
@@ -42,10 +45,9 @@ function normalizeEmail(v: unknown): string {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, HuellaModal],
   templateUrl: './socio-modal.html',
-  styleUrl: './socio-modal.css'
+  styleUrl: './socio-modal.css',
 })
 export class SocioModal implements OnInit, OnDestroy {
-
   @Input() socio: SocioData | null = null;
   @Output() cancelar = new EventEmitter<void>();
   @Output() guardado = new EventEmitter<void>();
@@ -68,14 +70,16 @@ export class SocioModal implements OnInit, OnDestroy {
     email: new FormControl('', [Validators.email, Validators.maxLength(120)]),
     direccion: new FormControl('', [Validators.maxLength(200)]),
 
-    genero: new FormControl(null as 'MASCULINO' | 'FEMENINO' | 'OTRO' | null, [Validators.required]),
+    genero: new FormControl(null as 'MASCULINO' | 'FEMENINO' | 'OTRO' | null, [
+      Validators.required,
+    ]),
     fechaNacimiento: new FormControl(null as string | null, [Validators.required]),
     comentarios: new FormControl(''),
 
-    gimnasioId: new FormControl<number | null>({ value: null, disabled: true })
+    gimnasioId: new FormControl<number | null>({ value: null, disabled: true }),
   });
 
-  titulo = computed(() => this.socio ? 'Editar socio' : 'Agregar socio');
+  titulo = computed(() => (this.socio ? 'Editar socio' : 'Agregar socio'));
 
   guardando = false;
   error: string | null = null;
@@ -97,11 +101,11 @@ export class SocioModal implements OnInit, OnDestroy {
       this.cargandoGimnasios = true;
       this.gymSrv.buscarTodos().subscribe({
         next: (lista) => {
-          this.gimnasios = (lista ?? []).map(g => ({
+          this.gimnasios = (lista ?? []).map((g) => ({
             idGimnasio: (g as any).idGimnasio ?? (g as any).id,
             nombre: g.nombre,
             direccion: g.direccion,
-            telefono: g.telefono
+            telefono: g.telefono,
           }));
 
           const idPre =
@@ -119,12 +123,12 @@ export class SocioModal implements OnInit, OnDestroy {
         },
         error: () => {
           this.cargandoGimnasios = false;
-        }
+        },
       });
     }
 
     if (this.socio) {
-      this.socioService.buscarPorId(this.socio.idSocio).subscribe(s => {
+      this.socioService.buscarPorId(this.socio.idSocio).subscribe((s) => {
         this.formulario.patchValue({
           idSocio: s.idSocio,
           nombre: normalizeText(s.nombre),
@@ -134,7 +138,7 @@ export class SocioModal implements OnInit, OnDestroy {
           direccion: normalizeText(s.direccion),
           genero: s.genero ?? null,
           fechaNacimiento: s.fechaNacimiento ?? null,
-          comentarios: normalizeText(s.comentarios)
+          comentarios: normalizeText(s.comentarios),
         });
 
         if (this.isAdmin) {
@@ -160,7 +164,9 @@ export class SocioModal implements OnInit, OnDestroy {
   };
 
   private normalizarTelefono(v: unknown): string {
-    return String(v ?? '').replace(/\D/g, '').slice(0, 10);
+    return String(v ?? '')
+      .replace(/\D/g, '')
+      .slice(0, 10);
   }
 
   private deducirEsAdminDesdeToken(): boolean {
@@ -175,7 +181,7 @@ export class SocioModal implements OnInit, OnDestroy {
         ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
       ]
         .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
-        .map(r => String(r).toUpperCase());
+        .map((r) => String(r).toUpperCase());
 
       return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     } catch {
@@ -247,7 +253,7 @@ export class SocioModal implements OnInit, OnDestroy {
           console.error('[SocioModal] error actualizando huella', err);
           this.huellaProceso.set(false);
           this.huellaError.set('No se pudo actualizar la huella. Intenta de nuevo.');
-        }
+        },
       });
     } else {
       this.huellaMensaje.set('Huella capturada. Se guardará al crear el socio.');
@@ -289,7 +295,7 @@ export class SocioModal implements OnInit, OnDestroy {
     const f = this.formulario.getRawValue();
 
     // conservar activo en edición; nuevo => true
-    const activo = this.socio ? (this.socio.activo !== false) : true;
+    const activo = this.socio ? this.socio.activo !== false : true;
 
     // gimnasio (admin: select; no admin: conservar el existente)
     let gymObj: { id: number } | undefined;
@@ -312,7 +318,7 @@ export class SocioModal implements OnInit, OnDestroy {
       genero: f.genero!,
       fechaNacimiento: f.fechaNacimiento!,
       comentarios: normalizeText(f.comentarios),
-      activo
+      activo,
     } as SocioData;
 
     if (!this.socio && this.huellaDigitalBase64) {
@@ -334,7 +340,7 @@ export class SocioModal implements OnInit, OnDestroy {
         console.error(err);
         this.guardando = false;
         this.error = 'No se pudo guardar el socio.';
-      }
+      },
     });
   }
 }

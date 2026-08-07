@@ -15,7 +15,7 @@ describe('NotificacionService', () => {
     jasmine.clock().uninstall();
   });
 
-  it('exito(\'Guardado\') → notificaciones() tiene 1 item con tipo \'exito\', mensaje \'Guardado\', duracion 5000', () => {
+  it("exito('Guardado') → notificaciones() tiene 1 item con tipo 'exito', mensaje 'Guardado', duracion 5000", () => {
     service.exito('Guardado');
     const nots = service.notificaciones();
     expect(nots.length).toBe(1);
@@ -31,12 +31,12 @@ describe('NotificacionService', () => {
 
     const nots = service.notificaciones();
     expect(nots.length).toBe(3);
-    expect(nots.find(n => n.id === idError)?.tipo).toBe('error');
-    expect(nots.find(n => n.id === idInfo)?.tipo).toBe('info');
-    expect(nots.find(n => n.id === idAviso)?.tipo).toBe('aviso');
+    expect(nots.find((n) => n.id === idError)?.tipo).toBe('error');
+    expect(nots.find((n) => n.id === idInfo)?.tipo).toBe('info');
+    expect(nots.find((n) => n.id === idAviso)?.tipo).toBe('aviso');
   });
 
-  it('abrir({mensaje: \'X\'}) retorna numeric id y defaultea tipo \'info\'', () => {
+  it("abrir({mensaje: 'X'}) retorna numeric id y defaultea tipo 'info'", () => {
     const id = service.abrir({ mensaje: 'Test mensaje' });
     expect(typeof id).toBe('number');
     expect(id).toBeGreaterThan(0);
@@ -58,7 +58,7 @@ describe('NotificacionService', () => {
     expect(nots[0].id).toBe(id2);
   });
 
-  it('auto-close: exito(\'temp\'), assert presente, tick(5001) → desaparece', () => {
+  it("auto-close: exito('temp'), assert presente, tick(5001) → desaparece", () => {
     service.exito('temp');
     expect(service.notificaciones().length).toBe(1);
 
@@ -66,7 +66,7 @@ describe('NotificacionService', () => {
     expect(service.notificaciones().length).toBe(0);
   });
 
-  it('duracion customizada: abrir({mensaje:\'Y\', duracion: 1000}), tick(999) → presente, tick(2) → gone', () => {
+  it("duracion customizada: abrir({mensaje:'Y', duracion: 1000}), tick(999) → presente, tick(2) → gone", () => {
     service.abrir({ mensaje: 'Y', duracion: 1000 });
     expect(service.notificaciones().length).toBe(1);
 

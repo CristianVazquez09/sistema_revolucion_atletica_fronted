@@ -3,21 +3,12 @@
 <div class="relative" (click)="cerrarDropdownPaquetes()">
   <!-- ✅ CONTENIDO ESCALADO (SIN MODALES ADENTRO) -->
   <div
-    class="
-      origin-top-left
-      [@media(max-width:1280px)]:scale-[0.96] [@media(max-width:1280px)]:w-[calc(100%/0.96)]
-      [@media(max-width:1150px)]:scale-[0.92] [@media(max-width:1150px)]:w-[calc(100%/0.92)]
-      [@media(max-width:1024px)]:scale-[0.88] [@media(max-width:1024px)]:w-[calc(100%/0.88)]
-      [@media(max-width:920px)]:scale-[0.82]  [@media(max-width:920px)]:w-[calc(100%/0.82)]
-      [@media(max-width:820px)]:scale-[0.76]  [@media(max-width:820px)]:w-[calc(100%/0.76)]
-      [@media(max-height:820px)]:scale-[0.92] [@media(max-height:820px)]:w-[calc(100%/0.92)]
-      [@media(max-height:760px)]:scale-[0.88] [@media(max-height:760px)]:w-[calc(100%/0.88)]
-    "
+    class="origin-top-left [@media(max-height:760px)]:w-[calc(100%/0.88)] [@media(max-height:760px)]:scale-[0.88] [@media(max-height:820px)]:w-[calc(100%/0.92)] [@media(max-height:820px)]:scale-[0.92] [@media(max-width:1024px)]:w-[calc(100%/0.88)] [@media(max-width:1024px)]:scale-[0.88] [@media(max-width:1150px)]:w-[calc(100%/0.92)] [@media(max-width:1150px)]:scale-[0.92] [@media(max-width:1280px)]:w-[calc(100%/0.96)] [@media(max-width:1280px)]:scale-[0.96] [@media(max-width:820px)]:w-[calc(100%/0.76)] [@media(max-width:820px)]:scale-[0.76] [@media(max-width:920px)]:w-[calc(100%/0.82)] [@media(max-width:920px)]:scale-[0.82]"
   >
-    <div class="flex flex-nowrap gap-3 px-4 md:px-8 mb-4">
+    <div class="mb-4 flex flex-nowrap gap-3 px-4 md:px-8">
       <button
         type="button"
-        class="px-5 py-2 rounded-md bg-red-600 text-white shadow-md hover:bg-red-700 whitespace-nowrap"
+        class="rounded-md bg-red-600 px-5 py-2 whitespace-nowrap text-white shadow-md hover:bg-red-700"
       >
         Agregar Socio
       </button>
@@ -25,7 +16,7 @@
       <button
         type="button"
         [routerLink]="['/pages/agregar-membresia']"
-        class="px-5 py-2 rounded-md bg-red-600 text-white shadow-md hover:bg-red-700 whitespace-nowrap"
+        class="rounded-md bg-red-600 px-5 py-2 whitespace-nowrap text-white shadow-md hover:bg-red-700"
       >
         Agregar Membresia
       </button>
@@ -33,7 +24,7 @@
       <button
         type="button"
         [routerLink]="['/pages/historial']"
-        class="px-5 py-2 rounded-md bg-red-600 text-white shadow-md hover:bg-red-700 whitespace-nowrap"
+        class="rounded-md bg-red-600 px-5 py-2 whitespace-nowrap text-white shadow-md hover:bg-red-700"
       >
         Historial
       </button>
@@ -41,7 +32,7 @@
       <button
         type="button"
         [routerLink]="['/pages/historial-asistencias']"
-        class="px-5 py-2 rounded-md bg-red-600 text-white shadow-md hover:bg-red-700 whitespace-nowrap"
+        class="rounded-md bg-red-600 px-5 py-2 whitespace-nowrap text-white shadow-md hover:bg-red-700"
       >
         Asistencias
       </button>
@@ -49,22 +40,22 @@
       <button
         type="button"
         [routerLink]="['/pages/reinscripcion-adelantada']"
-        class="px-5 py-2 rounded-md bg-red-600 text-white shadow-md hover:bg-red-700 whitespace-nowrap"
+        class="rounded-md bg-red-600 px-5 py-2 whitespace-nowrap text-white shadow-md hover:bg-red-700"
       >
         Reinscripcion Adelantada
       </button>
     </div>
 
     @if (batchActivoSig() && paqueteActualSig()) {
-      <div class="mx-4 md:mx-8 mb-4 rounded-xl2 bg-white ring-1 ring-black/10 shadow-card">
-        <div class="px-6 py-4 flex items-center justify-between gap-3">
+      <div class="rounded-xl2 shadow-card mx-4 mb-4 bg-white ring-1 ring-black/10 md:mx-8">
+        <div class="flex items-center justify-between gap-3 px-6 py-4">
           <div>
-            <div class="text-sm font-semibold text-ra-slate">
+            <div class="text-ra-slate text-sm font-semibold">
               Lote activo · Integrante {{ batchPasoSig() }} de {{ batchRequeridoSig() }}
             </div>
 
             @if (batchDraftsSig().length > 0) {
-              <div class="text-xs text-ra-slate/70 mt-1">
+              <div class="text-ra-slate/70 mt-1 text-xs">
                 Capturados:
                 <span class="font-semibold">{{ batchDraftsSig().length }}</span>
                 / {{ batchRequeridoSig() }}
@@ -77,7 +68,7 @@
             @if (batchDraftsSig().length > 0) {
               <button
                 type="button"
-                class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-xs whitespace-nowrap"
+                class="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs whitespace-nowrap hover:bg-gray-50"
                 (click)="editarAnteriorCapturado(); $event.stopPropagation()"
               >
                 Editar anterior
@@ -85,7 +76,7 @@
 
               <button
                 type="button"
-                class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-xs whitespace-nowrap"
+                class="rounded-md border border-gray-300 bg-white px-3 py-2 text-xs whitespace-nowrap hover:bg-gray-50"
                 (click)="editarPrimeroCapturado(); $event.stopPropagation()"
               >
                 Editar primero
@@ -94,7 +85,7 @@
 
             <button
               type="button"
-              class="px-4 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm whitespace-nowrap"
+              class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm whitespace-nowrap hover:bg-gray-50"
               (click)="reiniciarLote(); $event.stopPropagation()"
             >
               Reiniciar lote
@@ -103,11 +94,11 @@
         </div>
 
         @if (batchDraftsSig().length > 0) {
-          <div class="px-6 pb-4 flex flex-wrap gap-2">
+          <div class="flex flex-wrap gap-2 px-6 pb-4">
             @for (d of batchDraftsSig(); track $index) {
               <button
                 type="button"
-                class="px-3 py-1 rounded-full bg-gray-100 text-xs text-ra-slate hover:bg-gray-200"
+                class="text-ra-slate rounded-full bg-gray-100 px-3 py-1 text-xs hover:bg-gray-200"
                 (click)="editarIntegrante($index); $event.stopPropagation()"
                 [title]="'Editar integrante ' + ($index + 1)"
               >
@@ -119,26 +110,27 @@
       </div>
     }
 
-    <div class="mx-4 md:mx-8 mt-4 rounded-xl2 bg-white ring-1 ring-black/10 shadow-card">
-      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+    <div class="rounded-xl2 shadow-card mx-4 mt-4 bg-white ring-1 ring-black/10 md:mx-8">
+      <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
         <div class="flex flex-col">
-          <h2 class="text-xl font-semibold text-ra-slate">Agregar Usuario</h2>
+          <h2 class="text-ra-slate text-xl font-semibold">Agregar Usuario</h2>
 
           @if (editandoIntegranteSig()) {
-            <div class="text-xs text-amber-700 mt-1">
+            <div class="mt-1 text-xs text-amber-700">
               Estás editando un integrante capturado. Guarda cambios o cancela para continuar.
             </div>
           }
         </div>
 
         @if (batchActivoSig()) {
-          <div class="text-sm text-ra-slate/70">
-            Integrante <span class="font-semibold">{{ batchPasoSig() }}</span> / {{ batchRequeridoSig() }}
+          <div class="text-ra-slate/70 text-sm">
+            Integrante <span class="font-semibold">{{ batchPasoSig() }}</span> /
+            {{ batchRequeridoSig() }}
           </div>
         }
       </div>
 
-      <form class="p-6 space-y-4" [formGroup]="formularioInscripcion">
+      <form class="space-y-4 p-6" [formGroup]="formularioInscripcion">
         <div class="grid grid-cols-2 gap-4">
           <input formControlName="nombre" placeholder="Nombre*" class="input-filled" />
           <input formControlName="apellido" placeholder="Apellidos*" class="input-filled" />
@@ -164,69 +156,77 @@
         </div>
 
         @if (esPaqueteEstudiantilSig()) {
-          <div class="grid grid-cols-[320px_1fr] gap-4 items-center">
-            <label class="text-sm font-semibold text-ra-slate">
+          <div class="grid grid-cols-[320px_1fr] items-center gap-4">
+            <label class="text-ra-slate text-sm font-semibold">
               Vigencia credencial estudiante*
             </label>
             <input
-  type="date"
-  formControlName="credencialEstudianteVigencia"
-  class="input-filled"
-  aria-label="Vigencia credencial estudiante"
-  title="Vigencia credencial estudiante"
-  (input)="onVigenciaEstudianteInput($any($event.target).value)"
-  (change)="onVigenciaEstudianteInput($any($event.target).value)"
-  (blur)="onVigenciaEstudianteInput($any($event.target).value)"
-/>
-
+              type="date"
+              formControlName="credencialEstudianteVigencia"
+              class="input-filled"
+              aria-label="Vigencia credencial estudiante"
+              title="Vigencia credencial estudiante"
+              (input)="onVigenciaEstudianteInput($any($event.target).value)"
+              (change)="onVigenciaEstudianteInput($any($event.target).value)"
+              (blur)="onVigenciaEstudianteInput($any($event.target).value)"
+            />
           </div>
-          <div class="text-xs text-ra-slate/70">
-            Se valida: edad ≤ 22 años y vigencia ≥ hoy.
-          </div>
+          <div class="text-ra-slate/70 text-xs">Se valida: edad ≤ 22 años y vigencia ≥ hoy.</div>
         }
 
-        <div class="grid grid-cols-[1fr_auto] gap-4 items-center">
+        <div class="grid grid-cols-[1fr_auto] items-center gap-4">
           <input formControlName="direccion" placeholder="Dirección*" class="input-filled" />
 
-          <div class="text-sm text-ra-slate whitespace-nowrap">
-            <span class="font-semibold mr-2">Sexo*</span>
+          <div class="text-ra-slate text-sm whitespace-nowrap">
+            <span class="mr-2 font-semibold">Sexo*</span>
             <label class="mr-4 inline-flex items-center gap-2">
-              <input type="radio" value="MASCULINO" formControlName="genero" class="accent-red-600" />
+              <input
+                type="radio"
+                value="MASCULINO"
+                formControlName="genero"
+                class="accent-red-600"
+              />
               Masculino
             </label>
             <label class="inline-flex items-center gap-2">
-              <input type="radio" value="FEMENINO" formControlName="genero" class="accent-red-600" />
+              <input
+                type="radio"
+                value="FEMENINO"
+                formControlName="genero"
+                class="accent-red-600"
+              />
               Femenino
             </label>
           </div>
         </div>
 
         <div
-          class="
-            grid gap-4 items-start
-            grid-cols-1
-            md:grid-cols-2
-            xl:grid-cols-[240px_240px_1.1fr_1.2fr]
-            2xl:grid-cols-[260px_260px_1.1fr_1.2fr]
-          "
+          class="grid grid-cols-1 items-start gap-4 md:grid-cols-2 xl:grid-cols-[240px_240px_1.1fr_1.2fr] 2xl:grid-cols-[260px_260px_1.1fr_1.2fr]"
         >
           <!-- FOTO -->
-          <div class="rounded-xl2 border border-gray-300 bg-gray-50 p-2 aspect-square self-start">
+          <div class="rounded-xl2 aspect-square self-start border border-gray-300 bg-gray-50 p-2">
             @if (fotoPreviewUrl) {
-              <div class="relative w-full h-full">
+              <div class="relative h-full w-full">
                 <img
                   [src]="fotoPreviewUrl"
                   alt="Foto"
-                  class="absolute inset-0 w-full h-full object-cover rounded-xl2"
+                  class="rounded-xl2 absolute inset-0 h-full w-full object-cover"
                 />
-                <div class="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
-                  <label class="px-3 py-1.5 rounded-md bg-white/90 border cursor-pointer hover:bg-white">
+                <div class="absolute right-0 bottom-2 left-0 flex justify-center gap-2">
+                  <label
+                    class="cursor-pointer rounded-md border bg-white/90 px-3 py-1.5 hover:bg-white"
+                  >
                     Cambiar
-                    <input type="file" accept="image/*" class="hidden" (change)="onFotoSeleccionada($event)" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      (change)="onFotoSeleccionada($event)"
+                    />
                   </label>
                   <button
                     type="button"
-                    class="px-3 py-1.5 rounded-md bg-white/90 border hover:bg-white"
+                    class="rounded-md border bg-white/90 px-3 py-1.5 hover:bg-white"
                     (click)="quitarFoto(); $event.stopPropagation()"
                   >
                     Quitar
@@ -234,14 +234,21 @@
                 </div>
               </div>
             } @else {
-              <div class="w-full h-full grid place-items-center text-center">
+              <div class="grid h-full w-full place-items-center text-center">
                 <div>
-                  <div class="mx-auto mb-3 h-12 w-12 grid place-items-center">
-                    <img src="iconos/subir-archivo.svg" alt="Icono subir" class="w-6 h-6" />
+                  <div class="mx-auto mb-3 grid h-12 w-12 place-items-center">
+                    <img src="iconos/subir-archivo.svg" alt="Icono subir" class="h-6 w-6" />
                   </div>
-                  <label class="px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 cursor-pointer">
+                  <label
+                    class="cursor-pointer rounded-md px-4 py-2 text-gray-700 hover:bg-gray-200"
+                  >
                     Subir archivo
-                    <input type="file" accept="image/*" class="hidden" (change)="onFotoSeleccionada($event)" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      (change)="onFotoSeleccionada($event)"
+                    />
                   </label>
                 </div>
               </div>
@@ -249,12 +256,24 @@
           </div>
 
           <!-- HUELLA -->
-          <div class="rounded-xl2 border border-gray-300 bg-gray-50 p-2 aspect-square self-start">
-            <div class="w-full h-full grid place-items-center text-center">
+          <div class="rounded-xl2 aspect-square self-start border border-gray-300 bg-gray-50 p-2">
+            <div class="grid h-full w-full place-items-center text-center">
               <div>
-                <div class="mx-auto mb-3 h-12 w-12 rounded-full bg-gray-200 grid place-items-center">
-                  <svg viewBox="0 0 24 24" class="h-6 w-6 text-gray-600" fill="none" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c1.657 0 3 1.343 3 3v4" />
+                <div
+                  class="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-gray-200"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="h-6 w-6 text-gray-600"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M12 11c1.657 0 3 1.343 3 3v4"
+                    />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 9a3 3 0 016 0v2" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M7 12a5 5 0 0110 0v2" />
                   </svg>
@@ -263,7 +282,7 @@
                 <div class="space-y-2">
                   <button
                     type="button"
-                    class="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700"
+                    class="rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700"
                     (click)="abrirModalHuella(); $event.stopPropagation()"
                   >
                     Ingresar huella
@@ -279,28 +298,23 @@
 
           <!-- COMENTARIOS -->
           <div
-            class="
-              rounded-xl2 border border-gray-300 bg-gray-50 p-2
-              self-start
-              h-[240px] 2xl:h-[260px]
-              flex
-              md:col-span-2 xl:col-span-1
-            "
+            class="rounded-xl2 flex h-[240px] self-start border border-gray-300 bg-gray-50 p-2 md:col-span-2 xl:col-span-1 2xl:h-[260px]"
           >
             <textarea
               formControlName="comentarios"
-              class="input-filled h-full w-full resize-none min-h-0"
+              class="input-filled h-full min-h-0 w-full resize-none"
               placeholder="Comentarios (opcional)"
             ></textarea>
           </div>
 
           <!-- ✅ PAQUETE / PAGO -->
-          <div class="h-full flex flex-col self-start md:col-span-2 xl:col-span-1" (click)="$event.stopPropagation()">
+          <div
+            class="flex h-full flex-col self-start md:col-span-2 xl:col-span-1"
+            (click)="$event.stopPropagation()"
+          >
             <input type="hidden" formControlName="paqueteId" />
 
-            <label class="block text-sm font-semibold text-ra-slate mb-1">
-              Paquete*
-            </label>
+            <label class="text-ra-slate mb-1 block text-sm font-semibold"> Paquete* </label>
 
             <div class="relative">
               <input
@@ -316,7 +330,7 @@
               @if (!paqueteBloqueadoSig() && !cargandoPaquetes && paqueteBusquedaSig()) {
                 <button
                   type="button"
-                  class="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 grid place-items-center rounded-md hover:bg-gray-100"
+                  class="absolute top-1/2 right-2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md hover:bg-gray-100"
                   title="Limpiar"
                   (click)="limpiarPaqueteSeleccionado($event)"
                 >
@@ -325,36 +339,40 @@
               }
 
               @if (paqueteDropdownAbiertoSig() && !paqueteBloqueadoSig() && !cargandoPaquetes) {
-                <div class="absolute z-50 mt-1 w-full rounded-xl2 border border-gray-200 bg-white shadow-card overflow-hidden">
+                <div
+                  class="rounded-xl2 shadow-card absolute z-50 mt-1 w-full overflow-hidden border border-gray-200 bg-white"
+                >
                   <div class="max-h-[280px] overflow-auto">
                     @if (paqueteBuscandoSig()) {
-                      <div class="px-3 py-2 text-sm text-ra-slate/70">Buscando…</div>
+                      <div class="text-ra-slate/70 px-3 py-2 text-sm">Buscando…</div>
                     } @else if (paqueteBusquedaErrorSig()) {
                       <div class="px-3 py-2 text-sm text-red-700">
                         {{ paqueteBusquedaErrorSig() }}
                       </div>
                     } @else if (paquetesSugeridosSig().length === 0) {
-                      <div class="px-3 py-2 text-sm text-ra-slate/70">Sin resultados.</div>
+                      <div class="text-ra-slate/70 px-3 py-2 text-sm">Sin resultados.</div>
                     } @else {
                       @for (p of paquetesSugeridosSig(); track p.idPaquete) {
                         <button
                           type="button"
-                          class="w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                          class="w-full border-b border-gray-100 px-3 py-2 text-left last:border-b-0 hover:bg-gray-50"
                           (click)="seleccionarPaqueteDesdeBusqueda(p, $event)"
                         >
                           <div class="flex items-start justify-between gap-2">
                             <div class="min-w-0">
-                              <div class="font-semibold text-ra-slate truncate">
+                              <div class="text-ra-slate truncate font-semibold">
                                 {{ p.nombre }}
                               </div>
-                              <div class="text-[11px] text-ra-slate/70 mt-0.5">
+                              <div class="text-ra-slate/70 mt-0.5 text-[11px]">
                                 {{ p.tiempo | tiempoPlan }} · {{ modalidadTexto(p.modalidad) }}
-                                @if (p.estudiantil) { · Estudiantil }
+                                @if (p.estudiantil) {
+                                  · Estudiantil
+                                }
                               </div>
                             </div>
 
-                            <div class="text-sm font-semibold text-ra-slate whitespace-nowrap">
-                              ${{ (p.precio || 0) | number: '1.2-2' }}
+                            <div class="text-ra-slate text-sm font-semibold whitespace-nowrap">
+                              ${{ p.precio || 0 | number: '1.2-2' }}
                             </div>
                           </div>
                         </button>
@@ -366,19 +384,17 @@
             </div>
 
             @if (batchIniciadoSig()) {
-              <div class="mt-1 text-xs text-ra-slate/70">
+              <div class="text-ra-slate/70 mt-1 text-xs">
                 Paquete bloqueado. Para cambiarlo, reinicia el lote.
               </div>
             }
 
             @if (promoCargandoSig()) {
-              <div class="mt-2 text-xs text-ra-slate/70">
-                Cargando promoción del paquete...
-              </div>
+              <div class="text-ra-slate/70 mt-2 text-xs">Cargando promoción del paquete...</div>
             }
 
             @if (!promoCargandoSig() && promocionAplicadaSig()) {
-              <div class="mt-3 rounded-xl2 border border-emerald-200 bg-emerald-50 p-3">
+              <div class="rounded-xl2 mt-3 border border-emerald-200 bg-emerald-50 p-3">
                 <div class="flex items-start justify-between gap-3">
                   <div class="min-w-0">
                     <div class="text-sm font-semibold text-emerald-900">
@@ -386,21 +402,23 @@
                     </div>
 
                     @if (promocionAplicadaSig()?.descripcion) {
-                      <div class="text-xs text-emerald-900/80 mt-1">
+                      <div class="mt-1 text-xs text-emerald-900/80">
                         {{ promocionAplicadaSig()?.descripcion }}
                       </div>
                     }
 
                     @if (promoBadgeTextoSig()) {
                       <div class="mt-2">
-                        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold bg-white/80 border border-emerald-200 text-emerald-900">
+                        <span
+                          class="inline-flex items-center rounded-full border border-emerald-200 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-emerald-900"
+                        >
                           {{ promoBadgeTextoSig() }}
                         </span>
                       </div>
                     }
 
                     @if (promoMesesGratisSig() > 0) {
-                      <div class="text-[11px] text-emerald-900/80 mt-2">
+                      <div class="mt-2 text-[11px] text-emerald-900/80">
                         Nota: meses gratis se reflejan en la vigencia.
                       </div>
                     }
@@ -433,7 +451,6 @@
               (blur)="onDescuentoInput($any($event.target).value)"
             />
 
-
             @if (editandoIntegranteSig()) {
               <div class="mt-1 text-xs text-amber-700">
                 Nota: en edición no se recomienda cambiar descuento (pagos ya capturados).
@@ -442,7 +459,7 @@
 
             @if (esPaqueteRASig()) {
               <div class="mt-3">
-                <label class="block text-sm font-semibold text-ra-slate mb-1">
+                <label class="text-ra-slate mb-1 block text-sm font-semibold">
                   Entrenador RA <span class="text-red-500">*</span>
                 </label>
                 @if (cargandoEntrenadoresSig()) {
@@ -451,7 +468,8 @@
                   <select
                     class="input-filled"
                     [value]="entrenadorRAIdSig() ?? ''"
-                    (change)="onEntrenadorRAChange($any($event.target).value)">
+                    (change)="onEntrenadorRAChange($any($event.target).value)"
+                  >
                     <option value="">— Selecciona entrenador RA —</option>
                     @for (e of entrenadoresRASig(); track e.idEntrenador) {
                       <option [value]="e.idEntrenador">{{ e.nombre }} {{ e.apellido }}</option>
@@ -459,15 +477,17 @@
                   </select>
                 }
                 @if (!entrenadorRAIdSig()) {
-                  <p class="text-xs text-red-600 mt-1">Selecciona un entrenador RA para este paquete.</p>
+                  <p class="mt-1 text-xs text-red-600">
+                    Selecciona un entrenador RA para este paquete.
+                  </p>
                 }
               </div>
             }
 
-            <label class="block text-sm font-semibold text-ra-slate mt-3 mb-1">
+            <label class="text-ra-slate mt-3 mb-1 block text-sm font-semibold">
               Fecha de pago
             </label>
-            <div class="input-filled bg-gray-100 pointer-events-none select-none">
+            <div class="input-filled pointer-events-none bg-gray-100 select-none">
               {{ fechaPagoVistaSig() | date: 'dd/MM/yyyy' }}
             </div>
 
@@ -476,45 +496,43 @@
         </div>
 
         <div class="grid grid-cols-3 gap-4 text-sm">
-          <div class="rounded-lg bg-gray-50 border border-gray-200 p-3">
+          <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
             <div class="text-gray-600">Precio paquete</div>
             <div class="font-semibold">${{ precioPaqueteUiSig() | number: '1.2-2' }}</div>
           </div>
-          <div class="rounded-lg bg-gray-50 border border-gray-200 p-3">
+          <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
             <div class="text-gray-600">Inscripción</div>
             <div class="font-semibold">
               @if (promoInscripcionGratisSig()) {
-                <span class="line-through text-gray-400 mr-1">${{ costoInscripcionUiSig() | number: '1.2-2' }}</span>
+                <span class="mr-1 text-gray-400 line-through"
+                  >${{ costoInscripcionUiSig() | number: '1.2-2' }}</span
+                >
                 <span>$0.00</span>
               } @else {
                 ${{ costoInscripcionUiSig() | number: '1.2-2' }}
               }
             </div>
           </div>
-          <div class="rounded-lg bg-gray-50 border border-gray-200 p-3">
+          <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
             <div class="text-gray-600">Total (con descuento)</div>
-            <div class="font-bold text-ra-slate">${{ totalConPromoSig() | number: '1.2-2' }}</div>
+            <div class="text-ra-slate font-bold">${{ totalConPromoSig() | number: '1.2-2' }}</div>
             @if (promocionAplicadaSig()) {
-              <div class="text-[11px] text-emerald-700 mt-1">
-                Incluye promoción activa.
-              </div>
+              <div class="mt-1 text-[11px] text-emerald-700">Incluye promoción activa.</div>
             }
           </div>
         </div>
 
         @if (mensajeError) {
-          <div class="text-red-600 text-sm mt-2">{{ mensajeError }}</div>
+          <div class="mt-2 text-sm text-red-600">{{ mensajeError }}</div>
         }
 
-        <div class="pt-4 flex justify-center gap-3">
+        <div class="flex justify-center gap-3 pt-4">
           @if (!editandoIntegranteSig()) {
             <button
               type="button"
               (click)="abrirModalResumen(); $event.stopPropagation()"
               [disabled]="guardandoMembresia || !puedeAbrirResumenSig()"
-              class="px-8 py-2.5 rounded-md text-white
-                     disabled:opacity-50 disabled:cursor-not-allowed
-                     bg-red-600 hover:bg-red-700"
+              class="rounded-md bg-red-600 px-8 py-2.5 text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {{ botonContinuarSig() }}
             </button>
@@ -523,7 +541,7 @@
               type="button"
               (click)="guardarEdicionIntegrante(); $event.stopPropagation()"
               [disabled]="guardandoMembresia"
-              class="px-6 py-2.5 rounded-md text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="rounded-md bg-amber-600 px-6 py-2.5 text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Guardar cambios
             </button>
@@ -532,15 +550,19 @@
               type="button"
               (click)="cancelarEdicionIntegrante(); $event.stopPropagation()"
               [disabled]="guardandoMembresia"
-              class="px-6 py-2.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-ra-slate disabled:opacity-50 disabled:cursor-not-allowed"
+              class="text-ra-slate rounded-md border border-gray-300 bg-white px-6 py-2.5 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancelar edición
             </button>
           }
         </div>
 
-        @if (!puedeAbrirResumenSig() && (formularioInscripcion.touched || formularioInscripcion.dirty) && !editandoIntegranteSig()) {
-          <div class="text-xs text-ra-slate/70 text-center pt-2">
+        @if (
+          !puedeAbrirResumenSig() &&
+          (formularioInscripcion.touched || formularioInscripcion.dirty) &&
+          !editandoIntegranteSig()
+        ) {
+          <div class="text-ra-slate/70 pt-2 text-center text-xs">
             Completa los campos requeridos y valida Estudiante si aplica.
           </div>
         }
@@ -550,7 +572,10 @@
 
   <!-- ✅ MODALES FUERA DEL CONTENEDOR CON SCALE/TRANSFORM -->
   @if (mostrarModalResumen()) {
-    <div class="fixed inset-0 z-[999] flex items-center justify-center p-4" (click)="cerrarModalResumen()">
+    <div
+      class="fixed inset-0 z-[999] flex items-center justify-center p-4"
+      (click)="cerrarModalResumen()"
+    >
       <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
 
       <div class="relative z-10 w-full max-w-[560px]" (click)="$event.stopPropagation()">
@@ -573,6 +598,9 @@
   }
 
   @if (mostrarModalHuella()) {
-    <app-huella-modal (cancelar)="onHuellaCancel()" (confirmar)="onHuellaOk($event)"></app-huella-modal>
+    <app-huella-modal
+      (cancelar)="onHuellaCancel()"
+      (confirmar)="onHuellaOk($event)"
+    ></app-huella-modal>
   }
 </div>

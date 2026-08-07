@@ -51,10 +51,25 @@ export interface DashboardAsistencias {
 }
 
 export interface DashboardInventario {
-  topProductos?: Array<{ idProducto: number; nombre: string; cantidadVendida: number; totalIngreso: number }>;
-  productosMasVendidos?: Array<{ idProducto: number; nombre: string; cantidadVendida: number; totalIngreso: number }>;
+  topProductos?: Array<{
+    idProducto: number;
+    nombre: string;
+    cantidadVendida: number;
+    totalIngreso: number;
+  }>;
+  productosMasVendidos?: Array<{
+    idProducto: number;
+    nombre: string;
+    cantidadVendida: number;
+    totalIngreso: number;
+  }>;
   bajoStock?: Array<{ nombre: string; stock: number }>;
-  productosMenosVendidos?: Array<{ idProducto: number; nombre: string; cantidadVendida: number; totalIngreso: number }>;
+  productosMenosVendidos?: Array<{
+    idProducto: number;
+    nombre: string;
+    cantidadVendida: number;
+    totalIngreso: number;
+  }>;
 }
 
 export interface EntrenadorRanking {
@@ -87,15 +102,12 @@ export class EstadisticasService {
   getDashboard(
     idGimnasio: number | null,
     desde: string,
-    hasta: string
+    hasta: string,
   ): Observable<DashboardResponse> {
     let params = new HttpParams().set('desde', desde).set('hasta', hasta);
     if (idGimnasio != null) {
       params = params.set('idGimnasio', idGimnasio);
     }
-    return this.http.get<DashboardResponse>(
-      `${this.baseUrl}/estadisticas/dashboard`,
-      { params }
-    );
+    return this.http.get<DashboardResponse>(`${this.baseUrl}/estadisticas/dashboard`, { params });
   }
 }

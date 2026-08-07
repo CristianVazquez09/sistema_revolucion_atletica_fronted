@@ -47,7 +47,7 @@ describe('PromocionService', () => {
 
   it('listar hace GET a la URL base', () => {
     let resultado: PromocionData[] | undefined;
-    service.listar().subscribe(r => (resultado = r));
+    service.listar().subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(BASE);
     expect(req.request.method).toBe('GET');

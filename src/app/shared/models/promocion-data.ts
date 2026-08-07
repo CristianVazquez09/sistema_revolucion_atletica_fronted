@@ -8,7 +8,7 @@ export interface PromocionUpsertData {
   descripcion?: string | null;
 
   fechaInicio: string; // YYYY-MM-DD
-  fechaFin: string;    // YYYY-MM-DD
+  fechaFin: string; // YYYY-MM-DD
 
   tipo: TipoPromocion | string;
 
@@ -34,7 +34,7 @@ export interface PromocionData {
   descripcion?: string | null;
 
   fechaInicio: string; // YYYY-MM-DD
-  fechaFin: string;    // YYYY-MM-DD
+  fechaFin: string; // YYYY-MM-DD
 
   tipo: TipoPromocion | string;
 

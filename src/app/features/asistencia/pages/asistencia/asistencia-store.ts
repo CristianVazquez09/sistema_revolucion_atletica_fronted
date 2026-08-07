@@ -39,7 +39,7 @@ export class AsistenciaStore {
     const data: EstadoAsistencia = {
       idSocio: this.idSocio(),
       socio: this.socio(),
-      membresias: this.membresias()
+      membresias: this.membresias(),
     };
     localStorage.setItem(CLAVE_STORAGE, JSON.stringify(data));
   }

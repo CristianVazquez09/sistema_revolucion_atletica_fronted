@@ -97,7 +97,7 @@ export class PromocionModal {
   paqNombre(p: PaqueteData | any): string {
     const nombre = String((p as any)?.nombre ?? '').trim();
     const id = this.paqId(p);
-    return nombre.length ? nombre : (id != null ? `Paquete ${id}` : 'Paquete');
+    return nombre.length ? nombre : id != null ? `Paquete ${id}` : 'Paquete';
   }
 
   paqTrack = (index: number, p: PaqueteData): number => {
@@ -171,7 +171,7 @@ export class PromocionModal {
     const vinculadosIds = new Set(
       (this.paquetesVinculados() ?? [])
         .map((p) => this.paqId(p))
-        .filter((x): x is number => typeof x === 'number')
+        .filter((x): x is number => typeof x === 'number'),
     );
 
     return base.filter((p) => {
@@ -198,8 +198,9 @@ export class PromocionModal {
         this.gimnasioIdSig.set(fallback);
       }
 
-      this.form.get('gimnasioId')?.valueChanges
-        .pipe(takeUntilDestroyed(this.destroyRef))
+      this.form
+        .get('gimnasioId')
+        ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((val) => {
           const nuevo = this.toNum(val);
 
@@ -208,7 +209,9 @@ export class PromocionModal {
             const actual = this.getGymIdFromPromocion(this.promocion);
             this.form.get('gimnasioId')?.setValue(actual, { emitEvent: false });
             this.gimnasioIdSig.set(actual);
-            this.noti.error('Para cambiar el gimnasio primero desvincula todos los paquetes (o crea una nueva promoción).');
+            this.noti.error(
+              'Para cambiar el gimnasio primero desvincula todos los paquetes (o crea una nueva promoción).',
+            );
             return;
           }
 
@@ -216,7 +219,9 @@ export class PromocionModal {
 
           // creación: si cambian gym, limpia paquetes vinculados que no correspondan
           if (!this.esEdicion() && nuevo != null) {
-            const filtrados = (this.paquetesVinculados() ?? []).filter((p: any) => this.getGymIdFromPaquete(p) === nuevo);
+            const filtrados = (this.paquetesVinculados() ?? []).filter(
+              (p: any) => this.getGymIdFromPaquete(p) === nuevo,
+            );
             if (filtrados.length !== (this.paquetesVinculados() ?? []).length) {
               this.paquetesVinculados.set(filtrados);
             }
@@ -242,8 +247,9 @@ export class PromocionModal {
       });
     }
 
-    this.form.get('tipo')?.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    this.form
+      .get('tipo')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.normalizeByTipo());
   }
 
@@ -271,7 +277,8 @@ export class PromocionModal {
       return;
     }
 
-    const paquete = (this.paquetes ?? []).find((p: any) => this.toNum(p?.idPaquete) === idPaq) as PaqueteData | undefined;
+    const paquete = (this.paquetes ?? []).find((p: any) => this.toNum(p?.idPaquete) === idPaq) as
+      PaqueteData | undefined;
     if (!paquete) {
       this.noti.error('No se encontró el paquete.');
       return;
@@ -289,7 +296,8 @@ export class PromocionModal {
     const idPromo = this.idPromocion();
     if (this.esEdicion() && idPromo) {
       this.gestionPaquetesBusy.set(true);
-      this.servicio.vincularPaquete(idPromo, idPaq)
+      this.servicio
+        .vincularPaquete(idPromo, idPaq)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: () => {
@@ -323,12 +331,15 @@ export class PromocionModal {
 
     if (this.esEdicion() && idPromo) {
       this.gestionPaquetesBusy.set(true);
-      this.servicio.desvincularPaquete(idPromo, idPaq)
+      this.servicio
+        .desvincularPaquete(idPromo, idPaq)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: () => {
             this.gestionPaquetesBusy.set(false);
-            this.paquetesVinculados.update((lst) => (lst ?? []).filter((x) => this.paqId(x) !== idPaq));
+            this.paquetesVinculados.update((lst) =>
+              (lst ?? []).filter((x) => this.paqId(x) !== idPaq),
+            );
             this.noti.exito('Paquete desvinculado.');
           },
           error: (err) => {
@@ -367,11 +378,19 @@ export class PromocionModal {
       return;
     }
 
-    if (!confirm('¿Renovar promoción? Se creará una nueva promoción con fechas desde hoy y los mismos paquetes.')) return;
+    if (
+      !confirm(
+        '¿Renovar promoción? Se creará una nueva promoción con fechas desde hoy y los mismos paquetes.',
+      )
+    )
+      return;
 
     const ini = this.toLocalDate(String(this.form.get('fechaInicio')?.value ?? '').trim());
     const fin = this.toLocalDate(String(this.form.get('fechaFin')?.value ?? '').trim());
-    const dur = ini && fin ? Math.max(1, Math.round((fin.getTime() - ini.getTime()) / (1000 * 60 * 60 * 24))) : 7;
+    const dur =
+      ini && fin
+        ? Math.max(1, Math.round((fin.getTime() - ini.getTime()) / (1000 * 60 * 60 * 24)))
+        : 7;
 
     const hoy = this.hoy();
     const nuevoIni = this.formatDate(hoy);
@@ -404,9 +423,20 @@ export class PromocionModal {
 
       tipo: String(tipo),
 
-      descuentoPorcentaje: tipo === TipoPromocion.DESCUENTO_PORCENTAJE ? (pctRaw != null ? Number(pctRaw) : null) : null,
-      descuentoMonto: tipo === TipoPromocion.DESCUENTO_MONTO ? (montoRaw != null ? Number(montoRaw) : null) : null,
-      mesesGratis: tipo === TipoPromocion.MESES_GRATIS ? (mesesRaw != null ? Number(mesesRaw) : null) : null,
+      descuentoPorcentaje:
+        tipo === TipoPromocion.DESCUENTO_PORCENTAJE
+          ? pctRaw != null
+            ? Number(pctRaw)
+            : null
+          : null,
+      descuentoMonto:
+        tipo === TipoPromocion.DESCUENTO_MONTO
+          ? montoRaw != null
+            ? Number(montoRaw)
+            : null
+          : null,
+      mesesGratis:
+        tipo === TipoPromocion.MESES_GRATIS ? (mesesRaw != null ? Number(mesesRaw) : null) : null,
 
       soloNuevos,
       sinCostoInscripcion: sinInscripcion,
@@ -421,16 +451,18 @@ export class PromocionModal {
 
     this.guardando.set(true);
 
-    this.servicio.crear(payload)
+    this.servicio
+      .crear(payload)
       .pipe(
         switchMap((resp) => {
           const newId = this.toNum((resp as any)?.idPromocion);
           if (!newId || !paquetesIds.length) return of(resp);
 
-          return forkJoin(paquetesIds.map((idPaq) => this.servicio.vincularPaquete(newId, idPaq)))
-            .pipe(switchMap(() => of(resp)));
+          return forkJoin(
+            paquetesIds.map((idPaq) => this.servicio.vincularPaquete(newId, idPaq)),
+          ).pipe(switchMap(() => of(resp)));
         }),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: () => {
@@ -518,7 +550,9 @@ export class PromocionModal {
     // Validación por tipo
     if (tipo === TipoPromocion.SIN_BENEFICIO) {
       if (!soloNuevos && !sinInscripcion) {
-        this.noti.error('En "Solo restricciones", activa al menos "Solo nuevos" o "Sin costo de inscripción".');
+        this.noti.error(
+          'En "Solo restricciones", activa al menos "Solo nuevos" o "Sin costo de inscripción".',
+        );
         return;
       }
     }
@@ -575,9 +609,20 @@ export class PromocionModal {
 
       tipo: String(tipo),
 
-      descuentoPorcentaje: tipo === TipoPromocion.DESCUENTO_PORCENTAJE ? (pctRaw != null ? Number(pctRaw) : null) : null,
-      descuentoMonto: tipo === TipoPromocion.DESCUENTO_MONTO ? (montoRaw != null ? Number(montoRaw) : null) : null,
-      mesesGratis: tipo === TipoPromocion.MESES_GRATIS ? (mesesRaw != null ? Number(mesesRaw) : null) : null,
+      descuentoPorcentaje:
+        tipo === TipoPromocion.DESCUENTO_PORCENTAJE
+          ? pctRaw != null
+            ? Number(pctRaw)
+            : null
+          : null,
+      descuentoMonto:
+        tipo === TipoPromocion.DESCUENTO_MONTO
+          ? montoRaw != null
+            ? Number(montoRaw)
+            : null
+          : null,
+      mesesGratis:
+        tipo === TipoPromocion.MESES_GRATIS ? (mesesRaw != null ? Number(mesesRaw) : null) : null,
 
       soloNuevos,
       sinCostoInscripcion: sinInscripcion,
@@ -592,7 +637,8 @@ export class PromocionModal {
 
     // === EDITAR ===
     if (this.esEdicion() && idPromo) {
-      this.servicio.actualizarPromocion(idPromo, payload)
+      this.servicio
+        .actualizarPromocion(idPromo, payload)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: () => {
@@ -611,22 +657,22 @@ export class PromocionModal {
     }
 
     // === CREAR ===
-    this.servicio.crear(payload)
+    this.servicio
+      .crear(payload)
       .pipe(
         switchMap((resp) => {
-          const newId =
-            this.toNum((resp as any)?.idPromocion) ??
-            this.toNum((resp as any)?.id);
+          const newId = this.toNum((resp as any)?.idPromocion) ?? this.toNum((resp as any)?.id);
 
           if (!newId) return of(resp);
           if (!paquetesIds.length) return of(resp);
 
           this.gestionPaquetesBusy.set(true);
 
-          return forkJoin(paquetesIds.map((idPaq) => this.servicio.vincularPaquete(newId, idPaq)))
-            .pipe(switchMap(() => of(resp)));
+          return forkJoin(
+            paquetesIds.map((idPaq) => this.servicio.vincularPaquete(newId, idPaq)),
+          ).pipe(switchMap(() => of(resp)));
         }),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: () => {

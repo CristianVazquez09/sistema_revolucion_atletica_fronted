@@ -1,18 +1,16 @@
 @if (!puedeVer) {
-  <div class="mx-1 mt-4 rounded-xl bg-white ring-1 ring-black/10 shadow-card p-6">
-    <div class="text-red-600 font-semibold">No autorizado</div>
-    <div class="text-xs text-gray-600 mt-1">Solo ADMIN o GERENTE.</div>
+  <div class="shadow-card mx-1 mt-4 rounded-xl bg-white p-6 ring-1 ring-black/10">
+    <div class="font-semibold text-red-600">No autorizado</div>
+    <div class="mt-1 text-xs text-gray-600">Solo ADMIN o GERENTE.</div>
   </div>
 } @else {
-
   <div #zoomOuter class="overflow-x-hidden">
     <div #zoomInner class="origin-top-left" [style.zoom]="uiZoom">
-
       <!-- Barra externa: solo el botón Agregar -->
       <div class="mx-1 mb-3 flex justify-end">
         <button
           type="button"
-          class="h-8 px-3 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-card text-xs whitespace-nowrap"
+          class="shadow-card h-8 rounded-lg bg-red-600 px-3 text-xs whitespace-nowrap text-white hover:bg-red-700"
           (click)="abrirNuevo()"
         >
           Agregar asesorado
@@ -20,23 +18,29 @@
       </div>
 
       <!-- CARD PRINCIPAL -->
-      <div #tablaWrap class="mx-1 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden">
-
+      <div
+        #tablaWrap
+        class="shadow-card mx-1 overflow-hidden rounded-xl bg-white ring-1 ring-black/10"
+      >
         <!-- TOOLBAR -->
-        <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
-          <h1 class="text-base sm:text-lg font-semibold text-ra-slate shrink-0">Asesorías Nutricionales</h1>
-          <div class="w-px h-5 bg-gray-200 shrink-0"></div>
+        <div
+          class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-gray-100 px-4 py-3"
+        >
+          <h1 class="text-ra-slate shrink-0 text-base font-semibold sm:text-lg">
+            Asesorías Nutricionales
+          </h1>
+          <div class="h-5 w-px shrink-0 bg-gray-200"></div>
 
-          <div class="flex items-center gap-1.5 shrink-0">
+          <div class="flex shrink-0 items-center gap-1.5">
             <input
               type="text"
-              class="w-[240px] h-8 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
+              class="h-8 w-[240px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
               placeholder="Nombre, ID o teléfono…"
               [(ngModel)]="terminoBuscar"
             />
             <button
               type="button"
-              class="h-8 px-3 rounded-lg border border-gray-200 text-xs text-ra-slate hover:bg-gray-50 shrink-0 disabled:opacity-40"
+              class="text-ra-slate h-8 shrink-0 rounded-lg border border-gray-200 px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
               (click)="limpiarFiltro()"
               [disabled]="!terminoBuscar"
             >
@@ -44,7 +48,7 @@
             </button>
             <button
               type="button"
-              class="h-8 px-3 rounded-lg border border-gray-200 text-xs text-ra-slate hover:bg-gray-50 shrink-0"
+              class="text-ra-slate h-8 shrink-0 rounded-lg border border-gray-200 px-3 text-xs hover:bg-gray-50"
               (click)="cargar()"
             >
               Recargar
@@ -55,102 +59,189 @@
         <!-- TABLA -->
         <div class="overflow-x-auto">
           <div>
-            <table class="w-full min-w-[700px] border-collapse table-fixed text-xs">
+            <table class="w-full min-w-[700px] table-fixed border-collapse text-xs">
               <colgroup>
-                <col [class]="mostrarGimnasioCol() ? 'w-[22%]' : 'w-[28%]'">
-                <col class="w-[12%]">
-                @if (mostrarGimnasioCol()) { <col class="w-[14%]"> }
-                <col class="w-[12%]">
-                <col class="w-[12%]">
-                <col class="w-[12%]">
-                <col class="w-[5%]">
+                <col [class]="mostrarGimnasioCol() ? 'w-[22%]' : 'w-[28%]'" />
+                <col class="w-[12%]" />
+                @if (mostrarGimnasioCol()) {
+                  <col class="w-[14%]" />
+                }
+                <col class="w-[12%]" />
+                <col class="w-[12%]" />
+                <col class="w-[12%]" />
+                <col class="w-[5%]" />
               </colgroup>
 
-              <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+              <thead class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
                 <tr>
-                  <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Socio</th>
-                  <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Teléfono</th>
+                  <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+                    Socio
+                  </th>
+                  <th
+                    class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase"
+                  >
+                    Teléfono
+                  </th>
                   @if (mostrarGimnasioCol()) {
-                    <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Gimnasio</th>
+                    <th
+                      class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase"
+                    >
+                      Gimnasio
+                    </th>
                   }
-                  <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">F. inicio</th>
-                  <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">F. fin</th>
-                  <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Estado</th>
-                  <th class="py-3 px-1 text-center text-ra-slate" aria-label="Acciones"></th>
+                  <th
+                    class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase"
+                  >
+                    F. inicio
+                  </th>
+                  <th
+                    class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase"
+                  >
+                    F. fin
+                  </th>
+                  <th
+                    class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase"
+                  >
+                    Estado
+                  </th>
+                  <th class="text-ra-slate px-1 py-3 text-center" aria-label="Acciones"></th>
                 </tr>
               </thead>
 
               <tbody>
                 @if (cargando) {
-                  <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Cargando…</td></tr>
+                  <tr>
+                    <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Cargando…</td>
+                  </tr>
                 } @else if (error) {
-                  <tr><td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ error }}</td></tr>
+                  <tr>
+                    <td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ error }}</td>
+                  </tr>
                 } @else if (!listaFiltradaSig().length) {
-                  <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Sin resultados.</td></tr>
+                  <tr>
+                    <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">
+                      Sin resultados.
+                    </td>
+                  </tr>
                 } @else {
-                  @for (row of listaFiltradaSig(); track (idRow(row) ?? $index); let i = $index) {
+                  @for (row of listaFiltradaSig(); track idRow(row) ?? $index; let i = $index) {
                     <tr class="border-t border-gray-100 hover:bg-gray-50/60">
-
-                      <td class="py-2.5 px-3 min-w-0">
-                        <div class="font-medium truncate text-[11px] min-w-0">{{ row.socio.nombre }} {{ row.socio.apellido }}</div>
-                        <div class="text-[10px] text-ra-slate/60 truncate">ID: {{ row.socio.idSocio }}</div>
+                      <td class="min-w-0 px-3 py-2.5">
+                        <div class="min-w-0 truncate text-[11px] font-medium">
+                          {{ row.socio.nombre }} {{ row.socio.apellido }}
+                        </div>
+                        <div class="text-ra-slate/60 truncate text-[10px]">
+                          ID: {{ row.socio.idSocio }}
+                        </div>
                       </td>
 
-                      <td class="py-2.5 px-3 text-center text-[11px] truncate">{{ row.socio.telefono || '—' }}</td>
+                      <td class="truncate px-3 py-2.5 text-center text-[11px]">
+                        {{ row.socio.telefono || '—' }}
+                      </td>
 
                       @if (mostrarGimnasioCol()) {
-                        <td class="py-2.5 px-3 text-center">
-                          <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-[10px]">
-                            <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                        <td class="px-3 py-2.5 text-center">
+                          <span
+                            class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 px-2 py-0.5 text-[10px] text-[color:var(--color-ra-azul-fuerte)]"
+                          >
+                            <svg
+                              viewBox="0 0 24 24"
+                              class="h-3.5 w-3.5 shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
                               <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
                             </svg>
-                            <span class="truncate max-w-[140px]">{{ gimnasioLabel(row) }}</span>
+                            <span class="max-w-[140px] truncate">{{ gimnasioLabel(row) }}</span>
                           </span>
                         </td>
                       }
 
-                      <td class="py-2.5 px-3 text-center text-[11px] whitespace-nowrap">{{ fmt(row.fechaInicio) }}</td>
-                      <td class="py-2.5 px-3 text-center text-[11px] whitespace-nowrap">{{ fmt(row.fechaFin) }}</td>
+                      <td class="px-3 py-2.5 text-center text-[11px] whitespace-nowrap">
+                        {{ fmt(row.fechaInicio) }}
+                      </td>
+                      <td class="px-3 py-2.5 text-center text-[11px] whitespace-nowrap">
+                        {{ fmt(row.fechaFin) }}
+                      </td>
 
-                      <td class="py-2.5 px-3 text-center">
+                      <td class="px-3 py-2.5 text-center">
                         @if (esDesactivada(row)) {
-                          <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">Desactivada</span>
+                          <span
+                            class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700"
+                            >Desactivada</span
+                          >
                         } @else if (estaProgramada(row)) {
-                          <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 text-[10px] font-semibold">Programada</span>
+                          <span
+                            class="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-800"
+                            >Programada</span
+                          >
                         } @else if (estaVencida(row)) {
-                          <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-[10px] font-semibold">Vencida</span>
+                          <span
+                            class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-700"
+                            >Vencida</span
+                          >
                         } @else if (estaPorVencer(row)) {
-                          <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-semibold">Por vencer</span>
+                          <span
+                            class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
+                            >Por vencer</span
+                          >
                         } @else if (estaVigente(row)) {
-                          <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-[10px] font-semibold">Vigente</span>
+                          <span
+                            class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-800"
+                            >Vigente</span
+                          >
                         } @else {
-                          <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-[10px] font-semibold">—</span>
+                          <span
+                            class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-700"
+                            >—</span
+                          >
                         }
                       </td>
 
-                      <td class="py-2.5 px-1 text-center relative">
+                      <td class="relative px-1 py-2.5 text-center">
                         <button
                           (click)="toggleMenuRow(i, $event)"
-                          class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                          class="hover:bg-ra-grayLight/50 mx-auto grid h-6 w-6 place-items-center rounded"
                           title="Acciones"
                         >
-                          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
-                            <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                          <svg
+                            viewBox="0 0 24 24"
+                            class="h-3.5 w-3.5 text-[color:var(--color-ra-azul-fuerte)]"
+                            fill="currentColor"
+                          >
+                            <circle cx="12" cy="5" r="1.5" />
+                            <circle cx="12" cy="12" r="1.5" />
+                            <circle cx="12" cy="19" r="1.5" />
                           </svg>
                         </button>
 
                         @if (menuRowIdx === i) {
-                          <div class="fixed z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left" [ngStyle]="menuDropdownStyle">
-                            <button (click)="menuRowIdx = null; abrirEditar(row)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
-                              <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" />
+                          <div
+                            class="fixed z-50 w-48 rounded-xl bg-white py-1 text-left shadow-lg ring-1 ring-black/10"
+                            [ngStyle]="menuDropdownStyle"
+                          >
+                            <button
+                              (click)="menuRowIdx = null; abrirEditar(row)"
+                              class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+                            >
+                              <img src="iconos/editar.svg" alt="Editar" class="h-4 w-4 shrink-0" />
                               Renovar / Editar
                             </button>
                             <button
                               (click)="menuRowIdx = null; desactivar(row)"
-                              [disabled]="!puedeDesactivar(row) || busyDesactivarId() === idRow(row)"
-                              class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
+                              [disabled]="
+                                !puedeDesactivar(row) || busyDesactivarId() === idRow(row)
+                              "
+                              class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
                             >
-                              <svg viewBox="0 0 24 24" class="w-4 h-4 text-amber-700 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                              <svg
+                                viewBox="0 0 24 24"
+                                class="h-4 w-4 shrink-0 text-amber-700"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                              >
                                 <path d="M8 6v12M16 6v12"></path>
                               </svg>
                               Desactivar
@@ -158,15 +249,18 @@
                             <button
                               (click)="menuRowIdx = null; eliminar(row)"
                               [disabled]="busyEliminarId() === idRow(row)"
-                              class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
+                              class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
                             >
-                              <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" />
+                              <img
+                                src="iconos/eliminar.svg"
+                                alt="Eliminar"
+                                class="h-4 w-4 shrink-0"
+                              />
                               Eliminar
                             </button>
                           </div>
                         }
                       </td>
-
                     </tr>
                   }
                 }
@@ -176,17 +270,24 @@
         </div>
 
         <!-- FOOTER info -->
-        <div class="px-4 py-3 border-t border-gray-100 flex items-center gap-2 text-xs text-ra-slate/70">
-          <span>Mostrando <strong class="text-ra-slate">{{ listaFiltradaSig().length }}</strong> de <strong class="text-ra-slate">{{ listaSig().length }}</strong> registros</span>
+        <div
+          class="text-ra-slate/70 flex items-center gap-2 border-t border-gray-100 px-4 py-3 text-xs"
+        >
+          <span
+            >Mostrando <strong class="text-ra-slate">{{ listaFiltradaSig().length }}</strong> de
+            <strong class="text-ra-slate">{{ listaSig().length }}</strong> registros</span
+          >
         </div>
-
       </div>
 
       <!-- Modal -->
       @if (mostrarModal()) {
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="cerrarModal()">
+        <div
+          class="fixed inset-0 z-50 flex items-center justify-center p-4"
+          (click)="cerrarModal()"
+        >
           <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
-          <div class="relative z-10 w-full max-w-[720px] mx-4" (click)="$event.stopPropagation()">
+          <div class="relative z-10 mx-4 w-full max-w-[720px]" (click)="$event.stopPropagation()">
             <div class="bg-ra-white rounded-2xl shadow-2xl ring-1 ring-black/5">
               <app-asesoria-nutriocional-modal
                 [asesoria]="editando()"
@@ -197,8 +298,6 @@
           </div>
         </div>
       }
-
     </div>
   </div>
-
 }

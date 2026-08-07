@@ -1,82 +1,102 @@
 <!-- src/app/pages/mi-perfil/mi-perfil.html -->
-<div class="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
-
+<div class="mx-auto max-w-6xl px-3 py-4 sm:px-4 sm:py-6">
+  <div class="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
     <!-- Panel resumen -->
-    <aside class="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 overflow-hidden lg:sticky lg:top-4 lg:h-fit">
-      <div class="px-6 py-7 bg-gradient-to-br from-[#0B2C4A] to-[#1a4a78]">
-        <div class="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-black tracking-wide select-none"
-             [style.background]="avatarColorPreview">
+    <aside
+      class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 lg:sticky lg:top-4 lg:h-fit"
+    >
+      <div class="bg-gradient-to-br from-[#0B2C4A] to-[#1a4a78] px-6 py-7">
+        <div
+          class="flex h-20 w-20 items-center justify-center rounded-full text-2xl font-black tracking-wide text-white select-none"
+          [style.background]="avatarColorPreview"
+        >
           @if (avatarPreviewImage) {
-            <img [src]="avatarPreviewImage" alt="Avatar" class="w-full h-full rounded-full object-cover" />
+            <img
+              [src]="avatarPreviewImage"
+              alt="Avatar"
+              class="h-full w-full rounded-full object-cover"
+            />
           } @else {
             {{ initiales }}
           }
         </div>
-        <p class="text-white font-semibold text-lg leading-snug mt-4 break-words">{{ nombreCompleto }}</p>
-        <p class="text-white/70 text-sm">&#64;{{ nombreUsuario }}</p>
+        <p class="mt-4 text-lg leading-snug font-semibold break-words text-white">
+          {{ nombreCompleto }}
+        </p>
+        <p class="text-sm text-white/70">&#64;{{ nombreUsuario }}</p>
         @if (rol) {
-          <span class="mt-2 inline-block px-3 py-0.5 rounded-full bg-white/15 text-white text-xs font-semibold">
+          <span
+            class="mt-2 inline-block rounded-full bg-white/15 px-3 py-0.5 text-xs font-semibold text-white"
+          >
             {{ rol }}
           </span>
         }
       </div>
-      <div class="px-6 py-5 space-y-3">
-        <p class="text-xs uppercase tracking-widest text-gray-400 font-semibold">Vista previa</p>
-        <div class="rounded-xl bg-slate-50 border border-slate-100 px-3 py-3 text-sm text-slate-600">
-          <p class="font-semibold text-slate-700 mb-1">Frase Home</p>
+      <div class="space-y-3 px-6 py-5">
+        <p class="text-xs font-semibold tracking-widest text-gray-400 uppercase">Vista previa</p>
+        <div
+          class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-sm text-slate-600"
+        >
+          <p class="mb-1 font-semibold text-slate-700">Frase Home</p>
           <p>{{ frasePreview }}</p>
         </div>
-        <div class="rounded-xl bg-amber-50 border border-amber-100 px-3 py-3 text-xs text-amber-800">
+        <div
+          class="rounded-xl border border-amber-100 bg-amber-50 px-3 py-3 text-xs text-amber-800"
+        >
           Estas preferencias se guardan por usuario en este equipo.
         </div>
       </div>
     </aside>
 
     <!-- Panel principal -->
-    <section class="lg:col-span-2 space-y-4">
-
+    <section class="space-y-4 lg:col-span-2">
       <!-- Cuenta -->
-      <div class="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 px-5 sm:px-6 py-5">
-        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-4">Cuenta</h3>
+      <div class="rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-black/5 sm:px-6">
+        <h3 class="mb-4 text-sm font-semibold tracking-widest text-gray-500 uppercase">Cuenta</h3>
 
         @if (exitoPerfil) {
-          <div class="mb-4 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-medium">
+          <div
+            class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
+          >
             Perfil actualizado correctamente.
           </div>
         }
 
         @if (errorPerfil) {
-          <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+          <div
+            class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          >
             {{ errorPerfil }}
           </div>
         }
 
         <form [formGroup]="perfilForm" (ngSubmit)="guardarPerfil()" novalidate class="space-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             <div class="sm:col-span-2">
-              <label class="block text-sm font-semibold text-gray-600 mb-1.5">Usuario</label>
-              <div class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-500 select-none">
+              <label class="mb-1.5 block text-sm font-semibold text-gray-600">Usuario</label>
+              <div
+                class="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-500 select-none"
+              >
                 {{ nombreUsuario }}
               </div>
             </div>
 
             <div>
-              <label class="block text-sm font-semibold text-gray-600 mb-1.5">Nombre</label>
+              <label class="mb-1.5 block text-sm font-semibold text-gray-600">Nombre</label>
               <input
                 type="text"
                 formControlName="nombre"
-                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B2C4A]/30"
+                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#0B2C4A]/30 focus:outline-none"
                 placeholder="Tu nombre"
               />
             </div>
 
             <div>
-              <label class="block text-sm font-semibold text-gray-600 mb-1.5">Apellido</label>
+              <label class="mb-1.5 block text-sm font-semibold text-gray-600">Apellido</label>
               <input
                 type="text"
                 formControlName="apellido"
-                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B2C4A]/30"
+                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#0B2C4A]/30 focus:outline-none"
                 placeholder="Tu apellido"
               />
             </div>
@@ -85,7 +105,7 @@
           <button
             type="submit"
             [disabled]="guardandoPerfil"
-            class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#0B2C4A] hover:bg-[#0A2540] text-white font-semibold text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            class="w-full rounded-xl bg-[#0B2C4A] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0A2540] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {{ guardandoPerfil ? 'Guardando...' : 'Guardar perfil' }}
           </button>
@@ -93,23 +113,29 @@
       </div>
 
       <!-- Preferencias -->
-      <div class="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 px-5 sm:px-6 py-5">
-        <div class="flex items-center justify-between gap-3 mb-4">
-          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-widest">Preferencias del sistema</h3>
+      <div class="rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-black/5 sm:px-6">
+        <div class="mb-4 flex items-center justify-between gap-3">
+          <h3 class="text-sm font-semibold tracking-widest text-gray-500 uppercase">
+            Preferencias del sistema
+          </h3>
           @if (exitoPreferencias) {
-            <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+            <span
+              class="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700"
+            >
               Guardado
             </span>
           }
         </div>
 
         <form [formGroup]="preferenciasForm" class="space-y-4" novalidate>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             <div>
-              <label class="block text-sm font-semibold text-gray-600 mb-1.5">Estilo de avatar</label>
+              <label class="mb-1.5 block text-sm font-semibold text-gray-600"
+                >Estilo de avatar</label
+              >
               <select
                 formControlName="avatarStyle"
-                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B2C4A]/30"
+                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-[#0B2C4A]/30 focus:outline-none"
               >
                 @for (opt of avatarOptions; track opt.value) {
                   <option [value]="opt.value">{{ opt.label }}</option>
@@ -118,32 +144,33 @@
             </div>
 
             <div>
-              <label class="block text-sm font-semibold text-gray-600 mb-1.5">Estilo de frase en Home</label>
+              <label class="mb-1.5 block text-sm font-semibold text-gray-600"
+                >Estilo de frase en Home</label
+              >
               <select
                 formControlName="fraseHome"
                 (change)="actualizarFrasePreview()"
-                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B2C4A]/30"
+                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-[#0B2C4A]/30 focus:outline-none"
               >
                 @for (opt of fraseModeOptions; track opt.value) {
                   <option [value]="opt.value">{{ opt.label }}</option>
                 }
               </select>
             </div>
-
           </div>
 
           <div class="flex flex-wrap gap-2 pt-1">
             <button
               type="button"
               (click)="guardarPreferencias()"
-              class="px-5 py-2.5 rounded-xl bg-[#0B2C4A] hover:bg-[#0A2540] text-white font-semibold text-sm transition-colors"
+              class="rounded-xl bg-[#0B2C4A] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0A2540]"
             >
               Guardar preferencias
             </button>
             <button
               type="button"
               (click)="restaurarPreferencias()"
-              class="px-5 py-2.5 rounded-xl bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold text-sm transition-colors"
+              class="rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
             >
               Restaurar por defecto
             </button>
@@ -152,9 +179,11 @@
       </div>
 
       <!-- Acceso rapido -->
-      <div class="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 px-5 sm:px-6 py-5">
-        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Acceso rapido</h3>
-        <p class="text-sm text-gray-600 mb-3">
+      <div class="rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-black/5 sm:px-6">
+        <h3 class="mb-3 text-sm font-semibold tracking-widest text-gray-500 uppercase">
+          Acceso rapido
+        </h3>
+        <p class="mb-3 text-sm text-gray-600">
           @if (rolKey === 'admin') {
             Abre directamente el panel principal de administracion.
           } @else {
@@ -164,22 +193,26 @@
         <button
           type="button"
           (click)="irAccesoRapido()"
-          class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors"
+          class="w-full rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 sm:w-auto"
         >
           {{ textoAccesoRapido }}
         </button>
       </div>
 
       <!-- Toque divertido -->
-      <div class="bg-white rounded-2xl shadow-sm ring-1 ring-black/5 px-5 sm:px-6 py-5">
-        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-3">Toque divertido</h3>
-        <div class="rounded-xl bg-gradient-to-r from-sky-50 to-emerald-50 border border-sky-100 px-4 py-4">
-          <p class="text-sm font-semibold text-gray-700 mb-1">Frase del dia</p>
-          <p class="text-sm text-gray-600 mb-3">{{ frasePreview }}</p>
+      <div class="rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-black/5 sm:px-6">
+        <h3 class="mb-3 text-sm font-semibold tracking-widest text-gray-500 uppercase">
+          Toque divertido
+        </h3>
+        <div
+          class="rounded-xl border border-sky-100 bg-gradient-to-r from-sky-50 to-emerald-50 px-4 py-4"
+        >
+          <p class="mb-1 text-sm font-semibold text-gray-700">Frase del dia</p>
+          <p class="mb-3 text-sm text-gray-600">{{ frasePreview }}</p>
           <button
             type="button"
             (click)="verOtraFrase()"
-            class="px-4 py-2 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold"
+            class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
           >
             Ver otra frase
           </button>

@@ -53,8 +53,9 @@ describe('TicketService', () => {
       });
 
       it('should escape all special chars in combination', () => {
-        expect((service as any)['escape']('<script>alert("xss")</script>'))
-          .toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
+        expect((service as any)['escape']('<script>alert("xss")</script>')).toBe(
+          '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;',
+        );
       });
     });
 
@@ -138,7 +139,7 @@ describe('TicketService', () => {
       it('should sum multiple items', () => {
         const items: TicketItem[] = [
           { nombre: 'A', cantidad: 2, precioUnit: 50 },
-          { nombre: 'B', cantidad: 1, precioUnit: 30 }
+          { nombre: 'B', cantidad: 1, precioUnit: 30 },
         ];
         expect((service as any)['calcularSubtotal'](items)).toBe(130);
       });
@@ -152,9 +153,7 @@ describe('TicketService', () => {
     describe('normalizarItemsDesdeBackend: mapeo de detalles backend', () => {
       it('should map detail with precioVenta correctly', () => {
         const venta: VentaBackend = {
-          detalles: [
-            { cantidad: 2, producto: { nombre: 'X', precioVenta: 10 } }
-          ]
+          detalles: [{ cantidad: 2, producto: { nombre: 'X', precioVenta: 10 } }],
         };
         const result = (service as any)['normalizarItemsDesdeBackend'](venta);
         expect(result).toEqual([{ nombre: 'X', cantidad: 2, precioUnit: 10 }]);
@@ -168,9 +167,7 @@ describe('TicketService', () => {
 
       it('should calculate precioUnit from subTotal and cantidad when precioVenta missing', () => {
         const venta: VentaBackend = {
-          detalles: [
-            { cantidad: 2, subTotal: 30, producto: { nombre: 'Y' } }
-          ]
+          detalles: [{ cantidad: 2, subTotal: 30, producto: { nombre: 'Y' } }],
         };
         const result = (service as any)['normalizarItemsDesdeBackend'](venta);
         expect(result[0].precioUnit).toBe(15);
@@ -178,9 +175,7 @@ describe('TicketService', () => {
 
       it('should use fallback nombre when product name missing', () => {
         const venta: VentaBackend = {
-          detalles: [
-            { cantidad: 1, producto: { precioVenta: 100 } }
-          ]
+          detalles: [{ cantidad: 1, producto: { precioVenta: 100 } }],
         };
         const result = (service as any)['normalizarItemsDesdeBackend'](venta);
         expect(result[0].nombre).toBe('—');
@@ -190,7 +185,7 @@ describe('TicketService', () => {
     describe('normalizarPagosVentaDesdeBackend: mapeo de pagos backend', () => {
       it('should map pagos with tipoPago and monto', () => {
         const venta: VentaBackend = {
-          pagos: [{ tipoPago: 'EFECTIVO', monto: 100 }]
+          pagos: [{ tipoPago: 'EFECTIVO', monto: 100 }],
         };
         const result = (service as any)['normalizarPagosVentaDesdeBackend'](venta);
         expect(result).toEqual([{ metodo: 'EFECTIVO', monto: 100 }]);
@@ -207,8 +202,8 @@ describe('TicketService', () => {
           pagos: [
             { tipoPago: 'EFECTIVO', monto: 100 },
             { tipoPago: 'TARJETA', monto: 0 },
-            { tipoPago: 'SPEI', monto: -50 }
-          ]
+            { tipoPago: 'SPEI', monto: -50 },
+          ],
         };
         const result = (service as any)['normalizarPagosVentaDesdeBackend'](venta);
         expect(result).toEqual([{ metodo: 'EFECTIVO', monto: 100 }]);
@@ -216,7 +211,7 @@ describe('TicketService', () => {
 
       it('should use metodo as fallback when tipoPago missing', () => {
         const venta: VentaBackend = {
-          pagos: [{ metodo: 'TARJETA', monto: 50 }]
+          pagos: [{ metodo: 'TARJETA', monto: 50 }],
         };
         const result = (service as any)['normalizarPagosVentaDesdeBackend'](venta);
         expect(result).toEqual([{ metodo: 'TARJETA', monto: 50 }]);
@@ -263,14 +258,14 @@ describe('TicketService', () => {
           { tipoPago: 'EFECTIVO', total: 100 },
           { tipoPago: 'TARJETA', total: 200 },
           { tipoPago: 'SPEI', total: 50 },
-          { tipoPago: 'Otro', total: 30 }
+          { tipoPago: 'Otro', total: 30 },
         ];
         const result = (service as any)['sumarPagosPorMetodo'](arr);
         expect(result).toEqual({
           EFECTIVO: 100,
           TARJETA: 200,
           TRANSFERENCIA: 50,
-          OTRO: 30
+          OTRO: 30,
         });
       });
 
@@ -278,14 +273,14 @@ describe('TicketService', () => {
         const arr = [
           { tipoPago: 'EFECTIVO', total: 50 },
           { tipoPago: 'Efectivo', total: 50 },
-          { tipoPago: 'TARJETA', total: 30 }
+          { tipoPago: 'TARJETA', total: 30 },
         ];
         const result = (service as any)['sumarPagosPorMetodo'](arr);
         expect(result).toEqual({
           EFECTIVO: 100,
           TARJETA: 30,
           TRANSFERENCIA: 0,
-          OTRO: 0
+          OTRO: 0,
         });
       });
 
@@ -303,7 +298,7 @@ describe('TicketService', () => {
       it('should sum VENTA items', () => {
         const arr = [
           { origen: 'VENTA', total: 30 },
-          { origen: 'VENTA', total: 20 }
+          { origen: 'VENTA', total: 20 },
         ];
         const result = (service as any)['sumarPorOrigen']('VENTA', arr);
         expect(result).toBe(50);
@@ -318,7 +313,7 @@ describe('TicketService', () => {
       it('should ignore items with different origen', () => {
         const arr = [
           { origen: 'VENTA', total: 30 },
-          { origen: 'MEMBRESIA', total: 20 }
+          { origen: 'MEMBRESIA', total: 20 },
         ];
         const result = (service as any)['sumarPorOrigen']('VENTA', arr);
         expect(result).toBe(30);
@@ -334,7 +329,7 @@ describe('TicketService', () => {
       it('should sum EFECTIVO payments', () => {
         const arr = [
           { tipoPago: 'Efectivo', total: 40 },
-          { tipoPago: 'Tarjeta', total: 10 }
+          { tipoPago: 'Tarjeta', total: 10 },
         ];
         const result = (service as any)['sumarEfectivo'](arr);
         expect(result).toBe(40);
@@ -344,7 +339,7 @@ describe('TicketService', () => {
         const arr = [
           { tipoPago: 'EFECTIVO', total: 30 },
           { tipoPago: 'Efectivo', total: 20 },
-          { tipoPago: 'TARJETA', total: 50 }
+          { tipoPago: 'TARJETA', total: 50 },
         ];
         const result = (service as any)['sumarEfectivo'](arr);
         expect(result).toBe(50);
@@ -421,7 +416,7 @@ describe('TicketService', () => {
       it('should render multiple payment methods', () => {
         const pagos: TicketPagoDetalle[] = [
           { metodo: 'EFECTIVO', monto: 60 },
-          { metodo: 'TARJETA', monto: 40 }
+          { metodo: 'TARJETA', monto: 40 },
         ];
         const result = (service as any)['renderBloquePagos'](undefined, pagos, undefined, 'PAGOS');
         expect(result).toContain('EFECTIVO');
@@ -433,7 +428,7 @@ describe('TicketService', () => {
       it('should filter out payments with monto <= 0', () => {
         const pagos: TicketPagoDetalle[] = [
           { metodo: 'EFECTIVO', monto: 100 },
-          { metodo: 'TARJETA', monto: 0 }
+          { metodo: 'TARJETA', monto: 0 },
         ];
         const result = (service as any)['renderBloquePagos'](undefined, pagos, undefined, 'PAGOS');
         expect(result).toContain('EFECTIVO');
@@ -468,7 +463,7 @@ describe('TicketService', () => {
           fecha: new Date('2026-01-15T10:30:00Z'),
           cajero: 'Juan',
           items: [{ nombre: 'Proteína', cantidad: 2, precioUnit: 500 }],
-          totales: { total: 1000 }
+          totales: { total: 1000 },
         });
         expect(html).toContain('MI GIMNASIO');
       });
@@ -479,7 +474,7 @@ describe('TicketService', () => {
           folio: '5042',
           fecha: new Date('2026-01-15T10:30:00Z'),
           items: [{ nombre: 'Item', cantidad: 1, precioUnit: 100 }],
-          totales: { total: 100 }
+          totales: { total: 100 },
         });
         expect(html).toContain('5042');
       });
@@ -490,7 +485,7 @@ describe('TicketService', () => {
           folio: '1',
           fecha: new Date(),
           items: [{ nombre: 'Proteína', cantidad: 2, precioUnit: 500 }],
-          totales: { total: 1000 }
+          totales: { total: 1000 },
         });
         expect(html).toContain('x2');
       });
@@ -501,7 +496,7 @@ describe('TicketService', () => {
           folio: '1',
           fecha: new Date(),
           items: [{ nombre: 'Item', cantidad: 1, precioUnit: 1500 }],
-          totales: { total: 1500 }
+          totales: { total: 1500 },
         });
         expect(html).toContain('$1,500.00');
       });
@@ -513,7 +508,7 @@ describe('TicketService', () => {
           fecha: new Date(),
           cajero: 'Carlos López',
           items: [],
-          totales: { total: 0 }
+          totales: { total: 0 },
         });
         expect(html).toContain('CAJERO:');
         expect(html).toContain('Carlos López');
@@ -525,7 +520,7 @@ describe('TicketService', () => {
           folio: '1',
           fecha: new Date(),
           items: [],
-          totales: { total: 0 }
+          totales: { total: 0 },
         });
         expect(html).toContain('¡Gracias por su compra!');
       });
@@ -536,7 +531,7 @@ describe('TicketService', () => {
           folio: '1',
           fecha: new Date(),
           items: [],
-          totales: { total: 0 }
+          totales: { total: 0 },
         });
         expect(html).toContain('ESTE NO ES UN COMPROBANTE FISCAL');
       });
@@ -547,7 +542,7 @@ describe('TicketService', () => {
           folio: '1',
           fecha: new Date(),
           items: [{ nombre: '<script>alert(1)</script>', cantidad: 1, precioUnit: 100 }],
-          totales: { total: 100 }
+          totales: { total: 100 },
         });
         expect(html).toContain('&lt;script&gt;');
         expect(html).not.toContain('<script>alert');
@@ -564,7 +559,7 @@ describe('TicketService', () => {
           importe: 500,
           total: 500,
           totalAPagar: 500,
-          estado: 'PAGADO'
+          estado: 'PAGADO',
         });
         expect(html).toContain('Membresía MENSUAL');
       });
@@ -577,7 +572,7 @@ describe('TicketService', () => {
           concepto: 'Membresía',
           importe: 500,
           total: 500,
-          totalAPagar: 500
+          totalAPagar: 500,
         });
         expect(html).toContain('TOTAL A PAGAR');
       });
@@ -591,7 +586,7 @@ describe('TicketService', () => {
           importe: 500,
           total: 500,
           totalAPagar: 500,
-          estado: 'PAGADO'
+          estado: 'PAGADO',
         });
         expect(html).toContain('*** PAGADO ***');
       });
@@ -605,7 +600,7 @@ describe('TicketService', () => {
           importe: 500,
           total: 500,
           totalAPagar: 500,
-          entrenador: 'Miguel Santos'
+          entrenador: 'Miguel Santos',
         });
         expect(html).toContain('ENTRENADOR:');
         expect(html).toContain('Miguel Santos');
@@ -619,7 +614,7 @@ describe('TicketService', () => {
           concepto: 'Membresía',
           importe: 500,
           total: 500,
-          totalAPagar: 500
+          totalAPagar: 500,
         });
         expect(html).not.toContain('ENTRENADOR:');
       });
@@ -632,7 +627,7 @@ describe('TicketService', () => {
           concepto: 'Membresía',
           importe: 2500,
           total: 2500,
-          totalAPagar: 2500
+          totalAPagar: 2500,
         });
         expect(html).toContain('$2,500.00');
       });
@@ -645,9 +640,9 @@ describe('TicketService', () => {
             negocio: { nombre: 'Gym' },
             folio: 'C001',
             fecha: new Date(),
-            totales: { general: 5000 }
+            totales: { general: 5000 },
           },
-          'REVOLUCIÓN ATLÉTICA'
+          'REVOLUCIÓN ATLÉTICA',
         );
         expect(html).toContain('::: CORTE DE CAJA :::');
       });
@@ -659,9 +654,9 @@ describe('TicketService', () => {
             folio: '999',
             idCorte: '999',
             fecha: new Date(),
-            totales: { general: 5000 }
+            totales: { general: 5000 },
           },
-          'REVOLUCIÓN ATLÉTICA'
+          'REVOLUCIÓN ATLÉTICA',
         );
         expect(html).toContain('CORTE # 999');
       });
@@ -672,9 +667,9 @@ describe('TicketService', () => {
             negocio: { nombre: 'Gym' },
             folio: '1',
             fecha: new Date(),
-            totales: { ventas: 1000, membresias: 500, accesorias: 200, general: 1700 }
+            totales: { ventas: 1000, membresias: 500, accesorias: 200, general: 1700 },
           },
-          'REVOLUCIÓN ATLÉTICA'
+          'REVOLUCIÓN ATLÉTICA',
         );
         expect(html).toContain('TIPOS DE INGRESOS');
       });
@@ -686,9 +681,9 @@ describe('TicketService', () => {
             folio: '1',
             fecha: new Date(),
             totales: { general: 1000 },
-            pagos: { EFECTIVO: 1000 }
+            pagos: { EFECTIVO: 1000 },
           },
-          'REVOLUCIÓN ATLÉTICA'
+          'REVOLUCIÓN ATLÉTICA',
         );
         expect(html).toContain('FORMAS DE PAGO');
       });
@@ -699,9 +694,9 @@ describe('TicketService', () => {
             negocio: { nombre: 'Gym' },
             folio: '1',
             fecha: new Date(),
-            totales: { general: 3500 }
+            totales: { general: 3500 },
           },
-          'REVOLUCIÓN ATLÉTICA'
+          'REVOLUCIÓN ATLÉTICA',
         );
         expect(html).toContain('$3,500.00');
       });
@@ -712,9 +707,9 @@ describe('TicketService', () => {
             negocio: { nombre: 'Gym' },
             folio: '1',
             fecha: new Date(),
-            totales: { general: 1000 }
+            totales: { general: 1000 },
           },
-          'Mi Marca Fitness'
+          'Mi Marca Fitness',
         );
         expect(html).toContain('MI MARCA FITNESS');
       });
@@ -725,9 +720,9 @@ describe('TicketService', () => {
             negocio: { nombre: 'Sucursal Centro' },
             folio: '1',
             fecha: new Date(),
-            totales: { general: 1000 }
+            totales: { general: 1000 },
           },
-          'REVOLUCIÓN ATLÉTICA'
+          'REVOLUCIÓN ATLÉTICA',
         );
         expect(html).toContain('SUCURSAL CENTRO');
       });
@@ -740,7 +735,7 @@ describe('TicketService', () => {
           folio: '1',
           fecha: new Date(),
           items: [{ nombre: '<script>alert(1)</script>', cantidad: 1, precioUnit: 100 }],
-          totales: { total: 100 }
+          totales: { total: 100 },
         });
         expect(html).toContain('&lt;script&gt;');
         expect(html).not.toContain('<script>alert');
@@ -752,7 +747,7 @@ describe('TicketService', () => {
           folio: '1',
           fecha: new Date(),
           items: [{ nombre: 'Café & Proteína', cantidad: 1, precioUnit: 100 }],
-          totales: { total: 100 }
+          totales: { total: 100 },
         });
         expect(html).toContain('&amp;');
       });

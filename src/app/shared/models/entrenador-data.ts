@@ -1,10 +1,9 @@
-import { GimnasioData } from "./gimnasio-data";
+import { GimnasioData } from './gimnasio-data';
 
 export interface EntrenadorData {
-    idEntrenador?: number;
-    nombre:string;
-    apellido:string;
-    activo:boolean
-    gimnasio?:GimnasioData;
-
+  idEntrenador?: number;
+  nombre: string;
+  apellido: string;
+  activo: boolean;
+  gimnasio?: GimnasioData;
 }

@@ -2,7 +2,12 @@ import { ApplicationConfig, importProvidersFrom, LOCALE_ID } from '@angular/core
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
+import {
+  HTTP_INTERCEPTORS,
+  provideHttpClient,
+  withInterceptors,
+  withInterceptorsFromDi,
+} from '@angular/common/http';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 
 import { JwtModule } from '@auth0/angular-jwt';
@@ -14,7 +19,10 @@ import { provideState } from '@ngrx/store';
 import { environment } from '../environments/environment';
 import { inscripcionFeature } from './features/inscripciones/pages/inscripcion/state/inscripcion-reducer';
 import { TenantInterceptor } from './core/tenant/tenant.interceptor';
-import { REINSCRIPCION_FEATURE_KEY, reinscripcionReducer } from './features/inscripciones/pages/reinscripcion/state/reinscripcion-reducer';
+import {
+  REINSCRIPCION_FEATURE_KEY,
+  reinscripcionReducer,
+} from './features/inscripciones/pages/reinscripcion/state/reinscripcion-reducer';
 import { authInterceptor } from './core/auth/auth.interceptor';
 
 export function tokenGetter() {
@@ -32,7 +40,7 @@ export const appConfig: ApplicationConfig = {
           allowedDomains: ['localhost:8081'],
           disallowedRoutes: ['http://localhost:8080/inicio-sesion'],
         },
-      })
+      }),
     ),
 
     // 👇 Solo UNA llamada a provideHttpClient y usando withInterceptorsFromDi
@@ -41,15 +49,13 @@ export const appConfig: ApplicationConfig = {
 
     // Interceptors de DI (en orden)
     { provide: HTTP_INTERCEPTORS, useClass: ServerErrorsInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: TenantInterceptor,        multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: TenantInterceptor, multi: true },
 
     { provide: LocationStrategy, useClass: HashLocationStrategy },
 
     provideStore(),
     provideState(inscripcionFeature),
     { provide: LOCALE_ID, useValue: 'es-MX' },
-     provideState(REINSCRIPCION_FEATURE_KEY, reinscripcionReducer),
-    
-    
+    provideState(REINSCRIPCION_FEATURE_KEY, reinscripcionReducer),
   ],
 };

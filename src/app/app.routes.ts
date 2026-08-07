@@ -10,7 +10,6 @@ export const routes: Routes = [
     path: 'pages',
     loadComponent: () =>
       import('./features/cuenta/pages/menu-principal/menu-principal').then((m) => m.MenuPrincipal),
-    loadChildren: () =>
-      import('./pages/pages.routes').then((x) => x.pagesRoutes),
+    loadChildren: () => import('./pages/pages.routes').then((x) => x.pagesRoutes),
   },
 ];

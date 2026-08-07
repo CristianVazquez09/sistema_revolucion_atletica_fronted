@@ -3,8 +3,8 @@ import { PaqueteData } from '../../../../../shared/models/paquete-data';
 
 export interface InscripcionState {
   listaPaquetes: PaqueteData[];
-  paqueteId: number;   // seleccionado
-  descuento: number;   // ✅ MONTO
+  paqueteId: number; // seleccionado
+  descuento: number; // ✅ MONTO
   fechaInicio: string; // ISO (YYYY-MM-DD)
 }
 

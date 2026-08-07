@@ -1,9 +1,4 @@
-import {
-  Component,
-  inject,
-  DestroyRef,
-  HostListener,
-} from '@angular/core';
+import { Component, inject, DestroyRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize, distinctUntilChanged, skip } from 'rxjs';
@@ -11,7 +6,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { CorteCajaService } from '../../../../corte-caja/data/corte-caja-service';
 import { NotificacionService } from '../../../../../core/layout/notificacion-service';
-import { CorteCajaListado, PagedResponse, PageMeta } from '../../../../../shared/models/corte-caja-data';
+import {
+  CorteCajaListado,
+  PagedResponse,
+  PageMeta,
+} from '../../../../../shared/models/corte-caja-data';
 import { TicketService } from '../../../../../shared/ticket/ticket-service';
 import { CorteCajaInfo } from './corte-caja-info/corte-caja-info';
 
@@ -20,19 +19,18 @@ import { TenantContextService } from 'src/app/core/tenant/tenant-context-service
 import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/ra-gimnasio-filter';
 
 type CampoOrden = 'apertura' | 'cierre' | 'idCorte';
-type DirOrden   = 'asc' | 'desc';
+type DirOrden = 'asc' | 'desc';
 
 @Component({
   selector: 'app-corte-caja-admin',
   standalone: true,
   imports: [CommonModule, FormsModule, CorteCajaInfo, RaGimnasioFilterComponent],
   templateUrl: './corte-caja-admin.html',
-  styleUrl: './corte-caja-admin.css'
+  styleUrl: './corte-caja-admin.css',
 })
 export class CorteCajaAdmin {
-
-  private srv    = inject(CorteCajaService);
-  private noti   = inject(NotificacionService);
+  private srv = inject(CorteCajaService);
+  private noti = inject(NotificacionService);
   private ticket = inject(TicketService);
 
   // ✅ tenant ctx
@@ -53,7 +51,9 @@ export class CorteCajaAdmin {
   // Ordenamiento
   sortCampo: CampoOrden = 'apertura';
   sortDir: DirOrden = 'desc';
-  get sortSel(): string { return `${this.sortCampo},${this.sortDir}`; }
+  get sortSel(): string {
+    return `${this.sortCampo},${this.sortDir}`;
+  }
 
   // Admin / permisos
   esAdmin = false;
@@ -75,11 +75,7 @@ export class CorteCajaAdmin {
 
     if (this.esAdmin) {
       this.tenantCtx.viewTenantChanges$
-        .pipe(
-          distinctUntilChanged(),
-          skip(1),
-          takeUntilDestroyed(this.destroyRef)
-        )
+        .pipe(distinctUntilChanged(), skip(1), takeUntilDestroyed(this.destroyRef))
         .subscribe(() => {
           if (this.destroying) return;
           this.cargar(1);
@@ -123,23 +119,26 @@ export class CorteCajaAdmin {
 
   // Carga
   cargar(pageUI: number): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
     this.error = null;
     this.cargando = true;
 
-    this.srv.listar({
-      estado: this.estadoSel,
-      page: pageUI,
-      size: this.sizeSel,
-      sort: this.buildSort(),
-    })
+    this.srv
+      .listar({
+        estado: this.estadoSel,
+        page: pageUI,
+        size: this.sizeSel,
+        sort: this.buildSort(),
+      })
       .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (resp: PagedResponse<CorteCajaListado>) => {
           this.cortes = resp?.content ?? [];
-          this.page   = resp?.page ?? {
+          this.page = resp?.page ?? {
             size: this.sizeSel,
-            number: (pageUI - 1),
+            number: pageUI - 1,
             totalElements: 0,
             totalPages: 0,
           };
@@ -152,13 +151,25 @@ export class CorteCajaAdmin {
   }
 
   // Paginación
-  get pageUI(): number { return (this.page?.number ?? 0) + 1; }
-  get puedePrev(): boolean { return this.pageUI > 1; }
-  get puedeNext(): boolean { return this.pageUI < (this.page?.totalPages ?? 1); }
+  get pageUI(): number {
+    return (this.page?.number ?? 0) + 1;
+  }
+  get puedePrev(): boolean {
+    return this.pageUI > 1;
+  }
+  get puedeNext(): boolean {
+    return this.pageUI < (this.page?.totalPages ?? 1);
+  }
 
-  prev(): void { if (this.puedePrev) this.cargar(this.pageUI - 1); }
-  next(): void { if (this.puedeNext) this.cargar(this.pageUI + 1); }
-  go(n: number): void { this.cargar(n); }
+  prev(): void {
+    if (this.puedePrev) this.cargar(this.pageUI - 1);
+  }
+  next(): void {
+    if (this.puedeNext) this.cargar(this.pageUI + 1);
+  }
+  go(n: number): void {
+    this.cargar(n);
+  }
 
   // Reimprimir ticket de corte
   reimprimir(c: CorteCajaListado): void {
@@ -181,7 +192,8 @@ export class CorteCajaAdmin {
       brandTitle: 'REVOLUCIÓN ATLÉTICA',
     } as const;
 
-    this.srv.consultar(c.idCorte)
+    this.srv
+      .consultar(c.idCorte)
       .pipe(finalize(() => (this.reimprimiendo = false)))
       .subscribe({
         next: (detalle) => {
@@ -211,7 +223,9 @@ export class CorteCajaAdmin {
 
   @HostListener('document:click')
   closeMenuRows(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
   }
 
   toggleMenuRow(i: number, event: MouseEvent): void {
@@ -232,9 +246,10 @@ export class CorteCajaAdmin {
     this.menuRowIdx = i;
     this.menuDropUpIdx = openUp ? i : null;
     this.menuDropdownStyle = openUp
-      ? { bottom: `${viewportHeight - rect.top + gap}px`, right: `${window.innerWidth - rect.right}px` }
+      ? {
+          bottom: `${viewportHeight - rect.top + gap}px`,
+          right: `${window.innerWidth - rect.right}px`,
+        }
       : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }
-
-

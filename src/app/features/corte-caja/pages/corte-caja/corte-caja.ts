@@ -78,41 +78,34 @@ export class CorteCaja implements OnInit, OnDestroy {
   esAdmin = false;
 
   ngOnInit(): void {
-  // ✅ Asegura que el TenantContext se inicialice desde token y sessionStorage
-  this.tenantCtx.initFromToken();
+    // ✅ Asegura que el TenantContext se inicialice desde token y sessionStorage
+    this.tenantCtx.initFromToken();
 
-  // ✅ Admin real (usa el mismo criterio del TenantContextService)
-  this.esAdmin = this.tenantCtx.isAdmin;
+    // ✅ Admin real (usa el mismo criterio del TenantContextService)
+    this.esAdmin = this.tenantCtx.isAdmin;
 
+    // ✅ Si eres admin, escucha cambios del selector para recargar
+    if (this.esAdmin) {
+      this.tenantCtx.viewTenantChanges$
+        .pipe(distinctUntilChanged(), skip(1), takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.onTenantChanged(false));
+    }
 
-  // ✅ Si eres admin, escucha cambios del selector para recargar
-  if (this.esAdmin) {
-    this.tenantCtx.viewTenantChanges$
-      .pipe(
-        distinctUntilChanged(),
-        skip(1),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(() => this.onTenantChanged(false));
+    this.cargarUsuarioDesdeStorageYToken();
+
+    // ✅ primer load
+    this.onTenantChanged(true);
   }
-
-  this.cargarUsuarioDesdeStorageYToken();
-
-  // ✅ primer load
-  this.onTenantChanged(true);
-}
-
 
   ngOnDestroy(): void {
-  this.detenerWatcherCorteAbierto();
+    this.detenerWatcherCorteAbierto();
 
-  // ✅ IMPORTANTE: si eres admin, al salir de Corte resetea a "Todos"
-  // para que otros módulos no queden filtrados.
-  if (this.esAdmin) {
-    this.tenantCtx.setViewTenant(null);
+    // ✅ IMPORTANTE: si eres admin, al salir de Corte resetea a "Todos"
+    // para que otros módulos no queden filtrados.
+    if (this.esAdmin) {
+      this.tenantCtx.setViewTenant(null);
+    }
   }
-}
-
 
   // ========= TENANT / SELECCIÓN =========
 
@@ -206,7 +199,8 @@ export class CorteCaja implements OnInit, OnDestroy {
     }
 
     this.cargando = true;
-    this.srv.abrir({ fondoCajaInicial: this.fondoCajaInicial })
+    this.srv
+      .abrir({ fondoCajaInicial: this.fondoCajaInicial })
       .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (resp) => {
@@ -219,7 +213,7 @@ export class CorteCaja implements OnInit, OnDestroy {
           this.refrescarPreview();
           this.refrescarDesgloseActual();
         },
-        error: (e) => this.mostrarError(e, 'No se pudo abrir el corte.')
+        error: (e) => this.mostrarError(e, 'No se pudo abrir el corte.'),
       });
   }
 
@@ -239,7 +233,8 @@ export class CorteCaja implements OnInit, OnDestroy {
     };
 
     this.cargando = true;
-    this.srv.cerrar(this.corte.idCorte, req)
+    this.srv
+      .cerrar(this.corte.idCorte, req)
       .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (resp) => {
@@ -252,11 +247,13 @@ export class CorteCaja implements OnInit, OnDestroy {
           this.movimientos = [];
           this.modalMovimientosAbierto = false;
 
-          try { this.imprimirTicketCorte(this.corte!); } catch {}
+          try {
+            this.imprimirTicketCorte(this.corte!);
+          } catch {}
 
           this.iniciarWatcherCorteAbierto();
         },
-        error: (e) => this.mostrarError(e, 'No se pudo cerrar el corte.')
+        error: (e) => this.mostrarError(e, 'No se pudo cerrar el corte.'),
       });
   }
 
@@ -282,7 +279,8 @@ export class CorteCaja implements OnInit, OnDestroy {
     this.resetErrores();
     this.cargando = true;
 
-    this.srv.registrarSalida(this.corte.idCorte, req)
+    this.srv
+      .registrarSalida(this.corte.idCorte, req)
       .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (resp: any) => {
@@ -296,18 +294,24 @@ export class CorteCaja implements OnInit, OnDestroy {
           this.refrescarPreview();
           this.refrescarDesgloseActual();
         },
-        error: (e) => this.mostrarError(e, 'No se pudo registrar la salida.')
+        error: (e) => this.mostrarError(e, 'No se pudo registrar la salida.'),
       });
   }
 
   // ===== Preview =====
   refrescarPreview(): void {
-    if (this.requiereSeleccionGimnasio) { this.preview = null; return; }
-    if (!this.corte?.idCorte || this.corte.estado !== 'ABIERTO') { this.preview = null; return; }
+    if (this.requiereSeleccionGimnasio) {
+      this.preview = null;
+      return;
+    }
+    if (!this.corte?.idCorte || this.corte.estado !== 'ABIERTO') {
+      this.preview = null;
+      return;
+    }
 
     this.srv.previsualizar(this.corte.idCorte).subscribe({
-      next: (p) => this.preview = p,
-      error: () => {}
+      next: (p) => (this.preview = p),
+      error: () => {},
     });
   }
 
@@ -326,7 +330,8 @@ export class CorteCaja implements OnInit, OnDestroy {
     }
 
     this.cargandoDesglose = true;
-    this.srv.desgloseActual()
+    this.srv
+      .desgloseActual()
       .pipe(finalize(() => (this.cargandoDesglose = false)))
       .subscribe({
         next: (resp) => {
@@ -343,17 +348,25 @@ export class CorteCaja implements OnInit, OnDestroy {
         error: () => {
           this.desglose = null;
           this.movimientos = [];
-        }
+        },
       });
   }
 
   private cargarSalidas(): void {
-    if (this.requiereSeleccionGimnasio) { this.salidas = []; return; }
-    if (!this.corte?.idCorte) { this.salidas = []; return; }
+    if (this.requiereSeleccionGimnasio) {
+      this.salidas = [];
+      return;
+    }
+    if (!this.corte?.idCorte) {
+      this.salidas = [];
+      return;
+    }
 
     this.srv.listarSalidas(this.corte.idCorte).subscribe({
-      next: (arr) => this.salidas = arr,
-      error: () => { this.salidas = []; }
+      next: (arr) => (this.salidas = arr),
+      error: () => {
+        this.salidas = [];
+      },
     });
   }
 
@@ -361,7 +374,8 @@ export class CorteCaja implements OnInit, OnDestroy {
     if (this.requiereSeleccionGimnasio) return;
 
     this.cargando = true;
-    this.srv.consultarAbierto()
+    this.srv
+      .consultarAbierto()
       .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (resp) => {
@@ -381,7 +395,7 @@ export class CorteCaja implements OnInit, OnDestroy {
         error: (e) => {
           this.mostrarError(e, 'No se pudo obtener el corte abierto.');
           this.iniciarWatcherCorteAbierto();
-        }
+        },
       });
   }
 
@@ -390,7 +404,8 @@ export class CorteCaja implements OnInit, OnDestroy {
 
     this.resetErrores();
     this.cargando = true;
-    this.srv.consultar(id)
+    this.srv
+      .consultar(id)
       .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (resp) => {
@@ -412,7 +427,7 @@ export class CorteCaja implements OnInit, OnDestroy {
         error: (e) => {
           this.mostrarError(e, 'No se pudo consultar el corte.');
           if (fallbackToAbierto) this.autocargarCorteAbierto();
-        }
+        },
       });
   }
 
@@ -437,7 +452,7 @@ export class CorteCaja implements OnInit, OnDestroy {
           this.refrescarPreview();
           this.refrescarDesgloseActual();
         },
-        error: () => {}
+        error: () => {},
       });
     }, 12000);
   }
@@ -450,7 +465,9 @@ export class CorteCaja implements OnInit, OnDestroy {
   }
 
   // ===== Helpers =====
-  get estaAbierto(): boolean { return (this.corte?.estado ?? '') === 'ABIERTO'; }
+  get estaAbierto(): boolean {
+    return (this.corte?.estado ?? '') === 'ABIERTO';
+  }
 
   get totalGeneralLive(): number {
     const v = Number(this.preview?.totalGeneral ?? this.corte?.totalGeneral ?? 0);
@@ -461,13 +478,13 @@ export class CorteCaja implements OnInit, OnDestroy {
     const desgloses = resp?.desgloses ?? [];
     const sumar = (origen: OrigenCorte) =>
       desgloses
-        .filter(d => d?.origen === origen && typeof d?.total === 'number')
+        .filter((d) => d?.origen === origen && typeof d?.total === 'number')
         .reduce((acc, d) => acc + (d.total || 0), 0);
 
-    const tv = (typeof resp.totalVentas === 'number' ? resp.totalVentas : sumar('VENTA'));
-    const tm = (typeof resp.totalMembresias === 'number' ? resp.totalMembresias : sumar('MEMBRESIA'));
-    const ta = (typeof resp.totalAccesorias === 'number' ? resp.totalAccesorias : sumar('ACCESORIA'));
-    const tg = (typeof resp.totalGeneral === 'number' ? resp.totalGeneral : (tv + tm + ta));
+    const tv = typeof resp.totalVentas === 'number' ? resp.totalVentas : sumar('VENTA');
+    const tm = typeof resp.totalMembresias === 'number' ? resp.totalMembresias : sumar('MEMBRESIA');
+    const ta = typeof resp.totalAccesorias === 'number' ? resp.totalAccesorias : sumar('ACCESORIA');
+    const tg = typeof resp.totalGeneral === 'number' ? resp.totalGeneral : tv + tm + ta;
 
     return { ...resp, totalVentas: tv, totalMembresias: tm, totalAccesorias: ta, totalGeneral: tg };
   }
@@ -476,9 +493,9 @@ export class CorteCaja implements OnInit, OnDestroy {
   private cargarUsuarioDesdeStorageYToken(): void {
     try {
       const token = this.tokenActual();
-      const d: any = token ? (this.jwt.decodeToken(token) || {}) : {};
+      const d: any = token ? this.jwt.decodeToken(token) || {} : {};
       this.usuarioLogueado = obtenerNombreCajero(
-        d?.preferred_username ?? d?.nombreUsuario ?? d?.username ?? d?.name ?? d?.email ?? d?.sub
+        d?.preferred_username ?? d?.nombreUsuario ?? d?.username ?? d?.name ?? d?.email ?? d?.sub,
       );
     } catch {
       this.usuarioLogueado = obtenerNombreCajero();
@@ -486,8 +503,9 @@ export class CorteCaja implements OnInit, OnDestroy {
   }
 
   private tokenActual(): string {
-    const keys = [environment.TOKEN_NAME, 'access_token', 'token', 'id_token']
-      .filter(Boolean) as string[];
+    const keys = [environment.TOKEN_NAME, 'access_token', 'token', 'id_token'].filter(
+      Boolean,
+    ) as string[];
 
     for (const k of keys) {
       const raw = (sessionStorage.getItem(k) ?? localStorage.getItem(k) ?? '').trim();
@@ -498,11 +516,15 @@ export class CorteCaja implements OnInit, OnDestroy {
 
   private fechaLocalDateTime(d = new Date()): string {
     const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-      + `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    return (
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+      `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+    );
   }
 
-  private resetErrores(): void { this.error = null; }
+  private resetErrores(): void {
+    this.error = null;
+  }
 
   private mostrarError(e: any, porDefecto: string): void {
     console.error('[CorteCaja] error', e);
@@ -512,17 +534,16 @@ export class CorteCaja implements OnInit, OnDestroy {
   }
 
   private mensajeAmigableError(e: any, fallback: string): string {
-    const raw =
-      e?.error?.message ??
-      e?.error?.error ??
-      e?.error ??
-      e?.message ??
-      '';
+    const raw = e?.error?.message ?? e?.error?.error ?? e?.error ?? e?.message ?? '';
 
     let s = '';
     if (typeof raw === 'string') s = raw;
     else {
-      try { s = JSON.stringify(raw); } catch { s = String(raw ?? ''); }
+      try {
+        s = JSON.stringify(raw);
+      } catch {
+        s = String(raw ?? '');
+      }
     }
 
     s = (s || '').trim();
@@ -584,7 +605,7 @@ export class CorteCaja implements OnInit, OnDestroy {
     const negocio = {
       nombre: gym?.nombre || 'REVOLUCIÓN ATLÉTICA',
       direccion: gym?.direccion || '',
-      telefono: gym?.telefono || ''
+      telefono: gym?.telefono || '',
     };
 
     this.cargarUsuarioDesdeStorageYToken();
@@ -593,7 +614,7 @@ export class CorteCaja implements OnInit, OnDestroy {
     this.ticket.imprimirCorteDesdeBackend(corte as any, {
       negocio,
       cajero,
-      brandTitle: 'REVOLUCIÓN ATLÉTICA'
+      brandTitle: 'REVOLUCIÓN ATLÉTICA',
     });
   }
 
@@ -601,43 +622,46 @@ export class CorteCaja implements OnInit, OnDestroy {
     try {
       const gym: any = (this.corte as any)?.gimnasio ?? {};
       const negocio = {
-        nombre:    gym?.nombre    || 'REVOLUCIÓN ATLÉTICA',
+        nombre: gym?.nombre || 'REVOLUCIÓN ATLÉTICA',
         direccion: gym?.direccion || '',
-        telefono:  gym?.telefono  || '',
+        telefono: gym?.telefono || '',
       };
       this.ticket.imprimirSalidaEfectivo({
         negocio,
-        folio:    resp?.id ?? resp?.idSalida ?? resp?.folio ?? '',
-        fecha:    new Date(),
-        cajero:   (this.usuarioLogueado ?? '').trim(),
-        idCorte:  this.corte?.idCorte,
+        folio: resp?.id ?? resp?.idSalida ?? resp?.folio ?? '',
+        fecha: new Date(),
+        cajero: (this.usuarioLogueado ?? '').trim(),
+        idCorte: this.corte?.idCorte,
         concepto: req.concepto,
-        monto:    req.monto,
+        monto: req.monto,
       });
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
   }
   get formasPagoAgrupadasPreview(): Array<{ tipo: string; operaciones: number; total: number }> {
-  const map = new Map<string, { operaciones: number; total: number }>();
-  const lista = (this.preview as any)?.formasDePago ?? (this.preview as any)?.formasPago ?? [];
+    const map = new Map<string, { operaciones: number; total: number }>();
+    const lista = (this.preview as any)?.formasDePago ?? (this.preview as any)?.formasPago ?? [];
 
-  for (const it of lista) {
-    const key = String((it as any)?.tipoPago ?? '');
-    const prev = map.get(key) ?? { operaciones: 0, total: 0 };
-    prev.operaciones += Number((it as any)?.operaciones ?? 0);
-    prev.total += Number((it as any)?.total ?? 0);
-    map.set(key, prev);
+    for (const it of lista) {
+      const key = String((it as any)?.tipoPago ?? '');
+      const prev = map.get(key) ?? { operaciones: 0, total: 0 };
+      prev.operaciones += Number((it as any)?.operaciones ?? 0);
+      prev.total += Number((it as any)?.total ?? 0);
+      map.set(key, prev);
+    }
+
+    const orden = ['EFECTIVO', 'TARJETA', 'TRANSFERENCIA', 'SPEI', 'DEPOSITO', 'MIXTO', 'OTRO'];
+    const arr = Array.from(map.entries()).map(([tipo, v]) => ({ tipo, ...v }));
+
+    arr.sort((a, b) => {
+      const ia = orden.indexOf(a.tipo);
+      const ib = orden.indexOf(b.tipo);
+      const sa = ia === -1 ? 999 : ia;
+      const sb = ib === -1 ? 999 : ib;
+      return sa === sb ? a.tipo.localeCompare(b.tipo) : sa - sb;
+    });
+
+    return arr;
   }
-
-  const orden = ['EFECTIVO','TARJETA','TRANSFERENCIA','SPEI','DEPOSITO','MIXTO','OTRO'];
-  const arr = Array.from(map.entries()).map(([tipo, v]) => ({ tipo, ...v }));
-
-  arr.sort((a,b) => {
-    const ia = orden.indexOf(a.tipo); const ib = orden.indexOf(b.tipo);
-    const sa = ia === -1 ? 999 : ia;  const sb = ib === -1 ? 999 : ib;
-    return sa === sb ? a.tipo.localeCompare(b.tipo) : sa - sb;
-  });
-
-  return arr;
-}
-
 }

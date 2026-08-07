@@ -15,12 +15,19 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../../../environments/environment';
 
 import { MembresiaData } from '../../../../../shared/models/membresia-data';
-import { MembresiaPageResponse, MembresiaService } from '../../../../../shared/data/membresia-service';
+import {
+  MembresiaPageResponse,
+  MembresiaService,
+} from '../../../../../shared/data/membresia-service';
 import { NotificacionService } from '../../../../../core/layout/notificacion-service';
 
 import { MembresiaModal } from './membresia-modal/membresia-modal';
 import { TiempoPlanLabelPipe } from 'src/app/shared/util/tiempo-plan-label';
-import { TicketMembresia, TicketPagoDetalle, TicketService } from 'src/app/shared/ticket/ticket-service';
+import {
+  TicketMembresia,
+  TicketPagoDetalle,
+  TicketService,
+} from 'src/app/shared/ticket/ticket-service';
 import { MenuService } from 'src/app/core/layout/menu-service';
 
 import { distinctUntilChanged, skip } from 'rxjs';
@@ -40,7 +47,13 @@ type PageMeta = {
 @Component({
   selector: 'app-membresia',
   standalone: true,
-  imports: [CommonModule, FormsModule, MembresiaModal, TiempoPlanLabelPipe, RaGimnasioFilterComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MembresiaModal,
+    TiempoPlanLabelPipe,
+    RaGimnasioFilterComponent,
+  ],
   templateUrl: './membresia.html',
   styleUrl: './membresia.css',
 })
@@ -67,15 +80,11 @@ export class Membresia {
   ocultarDescuento = signal(false);
 
   esXlUp = signal(
-    typeof window !== 'undefined'
-      ? window.matchMedia('(min-width: 1280px)').matches
-      : false
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 1280px)').matches : false,
   );
 
   es2xlUp = signal(
-    typeof window !== 'undefined'
-      ? window.matchMedia('(min-width: 1536px)').matches
-      : false
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 1536px)').matches : false,
   );
 
   rows: MembresiaData[] = [];
@@ -164,11 +173,7 @@ export class Membresia {
     // ✅ Admin: si cambia el gimnasio en el selector => recargar listado
     if (this.esAdmin) {
       this.tenantCtx.viewTenantChanges$
-        .pipe(
-          distinctUntilChanged(),
-          skip(1),
-          takeUntilDestroyed(this.destroyRef)
-        )
+        .pipe(distinctUntilChanged(), skip(1), takeUntilDestroyed(this.destroyRef))
         .subscribe(() => {
           if (this.destroying) return;
           // recarga conservando filtros (folio/nombre/fechas), pero en página 1
@@ -227,7 +232,9 @@ export class Membresia {
   }
 
   cargar(pageUI: number): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
     this.error = null;
     this.cargando = true;
 
@@ -246,8 +253,12 @@ export class Membresia {
     obs.subscribe({
       next: (resp: MembresiaPageResponse) => {
         this.rows = resp?.content ?? [];
-        this.page =
-          resp?.page ?? { size: this.sizeSel, number: pageUI - 1, totalElements: 0, totalPages: 0 };
+        this.page = resp?.page ?? {
+          size: this.sizeSel,
+          number: pageUI - 1,
+          totalElements: 0,
+          totalPages: 0,
+        };
         this.cargando = false;
       },
       error: () => {
@@ -423,7 +434,8 @@ export class Membresia {
     };
 
     const u = m.usuario as any;
-    const cajero = [u?.nombre, u?.apellido].filter(Boolean).join(' ').trim() || u?.nombreUsuario || '';
+    const cajero =
+      [u?.nombre, u?.apellido].filter(Boolean).join(' ').trim() || u?.nombreUsuario || '';
     const socioNombre = `${m.socio?.nombre ?? ''} ${m.socio?.apellido ?? ''}`.trim();
 
     const desc = Number(m.descuento || 0);
@@ -488,7 +500,7 @@ export class Membresia {
   }
 
   gymNombre(g: any): string {
-    return g?.nombre ?? (g?.idGimnasio ?? g?.id ? `#${g?.idGimnasio ?? g?.id}` : '—');
+    return g?.nombre ?? ((g?.idGimnasio ?? g?.id) ? `#${g?.idGimnasio ?? g?.id}` : '—');
   }
 
   trackById = (_: number, it: MembresiaData) => it.idMembresia!;
@@ -512,7 +524,9 @@ export class Membresia {
 
   @HostListener('document:click')
   closeMenuRows(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
   }
 
   toggleMenuRow(i: number, event: MouseEvent): void {
@@ -533,9 +547,10 @@ export class Membresia {
     this.menuRowIdx = i;
     this.menuDropUpIdx = openUp ? i : null;
     this.menuDropdownStyle = openUp
-      ? { bottom: `${viewportHeight - rect.top + gap}px`, right: `${window.innerWidth - rect.right}px` }
+      ? {
+          bottom: `${viewportHeight - rect.top + gap}px`,
+          right: `${window.innerWidth - rect.right}px`,
+        }
       : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }
-
-

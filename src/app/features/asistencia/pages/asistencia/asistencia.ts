@@ -65,7 +65,10 @@ export class Asistencia implements OnInit {
   hoy = hoyISO();
   get fechaHoyTexto(): string {
     const opts: Intl.DateTimeFormatOptions = {
-      weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
     };
     const s = new Date().toLocaleDateString('es-MX', opts);
     return s.charAt(0).toUpperCase() + s.slice(1);
@@ -82,11 +85,11 @@ export class Asistencia implements OnInit {
       estado: this.socioInactivo()
         ? ('rojo' as EstadoSemaforo)
         : (this.calcularSemaforo(m.fechaFin) as EstadoSemaforo),
-    }))
+    })),
   );
 
   autorizado = computed(
-    () => !this.socioInactivo() && this.tarjetas().some((t) => t.estado !== 'rojo')
+    () => !this.socioInactivo() && this.tarjetas().some((t) => t.estado !== 'rojo'),
   );
 
   proximaFechaPago = computed(() => {
@@ -176,7 +179,9 @@ export class Asistencia implements OnInit {
   }
 
   cerrarResultados(): void {
-    setTimeout(() => { this.mostrarResultados = false; }, 150);
+    setTimeout(() => {
+      this.mostrarResultados = false;
+    }, 150);
   }
 
   irAActualizarSocio(): void {
@@ -284,7 +289,7 @@ export class Asistencia implements OnInit {
                 catchError((err) => {
                   if (err?.status === 403 || err?.status === 404) return of(null);
                   throw err;
-                })
+                }),
               );
 
           const membresias$ = this.membresiaService
@@ -293,7 +298,7 @@ export class Asistencia implements OnInit {
 
           return forkJoin({ resp: of(resp), socio: socio$, membresias: membresias$ });
         }),
-        finalize(() => (this.cargando = false))
+        finalize(() => (this.cargando = false)),
       )
       .subscribe({
         next: ({ resp, socio, membresias }) => {
@@ -320,10 +325,9 @@ export class Asistencia implements OnInit {
 
           // Si NO hubo errorOperacion y el POST existió, mostramos éxito
           if (!this.errorOperacion) {
-            const visitasTxt =
-              this.esPlanPorVisitas(resp?.membresia?.paquete)
-                ? ` | Visitas restantes: ${resp?.membresia?.visitasRestantes ?? '—'}/${resp?.membresia?.paquete?.visitasMaximas ?? '—'}`
-                : '';
+            const visitasTxt = this.esPlanPorVisitas(resp?.membresia?.paquete)
+              ? ` | Visitas restantes: ${resp?.membresia?.visitasRestantes ?? '—'}/${resp?.membresia?.paquete?.visitasMaximas ?? '—'}`
+              : '';
             this.notificaciones.exito(`Check-in registrado${visitasTxt}`);
           }
         },
@@ -341,7 +345,7 @@ export class Asistencia implements OnInit {
       catchError((err) => {
         if (err?.status === 403 || err?.status === 404) return of(null);
         throw err;
-      })
+      }),
     );
 
     const membresias$ = this.membresiaService
@@ -390,7 +394,7 @@ export class Asistencia implements OnInit {
               .pipe(catchError(() => of([] as MembresiaData[]))),
           });
         }),
-        finalize(() => (this.cargando = false))
+        finalize(() => (this.cargando = false)),
       )
       .subscribe({
         next: ({ socio, membresias }) => {
@@ -454,15 +458,24 @@ export class Asistencia implements OnInit {
     if (title) return title;
 
     switch (err?.status) {
-      case 0:   return 'Sin conexión con el servidor.';
-      case 400: return 'Solicitud inválida (400).';
-      case 401: return 'No autenticado (401).';
-      case 403: return 'Sin autorización para esta operación (403).';
-      case 404: return 'Recurso no encontrado (404).';
-      case 409: return 'Conflicto de datos (409).';
-      case 422: return 'Datos inválidos (422).';
-      case 500: return 'Error interno del servidor (500).';
-      default:  return fallback;
+      case 0:
+        return 'Sin conexión con el servidor.';
+      case 400:
+        return 'Solicitud inválida (400).';
+      case 401:
+        return 'No autenticado (401).';
+      case 403:
+        return 'Sin autorización para esta operación (403).';
+      case 404:
+        return 'Recurso no encontrado (404).';
+      case 409:
+        return 'Conflicto de datos (409).';
+      case 422:
+        return 'Datos inválidos (422).';
+      case 500:
+        return 'Error interno del servidor (500).';
+      default:
+        return fallback;
     }
   }
 

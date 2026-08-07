@@ -1,45 +1,63 @@
 <!-- Barra externa: filtros + Volver -->
-<div class="mx-1 mb-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-  <h1 class="text-base sm:text-lg font-semibold text-ra-slate shrink-0">Historial de asistencias</h1>
+<div
+  class="mx-1 mb-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+>
+  <h1 class="text-ra-slate shrink-0 text-base font-semibold sm:text-lg">
+    Historial de asistencias
+  </h1>
 
   <div class="flex flex-wrap items-center gap-2">
     <!-- Desde -->
     <div class="flex items-center gap-1.5">
-      <label class="text-xs text-ra-slate/70 whitespace-nowrap">Desde</label>
-      <input type="date" class="h-8 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner w-[138px]"
-             [(ngModel)]="filtroDesde" />
+      <label class="text-ra-slate/70 text-xs whitespace-nowrap">Desde</label>
+      <input
+        type="date"
+        class="h-8 w-[138px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
+        [(ngModel)]="filtroDesde"
+      />
     </div>
 
     <!-- Hasta -->
     <div class="flex items-center gap-1.5">
-      <label class="text-xs text-ra-slate/70 whitespace-nowrap">Hasta</label>
-      <input type="date" class="h-8 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner w-[138px]"
-             [(ngModel)]="filtroHasta" />
+      <label class="text-ra-slate/70 text-xs whitespace-nowrap">Hasta</label>
+      <input
+        type="date"
+        class="h-8 w-[138px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
+        [(ngModel)]="filtroHasta"
+      />
     </div>
 
     <!-- Nombre socio -->
-    <input type="text"
-           class="h-8 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner w-[200px]"
-           placeholder="Nombre o apellido (mín. 3)"
-           [ngModel]="filtroNombreSocio"
-           (ngModelChange)="onNombreChange($event)" />
+    <input
+      type="text"
+      class="h-8 w-[200px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
+      placeholder="Nombre o apellido (mín. 3)"
+      [ngModel]="filtroNombreSocio"
+      (ngModelChange)="onNombreChange($event)"
+    />
 
     <!-- Botones -->
-    <button type="button"
-            class="h-8 px-3 rounded-lg bg-[color:var(--color-ra-azul-fuerte)] text-white hover:brightness-110 shadow-card text-xs"
-            (click)="aplicarFiltros()">
+    <button
+      type="button"
+      class="shadow-card h-8 rounded-lg bg-[color:var(--color-ra-azul-fuerte)] px-3 text-xs text-white hover:brightness-110"
+      (click)="aplicarFiltros()"
+    >
       Aplicar
     </button>
-    <button type="button"
-            class="h-8 px-3 rounded-lg border border-gray-200 text-xs text-ra-slate hover:bg-gray-50"
-            (click)="limpiarFiltros()">
+    <button
+      type="button"
+      class="text-ra-slate h-8 rounded-lg border border-gray-200 px-3 text-xs hover:bg-gray-50"
+      (click)="limpiarFiltros()"
+    >
       Limpiar
     </button>
 
     <!-- Volver -->
-    <a routerLink="/pages/inscripcion"
-       class="h-8 px-3 rounded-lg bg-[color:var(--color-ra-azul-fuerte)] text-white text-xs inline-flex items-center gap-1.5 whitespace-nowrap hover:brightness-110">
-      <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2">
+    <a
+      routerLink="/pages/inscripcion"
+      class="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[color:var(--color-ra-azul-fuerte)] px-3 text-xs whitespace-nowrap text-white hover:brightness-110"
+    >
+      <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"></path>
       </svg>
       Volver
@@ -48,95 +66,137 @@
 </div>
 
 <!-- CARD PRINCIPAL -->
-<div class="mx-1 bg-white ring-1 ring-black/10 shadow-card rounded-xl overflow-hidden">
-
+<div class="shadow-card mx-1 overflow-hidden rounded-xl bg-white ring-1 ring-black/10">
   <!-- TOOLBAR -->
-  <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
-    <h1 class="text-base font-semibold text-ra-slate shrink-0">Asistencias</h1>
+  <div
+    class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-gray-100 px-4 py-3"
+  >
+    <h1 class="text-ra-slate shrink-0 text-base font-semibold">Asistencias</h1>
   </div>
 
   <!-- TABLA -->
   <div class="overflow-x-auto">
     <div>
-      <table class="w-full min-w-[700px] border-collapse table-fixed text-xs">
+      <table class="w-full min-w-[700px] table-fixed border-collapse text-xs">
         <colgroup>
-          <col class="w-[16%]">
-          <col [class]="isAdmin ? 'w-[27%]' : 'w-[38%]'">
-          <col class="w-[14%]">
-          <col class="w-[12%]">
-          <col [class]="isAdmin ? 'w-[18%]' : 'w-[20%]'">
-          @if (isAdmin) { <col class="w-[13%]"> }
+          <col class="w-[16%]" />
+          <col [class]="isAdmin ? 'w-[27%]' : 'w-[38%]'" />
+          <col class="w-[14%]" />
+          <col class="w-[12%]" />
+          <col [class]="isAdmin ? 'w-[18%]' : 'w-[20%]'" />
+          @if (isAdmin) {
+            <col class="w-[13%]" />
+          }
         </colgroup>
 
-        <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+        <thead class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
           <tr>
-            <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Fecha</th>
-            <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Socio</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Tel</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Origen</th>
-            <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Paquete</th>
+            <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+              Fecha
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+              Socio
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Tel
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Origen
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+              Paquete
+            </th>
             @if (isAdmin) {
-              <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Gimnasio</th>
+              <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+                Gimnasio
+              </th>
             }
           </tr>
         </thead>
 
         <tbody>
           @if (cargando) {
-            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Cargando…</td></tr>
+            <tr>
+              <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Cargando…</td>
+            </tr>
           } @else if (mensajeError) {
-            <tr><td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ mensajeError }}</td></tr>
+            <tr>
+              <td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ mensajeError }}</td>
+            </tr>
           } @else if (listaAsistencias.length === 0) {
-            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Sin registros de asistencia.</td></tr>
+            <tr>
+              <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">
+                Sin registros de asistencia.
+              </td>
+            </tr>
           } @else {
             @for (a of listaAsistencias; track a.idAsistencia) {
               <tr class="border-t border-gray-100 hover:bg-gray-50/60">
-                <td class="py-2.5 px-3 text-[11px] min-w-0">
-                  <div class="font-medium truncate">{{ a.fechaHora | date:'dd/MM/yyyy' }}</div>
-                  <div class="text-[10px] text-ra-slate/60">{{ a.fechaHora | date:'HH:mm:ss' }}</div>
+                <td class="min-w-0 px-3 py-2.5 text-[11px]">
+                  <div class="truncate font-medium">{{ a.fechaHora | date: 'dd/MM/yyyy' }}</div>
+                  <div class="text-ra-slate/60 text-[10px]">
+                    {{ a.fechaHora | date: 'HH:mm:ss' }}
+                  </div>
                 </td>
 
-                <td class="py-2.5 px-3 text-[11px] min-w-0">
-                  <div class="font-medium truncate">{{ displaySocio(a) }}</div>
-                  <div class="text-[10px] text-ra-slate/60">ID: {{ a.socio.idSocio }}</div>
+                <td class="min-w-0 px-3 py-2.5 text-[11px]">
+                  <div class="truncate font-medium">{{ displaySocio(a) }}</div>
+                  <div class="text-ra-slate/60 text-[10px]">ID: {{ a.socio.idSocio }}</div>
                 </td>
 
-                <td class="py-2.5 px-3 text-center text-[11px] truncate" [title]="displayTelefono(a)">
+                <td
+                  class="truncate px-3 py-2.5 text-center text-[11px]"
+                  [title]="displayTelefono(a)"
+                >
                   {{ displayTelefono(a) }}
                 </td>
 
-                <td class="py-2.5 px-3 text-center">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                        [ngClass]="{
-                          'bg-blue-100 text-blue-700': a.origen === 'HUELLA',
-                          'bg-amber-100 text-amber-700': a.origen === 'MANUAL',
-                          'bg-gray-100 text-gray-700': a.origen !== 'HUELLA' && a.origen !== 'MANUAL'
-                        }">
+                <td class="px-3 py-2.5 text-center">
+                  <span
+                    class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                    [ngClass]="{
+                      'bg-blue-100 text-blue-700': a.origen === 'HUELLA',
+                      'bg-amber-100 text-amber-700': a.origen === 'MANUAL',
+                      'bg-gray-100 text-gray-700': a.origen !== 'HUELLA' && a.origen !== 'MANUAL',
+                    }"
+                  >
                     {{ a.origen }}
                   </span>
                 </td>
 
-                <td class="py-2.5 px-3 min-w-0">
-                  <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-[10px] font-semibold max-w-full"
-                        [title]="displayPaqueteNombre(a)">
-                    <span class="truncate min-w-0">{{ displayPaqueteNombre(a) }}</span>
+                <td class="min-w-0 px-3 py-2.5">
+                  <span
+                    class="inline-flex max-w-full items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--color-ra-azul-fuerte)]"
+                    [title]="displayPaqueteNombre(a)"
+                  >
+                    <span class="min-w-0 truncate">{{ displayPaqueteNombre(a) }}</span>
                   </span>
                   @if (a?.paquete?.tiempo) {
-                    <div class="text-[10px] text-ra-slate/60 truncate mt-0.5">
+                    <div class="text-ra-slate/60 mt-0.5 truncate text-[10px]">
                       {{ a.paquete?.tiempo | tiempoPlan }}
-                      @if (a?.paquete?.tipoPaquete) { · {{ a?.paquete?.tipoPaquete }} }
+                      @if (a?.paquete?.tipoPaquete) {
+                        · {{ a?.paquete?.tipoPaquete }}
+                      }
                     </div>
                   }
                 </td>
 
                 @if (isAdmin) {
-                  <td class="py-2.5 px-3 text-[11px] min-w-0">
-                    <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-[10px] max-w-full"
-                          [title]="displayGimnasio(a)">
-                      <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                  <td class="min-w-0 px-3 py-2.5 text-[11px]">
+                    <span
+                      class="inline-flex max-w-full items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 px-2 py-0.5 text-[10px] text-[color:var(--color-ra-azul-fuerte)]"
+                      [title]="displayGimnasio(a)"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        class="h-3.5 w-3.5 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
                         <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
                       </svg>
-                      <span class="truncate min-w-0">{{ displayGimnasio(a) }}</span>
+                      <span class="min-w-0 truncate">{{ displayGimnasio(a) }}</span>
                     </span>
                   </td>
                 }
@@ -149,23 +209,42 @@
   </div>
 
   <!-- FOOTER -->
-  <div class="px-4 py-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-    <div class="flex items-center gap-2 text-ra-slate/70 shrink-0">
-      <span>Página <strong class="text-ra-slate">{{ paginaActual + 1 }}</strong> de <strong class="text-ra-slate">{{ totalPaginas }}</strong></span>
+  <div
+    class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-4 py-3 text-xs"
+  >
+    <div class="text-ra-slate/70 flex shrink-0 items-center gap-2">
+      <span
+        >Página <strong class="text-ra-slate">{{ paginaActual + 1 }}</strong> de
+        <strong class="text-ra-slate">{{ totalPaginas }}</strong></span
+      >
       <span class="text-ra-slate/50">({{ totalElementos }} registros)</span>
     </div>
     <div class="flex items-center gap-2 overflow-x-auto">
-      <span class="text-ra-slate/60 whitespace-nowrap shrink-0">Por página</span>
-      <select class="h-8 w-[70px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner shrink-0"
-              [ngModel]="tamanioPagina" (ngModelChange)="cambiarTamanioPagina($event)">
-        @for (t of tamaniosDisponibles; track t) { <option [ngValue]="t">{{ t }}</option> }
+      <span class="text-ra-slate/60 shrink-0 whitespace-nowrap">Por página</span>
+      <select
+        class="h-8 w-[70px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
+        [ngModel]="tamanioPagina"
+        (ngModelChange)="cambiarTamanioPagina($event)"
+      >
+        @for (t of tamaniosDisponibles; track t) {
+          <option [ngValue]="t">{{ t }}</option>
+        }
       </select>
-      <div class="w-px h-4 bg-gray-200 shrink-0"></div>
-      <button class="h-8 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 text-xs shrink-0"
-              [disabled]="paginaActual === 0" (click)="irAnterior()">Anterior</button>
-      <button class="h-8 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 text-xs shrink-0"
-              [disabled]="paginaActual + 1 >= totalPaginas" (click)="irSiguiente()">Siguiente</button>
+      <div class="h-4 w-px shrink-0 bg-gray-200"></div>
+      <button
+        class="h-8 shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
+        [disabled]="paginaActual === 0"
+        (click)="irAnterior()"
+      >
+        Anterior
+      </button>
+      <button
+        class="h-8 shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
+        [disabled]="paginaActual + 1 >= totalPaginas"
+        (click)="irSiguiente()"
+      >
+        Siguiente
+      </button>
     </div>
   </div>
-
 </div>

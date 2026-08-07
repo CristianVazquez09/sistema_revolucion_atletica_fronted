@@ -56,12 +56,9 @@ export class CheckInService {
     pagina: number,
     tamanio: number,
     termino?: string | null,
-    origen?: 'HUELLA' | 'MANUAL' | null
+    origen?: 'HUELLA' | 'MANUAL' | null,
   ): Observable<PagedResponse<AsistenciaHistorialData>> {
-
-    let params = new HttpParams()
-      .set('page', pagina.toString())
-      .set('size', tamanio.toString());
+    let params = new HttpParams().set('page', pagina.toString()).set('size', tamanio.toString());
 
     const q = (termino ?? '').trim();
     if (q.length > 0) params = params.set('q', q);
@@ -69,7 +66,7 @@ export class CheckInService {
 
     return this.http
       .get<any>(this.base, { params })
-      .pipe(map(raw => toPagedResponse<AsistenciaHistorialData>(raw)));
+      .pipe(map((raw) => toPagedResponse<AsistenciaHistorialData>(raw)));
   }
 
   // ─────────── 🔎 NUEVO: historial por rango (y opcional socio) ───────────
@@ -77,11 +74,10 @@ export class CheckInService {
   listarHistorialRango(
     pagina: number,
     tamanio: number,
-    desde: string,       // 'YYYY-MM-DD'
-    hasta: string,       // 'YYYY-MM-DD'
-    idSocio?: number | null
+    desde: string, // 'YYYY-MM-DD'
+    hasta: string, // 'YYYY-MM-DD'
+    idSocio?: number | null,
   ): Observable<PagedResponse<AsistenciaHistorialData>> {
-
     let params = new HttpParams()
       .set('page', pagina.toString())
       .set('size', tamanio.toString())
@@ -94,57 +90,51 @@ export class CheckInService {
 
     return this.http
       .get<any>(`${this.base}/rango`, { params })
-      .pipe(map(raw => toPagedResponse<AsistenciaHistorialData>(raw)));
+      .pipe(map((raw) => toPagedResponse<AsistenciaHistorialData>(raw)));
   }
   // ─────────── 🔎 NUEVO: buscar historial por nombre de socio ───────────
-// GET /v1/asistencias/buscar?nombre=...&page=...&size=...
-buscarPorNombreSocio(
-  pagina: number,
-  tamanio: number,
-  nombre: string
-): Observable<PagedResponse<AsistenciaHistorialData>> {
+  // GET /v1/asistencias/buscar?nombre=...&page=...&size=...
+  buscarPorNombreSocio(
+    pagina: number,
+    tamanio: number,
+    nombre: string,
+  ): Observable<PagedResponse<AsistenciaHistorialData>> {
+    const n = (nombre ?? '').trim();
 
-  const n = (nombre ?? '').trim();
+    let params = new HttpParams()
+      .set('page', pagina.toString())
+      .set('size', tamanio.toString())
+      .set('nombre', n);
 
-  let params = new HttpParams()
-    .set('page', pagina.toString())
-    .set('size', tamanio.toString())
-    .set('nombre', n);
-
-  return this.http
-    .get<any>(`${this.base}/buscar`, { params })
-    .pipe(map(raw => toPagedResponse<AsistenciaHistorialData>(raw)));
-}
-
-// filtros combinables (desde/hasta/nombre) -> GET {base}/buscar
-buscar(
-  pagina: number,
-  tamanio: number,
-  desde?: string | null,
-  hasta?: string | null,
-  nombre?: string | null
-): Observable<PagedResponse<AsistenciaHistorialData>> {
-
-  const n = (nombre ?? '').trim();
-
-  let params = new HttpParams()
-    .set('page', String(pagina))
-    .set('size', String(tamanio));
-
-  // solo mandamos fechas si vienen ambas (evita 400/IllegalArgumentException)
-  if (desde && hasta) {
-    params = params.set('desde', desde).set('hasta', hasta);
+    return this.http
+      .get<any>(`${this.base}/buscar`, { params })
+      .pipe(map((raw) => toPagedResponse<AsistenciaHistorialData>(raw)));
   }
 
-  // solo mandamos nombre si trae contenido
-  if (n.length > 0) {
-    params = params.set('nombre', n);
+  // filtros combinables (desde/hasta/nombre) -> GET {base}/buscar
+  buscar(
+    pagina: number,
+    tamanio: number,
+    desde?: string | null,
+    hasta?: string | null,
+    nombre?: string | null,
+  ): Observable<PagedResponse<AsistenciaHistorialData>> {
+    const n = (nombre ?? '').trim();
+
+    let params = new HttpParams().set('page', String(pagina)).set('size', String(tamanio));
+
+    // solo mandamos fechas si vienen ambas (evita 400/IllegalArgumentException)
+    if (desde && hasta) {
+      params = params.set('desde', desde).set('hasta', hasta);
+    }
+
+    // solo mandamos nombre si trae contenido
+    if (n.length > 0) {
+      params = params.set('nombre', n);
+    }
+
+    return this.http
+      .get<any>(`${this.base}/buscar`, { params })
+      .pipe(map((raw) => toPagedResponse<AsistenciaHistorialData>(raw)));
   }
-
-  return this.http
-    .get<any>(`${this.base}/buscar`, { params })
-    .pipe(map(raw => toPagedResponse<AsistenciaHistorialData>(raw)));
-}
-
-
 }

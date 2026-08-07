@@ -5,7 +5,7 @@ import {
   InventarioTurnoResponseData,
   InventarioCierreRequestData,
   InventarioCierreResultadoData,
-  TurnoInventario
+  TurnoInventario,
 } from '../models/inventario-diario-data';
 import { Observable } from 'rxjs';
 
@@ -17,13 +17,11 @@ export class InventarioService {
   constructor(private http: HttpClient) {}
 
   turno(opts: {
-    fecha: string;              // YYYY-MM-DD
-    turno: TurnoInventario;     // MANANA|TARDE|UNICO
+    fecha: string; // YYYY-MM-DD
+    turno: TurnoInventario; // MANANA|TARDE|UNICO
     gimnasioId?: number | null; // opcional (si tu backend lo usa)
   }): Observable<InventarioTurnoResponseData> {
-    let params = new HttpParams()
-      .set('fecha', opts.fecha)
-      .set('turno', opts.turno);
+    let params = new HttpParams().set('fecha', opts.fecha).set('turno', opts.turno);
 
     if (opts.gimnasioId != null) {
       params = params.set('gimnasioId', String(opts.gimnasioId));

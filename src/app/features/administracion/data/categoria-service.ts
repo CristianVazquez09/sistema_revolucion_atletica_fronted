@@ -5,12 +5,10 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CategoriaService extends GenericService<CategoriaData> {
-
-   constructor(protected override http: HttpClient){
-    super(http, `${environment.HOST}/categorias`)
+  constructor(protected override http: HttpClient) {
+    super(http, `${environment.HOST}/categorias`);
   }
-  
 }

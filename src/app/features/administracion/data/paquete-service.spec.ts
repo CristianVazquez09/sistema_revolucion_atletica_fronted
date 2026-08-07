@@ -48,7 +48,7 @@ describe('PaqueteService', () => {
 
   it('buscarTodos hace GET a la URL base', () => {
     let resultado: PaqueteData[] | undefined;
-    service.buscarTodos().subscribe(r => (resultado = r));
+    service.buscarTodos().subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(BASE);
     expect(req.request.method).toBe('GET');
@@ -89,9 +89,9 @@ describe('PaqueteService', () => {
 
   it('buscarPorNombre sin argumentos no manda parámetros', () => {
     let resultado: PaqueteData[] | undefined;
-    service.buscarPorNombre().subscribe(r => (resultado = r));
+    service.buscarPorNombre().subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(r => r.url === `${BASE}/buscar`);
+    const req = httpMock.expectOne((r) => r.url === `${BASE}/buscar`);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.keys().length).toBe(0);
     req.flush([paquete]);
@@ -101,9 +101,9 @@ describe('PaqueteService', () => {
 
   it('buscarPorNombre con nombre y activo manda ambos parámetros', () => {
     let resultado: PaqueteData[] | undefined;
-    service.buscarPorNombre('mensual', true).subscribe(r => (resultado = r));
+    service.buscarPorNombre('mensual', true).subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(r => r.url === `${BASE}/buscar`);
+    const req = httpMock.expectOne((r) => r.url === `${BASE}/buscar`);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('nombre')).toBe('mensual');
     expect(req.request.params.get('activo')).toBe('true');
@@ -114,9 +114,9 @@ describe('PaqueteService', () => {
 
   it('buscarPorNombre con espacios omite nombre pero incluye activo', () => {
     let resultado: PaqueteData[] | undefined;
-    service.buscarPorNombre('  ', false).subscribe(r => (resultado = r));
+    service.buscarPorNombre('  ', false).subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(r => r.url === `${BASE}/buscar`);
+    const req = httpMock.expectOne((r) => r.url === `${BASE}/buscar`);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.has('nombre')).toBeFalse();
     expect(req.request.params.get('activo')).toBe('false');
@@ -127,9 +127,9 @@ describe('PaqueteService', () => {
 
   it('buscarPromocionesVigentes hace GET a base/{idPaquete}/promociones con vigentes=true', () => {
     let resultado: PromocionData[] | undefined;
-    service.buscarPromocionesVigentes(4).subscribe(r => (resultado = r));
+    service.buscarPromocionesVigentes(4).subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(r => r.url === `${BASE}/4/promociones`);
+    const req = httpMock.expectOne((r) => r.url === `${BASE}/4/promociones`);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('vigentes')).toBe('true');
     req.flush([promocion]);
@@ -139,9 +139,9 @@ describe('PaqueteService', () => {
 
   it('buscarPromociones hace GET a base/{idPaquete}/promociones con vigentes=false por defecto', () => {
     let resultado: PromocionData[] | undefined;
-    service.buscarPromociones(4).subscribe(r => (resultado = r));
+    service.buscarPromociones(4).subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(r => r.url === `${BASE}/4/promociones`);
+    const req = httpMock.expectOne((r) => r.url === `${BASE}/4/promociones`);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('vigentes')).toBe('false');
     req.flush([promocion]);
@@ -151,9 +151,9 @@ describe('PaqueteService', () => {
 
   it('buscarPromociones con vigentes=true manda vigentes=true', () => {
     let resultado: PromocionData[] | undefined;
-    service.buscarPromociones(4, true).subscribe(r => (resultado = r));
+    service.buscarPromociones(4, true).subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(r => r.url === `${BASE}/4/promociones`);
+    const req = httpMock.expectOne((r) => r.url === `${BASE}/4/promociones`);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('vigentes')).toBe('true');
     req.flush([promocion]);

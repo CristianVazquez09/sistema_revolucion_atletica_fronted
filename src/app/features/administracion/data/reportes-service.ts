@@ -20,21 +20,23 @@ export class ReportesService {
   descargarExcelMovimientos(
     idGimnasio: number | null,
     desde: string,
-    hasta: string
+    hasta: string,
   ): Observable<Blob> {
-    let params = new HttpParams()
-      .set('desde', desde)
-      .set('hasta', hasta);
+    let params = new HttpParams().set('desde', desde).set('hasta', hasta);
 
     if (idGimnasio != null) {
       params = params.set('idGimnasio', idGimnasio);
     }
 
-    console.log('[ReportesService] GET', `${this.baseUrl}/reportes/movimientos/excel`, params.toString());
+    console.log(
+      '[ReportesService] GET',
+      `${this.baseUrl}/reportes/movimientos/excel`,
+      params.toString(),
+    );
 
     return this.http.get(`${this.baseUrl}/reportes/movimientos/excel`, {
       params,
-      responseType: 'blob'
+      responseType: 'blob',
     });
   }
 }

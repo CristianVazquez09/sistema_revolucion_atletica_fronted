@@ -5,8 +5,8 @@ import { getHuellaReaderSingleton } from '../huella-reader-singleton';
 
 export type HuellaResultado = {
   formato: 'PNG';
-  muestras: string[];   // base64 SIN prefijo
-  calidades: number[];  // códigos de calidad (0 = OK)
+  muestras: string[]; // base64 SIN prefijo
+  calidades: number[]; // códigos de calidad (0 = OK)
 };
 
 @Component({
@@ -17,7 +17,7 @@ export type HuellaResultado = {
   styleUrls: ['./huella.css'],
 })
 export class HuellaModal implements OnInit, OnDestroy {
-  @Output() cancelar  = new EventEmitter<void>();
+  @Output() cancelar = new EventEmitter<void>();
   @Output() confirmar = new EventEmitter<HuellaResultado>();
 
   /** cuántas muestras necesitas (1 = one-shot y cierra solo). */
@@ -30,27 +30,27 @@ export class HuellaModal implements OnInit, OnDestroy {
 
   // Estado UI
   capturando = signal(false);
-  errorMsg   = signal<string|null>(null);
-  calidad    = signal<number|null>(null);
+  errorMsg = signal<string | null>(null);
+  calidad = signal<number | null>(null);
 
-  previews   = signal<string[]>([]);
-  bases64    = signal<string[]>([]);
-  calidades  = signal<number[]>([]);
+  previews = signal<string[]>([]);
+  bases64 = signal<string[]>([]);
+  calidades = signal<number[]>([]);
 
-  private acquisitionOn = false;       // guard contra doble start
-  private timeoutHandle: any = null;   // timeout defensivo
+  private acquisitionOn = false; // guard contra doble start
+  private timeoutHandle: any = null; // timeout defensivo
 
   // ====== Handlers nombrados (para off(event, handler)) ======
-  private onDeviceConnected    = () => this.errorMsg.set(null);
+  private onDeviceConnected = () => this.errorMsg.set(null);
   private onDeviceDisconnected = () => this.errorMsg.set('Lector desconectado.');
-  private onErrorOccurred      = (err: any) => {
+  private onErrorOccurred = (err: any) => {
     console.error('[HuellaModal] ErrorOccurred:', err);
     this.errorMsg.set('No se puede conectar al lector. ¿Agent/Lite Client instalado?');
   };
-  private onQualityReported    = (ev: { quality: number }) => {
+  private onQualityReported = (ev: { quality: number }) => {
     this.calidad.set(ev?.quality ?? null);
   };
-  private onSamplesAcquired    = (ev: { samples: string[] }) => {
+  private onSamplesAcquired = (ev: { samples: string[] }) => {
     try {
       const raw = ev?.samples?.[0] ?? '';
       const base = this.normalizaBase64(raw);
@@ -66,9 +66,9 @@ export class HuellaModal implements OnInit, OnDestroy {
       }
 
       const dataUrl = `data:image/png;base64,${base}`;
-      this.previews.update(arr  => [...arr, dataUrl]);
-      this.bases64.update(arr    => [...arr, base]);
-      this.calidades.update(arr  => [...arr, q ?? -1]);
+      this.previews.update((arr) => [...arr, dataUrl]);
+      this.bases64.update((arr) => [...arr, base]);
+      this.calidades.update((arr) => [...arr, q ?? -1]);
 
       if (this.bases64().length >= this.maxMuestras) {
         this.finalizar(); // cierra solo si ya juntaste las muestras
@@ -86,11 +86,11 @@ export class HuellaModal implements OnInit, OnDestroy {
   // ====== Ciclo de vida ======
   async ngOnInit() {
     try {
-      (this.reader as any).on('DeviceConnected',    this.onDeviceConnected);
+      (this.reader as any).on('DeviceConnected', this.onDeviceConnected);
       (this.reader as any).on('DeviceDisconnected', this.onDeviceDisconnected);
-      (this.reader as any).on('ErrorOccurred',      this.onErrorOccurred);
-      (this.reader as any).on('QualityReported',    this.onQualityReported);
-      (this.reader as any).on('SamplesAcquired',    this.onSamplesAcquired);
+      (this.reader as any).on('ErrorOccurred', this.onErrorOccurred);
+      (this.reader as any).on('QualityReported', this.onQualityReported);
+      (this.reader as any).on('SamplesAcquired', this.onSamplesAcquired);
 
       await this.start();
     } catch (e) {
@@ -103,11 +103,11 @@ export class HuellaModal implements OnInit, OnDestroy {
     this.clearTimeout();
     this.stop().catch(() => {});
     try {
-      (this.reader as any)?.off?.('DeviceConnected',    this.onDeviceConnected);
+      (this.reader as any)?.off?.('DeviceConnected', this.onDeviceConnected);
       (this.reader as any)?.off?.('DeviceDisconnected', this.onDeviceDisconnected);
-      (this.reader as any)?.off?.('ErrorOccurred',      this.onErrorOccurred);
-      (this.reader as any)?.off?.('QualityReported',    this.onQualityReported);
-      (this.reader as any)?.off?.('SamplesAcquired',    this.onSamplesAcquired);
+      (this.reader as any)?.off?.('ErrorOccurred', this.onErrorOccurred);
+      (this.reader as any)?.off?.('QualityReported', this.onQualityReported);
+      (this.reader as any)?.off?.('SamplesAcquired', this.onSamplesAcquired);
     } catch {}
   }
 
@@ -132,7 +132,9 @@ export class HuellaModal implements OnInit, OnDestroy {
   async stop() {
     if (!this.reader) return;
     this.clearTimeout();
-    try { await (this.reader as any).stopAcquisition(); } catch {}
+    try {
+      await (this.reader as any).stopAcquisition();
+    } catch {}
     this.capturando.set(false);
     this.acquisitionOn = false;
   }
@@ -175,7 +177,7 @@ export class HuellaModal implements OnInit, OnDestroy {
     this.confirmar.emit({
       formato: 'PNG',
       muestras: this.bases64(),
-      calidades: this.calidades()
+      calidades: this.calidades(),
     });
   }
 
@@ -187,24 +189,33 @@ export class HuellaModal implements OnInit, OnDestroy {
   private calidadTexto(q: number | null | undefined): string {
     if (q == null) return 'sin dato (OK)';
     switch (q) {
-      case 0:  return 'OK';
-      case 1:  return 'dedo seco / poca señal';
-      case 2:  return 'dedo húmedo';
-      case 3:  return 'presión muy ligera';
-      case 4:  return 'presión muy fuerte';
-      case 5:  return 'ruido / movimiento';
-      default: return `código ${q}`;
+      case 0:
+        return 'OK';
+      case 1:
+        return 'dedo seco / poca señal';
+      case 2:
+        return 'dedo húmedo';
+      case 3:
+        return 'presión muy ligera';
+      case 4:
+        return 'presión muy fuerte';
+      case 5:
+        return 'ruido / movimiento';
+      default:
+        return `código ${q}`;
     }
   }
 
   private normalizaBase64(raw: string): string {
     if (!raw) return '';
-    let base = raw.trim()
-      .replace(/^data:image\/png;base64,?/i,'')
-      .replace(/\s+/g,'');
-    base = base.replace(/-/g,'+').replace(/_/g,'/');
-    base = base.replace(/[^A-Za-z0-9+/=]/g,'');
-    const mod = base.length % 4; if (mod) base += '='.repeat(4 - mod);
+    let base = raw
+      .trim()
+      .replace(/^data:image\/png;base64,?/i, '')
+      .replace(/\s+/g, '');
+    base = base.replace(/-/g, '+').replace(/_/g, '/');
+    base = base.replace(/[^A-Za-z0-9+/=]/g, '');
+    const mod = base.length % 4;
+    if (mod) base += '='.repeat(4 - mod);
     return base;
   }
 }

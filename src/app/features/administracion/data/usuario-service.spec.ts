@@ -13,7 +13,14 @@ describe('UsuarioService', () => {
   // Patrón para specs de servicios: fixture tipado completo (sin casts por unknown),
   // asertar SIEMPRE método/URL/body del request; el valor de respuesta se asevera
   // una vez por spec (en buscarTodos) porque GenericService no transforma respuestas.
-  const usuario: UsuarioData = { id: 1, nombreUsuario: 'ana', nombre: 'Ana', apellido: 'García', activo: true, roles: [] };
+  const usuario: UsuarioData = {
+    id: 1,
+    nombreUsuario: 'ana',
+    nombre: 'Ana',
+    apellido: 'García',
+    activo: true,
+    roles: [],
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -27,7 +34,7 @@ describe('UsuarioService', () => {
 
   it('buscarTodos hace GET a la URL base', () => {
     let resultado: UsuarioData[] | undefined;
-    service.buscarTodos().subscribe(r => (resultado = r));
+    service.buscarTodos().subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(BASE);
     expect(req.request.method).toBe('GET');

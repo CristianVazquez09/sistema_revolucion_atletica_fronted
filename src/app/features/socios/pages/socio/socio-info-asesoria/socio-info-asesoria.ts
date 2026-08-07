@@ -14,10 +14,9 @@ import { PagoData } from '../../../../../shared/models/membresia-data';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './socio-info-asesoria.html',
-  styleUrl: './socio-info-asesoria.css'
+  styleUrl: './socio-info-asesoria.css',
 })
 export class SocioInfoAsesoria implements OnInit {
-
   idSocio!: number;
 
   // encabezado
@@ -32,13 +31,16 @@ export class SocioInfoAsesoria implements OnInit {
   error: string | null = null;
 
   // paginación
-  pagina = 0;          // 0-based
+  pagina = 0; // 0-based
   tamanio = 10;
   totalPaginas = 0;
   totalElementos = 0;
   tamaniosDisponibles = [5, 10, 20, 50];
 
-  constructor(private route: ActivatedRoute, private socioSrv: SocioService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private socioSrv: SocioService,
+  ) {}
 
   ngOnInit(): void {
     this.idSocio = Number(this.route.snapshot.paramMap.get('idSocio'));
@@ -64,7 +66,9 @@ export class SocioInfoAsesoria implements OnInit {
     if (req?.subscribe) {
       req.subscribe({
         next: (s: any) => this.setHeaderFromSocio(s),
-        error: () => { /* silencioso */ }
+        error: () => {
+          /* silencioso */
+        },
       });
     }
   }
@@ -87,8 +91,9 @@ export class SocioInfoAsesoria implements OnInit {
     this.cargando = true;
     this.error = null;
 
-    this.socioSrv.obtenerAsesoriasDeSocio(this.idSocio, this.pagina, this.tamanio)
-      .pipe(finalize(() => this.cargando = false))
+    this.socioSrv
+      .obtenerAsesoriasDeSocio(this.idSocio, this.pagina, this.tamanio)
+      .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: (resp: PagedResponse<AsesoriaContratoData>) => {
           this.asesorias = resp.contenido ?? [];
@@ -110,7 +115,7 @@ export class SocioInfoAsesoria implements OnInit {
         error: (err: unknown) => {
           console.error(err);
           this.error = 'No se pudieron cargar las asesorías.';
-        }
+        },
       });
   }
 
@@ -121,9 +126,21 @@ export class SocioInfoAsesoria implements OnInit {
     this.pagina = 0;
     this.cargar();
   }
-  irPrimera(): void { if (this.pagina === 0) return; this.pagina = 0; this.cargar(); }
-  irAnterior(): void { if (this.pagina === 0) return; this.pagina--; this.cargar(); }
-  irSiguiente(): void { if (this.pagina + 1 >= this.totalPaginas) return; this.pagina++; this.cargar(); }
+  irPrimera(): void {
+    if (this.pagina === 0) return;
+    this.pagina = 0;
+    this.cargar();
+  }
+  irAnterior(): void {
+    if (this.pagina === 0) return;
+    this.pagina--;
+    this.cargar();
+  }
+  irSiguiente(): void {
+    if (this.pagina + 1 >= this.totalPaginas) return;
+    this.pagina++;
+    this.cargar();
+  }
   irUltima(): void {
     if (this.totalPaginas === 0) return;
     if (this.pagina === this.totalPaginas - 1) return;
@@ -137,19 +154,23 @@ export class SocioInfoAsesoria implements OnInit {
     return String(t ?? '')
       .replace(/_/g, ' ')
       .toLowerCase()
-      .replace(/\b\w/g, c => c.toUpperCase());
+      .replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
   pagosConMonto(pagos?: PagoData[] | null): PagoData[] {
-    return (pagos ?? []).filter(p => Number(p?.monto) > 0);
+    return (pagos ?? []).filter((p) => Number(p?.monto) > 0);
   }
 
   labelPago(tipo: PagoData['tipoPago'] | string): string {
     switch (tipo) {
-      case 'EFECTIVO': return 'Efectivo';
-      case 'TARJETA': return 'Tarjeta';
-      case 'TRANSFERENCIA': return 'Transferencia';
-      default: return String(tipo);
+      case 'EFECTIVO':
+        return 'Efectivo';
+      case 'TARJETA':
+        return 'Tarjeta';
+      case 'TRANSFERENCIA':
+        return 'Transferencia';
+      default:
+        return String(tipo);
     }
   }
 

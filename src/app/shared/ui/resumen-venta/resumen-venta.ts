@@ -3,14 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PagoData } from '../../models/membresia-data';
 
-type ItemResumen = { nombre: string; cantidad: number; precioUnit: number; };
+type ItemResumen = { nombre: string; cantidad: number; precioUnit: number };
 
 @Component({
   selector: 'app-resumen-venta',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './resumen-venta.html',
-  styleUrl: './resumen-venta.css'
+  styleUrl: './resumen-venta.css',
 })
 export class ResumenVenta {
   @Input() fecha: string | Date | null = new Date();
@@ -36,9 +36,15 @@ export class ResumenVenta {
     return Number.isFinite(n) ? n : 0;
   }
 
-  get efectivo(): number      { return this.toNum(this.efectivoStr); }
-  get tarjeta(): number       { return this.toNum(this.tarjetaStr); }
-  get transferencia(): number { return this.toNum(this.transferenciaStr); }
+  get efectivo(): number {
+    return this.toNum(this.efectivoStr);
+  }
+  get tarjeta(): number {
+    return this.toNum(this.tarjetaStr);
+  }
+  get transferencia(): number {
+    return this.toNum(this.transferenciaStr);
+  }
 
   get sumaPagos(): number {
     return +(this.efectivo + this.tarjeta + this.transferencia).toFixed(2);
@@ -59,11 +65,17 @@ export class ResumenVenta {
   llenarExactoEn(metodo: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA'): void {
     const t = (+this.total).toFixed(2);
     if (metodo === 'EFECTIVO') {
-      this.efectivoStr = t; this.tarjetaStr = ''; this.transferenciaStr = '';
+      this.efectivoStr = t;
+      this.tarjetaStr = '';
+      this.transferenciaStr = '';
     } else if (metodo === 'TARJETA') {
-      this.efectivoStr = ''; this.tarjetaStr = t; this.transferenciaStr = '';
+      this.efectivoStr = '';
+      this.tarjetaStr = t;
+      this.transferenciaStr = '';
     } else {
-      this.efectivoStr = ''; this.tarjetaStr = ''; this.transferenciaStr = t;
+      this.efectivoStr = '';
+      this.tarjetaStr = '';
+      this.transferenciaStr = t;
     }
   }
 
@@ -82,9 +94,10 @@ export class ResumenVenta {
       return;
     }
 
-    if (this.efectivo > 0)      pagos.push({ tipoPago: 'EFECTIVO',      monto: +this.efectivo.toFixed(2) });
-    if (this.tarjeta > 0)       pagos.push({ tipoPago: 'TARJETA',       monto: +this.tarjeta.toFixed(2) });
-    if (this.transferencia > 0) pagos.push({ tipoPago: 'TRANSFERENCIA', monto: +this.transferencia.toFixed(2) });
+    if (this.efectivo > 0) pagos.push({ tipoPago: 'EFECTIVO', monto: +this.efectivo.toFixed(2) });
+    if (this.tarjeta > 0) pagos.push({ tipoPago: 'TARJETA', monto: +this.tarjeta.toFixed(2) });
+    if (this.transferencia > 0)
+      pagos.push({ tipoPago: 'TRANSFERENCIA', monto: +this.transferencia.toFixed(2) });
 
     this.confirmar.emit(pagos);
   }

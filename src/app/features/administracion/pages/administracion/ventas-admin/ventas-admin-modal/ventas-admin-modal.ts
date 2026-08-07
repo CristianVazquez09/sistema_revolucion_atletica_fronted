@@ -1,6 +1,13 @@
 import {
-  Component, EventEmitter, Input, OnInit, Output,
-  inject, signal, computed, HostListener
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  inject,
+  signal,
+  computed,
+  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,8 +23,8 @@ import { ProductoData } from '../../../../../../shared/models/producto-data';
 /* ----------------------------- Tipos internos ------------------------------ */
 
 type EditDetalle = {
-  _key: string;                  // clave única (para trackear en el template)
-  idDetalle: number;             // 0 si es nuevo
+  _key: string; // clave única (para trackear en el template)
+  idDetalle: number; // 0 si es nuevo
   idProducto: number;
   nombreProducto: string;
   precioUnit: number;
@@ -37,7 +44,7 @@ type EditDetalle = {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './ventas-admin-modal.html',
-  styleUrl: './ventas-admin-modal.css'
+  styleUrl: './ventas-admin-modal.css',
 })
 export class VentasAdminModal implements OnInit {
   /* Inputs/Outputs */
@@ -63,7 +70,7 @@ export class VentasAdminModal implements OnInit {
 
   private productosById = computed(() => {
     const map = new Map<number, ProductoData>();
-    for (const p of (this.productos() ?? [])) {
+    for (const p of this.productos() ?? []) {
       const id = Number((p as any).idProducto ?? (p as any).id ?? 0);
       if (id) map.set(id, p);
     }
@@ -73,7 +80,7 @@ export class VentasAdminModal implements OnInit {
   // detalles editables
   private _detalles = signal<EditDetalle[]>([]);
   detalles = this._detalles;
-  detallesVisibles = computed(() => (this._detalles() ?? []).filter(d => !d._deleted));
+  detallesVisibles = computed(() => (this._detalles() ?? []).filter((d) => !d._deleted));
   private newCtr = 0;
   menuRowIdx: number | null = null;
   menuDropUpIdx: number | null = null;
@@ -100,11 +107,12 @@ export class VentasAdminModal implements OnInit {
     }
 
     // 1) cargar catálogo de productos (para dropdowns)
-    this.productoSrv.buscarTodos()
+    this.productoSrv
+      .buscarTodos()
       .pipe(catchError(() => of([] as ProductoData[])))
       .subscribe({
         next: (list) => this.productos.set(list ?? []),
-        complete: () => (this.productosCargando = false)
+        complete: () => (this.productosCargando = false),
       });
 
     // 2) cargar venta
@@ -120,7 +128,7 @@ export class VentasAdminModal implements OnInit {
       error: () => {
         this.error = 'No se pudo cargar la venta.';
         this.cargando = false;
-      }
+      },
     });
   }
 
@@ -129,7 +137,7 @@ export class VentasAdminModal implements OnInit {
   private mapPagosDesdeVenta(v: VentaData) {
     const sum = (tipo: string) =>
       (v.pagos ?? [])
-        .filter(p => (p as any).tipoPago === tipo)
+        .filter((p) => (p as any).tipoPago === tipo)
         .reduce((a, p) => a + Number((p as any).monto || 0), 0);
 
     this.efectivo.set(sum('EFECTIVO'));
@@ -138,14 +146,20 @@ export class VentasAdminModal implements OnInit {
   }
 
   private mapDetallesDesdeVenta(v: VentaData) {
-    const editables: EditDetalle[] = (v.detalles ?? []).map(det => {
+    const editables: EditDetalle[] = (v.detalles ?? []).map((det) => {
       const idDet = Number((det as any).idDetalleVenta ?? (det as any).idDetalle ?? 0);
       const q = Math.max(1, Number((det as any).cantidad ?? 1));
       const sub = (det as any).subTotal ?? (det as any).subtotal;
 
-      const unit = sub != null
-        ? Number(sub) / q
-        : Number((det as any).precioUnit ?? (det.producto as any)?.precioVenta ?? (det as any).precio ?? 0);
+      const unit =
+        sub != null
+          ? Number(sub) / q
+          : Number(
+              (det as any).precioUnit ??
+                (det.producto as any)?.precioVenta ??
+                (det as any).precio ??
+                0,
+            );
 
       return {
         _key: `det-${idDet || cryptoRandomKey()}`,
@@ -154,7 +168,7 @@ export class VentasAdminModal implements OnInit {
         nombreProducto: String((det.producto as any)?.nombre ?? (det as any).nombreProducto ?? ''),
         precioUnit: Number(unit),
         cantidad: q,
-        productoNuevoId: null
+        productoNuevoId: null,
       };
     });
 
@@ -182,7 +196,7 @@ export class VentasAdminModal implements OnInit {
 
   private proposeIfEmpty() {
     const total = this.totalCalculadoVista();
-    if ((this.efectivo() + this.tarjeta() + this.transferencia()) === 0 && total > 0) {
+    if (this.efectivo() + this.tarjeta() + this.transferencia() === 0 && total > 0) {
       this.efectivo.set(total);
     }
   }
@@ -204,24 +218,27 @@ export class VentasAdminModal implements OnInit {
 
   subtotalVista = computed(() =>
     this._detalles()
-      .filter(d => !d._deleted)
-      .reduce((acc, d) => acc + (Number(d.precioUnit) * this.toInt(d.cantidad)), 0)
+      .filter((d) => !d._deleted)
+      .reduce((acc, d) => acc + Number(d.precioUnit) * this.toInt(d.cantidad), 0),
   );
 
   totalCalculadoVista = computed(() =>
-    this.round2(Math.max(0, this.subtotalVista() - (this.descuento() || 0)))
+    this.round2(Math.max(0, this.subtotalVista() - (this.descuento() || 0))),
   );
 
-  sumaPagos = computed(() =>
-    Number(this.efectivo() || 0) + Number(this.tarjeta() || 0) + Number(this.transferencia() || 0)
+  sumaPagos = computed(
+    () =>
+      Number(this.efectivo() || 0) +
+      Number(this.tarjeta() || 0) +
+      Number(this.transferencia() || 0),
   );
 
   desbalance = computed(() => this.sumaPagos() - this.totalCalculadoVista());
 
   unknownPrice = computed(() =>
     this._detalles()
-      .filter(d => !d._deleted)
-      .some(d => !isFinite(Number(d.precioUnit)) || Number(d.precioUnit) <= 0)
+      .filter((d) => !d._deleted)
+      .some((d) => !isFinite(Number(d.precioUnit)) || Number(d.precioUnit) <= 0),
   );
 
   canSave = computed(() => {
@@ -265,7 +282,7 @@ export class VentasAdminModal implements OnInit {
   eliminarDetalle(d: EditDetalle) {
     if (d.idDetalle === 0 && d._add) {
       // nuevo -> eliminar de una vez
-      this._detalles.set(this._detalles().filter(x => x._key !== d._key));
+      this._detalles.set(this._detalles().filter((x) => x._key !== d._key));
     } else {
       // existente -> marcar borrado, PERO ya no se renderiza (detallesVisibles)
       d._deleted = true;
@@ -302,7 +319,7 @@ export class VentasAdminModal implements OnInit {
         d.nombreProducto = '(producto no encontrado)';
         d.precioUnit = NaN as any;
         this._detalles.set([...this._detalles()]);
-      }
+      },
     });
   }
 
@@ -319,10 +336,12 @@ export class VentasAdminModal implements OnInit {
       idDetalle: 0,
       idProducto: id,
       nombreProducto: cached ? String((cached as any).nombre ?? '(sin nombre)') : '(cargando…)',
-      precioUnit: cached ? Number((cached as any).precioVenta ?? (cached as any).precio ?? 0) : (NaN as any),
+      precioUnit: cached
+        ? Number((cached as any).precioVenta ?? (cached as any).precio ?? 0)
+        : (NaN as any),
       cantidad: qty,
       _add: true,
-      productoNuevoId: id
+      productoNuevoId: id,
     };
 
     this._detalles.set([...this._detalles(), nuevo]);
@@ -339,7 +358,7 @@ export class VentasAdminModal implements OnInit {
           nuevo.nombreProducto = '(producto no encontrado)';
           nuevo.precioUnit = NaN as any;
           this._detalles.set([...this._detalles()]);
-        }
+        },
       });
     }
 
@@ -362,7 +381,7 @@ export class VentasAdminModal implements OnInit {
     if (!this.data?.idVenta) return;
 
     // 1) Si no quedan detalles vivos ⇒ ANULAR
-    const vivos = this._detalles().filter(d => !d._deleted).length;
+    const vivos = this._detalles().filter((d) => !d._deleted).length;
     if (vivos === 0) {
       this.guardando = true;
       this.srv.patch(this.data.idVenta, { acciones: [{ op: 'ANULAR' }] }).subscribe({
@@ -373,7 +392,7 @@ export class VentasAdminModal implements OnInit {
         error: (err) => {
           this.guardando = false;
           this.error = err?.error?.detail || 'No se pudo anular.';
-        }
+        },
       });
       return;
     }
@@ -385,8 +404,8 @@ export class VentasAdminModal implements OnInit {
     }
 
     // 3) Congelar valores
-    const totalVista   = this.round2(this.totalCalculadoVista());
-    const descNuevo    = this.round2(this.descuento() || 0);
+    const totalVista = this.round2(this.totalCalculadoVista());
+    const descNuevo = this.round2(this.descuento() || 0);
     const descOriginal = this.round2(Number(this.data!.descuento || 0));
 
     // 4) Construir acciones de DETALLES
@@ -404,7 +423,7 @@ export class VentasAdminModal implements OnInit {
             op: 'REEMPLAZAR_PRODUCTO',
             idDetalle: Number(d.idDetalle),
             idProductoNuevo: Number(d.productoNuevoId),
-            cantidad: Math.trunc(Math.max(1, Number(d.cantidad || 1)))
+            cantidad: Math.trunc(Math.max(1, Number(d.cantidad || 1))),
           });
           continue;
         }
@@ -412,7 +431,7 @@ export class VentasAdminModal implements OnInit {
           acciones.push({
             op: 'CAMBIAR_CANTIDAD',
             idDetalle: Number(d.idDetalle),
-            nuevaCantidad: Math.trunc(Math.max(1, Number(d.cantidad || 1)))
+            nuevaCantidad: Math.trunc(Math.max(1, Number(d.cantidad || 1))),
           });
         }
       }
@@ -425,7 +444,7 @@ export class VentasAdminModal implements OnInit {
         acciones.push({
           op: 'AGREGAR_DETALLE',
           idProducto: Number(idProd),
-          cantidad: Math.trunc(Math.max(1, Number(d.cantidad || 1)))
+          cantidad: Math.trunc(Math.max(1, Number(d.cantidad || 1))),
         });
       }
     }
@@ -467,13 +486,15 @@ export class VentasAdminModal implements OnInit {
       error: (err) => {
         this.guardando = false;
         this.error = err?.error?.detail || 'No se pudo guardar.';
-      }
+      },
     });
   }
 
   @HostListener('document:click')
   closeMenuRows(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
   }
 
   toggleMenuRow(i: number, event: MouseEvent): void {
@@ -494,7 +515,10 @@ export class VentasAdminModal implements OnInit {
     this.menuRowIdx = i;
     this.menuDropUpIdx = openUp ? i : null;
     this.menuDropdownStyle = openUp
-      ? { bottom: `${viewportHeight - rect.top + gap}px`, right: `${window.innerWidth - rect.right}px` }
+      ? {
+          bottom: `${viewportHeight - rect.top + gap}px`,
+          right: `${window.innerWidth - rect.right}px`,
+        }
       : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }
@@ -508,5 +532,3 @@ function cryptoRandomKey(): string {
     return `${Date.now()}-${Math.floor(Math.random() * 1e9)}`;
   }
 }
-
-

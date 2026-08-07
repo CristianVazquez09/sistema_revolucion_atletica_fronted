@@ -25,7 +25,7 @@ type AdminCard = {
   standalone: true,
   imports: [CommonModule, RouterLink, RouterOutlet],
   templateUrl: './administracion.html',
-  styleUrl: './administracion.css'
+  styleUrl: './administracion.css',
 })
 export class Administracion {
   mostrarTarjetas = true;
@@ -34,29 +34,91 @@ export class Administracion {
   allowed: string[] = [];
 
   private allCards: AdminCard[] = [
-    { key: 'membresias', titulo: 'Membresías', descripcion: 'Inscribir · Reinscribir', ruta: ['membresias'], iconBg: 'bg-blue-100' },
-    { key: 'cortes', titulo: 'Cortes de caja', descripcion: 'Movimientos y totales', ruta: ['corte-caja'], iconBg: 'bg-rose-100' },
-    { key: 'ventas', titulo: 'Ventas', descripcion: 'POS · Detalles', ruta: ['ventas'], iconBg: 'bg-emerald-100' },
-    { key: 'gimnasios', titulo: 'Gimnasios', descripcion: 'Sedes y sucursales', ruta: ['gimnasios'], iconBg: 'bg-indigo-100' },
-    { key: 'estadisticas', titulo: 'Estadísticas', descripcion: 'Dashboard · Gráficos · KPIs', ruta: ['estadisticas'], iconBg: 'bg-amber-100' },
-    { key: 'reportes', titulo: 'Reportes', descripcion: 'Exportar Excel · Movimientos', ruta: ['reportes'], iconBg: 'bg-teal-100' },
-    { key: 'usuarios', titulo: 'Usuarios', descripcion: 'Roles y permisos', ruta: ['usuarios'], iconBg: 'bg-slate-100' },
+    {
+      key: 'membresias',
+      titulo: 'Membresías',
+      descripcion: 'Inscribir · Reinscribir',
+      ruta: ['membresias'],
+      iconBg: 'bg-blue-100',
+    },
+    {
+      key: 'cortes',
+      titulo: 'Cortes de caja',
+      descripcion: 'Movimientos y totales',
+      ruta: ['corte-caja'],
+      iconBg: 'bg-rose-100',
+    },
+    {
+      key: 'ventas',
+      titulo: 'Ventas',
+      descripcion: 'POS · Detalles',
+      ruta: ['ventas'],
+      iconBg: 'bg-emerald-100',
+    },
+    {
+      key: 'gimnasios',
+      titulo: 'Gimnasios',
+      descripcion: 'Sedes y sucursales',
+      ruta: ['gimnasios'],
+      iconBg: 'bg-indigo-100',
+    },
+    {
+      key: 'estadisticas',
+      titulo: 'Estadísticas',
+      descripcion: 'Dashboard · Gráficos · KPIs',
+      ruta: ['estadisticas'],
+      iconBg: 'bg-amber-100',
+    },
+    {
+      key: 'reportes',
+      titulo: 'Reportes',
+      descripcion: 'Exportar Excel · Movimientos',
+      ruta: ['reportes'],
+      iconBg: 'bg-teal-100',
+    },
+    {
+      key: 'usuarios',
+      titulo: 'Usuarios',
+      descripcion: 'Roles y permisos',
+      ruta: ['usuarios'],
+      iconBg: 'bg-slate-100',
+    },
 
     // ✅ PROMOCIONES (ADMIN y GERENTE; controlado por "allowed" en routes)
-    { key: 'promociones', titulo: 'Promociones', descripcion: 'Descuentos · Meses gratis · Vigencias', ruta: ['promociones'], iconBg: 'bg-fuchsia-100' },
+    {
+      key: 'promociones',
+      titulo: 'Promociones',
+      descripcion: 'Descuentos · Meses gratis · Vigencias',
+      ruta: ['promociones'],
+      iconBg: 'bg-fuchsia-100',
+    },
 
-    { key: 'asesoriasNutri', titulo: 'Asesorías nutricionales', descripcion: 'Asesorados de Roberto (vigencias)', ruta: ['asesorias-nutricionales'], iconBg: 'bg-lime-100' }
+    {
+      key: 'asesoriasNutri',
+      titulo: 'Asesorías nutricionales',
+      descripcion: 'Asesorados de Roberto (vigencias)',
+      ruta: ['asesorias-nutricionales'],
+      iconBg: 'bg-lime-100',
+    },
   ];
 
   get cards(): AdminCard[] {
-    return this.allowed?.length ? this.allCards.filter((c) => this.allowed.includes(c.key)) : this.allCards;
+    return this.allowed?.length
+      ? this.allCards.filter((c) => this.allowed.includes(c.key))
+      : this.allCards;
   }
 
-  constructor(private router: Router, private route: ActivatedRoute) {}
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+  ) {}
 
   ngOnInit(): void {
     this.router.events
-      .pipe(filter((e) => e instanceof NavigationEnd), startWith(null))
+      .pipe(
+        filter((e) => e instanceof NavigationEnd),
+        startWith(null),
+      )
       .subscribe(() => {
         const url = this.router.url.replace(/\/+$/, '');
         this.mostrarTarjetas = /(\/admin|\/gerencia)$/.test(url);

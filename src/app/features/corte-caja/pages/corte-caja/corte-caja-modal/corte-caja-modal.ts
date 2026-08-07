@@ -92,7 +92,9 @@ export class CorteCajaModal implements AfterViewInit, OnDestroy {
   // ===== Normalización de origen =====
   // Si por compatibilidad llega "ACCESORIA", lo pintamos como "ASESORIA"
   moduloLabel(mod: unknown): 'VENTA' | 'MEMBRESIA' | 'ASESORIA' | string {
-    const m = String(mod ?? '').toUpperCase().trim();
+    const m = String(mod ?? '')
+      .toUpperCase()
+      .trim();
     if (m === 'ACCESORIA') return 'ASESORIA';
     return m;
   }
@@ -110,7 +112,10 @@ export class CorteCajaModal implements AfterViewInit, OnDestroy {
 
       if (!q) return true;
 
-      const hay = (v: unknown) => String(v ?? '').toLowerCase().includes(q);
+      const hay = (v: unknown) =>
+        String(v ?? '')
+          .toLowerCase()
+          .includes(q);
 
       return (
         hay(modulo) ||

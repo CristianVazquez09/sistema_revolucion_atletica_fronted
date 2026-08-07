@@ -23,7 +23,7 @@ describe('InventarioService', () => {
   it('turno sin gimnasioId NO incluye el param', () => {
     service.turno({ fecha: '2026-07-01', turno: 'MANANA' }).subscribe();
 
-    const req = httpMock.expectOne(r => r.url === `${BASE}/turno`);
+    const req = httpMock.expectOne((r) => r.url === `${BASE}/turno`);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('fecha')).toBe('2026-07-01');
     expect(req.request.params.get('turno')).toBe('MANANA');
@@ -34,7 +34,7 @@ describe('InventarioService', () => {
   it('turno con gimnasioId incluye el param', () => {
     service.turno({ fecha: '2026-07-01', turno: 'MANANA', gimnasioId: 2 }).subscribe();
 
-    const req = httpMock.expectOne(r => r.url === `${BASE}/turno`);
+    const req = httpMock.expectOne((r) => r.url === `${BASE}/turno`);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('gimnasioId')).toBe('2');
     req.flush({});
@@ -43,7 +43,7 @@ describe('InventarioService', () => {
   it('cerrar hace POST a base/cerrar con el payload como body', () => {
     const payload: InventarioCierreRequestData = {
       fecha: '2026-07-01',
-      turno: 'MANANA'
+      turno: 'MANANA',
     };
     service.cerrar(payload).subscribe();
 

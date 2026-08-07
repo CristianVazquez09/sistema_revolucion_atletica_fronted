@@ -15,14 +15,13 @@ export interface MembresiaData {
   folio?: number;
   socio: SocioData;
   paquete: PaqueteData;
-  fechaInicio: string;  // YYYY-MM-DD
-  fechaFin: string;     // YYYY-MM-DD
+  fechaInicio: string; // YYYY-MM-DD
+  fechaFin: string; // YYYY-MM-DD
   movimiento: TipoMovimiento;
   pagos: PagoData[];
   descuento: number;
   total: number;
   visitasRestantes?: number | null;
-  usuario?: UsuarioData;   // 👈 nuevo
-  gimnasio?: GimnasioData
-  
+  usuario?: UsuarioData; // 👈 nuevo
+  gimnasio?: GimnasioData;
 }

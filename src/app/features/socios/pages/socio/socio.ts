@@ -1,5 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, signal, DestroyRef, inject, HostListener } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  signal,
+  DestroyRef,
+  inject,
+  HostListener,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
@@ -93,7 +101,7 @@ export class Socio implements OnInit, OnDestroy {
   constructor(
     private socioService: SocioService,
     private router: Router,
-    private notificacion: NotificacionService
+    private notificacion: NotificacionService,
   ) {}
 
   // =========================
@@ -130,8 +138,8 @@ export class Socio implements OnInit, OnDestroy {
   }
 
   private tieneRol(roles: string[], ...candidatos: string[]): boolean {
-    const set = new Set(roles.map(r => String(r).toUpperCase()));
-    return candidatos.some(c => set.has(String(c).toUpperCase()));
+    const set = new Set(roles.map((r) => String(r).toUpperCase()));
+    return candidatos.some((c) => set.has(String(c).toUpperCase()));
   }
 
   // ─────────── Ciclo de vida ───────────
@@ -144,18 +152,16 @@ export class Socio implements OnInit, OnDestroy {
     const roles = this.rolesDesdeToken();
     this.puedeEditarEliminar = this.tieneRol(
       roles,
-      'ADMIN', 'ROLE_ADMIN',
-      'GERENTE', 'ROLE_GERENTE'
+      'ADMIN',
+      'ROLE_ADMIN',
+      'GERENTE',
+      'ROLE_GERENTE',
     );
 
     // ✅ Admin: al cambiar gimnasio en selector => recarga lista
     if (this.isAdmin) {
       this.tenantCtx.viewTenantChanges$
-        .pipe(
-          distinctUntilChanged(),
-          skip(1),
-          takeUntilDestroyed(this.destroyRef)
-        )
+        .pipe(distinctUntilChanged(), skip(1), takeUntilDestroyed(this.destroyRef))
         .subscribe(() => {
           this.paginaActual = 0;
           this.cargarSocios();
@@ -205,11 +211,11 @@ export class Socio implements OnInit, OnDestroy {
               this.tamanioPagina,
               activo,
               tipoEnum,
-              soloVigentes
+              soloVigentes,
             )
             .pipe(finalize(() => (this.cargando = false)));
         }),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (resp: PagedResponse<SocioData>) => this.aplicarRespuesta(resp),
@@ -267,15 +273,15 @@ export class Socio implements OnInit, OnDestroy {
   }
 
   cargarSocios(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
     this.cargando = true;
     this.mensajeError = null;
 
     const texto = this.normalizarTermino(this.terminoBusqueda);
 
-    const tipoEnum = this.filtroTipoPaquete
-      ? (this.filtroTipoPaquete as TipoPaquete)
-      : undefined;
+    const tipoEnum = this.filtroTipoPaquete ? (this.filtroTipoPaquete as TipoPaquete) : undefined;
     const activo = this.mapFiltroEstadoToBoolean();
     const soloVigentes: boolean | undefined = tipoEnum ? true : undefined;
 
@@ -287,14 +293,9 @@ export class Socio implements OnInit, OnDestroy {
             this.tamanioPagina,
             activo,
             tipoEnum,
-            soloVigentes
+            soloVigentes,
           )
-        : this.socioService.buscarSocios(
-            this.paginaActual,
-            this.tamanioPagina,
-            tipoEnum,
-            activo
-          );
+        : this.socioService.buscarSocios(this.paginaActual, this.tamanioPagina, tipoEnum, activo);
 
     fuente$.pipe(finalize(() => (this.cargando = false))).subscribe({
       next: (resp: PagedResponse<SocioData>) => this.aplicarRespuesta(resp),
@@ -405,7 +406,9 @@ export class Socio implements OnInit, OnDestroy {
 
   @HostListener('document:click')
   closeMenuRows(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
   }
 
   // Mostrar gym con tolerancia a id ó idGimnasio
@@ -436,9 +439,10 @@ export class Socio implements OnInit, OnDestroy {
     this.menuRowIdx = i;
     this.menuDropUpIdx = openUp ? i : null;
     this.menuDropdownStyle = openUp
-      ? { bottom: `${viewportHeight - rect.top + gap}px`, right: `${window.innerWidth - rect.right}px` }
+      ? {
+          bottom: `${viewportHeight - rect.top + gap}px`,
+          right: `${window.innerWidth - rect.right}px`,
+        }
       : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }
-
-

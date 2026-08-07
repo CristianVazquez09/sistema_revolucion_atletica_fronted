@@ -13,17 +13,28 @@ export class CarritoService {
   private readonly indiceSeleccionadoSig = signal<number | null>(null);
 
   readonly totalSig = computed(() =>
-    this.itemsSig().reduce((acc: number, it: CarritoItem) => acc + it.cantidad * it.precioUnit, 0)
+    this.itemsSig().reduce((acc: number, it: CarritoItem) => acc + it.cantidad * it.precioUnit, 0),
   );
 
-  obtenerItems(): CarritoItem[] { return this.itemsSig(); }
-  obtenerIndiceSeleccionado(): number | null { return this.indiceSeleccionadoSig(); }
-  obtenerTotal(): number { return this.totalSig(); }
+  obtenerItems(): CarritoItem[] {
+    return this.itemsSig();
+  }
+  obtenerIndiceSeleccionado(): number | null {
+    return this.indiceSeleccionadoSig();
+  }
+  obtenerTotal(): number {
+    return this.totalSig();
+  }
 
   seleccionarIndice(indice: number | null): void {
     const len: number = this.itemsSig().length;
-    if (indice === null) { this.indiceSeleccionadoSig.set(null); return; }
-    if (indice < 0 || indice >= len) { return; }
+    if (indice === null) {
+      this.indiceSeleccionadoSig.set(null);
+      return;
+    }
+    if (indice < 0 || indice >= len) {
+      return;
+    }
     this.indiceSeleccionadoSig.set(indice);
   }
 
@@ -39,7 +50,9 @@ export class CarritoService {
   }
 
   agregar(idProducto: number, nombre: string, precioUnit: number, cantidad: number): void {
-    if (cantidad <= 0) { return; }
+    if (cantidad <= 0) {
+      return;
+    }
     const items: CarritoItem[] = [...this.itemsSig()];
     const idx: number = items.findIndex((x: CarritoItem) => x.idProducto === idProducto);
 
@@ -56,7 +69,9 @@ export class CarritoService {
 
   sumarSeleccionado(): void {
     const idx: number | null = this.indiceSeleccionadoSig();
-    if (idx == null) { return; }
+    if (idx == null) {
+      return;
+    }
     const items: CarritoItem[] = [...this.itemsSig()];
     items[idx] = { ...items[idx], cantidad: items[idx].cantidad + 1 };
     this.itemsSig.set(items);
@@ -64,7 +79,9 @@ export class CarritoService {
 
   restarSeleccionado(): void {
     const idx: number | null = this.indiceSeleccionadoSig();
-    if (idx == null) { return; }
+    if (idx == null) {
+      return;
+    }
     const items: CarritoItem[] = [...this.itemsSig()];
     const nuevo: number = Math.max(1, items[idx].cantidad - 1);
     items[idx] = { ...items[idx], cantidad: nuevo };
@@ -73,7 +90,9 @@ export class CarritoService {
 
   eliminarSeleccionado(): void {
     const idx: number | null = this.indiceSeleccionadoSig();
-    if (idx == null) { return; }
+    if (idx == null) {
+      return;
+    }
     const items: CarritoItem[] = [...this.itemsSig()];
     items.splice(idx, 1);
     this.itemsSig.set(items);

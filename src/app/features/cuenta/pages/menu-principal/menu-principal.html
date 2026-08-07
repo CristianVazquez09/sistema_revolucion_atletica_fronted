@@ -1,5 +1,5 @@
 <!-- Layout raíz (bloquea scroll global; el scroll queda dentro del contenido) -->
-<div class="h-[100dvh] w-full flex bg-neutral-100 overflow-hidden">
+<div class="flex h-[100dvh] w-full overflow-hidden bg-neutral-100">
   <!-- Backdrop (solo móvil) -->
   @if (menuAbierto()) {
     <div
@@ -12,36 +12,23 @@
   <!-- Sidebar -->
   <aside
     id="ra-sidebar"
-    class="
-      bg-ra-rojo-fuerte text-white overflow-hidden
-      border-r border-red-600/60
-      fixed md:static inset-y-0 left-0 z-50
-      h-[100dvh]
-      transition-[transform,width] duration-300 ease-in-out
-      w-0 md:w-0
+    class="bg-ra-rojo-fuerte fixed inset-y-0 left-0 z-50 h-[100dvh] w-0 overflow-hidden border-r border-red-600/60 text-white transition-[transform,width] duration-300 ease-in-out md:static md:w-0"
+    [ngClass]="
+      menuAbierto()
+        ? 'pointer-events-auto w-14 translate-x-0 md:w-14 lg:w-64 xl:w-72'
+        : 'pointer-events-none -translate-x-full md:w-0 md:translate-x-0'
     "
-    [ngClass]="menuAbierto()
-      ? 'translate-x-0 pointer-events-auto w-14 md:w-14 lg:w-64 xl:w-72'
-      : '-translate-x-full pointer-events-none md:translate-x-0 md:w-0'"
     role="navigation"
     aria-label="Menú principal"
   >
     <!-- Wrapper: compacta por ALTURA + por ANCHO < 1280 -->
     <div
-      class="
-        h-full flex flex-col origin-top-left
-
-        [@media(max-height:880px)]:scale-[0.96] [@media(max-height:880px)]:h-[calc(100%/0.96)]
-        [@media(max-height:820px)]:scale-[0.92] [@media(max-height:820px)]:h-[calc(100%/0.92)]
-        [@media(max-height:760px)]:scale-[0.88] [@media(max-height:760px)]:h-[calc(100%/0.88)]
-
-        [@media(max-width:1279px)]:scale-[0.94] [@media(max-width:1279px)]:h-[calc(100%/0.94)]
-        [@media(max-width:1120px)]:scale-[0.90] [@media(max-width:1120px)]:h-[calc(100%/0.90)]
-        [@media(max-width:1024px)]:scale-[0.86] [@media(max-width:1024px)]:h-[calc(100%/0.86)]
-      "
+      class="flex h-full origin-top-left flex-col [@media(max-height:760px)]:h-[calc(100%/0.88)] [@media(max-height:760px)]:scale-[0.88] [@media(max-height:820px)]:h-[calc(100%/0.92)] [@media(max-height:820px)]:scale-[0.92] [@media(max-height:880px)]:h-[calc(100%/0.96)] [@media(max-height:880px)]:scale-[0.96] [@media(max-width:1024px)]:h-[calc(100%/0.86)] [@media(max-width:1024px)]:scale-[0.86] [@media(max-width:1120px)]:h-[calc(100%/0.90)] [@media(max-width:1120px)]:scale-[0.90] [@media(max-width:1279px)]:h-[calc(100%/0.94)] [@media(max-width:1279px)]:scale-[0.94]"
     >
       <!-- Logo: solo en lg+ (en <lg se oculta) -->
-      <div class="hidden lg:flex h-24 xl:h-40 items-center justify-center border-b border-red-600/70 px-4">
+      <div
+        class="hidden h-24 items-center justify-center border-b border-red-600/70 px-4 lg:flex xl:h-40"
+      >
         <img
           src="imagenes/logo-revolucion-atletica.png"
           alt="Logo Revolución Atlética"
@@ -51,101 +38,72 @@
 
       <!-- Opciones -->
       <nav
-        class="
-          flex-1 min-h-0
-          overflow-y-hidden xl:overflow-y-auto
-          py-1.5 xl:py-2
-          [scrollbar-width:none] [-ms-overflow-style:none]
-          [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar]:h-0
-
-          /* <lg: barra fina, sin padding lateral */
-          [@media(max-width:1023px)]:py-2
-          [@media(max-width:1023px)]:px-0
-        "
+        class="/* <lg: barra fina, sin padding lateral */ min-h-0 flex-1 overflow-y-hidden py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] xl:overflow-y-auto xl:py-2 [&::-webkit-scrollbar]:h-0 [&::-webkit-scrollbar]:w-0 [@media(max-width:1023px)]:px-0 [@media(max-width:1023px)]:py-2"
       >
         @for (m of menus; track $index) {
           <a
             [routerLink]="m.url"
             routerLinkActive="bg-ra-rojo-oscuro bg-red-800"
-            class="
-              flex items-center
-              mx-2 my-0.5 rounded-md
-              border border-white/10
-              hover:bg-ra-rojo-oscuro
-              transition
-
-              /* XL+ normal */
-              xl:gap-3 xl:px-4 xl:py-3 xl:text-lg
-
-              /* < XL: compacto (aún con texto en lg) */
-              [@media(max-width:1279px)]:gap-2.5 [@media(max-width:1279px)]:px-3 [@media(max-width:1279px)]:py-2.5 [@media(max-width:1279px)]:text-[15px]
-
-              /* < LG: SOLO ICONOS, alineados al borde izquierdo */
-              [@media(max-width:1023px)]:mx-0
-              [@media(max-width:1023px)]:my-0
-              [@media(max-width:1023px)]:rounded-none
-              [@media(max-width:1023px)]:border-transparent
-              [@media(max-width:1023px)]:w-full
-              [@media(max-width:1023px)]:justify-start
-              [@media(max-width:1023px)]:gap-0
-              [@media(max-width:1023px)]:px-2
-              [@media(max-width:1023px)]:py-2
-            "
+            class="hover:bg-ra-rojo-oscuro /* XL+ normal */ /* < XL: compacto (aún con texto en lg) */ /* < LG: SOLO ICONOS, alineados al borde izquierdo */ mx-2 my-0.5 flex items-center rounded-md border border-white/10 transition xl:gap-3 xl:px-4 xl:py-3 xl:text-lg [@media(max-width:1023px)]:mx-0 [@media(max-width:1023px)]:my-0 [@media(max-width:1023px)]:w-full [@media(max-width:1023px)]:justify-start [@media(max-width:1023px)]:gap-0 [@media(max-width:1023px)]:rounded-none [@media(max-width:1023px)]:border-transparent [@media(max-width:1023px)]:px-2 [@media(max-width:1023px)]:py-2 [@media(max-width:1279px)]:gap-2.5 [@media(max-width:1279px)]:px-3 [@media(max-width:1279px)]:py-2.5 [@media(max-width:1279px)]:text-[15px]"
             [title]="m.nombre"
             [attr.aria-label]="m.nombre"
           >
             <img
-  [src]="m.icono"
-  alt=""
-  class="
-    shrink-0
-    xl:w-8 xl:h-8
-    [@media(max-width:1279px)]:w-6 [@media(max-width:1279px)]:h-6
-    [@media(max-width:1023px)]:w-5 [@media(max-width:1023px)]:h-5
-  "
-/>
-
+              [src]="m.icono"
+              alt=""
+              class="shrink-0 xl:h-8 xl:w-8 [@media(max-width:1023px)]:h-5 [@media(max-width:1023px)]:w-5 [@media(max-width:1279px)]:h-6 [@media(max-width:1279px)]:w-6"
+            />
 
             <!-- Texto: solo en lg+ -->
-            <span class="truncate hidden lg:inline">{{ m.nombre }}</span>
+            <span class="hidden truncate lg:inline">{{ m.nombre }}</span>
           </a>
         }
       </nav>
 
       <!-- Footer: solo en lg+ -->
-      <div class="hidden lg:block px-4 py-2 text-[10px] sm:text-[11px] text-white/80 border-t border-red-600/70">
+      <div
+        class="hidden border-t border-red-600/70 px-4 py-2 text-[10px] text-white/80 sm:text-[11px] lg:block"
+      >
         © Revolución Atlética
       </div>
     </div>
   </aside>
 
   <!-- Columna derecha -->
-  <div class="flex-1 flex flex-col min-w-0">
+  <div class="flex min-w-0 flex-1 flex-col">
     <!-- Top bar -->
-    <header class="h-14 bg-white border-b border-neutral-200 flex items-center justify-between px-3 sm:px-4">
-      <div class="flex items-center gap-3 min-w-0">
+    <header
+      class="flex h-14 items-center justify-between border-b border-neutral-200 bg-white px-3 sm:px-4"
+    >
+      <div class="flex min-w-0 items-center gap-3">
         <!-- Botón hamburguesa -->
         <button
           type="button"
-          class="inline-flex items-center justify-center rounded-md border border-neutral-300 bg-white hover:bg-neutral-50 active:bg-neutral-100 w-9 h-9"
+          class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-neutral-300 bg-white hover:bg-neutral-50 active:bg-neutral-100"
           (click)="toggleMenu()"
           [attr.aria-expanded]="menuAbierto()"
           aria-controls="ra-sidebar"
           aria-label="Alternar menú"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            class="h-5 w-5"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
 
         <!-- Título -->
-        <div class="text-base sm:text-lg font-medium text-neutral-800 truncate">
+        <div class="truncate text-base font-medium text-neutral-800 sm:text-lg">
           Revolución Atlética
         </div>
 
         <!-- Fecha -->
-        <div class="hidden md:block text-sm text-neutral-600">
+        <div class="hidden text-sm text-neutral-600 md:block">
           <span class="font-semibold">FECHA: </span>
           <span>{{ fechaHoy }}</span>
         </div>
@@ -156,50 +114,74 @@
         <button
           type="button"
           (click)="togglePerfil(); $event.stopPropagation()"
-          class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-neutral-100 transition-colors max-w-[460px]"
+          class="flex max-w-[460px] items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-neutral-100"
           aria-label="Menú de perfil"
         >
           <!-- Avatar con iniciales -->
-          <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold select-none shrink-0"
-               [style.background]="avatarColor">
+          <div
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white select-none"
+            [style.background]="avatarColor"
+          >
             @if (avatarImage) {
-              <img [src]="avatarImage" alt="Avatar" class="w-full h-full rounded-full object-cover" />
+              <img
+                [src]="avatarImage"
+                alt="Avatar"
+                class="h-full w-full rounded-full object-cover"
+              />
             } @else {
               {{ initiales }}
             }
           </div>
           <!-- Nombre (solo sm+) -->
-          <span class="hidden sm:block text-sm font-medium text-neutral-700 truncate max-w-[320px] xl:max-w-[420px]">
+          <span
+            class="hidden max-w-[320px] truncate text-sm font-medium text-neutral-700 sm:block xl:max-w-[420px]"
+          >
             {{ nombreDisplay }}
           </span>
           <!-- Chevron -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="hidden sm:block w-3.5 h-3.5 text-neutral-400 transition-transform"
-               [ngClass]="{ 'rotate-180': perfilAbierto() }"
-               viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="hidden h-3.5 w-3.5 text-neutral-400 transition-transform sm:block"
+            [ngClass]="{ 'rotate-180': perfilAbierto() }"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clip-rule="evenodd"
+            />
           </svg>
         </button>
 
         <!-- Dropdown panel -->
         @if (perfilAbierto()) {
           <div
-            class="absolute right-0 top-full mt-1.5 w-80 rounded-xl bg-white shadow-lg ring-1 ring-black/10 z-50 overflow-hidden"
+            class="absolute top-full right-0 z-50 mt-1.5 w-80 overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-black/10"
             (click)="$event.stopPropagation()"
           >
             <!-- Info usuario -->
-            <div class="px-4 py-3 border-b border-neutral-100">
+            <div class="border-b border-neutral-100 px-4 py-3">
               <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                     [style.background]="avatarColor">
+                <div
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                  [style.background]="avatarColor"
+                >
                   @if (avatarImage) {
-                    <img [src]="avatarImage" alt="Avatar" class="w-full h-full rounded-full object-cover" />
+                    <img
+                      [src]="avatarImage"
+                      alt="Avatar"
+                      class="h-full w-full rounded-full object-cover"
+                    />
                   } @else {
                     {{ initiales }}
                   }
                 </div>
                 <div class="min-w-0">
-                  <p class="text-sm font-semibold text-neutral-800 leading-tight break-words">{{ nombreDisplay }}</p>
-                  <p class="text-xs text-neutral-400 truncate">&#64;{{ username }}</p>
+                  <p class="text-sm leading-tight font-semibold break-words text-neutral-800">
+                    {{ nombreDisplay }}
+                  </p>
+                  <p class="truncate text-xs text-neutral-400">&#64;{{ username }}</p>
                 </div>
               </div>
             </div>
@@ -209,23 +191,45 @@
               <button
                 type="button"
                 (click)="irAPerfil()"
-                class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+                class="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-neutral-700 transition-colors hover:bg-neutral-50"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 text-neutral-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
                 </svg>
                 Mi perfil
               </button>
 
-              <div class="border-t border-neutral-100 my-1"></div>
+              <div class="my-1 border-t border-neutral-100"></div>
 
               <button
                 type="button"
                 (click)="cerrarSesion()"
-                class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                class="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
                 </svg>
                 Cerrar sesión
               </button>
@@ -236,8 +240,8 @@
     </header>
 
     <!-- Contenido -->
-    <main class="flex-1 min-h-0 overflow-hidden">
-      <section class="h-full overflow-auto py-3 sm:py-4 px-2 sm:px-4 lg:px-6">
+    <main class="min-h-0 flex-1 overflow-hidden">
+      <section class="h-full overflow-auto px-2 py-3 sm:px-4 sm:py-4 lg:px-6">
         <router-outlet />
       </section>
     </main>

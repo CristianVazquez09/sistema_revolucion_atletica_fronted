@@ -63,8 +63,12 @@ export class Promociones {
   private readonly MIN_ZOOM = 0.78;
   private readonly MAX_ZOOM = 1.0;
 
-  esXlUp = signal(typeof window !== 'undefined' ? window.matchMedia('(min-width: 1280px)').matches : false);
-  es2xlUp = signal(typeof window !== 'undefined' ? window.matchMedia('(min-width: 1536px)').matches : false);
+  esXlUp = signal(
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 1280px)').matches : false,
+  );
+  es2xlUp = signal(
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 1536px)').matches : false,
+  );
 
   mostrarGimnasioCol = computed(() => {
     if (!this.esAdmin()) return false;
@@ -102,7 +106,9 @@ export class Promociones {
 
   roles = computed(() => this.rolesDesdeToken());
   esAdmin = computed(() => this.roles().includes('ADMIN') || this.roles().includes('ROLE_ADMIN'));
-  esGerente = computed(() => this.roles().includes('GERENTE') || this.roles().includes('ROLE_GERENTE'));
+  esGerente = computed(
+    () => this.roles().includes('GERENTE') || this.roles().includes('ROLE_GERENTE'),
+  );
   puedeGestionar = computed(() => this.esAdmin() || this.esGerente());
 
   filas = computed(() => {
@@ -143,7 +149,8 @@ export class Promociones {
       .sort((a, b) => {
         const ea = this.estadoLabel(a).texto;
         const eb = this.estadoLabel(b).texto;
-        const order = (x: string) => (x === 'Vigente' ? 0 : x === 'Programada' ? 1 : x === 'Vencida' ? 2 : 3);
+        const order = (x: string) =>
+          x === 'Vigente' ? 0 : x === 'Programada' ? 1 : x === 'Vencida' ? 2 : 3;
         return order(ea) - order(eb);
       });
   });
@@ -151,8 +158,8 @@ export class Promociones {
   ngOnInit(): void {
     if (this.esAdmin()) {
       this.cargarGimnasios(() => {
-        this.cargarPaquetes();     // ✅ cargar TODOS
-        this.cargarPromociones();  // ✅ cargar TODAS
+        this.cargarPaquetes(); // ✅ cargar TODOS
+        this.cargarPromociones(); // ✅ cargar TODAS
       });
     } else {
       this.cargarPaquetes();
@@ -192,12 +199,15 @@ export class Promociones {
           const vistos = new Set<number>();
 
           const norm = (gs ?? [])
-            .map((g: any) => ({
-              idGimnasio: typeof g.idGimnasio === 'number' ? g.idGimnasio : Number(g.id),
-              nombre: g.nombre,
-              direccion: g.direccion,
-              telefono: g.telefono,
-            } as GimnasioData))
+            .map(
+              (g: any) =>
+                ({
+                  idGimnasio: typeof g.idGimnasio === 'number' ? g.idGimnasio : Number(g.id),
+                  nombre: g.nombre,
+                  direccion: g.direccion,
+                  telefono: g.telefono,
+                }) as GimnasioData,
+            )
             .filter((g) => {
               if (!g.idGimnasio) return false;
               if (vistos.has(g.idGimnasio)) return false;
@@ -253,7 +263,9 @@ export class Promociones {
   }
 
   private cargarPromociones(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
     this.cargando.set(true);
 
     this.promoSrv
@@ -327,7 +339,9 @@ export class Promociones {
         next: (updated) => {
           this.noti.exito('Promoción desactivada.');
           this.busyDesactivarId.set(null);
-          this.promociones.update((lst) => (lst ?? []).map((x) => (this.idRow(x) === id ? (updated ?? x) : x)));
+          this.promociones.update((lst) =>
+            (lst ?? []).map((x) => (this.idRow(x) === id ? (updated ?? x) : x)),
+          );
         },
         error: (err) => {
           console.error(err);
@@ -352,7 +366,9 @@ export class Promociones {
         next: (updated) => {
           this.noti.exito('Promoción activada.');
           this.busyDesactivarId.set(null);
-          this.promociones.update((lst) => (lst ?? []).map((x) => (this.idRow(x) === id ? (updated ?? x) : x)));
+          this.promociones.update((lst) =>
+            (lst ?? []).map((x) => (this.idRow(x) === id ? (updated ?? x) : x)),
+          );
         },
         error: (err) => {
           console.error(err);
@@ -368,7 +384,8 @@ export class Promociones {
     const id = this.idRow(row);
     if (!id) return;
 
-    if (!confirm(`¿Eliminar la promoción "${row.nombre}"? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(`¿Eliminar la promoción "${row.nombre}"? Esta acción no se puede deshacer.`))
+      return;
 
     this.busyEliminarId.set(id);
 
@@ -460,8 +477,10 @@ export class Promociones {
   labelBeneficio(row: PromocionData): string {
     const t = String((row as any)?.tipo ?? '').toUpperCase();
 
-    if (t === String(TipoPromocion.DESCUENTO_PORCENTAJE)) return `-${(row as any)?.descuentoPorcentaje ?? 0}%`;
-    if (t === String(TipoPromocion.DESCUENTO_MONTO)) return `-$${Number((row as any)?.descuentoMonto ?? 0).toFixed(2)}`;
+    if (t === String(TipoPromocion.DESCUENTO_PORCENTAJE))
+      return `-${(row as any)?.descuentoPorcentaje ?? 0}%`;
+    if (t === String(TipoPromocion.DESCUENTO_MONTO))
+      return `-$${Number((row as any)?.descuentoMonto ?? 0).toFixed(2)}`;
     if (t === String(TipoPromocion.MESES_GRATIS)) {
       const v = (row as any)?.mesesGratis ?? 0;
       return `+${v} mes${v === 1 ? '' : 'es'}`;
@@ -476,15 +495,18 @@ export class Promociones {
   }
 
   estadoLabel(row: PromocionData): { texto: string; clase: string } {
-    if ((row as any)?.activo === false) return { texto: 'Desactivada', clase: 'bg-slate-100 text-slate-700 ring-slate-200' };
+    if ((row as any)?.activo === false)
+      return { texto: 'Desactivada', clase: 'bg-slate-100 text-slate-700 ring-slate-200' };
 
     const hoy = this.hoy();
     const ini = this.toLocalDate((row as any)?.fechaInicio);
     const fin = this.toLocalDate((row as any)?.fechaFin);
 
     if (!ini || !fin) return { texto: '—', clase: 'bg-slate-100 text-slate-700 ring-slate-200' };
-    if (hoy.getTime() < ini.getTime()) return { texto: 'Programada', clase: 'bg-amber-100 text-amber-800 ring-amber-200' };
-    if (hoy.getTime() > fin.getTime()) return { texto: 'Vencida', clase: 'bg-rose-100 text-rose-800 ring-rose-200' };
+    if (hoy.getTime() < ini.getTime())
+      return { texto: 'Programada', clase: 'bg-amber-100 text-amber-800 ring-amber-200' };
+    if (hoy.getTime() > fin.getTime())
+      return { texto: 'Vencida', clase: 'bg-rose-100 text-rose-800 ring-rose-200' };
     return { texto: 'Vigente', clase: 'bg-emerald-100 text-emerald-800 ring-emerald-200' };
   }
 
@@ -613,7 +635,9 @@ export class Promociones {
 
   @HostListener('document:click')
   closeMenuRows(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
   }
 
   toggleMenuRow(i: number, event: MouseEvent): void {
@@ -634,9 +658,10 @@ export class Promociones {
     this.menuRowIdx = i;
     this.menuDropUpIdx = openUp ? i : null;
     this.menuDropdownStyle = openUp
-      ? { bottom: `${viewportHeight - rect.top + gap}px`, right: `${window.innerWidth - rect.right}px` }
+      ? {
+          bottom: `${viewportHeight - rect.top + gap}px`,
+          right: `${window.innerWidth - rect.right}px`,
+        }
       : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }
-
-

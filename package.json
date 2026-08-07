@@ -47,15 +47,17 @@
     "postinstall": "patch-package",
     "make:ico": "node scripts/make-ico.mjs",
     "dist:win": "npm run make:ico && npm run build:web && electron-builder --win --publish never",
-    "publish": "npm run dist:win"
+    "publish": "npm run dist:win",
+    "format": "prettier --write \"src/**/*.{ts,html}\""
   },
   "prettier": {
+    "plugins": ["prettier-plugin-tailwindcss"],
+    "singleQuote": true,
+    "printWidth": 100,
     "overrides": [
       {
         "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
+        "options": { "parser": "angular" }
       }
     ]
   },
@@ -100,6 +102,8 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "patch-package": "^8.0.1",
     "png-to-ico": "^3.0.1",
+    "prettier": "^3.9.6",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "sharp": "^0.34.4",
     "typescript": "~5.8.2"
   }

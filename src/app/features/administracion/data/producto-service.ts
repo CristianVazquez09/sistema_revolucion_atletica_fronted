@@ -5,13 +5,12 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 
 export type StockEntradaRequest = { cantidad: number; nota?: string | null };
-export type StockAjusteRequest  = { nuevoStock: number; nota?: string | null };
+export type StockAjusteRequest = { nuevoStock: number; nota?: string | null };
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ProductoService extends GenericService<ProductoData> {
-
   constructor(protected override http: HttpClient) {
     super(http, `${environment.HOST}/productos`);
   }

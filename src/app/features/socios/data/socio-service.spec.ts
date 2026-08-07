@@ -41,7 +41,7 @@ describe('SocioService', () => {
 
   it('buscarTodos hace GET a la URL base', () => {
     let resultado: SocioData[] | undefined;
-    service.buscarTodos().subscribe(r => (resultado = r));
+    service.buscarTodos().subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(BASE);
     expect(req.request.method).toBe('GET');
@@ -85,7 +85,7 @@ describe('SocioService', () => {
   it('buscarSocios(0, 5) hace GET a base/buscar?page=0&size=5', () => {
     service.buscarSocios(0, 5).subscribe();
 
-    const req = httpMock.expectOne(r => r.urlWithParams === `${BASE}/buscar?page=0&size=5`);
+    const req = httpMock.expectOne((r) => r.urlWithParams === `${BASE}/buscar?page=0&size=5`);
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 5 });
   });
@@ -93,7 +93,9 @@ describe('SocioService', () => {
   it('buscarSocios(0, 5, undefined, false) hace GET con ?activo=false', () => {
     service.buscarSocios(0, 5, undefined, false).subscribe();
 
-    const req = httpMock.expectOne(r => r.urlWithParams === `${BASE}/buscar?page=0&size=5&activo=false`);
+    const req = httpMock.expectOne(
+      (r) => r.urlWithParams === `${BASE}/buscar?page=0&size=5&activo=false`,
+    );
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 5 });
   });
@@ -101,7 +103,9 @@ describe('SocioService', () => {
   it('buscarSocios(0, 5, "GIMNASIO") sin activo solo agrega tipoPaquete', () => {
     service.buscarSocios(0, 5, TipoPaquete.GIMNASIO).subscribe();
 
-    const req = httpMock.expectOne(r => r.urlWithParams === `${BASE}/buscar?page=0&size=5&tipoPaquete=GIMNASIO`);
+    const req = httpMock.expectOne(
+      (r) => r.urlWithParams === `${BASE}/buscar?page=0&size=5&tipoPaquete=GIMNASIO`,
+    );
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 5 });
   });
@@ -109,7 +113,9 @@ describe('SocioService', () => {
   it('buscarSocios(0, 5, "GIMNASIO", true) hace GET con tipoPaquete y activo', () => {
     service.buscarSocios(0, 5, TipoPaquete.GIMNASIO, true).subscribe();
 
-    const req = httpMock.expectOne(r => r.urlWithParams === `${BASE}/buscar?page=0&size=5&tipoPaquete=GIMNASIO&activo=true`);
+    const req = httpMock.expectOne(
+      (r) => r.urlWithParams === `${BASE}/buscar?page=0&size=5&tipoPaquete=GIMNASIO&activo=true`,
+    );
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 5 });
   });
@@ -119,7 +125,9 @@ describe('SocioService', () => {
   it('buscarSociosPorNombre aplica encodeURIComponent y trim al nombre', () => {
     service.buscarSociosPorNombre('ana maría', 0, 5).subscribe();
 
-    const req = httpMock.expectOne(r => r.urlWithParams === `${BASE}/buscar?page=0&size=5&nombre=ana%20mar%C3%ADa`);
+    const req = httpMock.expectOne(
+      (r) => r.urlWithParams === `${BASE}/buscar?page=0&size=5&nombre=ana%20mar%C3%ADa`,
+    );
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 5 });
   });
@@ -127,7 +135,9 @@ describe('SocioService', () => {
   it('buscarSociosPorNombre con activo=true incluye activo en query', () => {
     service.buscarSociosPorNombre('test', 1, 10, true).subscribe();
 
-    const req = httpMock.expectOne(r => r.urlWithParams === `${BASE}/buscar?page=1&size=10&nombre=test&activo=true`);
+    const req = httpMock.expectOne(
+      (r) => r.urlWithParams === `${BASE}/buscar?page=1&size=10&nombre=test&activo=true`,
+    );
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], totalElements: 0, totalPages: 0, number: 1, size: 10 });
   });
@@ -136,7 +146,9 @@ describe('SocioService', () => {
     service.buscarSociosPorNombre('ana', 0, 5, undefined, TipoPaquete.GIMNASIO, true).subscribe();
 
     const req = httpMock.expectOne(
-      r => r.urlWithParams === `${BASE}/buscar?page=0&size=5&nombre=ana&tipoPaquete=GIMNASIO&soloVigentes=true`
+      (r) =>
+        r.urlWithParams ===
+        `${BASE}/buscar?page=0&size=5&nombre=ana&tipoPaquete=GIMNASIO&soloVigentes=true`,
     );
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 5 });
@@ -147,16 +159,16 @@ describe('SocioService', () => {
   it('obtenerAsesoriasDeSocio hace GET a base/{id}/asesorias?page={p}&size={s}', () => {
     service.obtenerAsesoriasDeSocio(7, 0, 5).subscribe();
 
-    const req = httpMock.expectOne(r => r.urlWithParams === `${BASE}/7/asesorias?page=0&size=5`);
+    const req = httpMock.expectOne((r) => r.urlWithParams === `${BASE}/7/asesorias?page=0&size=5`);
     expect(req.request.method).toBe('GET');
     req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 5 });
   });
 
   it('obtenerAsesoriasDeSocio mapea respuesta a PagedResponse con contenido', () => {
     let resultado: PagedResponse<AsesoriaContratoData> | undefined;
-    service.obtenerAsesoriasDeSocio(7, 0, 5).subscribe(r => (resultado = r));
+    service.obtenerAsesoriasDeSocio(7, 0, 5).subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(r => r.urlWithParams === `${BASE}/7/asesorias?page=0&size=5`);
+    const req = httpMock.expectOne((r) => r.urlWithParams === `${BASE}/7/asesorias?page=0&size=5`);
     req.flush({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 5 });
 
     expect(resultado?.contenido).toEqual([]);

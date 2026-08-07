@@ -9,6 +9,6 @@ export const InscripcionActions = createActionGroup({
     'Set Paquete Id': props<{ paqueteId: number }>(),
     'Set Descuento': props<{ descuento: number }>(), // ✅ MONTO
     'Set Fecha Inicio': props<{ fechaInicio: string }>(),
-    'Reset': emptyProps(),
+    Reset: emptyProps(),
   },
 });

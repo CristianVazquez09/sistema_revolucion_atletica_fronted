@@ -6,34 +6,36 @@ import { MenuData } from '../../shared/models/menu-data';
 import { GenericService } from '../http/generic-service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class MenuService extends GenericService<MenuData> {
-
   private menuChange = new Subject<MenuData[]>();
 
   constructor(http: HttpClient) {
-    super(
-      http,
-      `${environment.HOST}/menus`);
+    super(http, `${environment.HOST}/menus`);
   }
 
-  getMenusByUser(username: string){
+  getMenusByUser(username: string) {
     return this.http.post<MenuData[]>(`${this.url}/usuario`, username);
   }
 
-  getMenuChange(){
+  getMenuChange() {
     return this.menuChange.asObservable();
   }
 
-  setMenuChange(menus: MenuData[]){
+  setMenuChange(menus: MenuData[]) {
     this.menuChange.next(menus);
   }
 
   readonly menuAbierto = signal(false);
 
-  toggleDrawer(): void { this.menuAbierto.update(v => !v); }
-  abrirDrawer(): void { this.menuAbierto.set(true); }
-  cerrarDrawer(): void { this.menuAbierto.set(false); }
-  
+  toggleDrawer(): void {
+    this.menuAbierto.update((v) => !v);
+  }
+  abrirDrawer(): void {
+    this.menuAbierto.set(true);
+  }
+  cerrarDrawer(): void {
+    this.menuAbierto.set(false);
+  }
 }

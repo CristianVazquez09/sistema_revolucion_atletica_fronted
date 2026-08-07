@@ -34,25 +34,31 @@ import { HuellaModal, HuellaResultado } from '../../../../shared/huella/huella-m
 @Component({
   selector: 'app-agregar-membresia',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, ResumenCompra, TiempoPlanLabelPipe, HuellaModal],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    ResumenCompra,
+    TiempoPlanLabelPipe,
+    HuellaModal,
+  ],
   templateUrl: './agregar-membresia.html',
-  styleUrl: './agregar-membresia.css'
+  styleUrl: './agregar-membresia.css',
 })
 export class AgregarMembresia implements OnInit {
-
   // ── Inyección
-  private fb           = inject(FormBuilder);
-  private socioSrv     = inject(SocioService);
-  private paqueteSrv   = inject(PaqueteService);
+  private fb = inject(FormBuilder);
+  private socioSrv = inject(SocioService);
+  private paqueteSrv = inject(PaqueteService);
   private membresiaSrv = inject(MembresiaService);
-  private noti         = inject(NotificacionService);
-  private router       = inject(Router);
-  private destroyRef   = inject(DestroyRef);
+  private noti = inject(NotificacionService);
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   // para ticket
-  private gymSrv       = inject(GimnasioService);
-  private ticket       = inject(TicketService);
-  private jwt          = inject(JwtHelperService);
+  private gymSrv = inject(GimnasioService);
+  private ticket = inject(TicketService);
+  private jwt = inject(JwtHelperService);
 
   // ── Contexto (ticket)
   gym: GimnasioData | null = null;
@@ -62,20 +68,20 @@ export class AgregarMembresia implements OnInit {
   formBusqueda = this.fb.nonNullable.group({
     idSocio: this.fb.nonNullable.control<string>('', [
       Validators.required,
-      Validators.pattern(/^\d+$/)
-    ])
+      Validators.pattern(/^\d+$/),
+    ]),
   });
 
   // ── Form membresía extra
   formMembresia = this.fb.nonNullable.group({
-    paqueteId:   this.fb.nonNullable.control<number>(0, [Validators.min(1)]),
-    descuento:   this.fb.nonNullable.control<number>(0, [Validators.min(0)]),
+    paqueteId: this.fb.nonNullable.control<number>(0, [Validators.min(1)]),
+    descuento: this.fb.nonNullable.control<number>(0, [Validators.min(0)]),
     fechaInicio: this.fb.nonNullable.control<string>(hoyISO()),
-    movimiento:  this.fb.nonNullable.control<TipoMovimiento>('REINSCRIPCION')
+    movimiento: this.fb.nonNullable.control<TipoMovimiento>('REINSCRIPCION'),
   });
 
   // ── Estado
-  socio    = signal<SocioData | null>(null);
+  socio = signal<SocioData | null>(null);
   paquetes: PaqueteData[] = [];
 
   cargandoSocio = false;
@@ -88,28 +94,39 @@ export class AgregarMembresia implements OnInit {
   mostrarHuella = signal(false);
 
   // ── Signals derivados
-  private paqueteIdSig   = toSignal(this.formMembresia.controls.paqueteId.valueChanges,   { initialValue: this.formMembresia.controls.paqueteId.value });
-  private descuentoSig   = toSignal(this.formMembresia.controls.descuento.valueChanges,  { initialValue: this.formMembresia.controls.descuento.value });
-  private fechaInicioSig = toSignal(this.formMembresia.controls.fechaInicio.valueChanges,{ initialValue: this.formMembresia.controls.fechaInicio.value });
+  private paqueteIdSig = toSignal(this.formMembresia.controls.paqueteId.valueChanges, {
+    initialValue: this.formMembresia.controls.paqueteId.value,
+  });
+  private descuentoSig = toSignal(this.formMembresia.controls.descuento.valueChanges, {
+    initialValue: this.formMembresia.controls.descuento.value,
+  });
+  private fechaInicioSig = toSignal(this.formMembresia.controls.fechaInicio.valueChanges, {
+    initialValue: this.formMembresia.controls.fechaInicio.value,
+  });
 
   paqueteSeleccionado = computed(() => {
     const id = this.paqueteIdSig();
-    return this.paquetes.find(p => p.idPaquete === id) ?? null;
+    return this.paquetes.find((p) => p.idPaquete === id) ?? null;
   });
 
   precioPaquete = computed(() => this.paqueteSeleccionado()?.precio ?? 0);
-  descuento     = computed(() => this.descuentoSig());
-  total         = computed(() => calcularTotal(this.precioPaquete(), this.descuento()));
+  descuento = computed(() => this.descuentoSig());
+  total = computed(() => calcularTotal(this.precioPaquete(), this.descuento()));
 
-  fechaInicio   = computed(() => this.fechaInicioSig());
-  fechaFin      = computed(() => {
+  fechaInicio = computed(() => this.fechaInicioSig());
+  fechaFin = computed(() => {
     const t = this.paqueteSeleccionado()?.tiempo ?? null;
     return calcularFechaFin(this.fechaInicio(), t as TiempoPlan | null);
   });
 
   // ── Helpers
   get fechaHoyTexto(): string {
-    const opts: Intl.DateTimeFormatOptions = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+    const opts: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    };
     const s = new Date().toLocaleDateString('es-MX', opts);
     return s.charAt(0).toUpperCase() + s.slice(1);
   }
@@ -123,8 +140,14 @@ export class AgregarMembresia implements OnInit {
 
     // Cargar paquetes
     this.paqueteSrv.buscarTodos().subscribe({
-      next: lista => { this.paquetes = lista ?? []; this.cargandoPaquetes = false; },
-      error: () => { this.cargandoPaquetes = false; this.error = 'No se pudieron cargar los paquetes.'; }
+      next: (lista) => {
+        this.paquetes = lista ?? [];
+        this.cargandoPaquetes = false;
+      },
+      error: () => {
+        this.cargandoPaquetes = false;
+        this.error = 'No se pudieron cargar los paquetes.';
+      },
     });
 
     // Asegura fechaInicio
@@ -149,11 +172,13 @@ export class AgregarMembresia implements OnInit {
       const idGym = decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
       if (idGym) {
         this.gymSrv.buscarPorId(Number(idGym)).subscribe({
-          next: (g) => this.gym = g,
-          error: () => this.gym = null
+          next: (g) => (this.gym = g),
+          error: () => (this.gym = null),
         });
       }
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
   }
 
   // ── Acciones (por ID)
@@ -174,7 +199,10 @@ export class AgregarMembresia implements OnInit {
   }
 
   abrirResumen(): void {
-    if (!this.socio()) { this.noti.aviso('Primero busca un socio.'); return; }
+    if (!this.socio()) {
+      this.noti.aviso('Primero busca un socio.');
+      return;
+    }
     if ((this.paqueteIdSig() ?? 0) <= 0) {
       this.noti.aviso('Selecciona un paquete para continuar.');
       this.formMembresia.markAllAsTouched();
@@ -182,124 +210,135 @@ export class AgregarMembresia implements OnInit {
     }
     this.mostrarResumen.set(true);
   }
-  cerrarResumen(): void { this.mostrarResumen.set(false); }
+  cerrarResumen(): void {
+    this.mostrarResumen.set(false);
+  }
 
   // 👇 AHORA recibe pagos[] del modal
   confirmar(pagos: PagoData[]): void {
-  const s = this.socio(); 
-  if (!s?.idSocio) { this.noti.aviso('Primero busca un socio.'); return; }
+    const s = this.socio();
+    if (!s?.idSocio) {
+      this.noti.aviso('Primero busca un socio.');
+      return;
+    }
 
-  const idPaquete = this.paqueteIdSig(); 
-  if ((idPaquete ?? 0) <= 0) { this.noti.aviso('Selecciona un paquete.'); return; }
+    const idPaquete = this.paqueteIdSig();
+    if ((idPaquete ?? 0) <= 0) {
+      this.noti.aviso('Selecciona un paquete.');
+      return;
+    }
 
-  // Validación suma de pagos
-  const totalUI = this.total() ?? 0;
-  const sumaPagos = (pagos ?? []).reduce((a, p) => a + (Number(p.monto) || 0), 0);
-  if (Math.abs(totalUI - sumaPagos) > 0.01) {
-    this.noti.aviso('La suma de pagos no coincide con el total.');
-    return;
+    // Validación suma de pagos
+    const totalUI = this.total() ?? 0;
+    const sumaPagos = (pagos ?? []).reduce((a, p) => a + (Number(p.monto) || 0), 0);
+    if (Math.abs(totalUI - sumaPagos) > 0.01) {
+      this.noti.aviso('La suma de pagos no coincide con el total.');
+      return;
+    }
+
+    const fechaInicio = this.fechaInicio();
+    const fechaFin = this.fechaFin();
+
+    // Payload hacia backend
+    const payload: MembresiaData = {
+      socio: { idSocio: s.idSocio } as SocioData,
+      paquete: { idPaquete: idPaquete! } as unknown as PaqueteData,
+      fechaInicio,
+      fechaFin,
+      movimiento: this.formMembresia.controls.movimiento.value!, // 'REINSCRIPCION'
+      pagos,
+      descuento: this.descuento() ?? 0,
+      total: totalUI,
+    };
+
+    this.guardando = true;
+    this.membresiaSrv
+      .guardar(payload as any)
+      .pipe(finalize(() => (this.guardando = false)))
+      .subscribe({
+        next: (resp: any) => {
+          this.mostrarResumen.set(false);
+          this.noti.exito('Paquete extra agregado correctamente.');
+
+          // ====== TICKET (formato nuevo con desglose) ======
+          const negocio = {
+            nombre: this.gym?.nombre ?? 'Tu gimnasio',
+            direccion: this.gym?.direccion ?? '',
+            telefono: this.gym?.telefono ?? '',
+          };
+
+          // ctx para TicketService
+          const ctx: VentaContexto = {
+            negocio,
+            cajero: this.cajero,
+            leyendaLateral: negocio.nombre,
+            brandTitle: 'REVOLUCIÓN ATLÉTICA',
+          };
+
+          // Folio y datos visibles
+          const folio = resp?.idMembresia ?? resp?.id ?? '';
+          const socioNombre = `${s.nombre ?? ''} ${s.apellido ?? ''}`.trim();
+          const pSel = this.paqueteSeleccionado();
+          const paqueteNom = resp?.paquete?.nombre ?? pSel?.nombre ?? null;
+
+          // Desglose de pagos para el ticket
+          const pagosDet = (pagos ?? [])
+            .filter((p) => (Number(p.monto) || 0) > 0)
+            .map((p) => ({ metodo: p.tipoPago, monto: Number(p.monto) || 0 }));
+
+          // Números para el recibo estilo “largo”
+          const precioPaquete = Number(pSel?.precio ?? resp?.total ?? totalUI) || 0;
+          const descuentoTicket = Number(this.descuento() ?? 0) || 0;
+          const costoInscripcion = 0; // para reinscripción normalmente 0
+
+          this.ticket.imprimirMembresiaDesdeContexto({
+            ctx,
+            folio,
+            fecha: resp?.fechaInicio ?? new Date(),
+            socioNombre,
+            paqueteNombre: paqueteNom,
+            precioPaquete,
+            descuento: descuentoTicket,
+            costoInscripcion,
+            pagos: pagosDet, // ← en lugar de tipoPago
+            referencia: resp?.referencia,
+          });
+
+          this.router.navigate(['/pages/socio', s.idSocio, 'historial']);
+        },
+        error: () => this.noti.error('No se pudo agregar el paquete.'),
+      });
   }
-
-  const fechaInicio = this.fechaInicio();
-  const fechaFin    = this.fechaFin();
-
-  // Payload hacia backend
-  const payload: MembresiaData = {
-    socio:   { idSocio: s.idSocio } as SocioData,
-    paquete: { idPaquete: idPaquete! } as unknown as PaqueteData,
-    fechaInicio,
-    fechaFin,
-    movimiento: this.formMembresia.controls.movimiento.value!, // 'REINSCRIPCION'
-    pagos,
-    descuento: this.descuento() ?? 0,
-    total: totalUI
-  };
-
-  this.guardando = true;
-  this.membresiaSrv.guardar(payload as any)
-    .pipe(finalize(() => (this.guardando = false)))
-    .subscribe({
-      next: (resp: any) => {
-        this.mostrarResumen.set(false);
-        this.noti.exito('Paquete extra agregado correctamente.');
-
-        // ====== TICKET (formato nuevo con desglose) ======
-        const negocio = {
-          nombre:    this.gym?.nombre ?? 'Tu gimnasio',
-          direccion: this.gym?.direccion ?? '',
-          telefono:  this.gym?.telefono ?? ''
-        };
-
-        // ctx para TicketService
-        const ctx: VentaContexto = {
-          negocio,
-          cajero: this.cajero,
-          leyendaLateral: negocio.nombre,
-          brandTitle: 'REVOLUCIÓN ATLÉTICA'
-        };
-
-        // Folio y datos visibles
-        const folio       = resp?.idMembresia ?? resp?.id ?? '';
-        const socioNombre = `${s.nombre ?? ''} ${s.apellido ?? ''}`.trim();
-        const pSel        = this.paqueteSeleccionado();
-        const paqueteNom  = resp?.paquete?.nombre ?? pSel?.nombre ?? null;
-
-        // Desglose de pagos para el ticket
-        const pagosDet = (pagos ?? [])
-          .filter(p => (Number(p.monto) || 0) > 0)
-          .map(p => ({ metodo: p.tipoPago, monto: Number(p.monto) || 0 }));
-
-        // Números para el recibo estilo “largo”
-        const precioPaquete   = Number(pSel?.precio ?? resp?.total ?? totalUI) || 0;
-        const descuentoTicket = Number(this.descuento() ?? 0) || 0;
-        const costoInscripcion = 0; // para reinscripción normalmente 0
-
-        this.ticket.imprimirMembresiaDesdeContexto({
-          ctx,
-          folio,
-          fecha: resp?.fechaInicio ?? new Date(),
-          socioNombre,
-          paqueteNombre: paqueteNom,
-          precioPaquete,
-          descuento: descuentoTicket,
-          costoInscripcion,
-          pagos: pagosDet,           // ← en lugar de tipoPago
-          referencia: resp?.referencia
-        });
-
-        this.router.navigate(['/pages/socio', s.idSocio, 'historial']);
-      },
-      error: () => this.noti.error('No se pudo agregar el paquete.')
-    });
-}
-
 
   // ── Privados
   private cargarSocio(id: number): void {
     this.cargandoSocio = true;
     this.error = null;
 
-    this.socioSrv.buscarPorId(id).pipe(
-      catchError(err => {
-        if (err?.status === 403 || err?.status === 404) return of(null);
-        throw err;
-      }),
-      finalize(() => (this.cargandoSocio = false))
-    ).subscribe({
-      next: (s) => {
-        if (!s) {
-          this.socio.set(null);
-          this.error = 'Socio no encontrado o no pertenece a tu gimnasio.';
+    this.socioSrv
+      .buscarPorId(id)
+      .pipe(
+        catchError((err) => {
+          if (err?.status === 403 || err?.status === 404) return of(null);
+          throw err;
+        }),
+        finalize(() => (this.cargandoSocio = false)),
+      )
+      .subscribe({
+        next: (s) => {
+          if (!s) {
+            this.socio.set(null);
+            this.error = 'Socio no encontrado o no pertenece a tu gimnasio.';
+            this.noti.error(this.error);
+            return;
+          }
+          this.socio.set(s);
+        },
+        error: () => {
+          this.error = 'No se pudo cargar el socio.';
           this.noti.error(this.error);
-          return;
-        }
-        this.socio.set(s);
-      },
-      error: () => {
-        this.error = 'No se pudo cargar el socio.';
-        this.noti.error(this.error);
-      }
-    });
+        },
+      });
   }
 
   // ====== Búsqueda por HUELLAS ======
@@ -326,13 +365,14 @@ export class AgregarMembresia implements OnInit {
     this.error = null;
     this.socio.set(null);
 
-    this.socioSrv.buscarPorHuella(huellaBase64)
+    this.socioSrv
+      .buscarPorHuella(huellaBase64)
       .pipe(
-        catchError(err => {
+        catchError((err) => {
           if (err?.status === 403 || err?.status === 404) return of(null);
           throw err;
         }),
-        finalize(() => (this.cargandoSocio = false))
+        finalize(() => (this.cargandoSocio = false)),
       )
       .subscribe({
         next: (s) => {
@@ -348,7 +388,7 @@ export class AgregarMembresia implements OnInit {
         error: () => {
           this.error = 'No se pudo buscar el socio por huella.';
           this.noti.error(this.error);
-        }
+        },
       });
   }
 }

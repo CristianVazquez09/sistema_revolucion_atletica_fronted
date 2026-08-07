@@ -8,7 +8,7 @@ import { PagoData } from '../../models/membresia-data';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './resumen-compra.html',
-  styleUrl: './resumen-compra.css'
+  styleUrl: './resumen-compra.css',
 })
 export class ResumenCompra implements OnChanges {
   // ✅ cada vez que el padre incremente resetKey, limpiamos inputs
@@ -50,25 +50,28 @@ export class ResumenCompra implements OnChanges {
   // ───────────────────────── Helpers numéricos ─────────────────────────
   private toNum(v: string): number {
     if (!v) return 0;
-    const clean = String(v)
-      .replace(/\$/g, '')
-      .replace(/\s+/g, '')
-      .replace(',', '.');
+    const clean = String(v).replace(/\$/g, '').replace(/\s+/g, '').replace(',', '.');
 
     const n = Number(clean);
     return Number.isFinite(n) ? n : 0;
   }
 
-  get efectivo(): number       { return this.toNum(this.efectivoStr); }
-  get tarjeta(): number        { return this.toNum(this.tarjetaStr); }
-  get transferencia(): number  { return this.toNum(this.transferenciaStr); }
+  get efectivo(): number {
+    return this.toNum(this.efectivoStr);
+  }
+  get tarjeta(): number {
+    return this.toNum(this.tarjetaStr);
+  }
+  get transferencia(): number {
+    return this.toNum(this.transferenciaStr);
+  }
 
   get sumaPagos(): number {
     return +(this.efectivo + this.tarjeta + this.transferencia).toFixed(2);
   }
 
   get diferencia(): number {
-    return +((Number(this.total ?? 0)) - this.sumaPagos).toFixed(2);
+    return +(Number(this.total ?? 0) - this.sumaPagos).toFixed(2);
   }
 
   get pagosValidos(): boolean {
@@ -84,15 +87,21 @@ export class ResumenCompra implements OnChanges {
   }
 
   // ───────────────────────── Acciones UI ─────────────────────────
-  llenarExactoEn(metodo: 'EFECTIVO'|'TARJETA'|'TRANSFERENCIA'): void {
+  llenarExactoEn(metodo: 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA'): void {
     const t = (+Number(this.total ?? 0)).toFixed(2);
 
     if (metodo === 'EFECTIVO') {
-      this.efectivoStr = t; this.tarjetaStr = ''; this.transferenciaStr = '';
+      this.efectivoStr = t;
+      this.tarjetaStr = '';
+      this.transferenciaStr = '';
     } else if (metodo === 'TARJETA') {
-      this.efectivoStr = ''; this.tarjetaStr = t; this.transferenciaStr = '';
+      this.efectivoStr = '';
+      this.tarjetaStr = t;
+      this.transferenciaStr = '';
     } else {
-      this.efectivoStr = ''; this.tarjetaStr = ''; this.transferenciaStr = t;
+      this.efectivoStr = '';
+      this.tarjetaStr = '';
+      this.transferenciaStr = t;
     }
   }
 

@@ -2,30 +2,35 @@
 
 <div class="relative" (click)="cerrarDropdownPaquetes()">
   <!-- Barra -->
-  <div class="mx-4 md:mx-8 my-3 flex items-center justify-between">
+  <div class="mx-4 my-3 flex items-center justify-between md:mx-8">
     <h1 class="text-xl font-semibold text-[color:var(--color-ra-slate)]">Reinscripción</h1>
 
     <a
       [routerLink]="['/pages/socio', idSocio, 'historial']"
-      class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 bg-white text-sm hover:bg-gray-50"
+      class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50"
     >
       ← Volver
     </a>
   </div>
 
   <!-- Card principal -->
-  <div class="mx-4 md:mx-8 rounded-xl2 bg-white ring-1 ring-black/10 shadow-card overflow-hidden">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4">
-
+  <div class="rounded-xl2 shadow-card mx-4 overflow-hidden bg-white ring-1 ring-black/10 md:mx-8">
+    <div class="grid grid-cols-1 gap-4 p-4 lg:grid-cols-2">
       <!-- Socio principal -->
       <section class="rounded-xl2 border border-gray-200 bg-gray-50 p-4">
         @if (!socioPrincipalSig()) {
-          <div class="text-center text-gray-600 py-8">Cargando socio…</div>
+          <div class="py-8 text-center text-gray-600">Cargando socio…</div>
         } @else {
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div class="row-span-3">
-              <div class="w-24 h-24 rounded-xl bg-gray-200 grid place-items-center text-gray-500">
-                <svg viewBox="0 0 24 24" class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2">
+              <div class="grid h-24 w-24 place-items-center rounded-xl bg-gray-200 text-gray-500">
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-10 w-10"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <circle cx="12" cy="8" r="4"></circle>
                   <path d="M4 20c2.5-3 5-4 8-4s5.5 1 8 4" stroke-linecap="round"></path>
                 </svg>
@@ -38,28 +43,32 @@
             <input class="input-filled" [value]="socioPrincipalSig()!.email || '—'" readonly />
             <input class="input-filled" [value]="socioPrincipalSig()!.direccion || '—'" readonly />
 
-            <div class="input-filled select-none text-gray-700">
-              {{ socioPrincipalSig()!.fechaNacimiento | date:'dd/MM/yyyy' }}
+            <div class="input-filled text-gray-700 select-none">
+              {{ socioPrincipalSig()!.fechaNacimiento | date: 'dd/MM/yyyy' }}
             </div>
-            <div class="input-filled select-none text-gray-700">
+            <div class="input-filled text-gray-700 select-none">
               Sexo: {{ socioPrincipalSig()!.genero }}
             </div>
 
-            <textarea class="input-filled min-h-[80px] sm:col-span-2" [value]="socioPrincipalSig()!.comentarios || '—'" readonly></textarea>
+            <textarea
+              class="input-filled min-h-[80px] sm:col-span-2"
+              [value]="socioPrincipalSig()!.comentarios || '—'"
+              readonly
+            ></textarea>
           </div>
         }
       </section>
 
       <!-- Reinscripción -->
       <section class="rounded-xl2 border border-gray-200 bg-white p-4">
-        <div class="flex items-center justify-between gap-3 mb-3">
+        <div class="mb-3 flex items-center justify-between gap-3">
           <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-full grid place-items-center bg-gray-100">＋</div>
+            <div class="grid h-7 w-7 place-items-center rounded-full bg-gray-100">＋</div>
             <h2 class="font-semibold text-[color:var(--color-ra-slate)]">Reinscripción</h2>
           </div>
 
           @if (esGrupalSig() && paqueteActualSig()) {
-            <div class="text-sm text-ra-slate/70 whitespace-nowrap">
+            <div class="text-ra-slate/70 text-sm whitespace-nowrap">
               Modalidad:
               <span class="font-semibold">{{ paqueteActualSig()!.modalidad }}</span>
               · Integrantes: {{ requeridoSig() }}
@@ -71,28 +80,33 @@
         @if (socioPrincipalSig()?.idSocio && estadoAsesoriaDe(socioPrincipalSig()!.idSocio!)) {
           @let est = estadoAsesoriaDe(socioPrincipalSig()!.idSocio!)!;
 
-          <div class="mb-3 rounded-xl2 border border-gray-200 bg-gray-50 p-3">
+          <div class="rounded-xl2 mb-3 border border-gray-200 bg-gray-50 p-3">
             <div class="flex items-center justify-between gap-2">
-              <div class="text-sm font-semibold text-ra-slate">
-                Asesoría nutricional (Roberto)
-              </div>
+              <div class="text-ra-slate text-sm font-semibold">Asesoría nutricional (Roberto)</div>
 
               @if (est.estado === 'VIGENTE') {
-                <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">Vigente</span>
+                <span class="rounded-full bg-green-100 px-2 py-1 text-xs text-green-800"
+                  >Vigente</span
+                >
               } @else if (est.estado === 'VENCIDA') {
-                <span class="text-xs px-2 py-1 rounded-full bg-red-100 text-red-800">Vencida</span>
+                <span class="rounded-full bg-red-100 px-2 py-1 text-xs text-red-800">Vencida</span>
               } @else if (est.estado === 'DESACTIVADA') {
-                <span class="text-xs px-2 py-1 rounded-full bg-gray-200 text-ra-slate/80">Desactivada</span>
+                <span class="text-ra-slate/80 rounded-full bg-gray-200 px-2 py-1 text-xs"
+                  >Desactivada</span
+                >
               } @else if (est.estado === 'PROGRAMADA') {
-                <span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">Programada</span>
+                <span class="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-800"
+                  >Programada</span
+                >
               } @else {
-                <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-ra-slate/70">—</span>
+                <span class="text-ra-slate/70 rounded-full bg-gray-100 px-2 py-1 text-xs">—</span>
               }
             </div>
 
-            <div class="mt-1 text-xs text-ra-slate/70">
+            <div class="text-ra-slate/70 mt-1 text-xs">
               @if (est.fechaInicio && est.fechaFin) {
-                Vigencia: <span class="font-semibold">{{ est.fechaInicio }}</span> → <span class="font-semibold">{{ est.fechaFin }}</span>
+                Vigencia: <span class="font-semibold">{{ est.fechaInicio }}</span> →
+                <span class="font-semibold">{{ est.fechaFin }}</span>
               } @else {
                 Sin fechas registradas.
               }
@@ -102,26 +116,29 @@
 
         <!-- ✅ Panel rápido: Paquete estudiantil -->
         @if (paqueteActualSig()?.estudiantil) {
-          <div class="mb-3 rounded-xl2 border border-gray-200 bg-gray-50 p-3">
+          <div class="rounded-xl2 mb-3 border border-gray-200 bg-gray-50 p-3">
             <div class="flex items-center justify-between gap-2">
-              <div class="text-sm font-semibold text-ra-slate">Paquete estudiantil</div>
+              <div class="text-ra-slate text-sm font-semibold">Paquete estudiantil</div>
 
               @if (tienePendientesEstudiantilSig()) {
-                <span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">Requiere revisión</span>
+                <span class="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-800"
+                  >Requiere revisión</span
+                >
               } @else {
-                <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">OK</span>
+                <span class="rounded-full bg-green-100 px-2 py-1 text-xs text-green-800">OK</span>
               }
             </div>
 
-            <div class="mt-1 text-xs text-ra-slate/70">
-              Se validará <span class="font-semibold">vigencia de credencial</span> y <span class="font-semibold">edad (≤ 22)</span> antes de cobrar.
+            <div class="text-ra-slate/70 mt-1 text-xs">
+              Se validará <span class="font-semibold">vigencia de credencial</span> y
+              <span class="font-semibold">edad (≤ 22)</span> antes de cobrar.
             </div>
 
             @if (tienePendientesEstudiantilSig()) {
               <div class="mt-2">
                 <button
                   type="button"
-                  class="text-xs underline text-ra-slate/80 hover:text-ra-slate"
+                  class="text-ra-slate/80 hover:text-ra-slate text-xs underline"
                   (click)="abrirValidacionEstudiantilManual()"
                 >
                   Revisar / renovar credencial
@@ -136,7 +153,7 @@
           <div (click)="$event.stopPropagation()">
             <input type="hidden" formControlName="paqueteId" />
 
-            <label class="block text-sm font-medium mb-1">Paquete</label>
+            <label class="mb-1 block text-sm font-medium">Paquete</label>
 
             <div class="relative">
               <input
@@ -152,7 +169,7 @@
               @if (!paqueteBloqueadoSig() && !cargandoPaquetes && paqueteBusquedaSig()) {
                 <button
                   type="button"
-                  class="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 grid place-items-center rounded-md hover:bg-gray-100"
+                  class="absolute top-1/2 right-2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md hover:bg-gray-100"
                   title="Limpiar"
                   (click)="limpiarPaqueteSeleccionado($event)"
                 >
@@ -161,29 +178,31 @@
               }
 
               @if (paqueteDropdownAbiertoSig() && !paqueteBloqueadoSig() && !cargandoPaquetes) {
-                <div class="absolute z-50 mt-1 w-full rounded-xl2 border border-gray-200 bg-white shadow-card overflow-hidden">
+                <div
+                  class="rounded-xl2 shadow-card absolute z-50 mt-1 w-full overflow-hidden border border-gray-200 bg-white"
+                >
                   <div class="max-h-[280px] overflow-auto">
                     @if (paquetesSugeridosSig().length === 0) {
-                      <div class="px-3 py-2 text-sm text-ra-slate/70">Sin resultados.</div>
+                      <div class="text-ra-slate/70 px-3 py-2 text-sm">Sin resultados.</div>
                     } @else {
                       @for (p of paquetesSugeridosSig(); track p.idPaquete) {
                         <button
                           type="button"
-                          class="w-full text-left px-3 py-2 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                          class="w-full border-b border-gray-100 px-3 py-2 text-left last:border-b-0 hover:bg-gray-50"
                           (click)="seleccionarPaqueteDesdeBusqueda(p, $event)"
                         >
                           <div class="flex items-start justify-between gap-2">
                             <div class="min-w-0">
-                              <div class="font-semibold text-ra-slate truncate">
+                              <div class="text-ra-slate truncate font-semibold">
                                 {{ p.nombre }}
                               </div>
-                              <div class="text-[11px] text-ra-slate/70 mt-0.5">
+                              <div class="text-ra-slate/70 mt-0.5 text-[11px]">
                                 {{ p.tiempo | tiempoPlan }}
                               </div>
                             </div>
 
-                            <div class="text-sm font-semibold text-ra-slate whitespace-nowrap">
-                              ${{ (p.precio || 0) | number: '1.2-2' }}
+                            <div class="text-ra-slate text-sm font-semibold whitespace-nowrap">
+                              ${{ p.precio || 0 | number: '1.2-2' }}
                             </div>
                           </div>
                         </button>
@@ -196,12 +215,12 @@
 
             @if (paqueteBloqueadoSig()) {
               <div class="mt-1 flex items-center justify-between">
-                <div class="text-xs text-ra-slate/70">
+                <div class="text-ra-slate/70 text-xs">
                   Paquete seleccionado automáticamente (del historial). Bloqueado.
                 </div>
                 <button
                   type="button"
-                  class="text-xs underline text-ra-slate/80 hover:text-ra-slate"
+                  class="text-ra-slate/80 hover:text-ra-slate text-xs underline"
                   (click)="desbloquearPaquete()"
                 >
                   Cambiar paquete
@@ -215,15 +234,15 @@
             <div class="summary-box">
               <div class="flex items-center justify-between">
                 <div class="font-semibold">{{ paqueteActualSig()!.nombre }}</div>
-                <div>${{ (paqueteActualSig()!.precio || 0) | number:'1.2-2' }}</div>
+                <div>${{ paqueteActualSig()!.precio || 0 | number: '1.2-2' }}</div>
               </div>
 
-              <div class="text-sm text-gray-600 mt-1">
+              <div class="mt-1 text-sm text-gray-600">
                 Tiempo: {{ paqueteActualSig()!.tiempo | tiempoPlan }}
               </div>
 
               @if (promoCargandoSig()) {
-                <div class="mt-2 text-xs text-ra-slate/70">Cargando promoción vigente…</div>
+                <div class="text-ra-slate/70 mt-2 text-xs">Cargando promoción vigente…</div>
               }
 
               @if (!promoCargandoSig() && promoErrorSig()) {
@@ -231,7 +250,7 @@
               }
 
               @if (!promoCargandoSig() && promocionAplicadaSig()) {
-                <div class="mt-3 rounded-xl2 border border-emerald-200 bg-emerald-50 p-3">
+                <div class="rounded-xl2 mt-3 border border-emerald-200 bg-emerald-50 p-3">
                   <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                       <div class="text-sm font-semibold text-emerald-900">
@@ -239,14 +258,15 @@
                       </div>
 
                       @if (promocionAplicadaSig()!.descripcion) {
-                        <div class="text-xs text-emerald-900/80 mt-1">
+                        <div class="mt-1 text-xs text-emerald-900/80">
                           {{ promocionAplicadaSig()!.descripcion }}
                         </div>
                       }
 
                       @if (promoMesesGratisSig() > 0) {
                         <div class="mt-2 text-[11px] text-emerald-900/80">
-                          Meses gratis: <span class="font-semibold">{{ promoMesesGratisSig() }}</span>
+                          Meses gratis:
+                          <span class="font-semibold">{{ promoMesesGratisSig() }}</span>
                           <span class="ml-1">· Nota: se reflejan en la vigencia.</span>
                         </div>
                       }
@@ -255,7 +275,7 @@
                     <div class="text-right whitespace-nowrap">
                       <div class="text-[11px] text-emerald-900/70">Ahorro</div>
                       <div class="text-sm font-bold text-emerald-900">
-                        ${{ descuentoPromoSig() | number:'1.2-2' }}
+                        ${{ descuentoPromoSig() | number: '1.2-2' }}
                       </div>
                     </div>
                   </div>
@@ -266,9 +286,15 @@
 
           <!-- Descuento manual -->
           <div>
-            <label class="block text-sm font-medium mb-1">Descuento (por integrante)</label>
-            <input type="number" step="0.01" formControlName="descuento" class="input-filled" placeholder="0.00" />
-            <div class="mt-1 text-xs text-ra-slate/70">
+            <label class="mb-1 block text-sm font-medium">Descuento (por integrante)</label>
+            <input
+              type="number"
+              step="0.01"
+              formControlName="descuento"
+              class="input-filled"
+              placeholder="0.00"
+            />
+            <div class="text-ra-slate/70 mt-1 text-xs">
               En reinscripción, el descuento manual se suma al descuento de promoción (si aplica).
             </div>
           </div>
@@ -276,7 +302,7 @@
           <!-- Entrenador RA (solo si el paquete es RA) -->
           @if (esPaqueteRASig()) {
             <div>
-              <label class="block text-sm font-medium mb-1">
+              <label class="mb-1 block text-sm font-medium">
                 Entrenador RA <span class="text-red-500">*</span>
               </label>
               @if (cargandoEntrenadoresSig()) {
@@ -285,7 +311,8 @@
                 <select
                   class="input-filled"
                   [value]="entrenadorRAIdSig() ?? ''"
-                  (change)="onEntrenadorRAChange($any($event.target).value)">
+                  (change)="onEntrenadorRAChange($any($event.target).value)"
+                >
                   <option value="">— Selecciona entrenador RA —</option>
                   @for (e of entrenadoresRASig(); track e.idEntrenador) {
                     <option [value]="e.idEntrenador">{{ e.nombre }} {{ e.apellido }}</option>
@@ -293,7 +320,9 @@
                 </select>
               }
               @if (!entrenadorRAIdSig()) {
-                <p class="text-xs text-red-600 mt-1">Selecciona un entrenador RA para este paquete.</p>
+                <p class="mt-1 text-xs text-red-600">
+                  Selecciona un entrenador RA para este paquete.
+                </p>
               }
             </div>
           }
@@ -303,18 +332,19 @@
             <div class="rounded-xl2 border border-gray-200 bg-gray-50 p-3">
               <div class="flex items-center justify-between gap-3">
                 <div>
-                  <div class="text-sm font-semibold text-ra-slate">Integrantes del paquete</div>
-                  <div class="text-xs text-ra-slate/70">
-                    Agrega los otros socios por <span class="font-semibold">ID</span> o por <span class="font-semibold">Huella</span>.
+                  <div class="text-ra-slate text-sm font-semibold">Integrantes del paquete</div>
+                  <div class="text-ra-slate/70 text-xs">
+                    Agrega los otros socios por <span class="font-semibold">ID</span> o por
+                    <span class="font-semibold">Huella</span>.
                   </div>
                 </div>
 
-                <div class="text-xs text-ra-slate/70 whitespace-nowrap">
+                <div class="text-ra-slate/70 text-xs whitespace-nowrap">
                   Faltan: <span class="font-semibold">{{ faltanIntegrantesSig() }}</span>
                 </div>
               </div>
 
-              <div class="mt-3 grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2 items-stretch">
+              <div class="mt-3 grid grid-cols-1 items-stretch gap-2 sm:grid-cols-[1fr_auto_auto]">
                 <input
                   type="number"
                   min="1"
@@ -329,7 +359,7 @@
 
                 <button
                   type="button"
-                  class="px-4 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50"
+                  class="rounded-md border border-gray-300 bg-white px-4 py-2 hover:bg-gray-50"
                   (click)="abrirModalHuella()"
                 >
                   Buscar por huella
@@ -338,29 +368,31 @@
 
               <div class="mt-3 space-y-2">
                 @for (m of miembrosSig(); track m.idSocio) {
-                  <div class="flex items-center justify-between gap-2 rounded-lg bg-white border border-gray-200 px-3 py-2">
+                  <div
+                    class="flex items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2"
+                  >
                     <div class="min-w-0">
-                      <div class="text-sm font-semibold text-ra-slate truncate">
+                      <div class="text-ra-slate truncate text-sm font-semibold">
                         {{ m.nombre }} {{ m.apellido }}
                         @if (m.idSocio === socioPrincipalSig()?.idSocio) {
-                          <span class="text-xs font-normal text-ra-slate/60"> (principal)</span>
+                          <span class="text-ra-slate/60 text-xs font-normal"> (principal)</span>
                         }
                       </div>
-                      <div class="text-xs text-ra-slate/70">
+                      <div class="text-ra-slate/70 text-xs">
                         ID: {{ m.idSocio }} · Tel: {{ m.telefono || '—' }}
                       </div>
 
                       <!-- ✅ Estado asesoría por integrante: SOLO SI existe -->
                       @if (estadoAsesoriaDe(m.idSocio!)) {
                         @let e = estadoAsesoriaDe(m.idSocio!)!;
-                        <div class="mt-1 text-[11px] text-ra-slate/70">
+                        <div class="text-ra-slate/70 mt-1 text-[11px]">
                           Asesoría:
                           @if (e.estado === 'VIGENTE') {
                             <span class="font-semibold text-green-700">Vigente</span>
                           } @else if (e.estado === 'VENCIDA') {
                             <span class="font-semibold text-red-700">Vencida</span>
                           } @else if (e.estado === 'DESACTIVADA') {
-                            <span class="font-semibold text-ra-slate/70">Desactivada</span>
+                            <span class="text-ra-slate/70 font-semibold">Desactivada</span>
                           } @else if (e.estado === 'PROGRAMADA') {
                             <span class="font-semibold text-amber-700">Programada</span>
                           } @else {
@@ -376,7 +408,7 @@
                       <!-- ✅ Validación estudiantil por integrante -->
                       @if (paqueteActualSig()?.estudiantil && estudiantilCheckDe(m.idSocio!)) {
                         @let c = estudiantilCheckDe(m.idSocio!)!;
-                        <div class="mt-1 text-[11px] text-ra-slate/70">
+                        <div class="text-ra-slate/70 mt-1 text-[11px]">
                           Estudiante:
                           @if (c.edadOk) {
                             <span class="font-semibold text-green-700">Edad OK</span>
@@ -395,14 +427,18 @@
 
                     <div class="flex items-center gap-2">
                       @if (pagosBySocioIdSig()[key(m.idSocio!)]) {
-                        <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">Pago ✓</span>
+                        <span class="rounded-full bg-green-100 px-2 py-1 text-xs text-green-800"
+                          >Pago ✓</span
+                        >
                       } @else {
-                        <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-ra-slate/70">Sin pago</span>
+                        <span class="text-ra-slate/70 rounded-full bg-gray-100 px-2 py-1 text-xs"
+                          >Sin pago</span
+                        >
                       }
 
                       <button
                         type="button"
-                        class="px-3 py-1.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
+                        class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm hover:bg-gray-50"
                         (click)="quitarMiembro(m.idSocio!)"
                         [disabled]="m.idSocio === socioPrincipalSig()?.idSocio"
                       >
@@ -417,43 +453,37 @@
 
           <!-- Fecha pago -->
           <div>
-            <label class="block text-sm font-medium mb-1">Fecha de pago</label>
-            <div class="input-filled bg-gray-100 pointer-events-none select-none">
-              {{ fechaPagoVistaSig() | date:'dd/MM/yyyy' }}
+            <label class="mb-1 block text-sm font-medium">Fecha de pago</label>
+            <div class="input-filled pointer-events-none bg-gray-100 select-none">
+              {{ fechaPagoVistaSig() | date: 'dd/MM/yyyy' }}
             </div>
           </div>
 
           <!-- Totales (con promo) -->
           <div class="grid grid-cols-3 gap-4 text-sm">
-            <div class="rounded-lg bg-gray-50 border border-gray-200 p-3">
+            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
               <div class="text-gray-600">Precio base</div>
               <div class="font-semibold">
-                ${{ (paqueteActualSig()?.precio || 0) | number:'1.2-2' }}
+                ${{ paqueteActualSig()?.precio || 0 | number: '1.2-2' }}
               </div>
             </div>
 
-            <div class="rounded-lg bg-gray-50 border border-gray-200 p-3">
+            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
               <div class="text-gray-600">Descuento total</div>
-              <div class="font-semibold">
-                ${{ descuentoTotalSig() | number:'1.2-2' }}
-              </div>
+              <div class="font-semibold">${{ descuentoTotalSig() | number: '1.2-2' }}</div>
               @if (promocionAplicadaSig()) {
-                <div class="text-[11px] text-emerald-700 mt-1">
-                  Incluye promoción vigente.
-                </div>
+                <div class="mt-1 text-[11px] text-emerald-700">Incluye promoción vigente.</div>
               }
             </div>
 
-            <div class="rounded-lg bg-gray-50 border border-gray-200 p-3">
+            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
               <div class="text-gray-600">Total (por integrante)</div>
-              <div class="font-bold text-ra-slate">
-                ${{ totalConPromoSig() | number:'1.2-2' }}
-              </div>
+              <div class="text-ra-slate font-bold">${{ totalConPromoSig() | number: '1.2-2' }}</div>
             </div>
           </div>
 
           @if (mensajeError) {
-            <div class="text-red-600 text-sm">{{ mensajeError }}</div>
+            <div class="text-sm text-red-600">{{ mensajeError }}</div>
           }
 
           <div class="pt-2">
@@ -473,22 +503,26 @@
 
   <!-- ✅ Modal Validación Estudiantil -->
   @if (mostrarModalEstudiantilSig()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center" (click)="cerrarModalEstudiantil()">
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center"
+      (click)="cerrarModalEstudiantil()"
+    >
       <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
 
-      <div class="relative z-10 w-full max-w-[760px] mx-4" (click)="$event.stopPropagation()">
-        <div class="rounded-xl2 bg-white ring-1 ring-black/10 shadow-card p-4">
+      <div class="relative z-10 mx-4 w-full max-w-[760px]" (click)="$event.stopPropagation()">
+        <div class="rounded-xl2 shadow-card bg-white p-4 ring-1 ring-black/10">
           <div class="flex items-start justify-between gap-3">
             <div>
-              <div class="text-lg font-semibold text-ra-slate">Validación paquete estudiantil</div>
-              <div class="text-sm text-ra-slate/70">
-                Antes de cobrar, revisa <span class="font-semibold">vigencia de credencial</span> y <span class="font-semibold">edad (≤ 22)</span>.
+              <div class="text-ra-slate text-lg font-semibold">Validación paquete estudiantil</div>
+              <div class="text-ra-slate/70 text-sm">
+                Antes de cobrar, revisa <span class="font-semibold">vigencia de credencial</span> y
+                <span class="font-semibold">edad (≤ 22)</span>.
               </div>
             </div>
 
             <button
               type="button"
-              class="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
+              class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50"
               (click)="cerrarModalEstudiantil()"
             >
               ✕
@@ -499,16 +533,20 @@
             @for (c of checksEstudiantilModalSig(); track c.socioId) {
               <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
                 <div class="flex items-center justify-between gap-3">
-                  <div class="font-semibold text-ra-slate">{{ c.nombre }}</div>
+                  <div class="text-ra-slate font-semibold">{{ c.nombre }}</div>
 
                   @if (c.edadOk && c.vigenciaOk) {
-                    <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">OK</span>
+                    <span class="rounded-full bg-green-100 px-2 py-1 text-xs text-green-800"
+                      >OK</span
+                    >
                   } @else {
-                    <span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-800">Pendiente</span>
+                    <span class="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-800"
+                      >Pendiente</span
+                    >
                   }
                 </div>
 
-                <div class="mt-1 text-xs text-ra-slate/70 space-y-1">
+                <div class="text-ra-slate/70 mt-1 space-y-1 text-xs">
                   <div>
                     Edad:
                     @if (c.edad != null) {
@@ -537,9 +575,9 @@
                 </div>
 
                 @if (!c.vigenciaOk) {
-                  <div class="mt-3 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 items-end">
+                  <div class="mt-3 grid grid-cols-1 items-end gap-2 sm:grid-cols-[1fr_auto]">
                     <div>
-                      <label class="block text-xs font-medium mb-1">Nueva vigencia</label>
+                      <label class="mb-1 block text-xs font-medium">Nueva vigencia</label>
                       <input
                         type="date"
                         class="input-filled"
@@ -561,8 +599,9 @@
                 }
 
                 @if (!c.edadOk) {
-                  <div class="mt-2 text-xs text-ra-slate/70">
-                    Para continuar, cambia a un paquete no estudiantil o corrige la fecha de nacimiento si está mal registrada.
+                  <div class="text-ra-slate/70 mt-2 text-xs">
+                    Para continuar, cambia a un paquete no estudiantil o corrige la fecha de
+                    nacimiento si está mal registrada.
                   </div>
                 }
               </div>
@@ -572,7 +611,7 @@
           <div class="mt-4 flex items-center justify-end gap-2">
             <button
               type="button"
-              class="px-4 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-sm"
+              class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm hover:bg-gray-50"
               (click)="cerrarModalEstudiantil()"
             >
               Cerrar
@@ -603,7 +642,7 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center" (click)="cerrarResumen()">
       <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
 
-      <div class="relative z-10 w-full max-w-[560px] mx-4" (click)="$event.stopPropagation()">
+      <div class="relative z-10 mx-4 w-full max-w-[560px]" (click)="$event.stopPropagation()">
         <app-resumen-compra
           [socioNombre]="socioCobrandoNombreSig()"
           [fechaPago]="fechaPagoVistaSig()"
@@ -614,7 +653,8 @@
           [total]="totalConPromoSig()"
           [guardando]="guardando"
           (cancelar)="cerrarResumen()"
-          (confirmar)="confirmarPago($event)">
+          (confirmar)="confirmarPago($event)"
+        >
         </app-resumen-compra>
       </div>
     </div>
@@ -622,6 +662,9 @@
 
   <!-- Modal huella -->
   @if (mostrarModalHuella()) {
-    <app-huella-modal (cancelar)="onHuellaCancel()" (confirmar)="onHuellaOk($event)"></app-huella-modal>
+    <app-huella-modal
+      (cancelar)="onHuellaCancel()"
+      (confirmar)="onHuellaOk($event)"
+    ></app-huella-modal>
   }
 </div>

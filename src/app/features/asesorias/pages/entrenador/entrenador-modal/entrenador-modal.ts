@@ -9,10 +9,9 @@ import { PagoData } from 'src/app/shared/models/membresia-data';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './entrenador-modal.html',
-  styleUrl: './entrenador-modal.css'
+  styleUrl: './entrenador-modal.css',
 })
 export class EntrenadorModal {
-
   @Input() entrenador!: EntrenadorData;
   @Input() asesorias: AsesoriaContratoData[] = [];
   @Input() cargando = false;
@@ -30,19 +29,23 @@ export class EntrenadorModal {
     return String(t ?? '')
       .replace(/_/g, ' ')
       .toLowerCase()
-      .replace(/\b\w/g, c => c.toUpperCase());
+      .replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
   pagosConMonto(pagos?: PagoData[] | null): PagoData[] {
-    return (pagos ?? []).filter(p => Number(p?.monto) > 0);
+    return (pagos ?? []).filter((p) => Number(p?.monto) > 0);
   }
 
   labelPago(tipo: PagoData['tipoPago'] | string): string {
     switch (tipo) {
-      case 'EFECTIVO': return 'Efectivo';
-      case 'TARJETA': return 'Tarjeta';
-      case 'TRANSFERENCIA': return 'Transferencia';
-      default: return String(tipo);
+      case 'EFECTIVO':
+        return 'Efectivo';
+      case 'TARJETA':
+        return 'Tarjeta';
+      case 'TRANSFERENCIA':
+        return 'Transferencia';
+      default:
+        return String(tipo);
     }
   }
 

@@ -8,28 +8,31 @@ import { PagedResponse, toPagedResponse } from '../models/paged-response';
 import { Observable, map } from 'rxjs';
 import { MembresiaPatchRequest } from '../models/membresia-patch';
 
-type PageMetaApi = { size: number; number: number; totalElements: number; totalPages: number; };
-export type MembresiaPageResponse = { content: MembresiaData[]; page: PageMetaApi; };
+type PageMetaApi = { size: number; number: number; totalElements: number; totalPages: number };
+export type MembresiaPageResponse = { content: MembresiaData[]; page: PageMetaApi };
 export type MembresiaBatchRequestDTO = {
   membresias: any[]; // request flexible (puede ser parcial)
 };
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class MembresiaService extends GenericService<MembresiaData> {
-
-  constructor(protected override http: HttpClient){
-    super(http, `${environment.HOST}/membresias`)
+  constructor(protected override http: HttpClient) {
+    super(http, `${environment.HOST}/membresias`);
   }
 
-  buscarMembresiasPorSocio(idSocio: number, pagina: number, tamanio: number): Observable<PagedResponse<MembresiaData>>{
+  buscarMembresiasPorSocio(
+    idSocio: number,
+    pagina: number,
+    tamanio: number,
+  ): Observable<PagedResponse<MembresiaData>> {
     return this.http
       .get(`${this.url}/buscar/socio/${idSocio}?page=${pagina}&size=${tamanio}`)
       .pipe(map((raw: any) => toPagedResponse<MembresiaData>(raw)));
   }
 
-  buscarMembresiasVigentesPorSocio(idSocio: number): Observable<MembresiaData[]>{
+  buscarMembresiasVigentesPorSocio(idSocio: number): Observable<MembresiaData[]> {
     return this.http.get<MembresiaData[]>(`${this.url}/por-socio/${idSocio}/vigentes`);
   }
 
@@ -55,7 +58,10 @@ export class MembresiaService extends GenericService<MembresiaData> {
 
   // ========== NUEVO: buscar por nombre de socio (paginado) ==========
 
-  buscarPorNombreSocio(q: string, opts: { page?: number; size?: number; sort?: string }): Observable<MembresiaPageResponse> {
+  buscarPorNombreSocio(
+    q: string,
+    opts: { page?: number; size?: number; sort?: string },
+  ): Observable<MembresiaPageResponse> {
     const page0 = Math.max(0, (opts.page ?? 1) - 1);
     let params = new HttpParams()
       .set('q', q)
@@ -69,7 +75,11 @@ export class MembresiaService extends GenericService<MembresiaData> {
   // ========== NUEVO: listar por rango de fechas ==========
 
   /** GET /v1/membresias/rango?desde=YYYY-MM-DD&hasta=YYYY-MM-DD&page&size&sort */
-  listarPorRango(desde: string, hasta: string, opts: { page?: number; size?: number; sort?: string }): Observable<MembresiaPageResponse> {
+  listarPorRango(
+    desde: string,
+    hasta: string,
+    opts: { page?: number; size?: number; sort?: string },
+  ): Observable<MembresiaPageResponse> {
     const page0 = Math.max(0, (opts.page ?? 1) - 1);
 
     const paramsObj: Record<string, string> = {
@@ -83,13 +93,13 @@ export class MembresiaService extends GenericService<MembresiaData> {
     const params = new HttpParams({ fromObject: paramsObj });
     return this.http.get<MembresiaPageResponse>(`${this.url}/rango`, { params });
   }
-    // ========== NUEVO: reinscripción anticipada ==========
+  // ========== NUEVO: reinscripción anticipada ==========
   /** POST /v1/membresias/reinscripcion/anticipada */
   reinscripcionAnticipada(payload: Partial<MembresiaData>): Observable<MembresiaData> {
     return this.http.post<MembresiaData>(`${this.url}/reinscripcion/anticipada`, payload);
   }
 
-   /**
+  /**
    * ✅ Batch general: sirve para INSCRIPCION o REINSCRIPCION.
    * Backend valida que todas traigan el mismo paquete (modalidad).
    */
@@ -105,5 +115,4 @@ export class MembresiaService extends GenericService<MembresiaData> {
     const body: MembresiaBatchRequestDTO = { membresias };
     return this.http.post<MembresiaData[]>(`${this.url}/batch/reinscripcion/anticipada`, body);
   }
-
 }

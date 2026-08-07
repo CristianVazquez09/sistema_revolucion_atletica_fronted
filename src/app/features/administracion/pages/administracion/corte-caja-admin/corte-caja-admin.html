@@ -1,20 +1,21 @@
 <!-- CARD PRINCIPAL -->
-<div class="mx-1 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden">
-
+<div class="shadow-card mx-1 overflow-hidden rounded-xl bg-white ring-1 ring-black/10">
   <!-- TOOLBAR -->
-  <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
-    <h1 class="text-base sm:text-lg font-semibold text-ra-slate shrink-0">Cortes de caja</h1>
-    <div class="w-px h-5 bg-gray-200 shrink-0"></div>
+  <div
+    class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-gray-100 px-4 py-3"
+  >
+    <h1 class="text-ra-slate shrink-0 text-base font-semibold sm:text-lg">Cortes de caja</h1>
+    <div class="h-5 w-px shrink-0 bg-gray-200"></div>
 
     @if (esAdmin) {
       <div class="shrink-0">
         <ra-gimnasio-filter label="Gimnasio"></ra-gimnasio-filter>
       </div>
-      <div class="w-px h-5 bg-gray-200 shrink-0"></div>
+      <div class="h-5 w-px shrink-0 bg-gray-200"></div>
     }
 
-    <div class="flex items-center gap-1.5 shrink-0">
-      <span class="text-xs text-ra-slate/70 whitespace-nowrap">Estado:</span>
+    <div class="flex shrink-0 items-center gap-1.5">
+      <span class="text-ra-slate/70 text-xs whitespace-nowrap">Estado:</span>
       <select
         class="h-8 w-[130px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
         [(ngModel)]="estadoSel"
@@ -28,7 +29,7 @@
 
     <button
       type="button"
-      class="h-8 px-3 rounded-lg bg-[#0B2C4A] text-white hover:brightness-110 text-xs shrink-0"
+      class="h-8 shrink-0 rounded-lg bg-[#0B2C4A] px-3 text-xs text-white hover:brightness-110"
       (click)="go(1)"
     >
       Actualizar
@@ -39,118 +40,203 @@
   <div class="overflow-x-auto">
     <div>
       <table
-        class="w-full border-collapse table-fixed text-xs"
+        class="w-full table-fixed border-collapse text-xs"
         [ngClass]="esAdmin ? 'min-w-[1000px]' : 'min-w-[860px]'"
       >
         <colgroup>
           @if (esAdmin) {
-            <col class="w-[4%]">   <!-- ID -->
-            <col class="w-[10%]">  <!-- Apertura -->
-            <col class="w-[10%]">  <!-- Cierre -->
-            <col class="w-[7%]">   <!-- Estado -->
-            <col class="w-[10%]">  <!-- Gimnasio -->
-            <col class="w-[10%]">  <!-- Abierto por -->
-            <col class="w-[10%]">  <!-- Cerrado por -->
-            <col class="w-[9%]">   <!-- Ventas -->
-            <col class="w-[8%]">   <!-- Membresías -->
-            <col class="w-[8%]">   <!-- Accesorías -->
-            <col class="w-[10%]">  <!-- Total -->
-            <col class="w-[4%]">   <!-- Acciones -->
+            <col class="w-[4%]" />
+            <!-- ID -->
+            <col class="w-[10%]" />
+            <!-- Apertura -->
+            <col class="w-[10%]" />
+            <!-- Cierre -->
+            <col class="w-[7%]" />
+            <!-- Estado -->
+            <col class="w-[10%]" />
+            <!-- Gimnasio -->
+            <col class="w-[10%]" />
+            <!-- Abierto por -->
+            <col class="w-[10%]" />
+            <!-- Cerrado por -->
+            <col class="w-[9%]" />
+            <!-- Ventas -->
+            <col class="w-[8%]" />
+            <!-- Membresías -->
+            <col class="w-[8%]" />
+            <!-- Accesorías -->
+            <col class="w-[10%]" />
+            <!-- Total -->
+            <col class="w-[4%]" />
+            <!-- Acciones -->
           } @else {
-            <col class="w-[5%]">   <!-- ID -->
-            <col class="w-[12%]">  <!-- Apertura -->
-            <col class="w-[12%]">  <!-- Cierre -->
-            <col class="w-[8%]">   <!-- Estado -->
-            <col class="w-[11%]">  <!-- Abierto por -->
-            <col class="w-[11%]">  <!-- Cerrado por -->
-            <col class="w-[9%]">   <!-- Ventas -->
-            <col class="w-[9%]">   <!-- Membresías -->
-            <col class="w-[9%]">   <!-- Accesorías -->
-            <col class="w-[10%]">  <!-- Total -->
-            <col class="w-[4%]">   <!-- Acciones -->
+            <col class="w-[5%]" />
+            <!-- ID -->
+            <col class="w-[12%]" />
+            <!-- Apertura -->
+            <col class="w-[12%]" />
+            <!-- Cierre -->
+            <col class="w-[8%]" />
+            <!-- Estado -->
+            <col class="w-[11%]" />
+            <!-- Abierto por -->
+            <col class="w-[11%]" />
+            <!-- Cerrado por -->
+            <col class="w-[9%]" />
+            <!-- Ventas -->
+            <col class="w-[9%]" />
+            <!-- Membresías -->
+            <col class="w-[9%]" />
+            <!-- Accesorías -->
+            <col class="w-[10%]" />
+            <!-- Total -->
+            <col class="w-[4%]" />
+            <!-- Acciones -->
           }
         </colgroup>
 
-        <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+        <thead class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
           <tr>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">
-              <button class="inline-flex items-center gap-1 hover:underline" (click)="setSortCampo('idCorte')">
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              <button
+                class="inline-flex items-center gap-1 hover:underline"
+                (click)="setSortCampo('idCorte')"
+              >
                 ID
                 @if (isCampoActivo('idCorte')) {
-                  <svg viewBox="0 0 24 24" class="w-3 h-3 inline" fill="none" stroke="currentColor" stroke-width="2" [ngClass]="{ 'rotate-180': sortDir === 'asc' }">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="inline h-3 w-3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    [ngClass]="{ 'rotate-180': sortDir === 'asc' }"
+                  >
                     <path d="M6 9l6 6 6-6"></path>
                   </svg>
                 }
               </button>
             </th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">
-              <button class="inline-flex items-center gap-1 hover:underline" (click)="setSortCampo('apertura')">
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              <button
+                class="inline-flex items-center gap-1 hover:underline"
+                (click)="setSortCampo('apertura')"
+              >
                 Apertura
                 @if (isCampoActivo('apertura')) {
-                  <svg viewBox="0 0 24 24" class="w-3 h-3 inline" fill="none" stroke="currentColor" stroke-width="2" [ngClass]="{ 'rotate-180': sortDir === 'asc' }">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="inline h-3 w-3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    [ngClass]="{ 'rotate-180': sortDir === 'asc' }"
+                  >
                     <path d="M6 9l6 6 6-6"></path>
                   </svg>
                 }
               </button>
             </th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">
-              <button class="inline-flex items-center gap-1 hover:underline" (click)="setSortCampo('cierre')">
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              <button
+                class="inline-flex items-center gap-1 hover:underline"
+                (click)="setSortCampo('cierre')"
+              >
                 Cierre
                 @if (isCampoActivo('cierre')) {
-                  <svg viewBox="0 0 24 24" class="w-3 h-3 inline" fill="none" stroke="currentColor" stroke-width="2" [ngClass]="{ 'rotate-180': sortDir === 'asc' }">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="inline h-3 w-3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    [ngClass]="{ 'rotate-180': sortDir === 'asc' }"
+                  >
                     <path d="M6 9l6 6 6-6"></path>
                   </svg>
                 }
               </button>
             </th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Estado</th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Estado
+            </th>
             @if (esAdmin) {
-              <th class="py-3 px-3 text-left text-ra-slate font-semibold uppercase text-[11px]">Gimnasio</th>
+              <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+                Gimnasio
+              </th>
             }
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Abierto por</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Cerrado por</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Ventas</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Membresías</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Accesorías</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Total</th>
-            <th class="py-3 px-1 text-center text-ra-slate" aria-label="Acciones"></th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Abierto por
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Cerrado por
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Ventas
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Membresías
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Accesorías
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Total
+            </th>
+            <th class="text-ra-slate px-1 py-3 text-center" aria-label="Acciones"></th>
           </tr>
         </thead>
 
         <tbody>
           @if (cargando) {
-            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Cargando…</td></tr>
+            <tr>
+              <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Cargando…</td>
+            </tr>
           } @else if (error) {
-            <tr><td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ error }}</td></tr>
+            <tr>
+              <td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ error }}</td>
+            </tr>
           } @else if (!cortes.length) {
-            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Sin resultados.</td></tr>
+            <tr>
+              <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Sin resultados.</td>
+            </tr>
           } @else {
             @for (c of cortes; track trackById($index, c); let i = $index) {
-              <tr class="border-t border-gray-100 hover:bg-gray-50/60 text-center">
+              <tr class="border-t border-gray-100 text-center hover:bg-gray-50/60">
+                <td class="px-3 py-2.5 text-[11px] font-medium">#{{ c.idCorte }}</td>
 
-                <td class="py-2.5 px-3 text-[11px] font-medium">#{{ c.idCorte }}</td>
-
-                <td class="py-2.5 px-3 text-[11px] whitespace-nowrap">
-                  {{ c.apertura | date:'dd/MM/yyyy' }}<br />{{ c.apertura | date:'HH:mm' }}
+                <td class="px-3 py-2.5 text-[11px] whitespace-nowrap">
+                  {{ c.apertura | date: 'dd/MM/yyyy' }}<br />{{ c.apertura | date: 'HH:mm' }}
                 </td>
 
-                <td class="py-2.5 px-3 text-[11px] whitespace-nowrap">
-                  {{ c.cierre | date:'dd/MM/yyyy' }}<br />{{ c.cierre | date:'HH:mm' }}
+                <td class="px-3 py-2.5 text-[11px] whitespace-nowrap">
+                  {{ c.cierre | date: 'dd/MM/yyyy' }}<br />{{ c.cierre | date: 'HH:mm' }}
                 </td>
 
-                <td class="py-2.5 px-3">
+                <td class="px-3 py-2.5">
                   <span
-                    class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                    [ngClass]="{ 'bg-emerald-100 text-emerald-700': c.estado === 'ABIERTO', 'bg-gray-200 text-gray-700': c.estado === 'CERRADO' }"
+                    class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                    [ngClass]="{
+                      'bg-emerald-100 text-emerald-700': c.estado === 'ABIERTO',
+                      'bg-gray-200 text-gray-700': c.estado === 'CERRADO',
+                    }"
                   >
                     {{ c.estado }}
                   </span>
                 </td>
 
                 @if (esAdmin) {
-                  <td class="py-2.5 px-3 text-[11px] text-left min-w-0">
-                    <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-[10px] max-w-full">
-                      <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                  <td class="min-w-0 px-3 py-2.5 text-left text-[11px]">
+                    <span
+                      class="inline-flex max-w-full items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 px-2 py-0.5 text-[10px] text-[color:var(--color-ra-azul-fuerte)]"
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        class="h-3.5 w-3.5 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
                         <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
                       </svg>
                       <span class="truncate">{{ c.gimnasio?.nombre || '—' }}</span>
@@ -158,31 +244,63 @@
                   </td>
                 }
 
-                <td class="py-2.5 px-3 text-[11px] truncate">{{ c.abiertoPor?.nombreUsuario || '—' }}</td>
-                <td class="py-2.5 px-3 text-[11px] truncate">{{ c.cerradoPor?.nombreUsuario || '—' }}</td>
+                <td class="truncate px-3 py-2.5 text-[11px]">
+                  {{ c.abiertoPor?.nombreUsuario || '—' }}
+                </td>
+                <td class="truncate px-3 py-2.5 text-[11px]">
+                  {{ c.cerradoPor?.nombreUsuario || '—' }}
+                </td>
 
-                <td class="py-2.5 px-3 text-[11px] font-semibold">{{ c.totalVentas | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
-                <td class="py-2.5 px-3 text-[11px] font-semibold">{{ c.totalMembresias | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
-                <td class="py-2.5 px-3 text-[11px] font-semibold">{{ c.totalAccesorias | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
-                <td class="py-2.5 px-3 text-[11px] font-semibold">{{ c.totalGeneral | currency:'MXN':'symbol-narrow':'1.2-2' }}</td>
+                <td class="px-3 py-2.5 text-[11px] font-semibold">
+                  {{ c.totalVentas | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+                </td>
+                <td class="px-3 py-2.5 text-[11px] font-semibold">
+                  {{ c.totalMembresias | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+                </td>
+                <td class="px-3 py-2.5 text-[11px] font-semibold">
+                  {{ c.totalAccesorias | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+                </td>
+                <td class="px-3 py-2.5 text-[11px] font-semibold">
+                  {{ c.totalGeneral | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+                </td>
 
-                <td class="py-2.5 px-1 text-center relative">
+                <td class="relative px-1 py-2.5 text-center">
                   <button
                     type="button"
                     (click)="toggleMenuRow(i, $event)"
-                    class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                    class="hover:bg-ra-grayLight/50 mx-auto grid h-6 w-6 place-items-center rounded"
                     title="Acciones"
                   >
-                    <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
-                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                    <svg
+                      viewBox="0 0 24 24"
+                      class="h-3.5 w-3.5 text-[color:var(--color-ra-azul-fuerte)]"
+                      fill="currentColor"
+                    >
+                      <circle cx="12" cy="5" r="1.5" />
+                      <circle cx="12" cy="12" r="1.5" />
+                      <circle cx="12" cy="19" r="1.5" />
                     </svg>
                   </button>
 
                   @if (menuRowIdx === i) {
-                    <div class="fixed z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left" [ngStyle]="menuDropdownStyle">
-                      <button type="button" (click)="menuRowIdx = null; verInfo(c)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
-                        <svg viewBox="0 0 24 24" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" />
+                    <div
+                      class="fixed z-50 w-48 rounded-xl bg-white py-1 text-left shadow-lg ring-1 ring-black/10"
+                      [ngStyle]="menuDropdownStyle"
+                    >
+                      <button
+                        type="button"
+                        (click)="menuRowIdx = null; verInfo(c)"
+                        class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          class="h-4 w-4 shrink-0"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                        >
+                          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+                          <circle cx="12" cy="12" r="3" />
                         </svg>
                         Ver detalle
                       </button>
@@ -190,15 +308,14 @@
                         type="button"
                         (click)="menuRowIdx = null; reimprimir(c)"
                         [disabled]="reimprimiendo || c.estado !== 'CERRADO'"
-                        class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50"
+                        class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
                       >
-                        <img src="iconos/impresora.svg" alt="Reimprimir" class="w-4 h-4 shrink-0" />
+                        <img src="iconos/impresora.svg" alt="Reimprimir" class="h-4 w-4 shrink-0" />
                         Reimprimir
                       </button>
                     </div>
                   }
                 </td>
-
               </tr>
             }
           }
@@ -208,20 +325,21 @@
   </div>
 
   <!-- FOOTER -->
-  <div class="px-4 py-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-
-    <div class="flex items-center gap-2 text-ra-slate/70 shrink-0">
+  <div
+    class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-4 py-3 text-xs"
+  >
+    <div class="text-ra-slate/70 flex shrink-0 items-center gap-2">
       <span>
-        Página <strong class="text-ra-slate">{{ pageUI }}</strong>
-        de <strong class="text-ra-slate">{{ page.totalPages || 1 }}</strong>
+        Página <strong class="text-ra-slate">{{ pageUI }}</strong> de
+        <strong class="text-ra-slate">{{ page.totalPages || 1 }}</strong>
       </span>
       <span class="text-ra-slate/50">({{ page.totalElements || 0 }} registros)</span>
     </div>
 
     <div class="flex items-center gap-2 overflow-x-auto">
-      <span class="text-ra-slate/60 whitespace-nowrap shrink-0">Ordenar por</span>
+      <span class="text-ra-slate/60 shrink-0 whitespace-nowrap">Ordenar por</span>
       <select
-        class="h-8 w-[110px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner shrink-0"
+        class="h-8 w-[110px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
         [(ngModel)]="sortCampo"
         (change)="go(1)"
       >
@@ -230,7 +348,7 @@
         <option [ngValue]="'idCorte'">ID</option>
       </select>
       <select
-        class="h-8 w-[80px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner shrink-0"
+        class="h-8 w-[80px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
         [(ngModel)]="sortDir"
         (change)="go(1)"
       >
@@ -238,11 +356,11 @@
         <option [ngValue]="'asc'">Asc</option>
       </select>
 
-      <div class="w-px h-4 bg-gray-200 shrink-0"></div>
+      <div class="h-4 w-px shrink-0 bg-gray-200"></div>
 
-      <span class="text-ra-slate/60 whitespace-nowrap shrink-0">Por página</span>
+      <span class="text-ra-slate/60 shrink-0 whitespace-nowrap">Por página</span>
       <select
-        class="h-8 w-[70px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner shrink-0"
+        class="h-8 w-[70px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
         [(ngModel)]="sizeSel"
         (change)="go(1)"
       >
@@ -251,31 +369,27 @@
         <option [ngValue]="50">50</option>
       </select>
 
-      <div class="w-px h-4 bg-gray-200 shrink-0"></div>
+      <div class="h-4 w-px shrink-0 bg-gray-200"></div>
 
       <button
-        class="h-8 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 text-xs shrink-0"
+        class="h-8 shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
         [disabled]="!puedePrev"
         (click)="prev()"
       >
         Anterior
       </button>
       <button
-        class="h-8 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 text-xs shrink-0"
+        class="h-8 shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
         [disabled]="!puedeNext"
         (click)="next()"
       >
         Siguiente
       </button>
     </div>
-
   </div>
 </div>
 
 <!-- Modal de información del corte -->
 @if (mostrarInfo && corteSeleccionado) {
-  <app-corte-caja-info
-    [corte]="corteSeleccionado"
-    (cerrar)="cerrarInfo()"
-  ></app-corte-caja-info>
+  <app-corte-caja-info [corte]="corteSeleccionado" (cerrar)="cerrarInfo()"></app-corte-caja-info>
 }

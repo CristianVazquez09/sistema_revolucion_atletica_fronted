@@ -16,7 +16,7 @@ export type AsesoriaNutricionalEstadoDTO = {
   activo: boolean;
   estado: 'SIN_ASESORIA' | 'DESACTIVADA' | 'PROGRAMADA' | 'VIGENTE' | 'VENCIDA';
   fechaInicio: string | null; // LocalDate -> "YYYY-MM-DD"
-  fechaFin: string | null;    // LocalDate -> "YYYY-MM-DD"
+  fechaFin: string | null; // LocalDate -> "YYYY-MM-DD"
   idAsesoriaNutricional: number | null;
 };
 

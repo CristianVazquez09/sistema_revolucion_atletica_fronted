@@ -1,16 +1,18 @@
 <div #zoomOuter class="overflow-x-hidden">
   <div #zoomInner class="origin-top-left">
-
     <!-- CARD PRINCIPAL -->
-    <div #tablaWrap class="mx-1 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden">
-
+    <div
+      #tablaWrap
+      class="shadow-card mx-1 overflow-hidden rounded-xl bg-white ring-1 ring-black/10"
+    >
       <!-- ══ TOOLBAR: título + todos los filtros ══ -->
-      <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
-
+      <div
+        class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-gray-100 px-4 py-3"
+      >
         <!-- Título -->
-        <h1 class="text-base sm:text-lg font-semibold text-ra-slate shrink-0">Membresías</h1>
+        <h1 class="text-ra-slate shrink-0 text-base font-semibold sm:text-lg">Membresías</h1>
 
-        <div class="w-px h-5 bg-gray-200 shrink-0"></div>
+        <div class="h-5 w-px shrink-0 bg-gray-200"></div>
 
         <!-- Gimnasio (solo admin) -->
         @if (esAdmin) {
@@ -20,18 +22,18 @@
         }
 
         <!-- Búsqueda unificada folio / nombre -->
-        <div class="flex items-center gap-1.5 shrink-0">
+        <div class="flex shrink-0 items-center gap-1.5">
           <input
             type="text"
             placeholder="Buscar por folio o socio…"
-            class="w-[240px] h-8 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
+            class="h-8 w-[240px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
             [(ngModel)]="terminoBuscar"
             (ngModelChange)="onTerminoBuscar($event)"
             (keyup.enter)="onTerminoBuscar(terminoBuscar)"
           />
           <button
             type="button"
-            class="h-8 px-3 rounded-lg border border-gray-200 text-xs text-ra-slate hover:bg-gray-50 shrink-0"
+            class="text-ra-slate h-8 shrink-0 rounded-lg border border-gray-200 px-3 text-xs hover:bg-gray-50"
             (click)="limpiarTermino()"
           >
             Limpiar
@@ -40,15 +42,15 @@
 
         <!-- Rango de fechas -->
         @if (!ocultarFechas()) {
-          <div class="w-px h-5 bg-gray-200 shrink-0"></div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <label class="text-xs text-ra-slate/70 whitespace-nowrap">Desde</label>
+          <div class="h-5 w-px shrink-0 bg-gray-200"></div>
+          <div class="flex shrink-0 items-center gap-1.5">
+            <label class="text-ra-slate/70 text-xs whitespace-nowrap">Desde</label>
             <input
               type="date"
               class="h-8 w-[138px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
               [(ngModel)]="fechaDesde"
             />
-            <label class="text-xs text-ra-slate/70 whitespace-nowrap">Hasta</label>
+            <label class="text-ra-slate/70 text-xs whitespace-nowrap">Hasta</label>
             <input
               type="date"
               class="h-8 w-[138px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
@@ -56,14 +58,14 @@
             />
             <button
               type="button"
-              class="h-8 px-3 rounded-lg bg-[#0B2C4A] text-white hover:brightness-110 text-xs shrink-0"
+              class="h-8 shrink-0 rounded-lg bg-[#0B2C4A] px-3 text-xs text-white hover:brightness-110"
               (click)="aplicarRangoFechas()"
             >
               Filtrar
             </button>
             <button
               type="button"
-              class="h-8 px-3 rounded-lg border border-gray-200 text-xs text-ra-slate hover:bg-gray-50 disabled:opacity-50 shrink-0"
+              class="text-ra-slate h-8 shrink-0 rounded-lg border border-gray-200 px-3 text-xs hover:bg-gray-50 disabled:opacity-50"
               [disabled]="!filtroFechasActivo && !fechaDesde && !fechaHasta"
               (click)="limpiarRangoFechas()"
             >
@@ -76,68 +78,118 @@
       <!-- ══ TABLA ══ -->
       <div class="overflow-x-auto">
         <div>
-          <table class="w-full min-w-[860px] border-collapse table-fixed text-xs">
+          <table class="w-full min-w-[860px] table-fixed border-collapse text-xs">
             <colgroup>
-              <col class="w-[6%]">   <!-- Folio -->
-              <col [class]="mostrarGimnasioCol() ? 'w-[18%]' : 'w-[22%]'">  <!-- Socio -->
-              <col [class]="mostrarGimnasioCol() ? 'w-[15%]' : 'w-[17%]'">  <!-- Paquete -->
-              <col class="w-[9%]">   <!-- F. Inicio -->
-              <col class="w-[9%]">   <!-- F. Fin -->
-              <col class="w-[11%]">  <!-- Movimiento -->
-              <col class="w-[9%]">   <!-- Total -->
-              <col [class]="mostrarGimnasioCol() ? 'w-[9%]' : 'w-[12%]'">   <!-- Usuario -->
+              <col class="w-[6%]" />
+              <!-- Folio -->
+              <col [class]="mostrarGimnasioCol() ? 'w-[18%]' : 'w-[22%]'" />
+              <!-- Socio -->
+              <col [class]="mostrarGimnasioCol() ? 'w-[15%]' : 'w-[17%]'" />
+              <!-- Paquete -->
+              <col class="w-[9%]" />
+              <!-- F. Inicio -->
+              <col class="w-[9%]" />
+              <!-- F. Fin -->
+              <col class="w-[11%]" />
+              <!-- Movimiento -->
+              <col class="w-[9%]" />
+              <!-- Total -->
+              <col [class]="mostrarGimnasioCol() ? 'w-[9%]' : 'w-[12%]'" />
+              <!-- Usuario -->
               @if (mostrarGimnasioCol()) {
-                <col class="w-[12%]"> <!-- Gimnasio -->
+                <col class="w-[12%]" />
+                <!-- Gimnasio -->
               }
-              <col class="w-[5%]">   <!-- Acciones -->
+              <col class="w-[5%]" />
+              <!-- Acciones -->
             </colgroup>
 
-            <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+            <thead class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
               <tr>
-                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Folio</th>
-                <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Socio</th>
-                <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Paquete</th>
-                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">F. Inicio</th>
-                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">F. Fin</th>
-                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Movimiento</th>
-                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Total</th>
-                <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Usuario</th>
+                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+                  Folio
+                </th>
+                <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+                  Socio
+                </th>
+                <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+                  Paquete
+                </th>
+                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+                  F. Inicio
+                </th>
+                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+                  F. Fin
+                </th>
+                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+                  Movimiento
+                </th>
+                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+                  Total
+                </th>
+                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+                  Usuario
+                </th>
                 @if (mostrarGimnasioCol()) {
-                  <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Gimnasio</th>
+                  <th
+                    class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase"
+                  >
+                    Gimnasio
+                  </th>
                 }
-                <th class="py-3 px-1" aria-label="Acciones"></th>
+                <th class="px-1 py-3" aria-label="Acciones"></th>
               </tr>
             </thead>
 
             <tbody>
               @if (cargando) {
-                <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Cargando…</td></tr>
+                <tr>
+                  <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Cargando…</td>
+                </tr>
               } @else if (error) {
-                <tr><td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ error }}</td></tr>
+                <tr>
+                  <td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ error }}</td>
+                </tr>
               } @else if (!rows.length) {
-                <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Sin resultados.</td></tr>
+                <tr>
+                  <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">
+                    Sin resultados.
+                  </td>
+                </tr>
               } @else {
                 @for (m of rows; track trackById($index, m); let i = $index) {
                   <tr class="border-t border-gray-100 hover:bg-gray-50/60">
-
                     <!-- Folio -->
-                    <td class="py-2.5 px-3 text-center font-medium text-[11px]">
+                    <td class="px-3 py-2.5 text-center text-[11px] font-medium">
                       #{{ m.folio ?? '—' }}
                     </td>
 
                     <!-- Socio -->
-                    <td class="py-2.5 px-3 min-w-0">
-                      <div class="font-medium truncate text-[11px]">{{ m.socio.nombre }} {{ m.socio.apellido }}</div>
-                      <div class="text-[10px] text-ra-slate/60 truncate">ID: {{ m.socio.idSocio }} · {{ m.socio.telefono || '—' }}</div>
+                    <td class="min-w-0 px-3 py-2.5">
+                      <div class="truncate text-[11px] font-medium">
+                        {{ m.socio.nombre }} {{ m.socio.apellido }}
+                      </div>
+                      <div class="text-ra-slate/60 truncate text-[10px]">
+                        ID: {{ m.socio.idSocio }} · {{ m.socio.telefono || '—' }}
+                      </div>
                     </td>
 
                     <!-- Paquete -->
-                    <td class="py-2.5 px-3 min-w-0">
-                      <div class="font-medium truncate text-[11px]">{{ m.paquete.nombre }}</div>
+                    <td class="min-w-0 px-3 py-2.5">
+                      <div class="truncate text-[11px] font-medium">{{ m.paquete.nombre }}</div>
                       <div class="mt-1">
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-[10px] font-semibold">
-                          <svg viewBox="0 0 24 24" class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>
+                        <span
+                          class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            class="h-3 w-3"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path d="M12 7v5l3 2"></path>
                           </svg>
                           {{ m.paquete.tiempo | tiempoPlan }}
                         </span>
@@ -145,23 +197,24 @@
                     </td>
 
                     <!-- F. inicio -->
-                    <td class="py-2.5 px-3 text-center whitespace-nowrap text-[11px]">
-                      {{ m.fechaInicio | date:'dd/MM/yyyy' }}
+                    <td class="px-3 py-2.5 text-center text-[11px] whitespace-nowrap">
+                      {{ m.fechaInicio | date: 'dd/MM/yyyy' }}
                     </td>
 
                     <!-- F. fin -->
-                    <td class="py-2.5 px-3 text-center whitespace-nowrap text-[11px]">
-                      {{ m.fechaFin | date:'dd/MM/yyyy' }}
+                    <td class="px-3 py-2.5 text-center text-[11px] whitespace-nowrap">
+                      {{ m.fechaFin | date: 'dd/MM/yyyy' }}
                     </td>
 
                     <!-- Movimiento -->
-                    <td class="py-2.5 px-3 text-center">
+                    <td class="px-3 py-2.5 text-center">
                       <span
-                        class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                        class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
                         [ngClass]="{
                           'bg-emerald-100 text-emerald-700': m.movimiento === 'INSCRIPCION',
-                          'bg-indigo-100 text-indigo-700':   m.movimiento === 'REINSCRIPCION',
-                          'bg-gray-100 text-gray-600':       m.movimiento !== 'INSCRIPCION' && m.movimiento !== 'REINSCRIPCION'
+                          'bg-indigo-100 text-indigo-700': m.movimiento === 'REINSCRIPCION',
+                          'bg-gray-100 text-gray-600':
+                            m.movimiento !== 'INSCRIPCION' && m.movimiento !== 'REINSCRIPCION',
                         }"
                       >
                         {{ m.movimiento }}
@@ -169,58 +222,97 @@
                     </td>
 
                     <!-- Total -->
-                    <td class="py-2.5 px-3 text-center font-semibold whitespace-nowrap text-[11px]">
-                      {{ (m.total || 0) | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                    <td class="px-3 py-2.5 text-center text-[11px] font-semibold whitespace-nowrap">
+                      {{ m.total || 0 | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
                     </td>
 
                     <!-- Usuario -->
-                    <td class="py-2.5 px-3 text-center truncate text-[11px]">
+                    <td class="truncate px-3 py-2.5 text-center text-[11px]">
                       {{ m.usuario?.nombreUsuario || '—' }}
                     </td>
 
                     <!-- Gimnasio -->
                     @if (mostrarGimnasioCol()) {
-                      <td class="py-2.5 px-3 text-center">
-                        <span class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 text-[color:var(--color-ra-azul-fuerte)] px-2 py-0.5 text-[10px]">
-                          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2">
+                      <td class="px-3 py-2.5 text-center">
+                        <span
+                          class="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-ra-azul-fuerte)]/10 px-2 py-0.5 text-[10px] text-[color:var(--color-ra-azul-fuerte)]"
+                        >
+                          <svg
+                            viewBox="0 0 24 24"
+                            class="h-3.5 w-3.5 shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
                             <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
                           </svg>
-                          <span class="truncate max-w-[140px]">{{ gymNombre(m.paquete.gimnasio || m.socio.gimnasio || m.gimnasio) }}</span>
+                          <span class="max-w-[140px] truncate">{{
+                            gymNombre(m.paquete.gimnasio || m.socio.gimnasio || m.gimnasio)
+                          }}</span>
                         </span>
                       </td>
                     }
 
                     <!-- Acciones -->
-                    <td class="py-2.5 px-1 text-center relative">
+                    <td class="relative px-1 py-2.5 text-center">
                       <button
                         (click)="toggleMenuRow(i, $event)"
-                        class="h-6 w-6 grid place-items-center rounded hover:bg-ra-grayLight/50 mx-auto"
+                        class="hover:bg-ra-grayLight/50 mx-auto grid h-6 w-6 place-items-center rounded"
                         title="Acciones"
                       >
-                        <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-[color:var(--color-ra-azul-fuerte)]" fill="currentColor">
-                          <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                        <svg
+                          viewBox="0 0 24 24"
+                          class="h-3.5 w-3.5 text-[color:var(--color-ra-azul-fuerte)]"
+                          fill="currentColor"
+                        >
+                          <circle cx="12" cy="5" r="1.5" />
+                          <circle cx="12" cy="12" r="1.5" />
+                          <circle cx="12" cy="19" r="1.5" />
                         </svg>
                       </button>
 
                       @if (menuRowIdx === i) {
-                        <div class="fixed z-50 w-48 rounded-xl bg-white shadow-lg ring-1 ring-black/10 py-1 text-left" [ngStyle]="menuDropdownStyle">
+                        <div
+                          class="fixed z-50 w-48 rounded-xl bg-white py-1 text-left shadow-lg ring-1 ring-black/10"
+                          [ngStyle]="menuDropdownStyle"
+                        >
                           @if (!esRecep) {
-                            <button (click)="menuRowIdx = null; editar(m)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
-                              <img src="iconos/editar.svg" alt="Editar" class="w-4 h-4 shrink-0" /> Editar
+                            <button
+                              (click)="menuRowIdx = null; editar(m)"
+                              class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+                            >
+                              <img src="iconos/editar.svg" alt="Editar" class="h-4 w-4 shrink-0" />
+                              Editar
                             </button>
                           }
-                          <button (click)="menuRowIdx = null; reimprimir(m)" [disabled]="reimprimiendo" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left disabled:opacity-50">
-                            <img src="iconos/impresora.svg" alt="Reimprimir" class="w-4 h-4 shrink-0" /> Reimprimir
+                          <button
+                            (click)="menuRowIdx = null; reimprimir(m)"
+                            [disabled]="reimprimiendo"
+                            class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
+                          >
+                            <img
+                              src="iconos/impresora.svg"
+                              alt="Reimprimir"
+                              class="h-4 w-4 shrink-0"
+                            />
+                            Reimprimir
                           </button>
                           @if (!esRecep) {
-                            <button (click)="menuRowIdx = null; eliminar(m)" class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-ra-bg text-left">
-                              <img src="iconos/eliminar.svg" alt="Eliminar" class="w-4 h-4 shrink-0" /> Eliminar
+                            <button
+                              (click)="menuRowIdx = null; eliminar(m)"
+                              class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+                            >
+                              <img
+                                src="iconos/eliminar.svg"
+                                alt="Eliminar"
+                                class="h-4 w-4 shrink-0"
+                              />
+                              Eliminar
                             </button>
                           }
                         </div>
                       }
                     </td>
-
                   </tr>
                 }
               }
@@ -230,18 +322,21 @@
       </div>
 
       <!-- ══ FOOTER: info de página + ordenamiento + paginación ══ -->
-      <div class="px-4 py-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-
+      <div
+        class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-4 py-3 text-xs"
+      >
         <!-- Izquierda: contador + chip de rango -->
-        <div class="flex items-center gap-2 text-ra-slate/70 shrink-0">
+        <div class="text-ra-slate/70 flex shrink-0 items-center gap-2">
           <span>
-            Página <strong class="text-ra-slate">{{ pageUI }}</strong>
-            de <strong class="text-ra-slate">{{ page.totalPages || 1 }}</strong>
+            Página <strong class="text-ra-slate">{{ pageUI }}</strong> de
+            <strong class="text-ra-slate">{{ page.totalPages || 1 }}</strong>
           </span>
           <span class="text-ra-slate/50">({{ page.totalElements || 0 }} registros)</span>
 
           @if (filtroFechasActivo && fechaDesde && fechaHasta) {
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px]">
+            <span
+              class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] text-amber-800"
+            >
               {{ fechaDesde }} — {{ fechaHasta }}
             </span>
           }
@@ -249,9 +344,9 @@
 
         <!-- Derecha: ordenar + tamaño + navegación -->
         <div class="flex items-center gap-2 overflow-x-auto">
-          <span class="text-ra-slate/60 whitespace-nowrap shrink-0">Ordenar por</span>
+          <span class="text-ra-slate/60 shrink-0 whitespace-nowrap">Ordenar por</span>
           <select
-            class="h-8 w-[110px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner shrink-0"
+            class="h-8 w-[110px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
             [(ngModel)]="sortCampo"
             (change)="go(1)"
           >
@@ -262,7 +357,7 @@
             <option [ngValue]="'total'">Total</option>
           </select>
           <select
-            class="h-8 w-[80px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner shrink-0"
+            class="h-8 w-[80px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
             [(ngModel)]="sortDir"
             (change)="go(1)"
           >
@@ -270,11 +365,11 @@
             <option [ngValue]="'asc'">Asc</option>
           </select>
 
-          <div class="w-px h-4 bg-gray-200 shrink-0"></div>
+          <div class="h-4 w-px shrink-0 bg-gray-200"></div>
 
-          <span class="text-ra-slate/60 whitespace-nowrap shrink-0">Por página</span>
+          <span class="text-ra-slate/60 shrink-0 whitespace-nowrap">Por página</span>
           <select
-            class="h-8 w-[70px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner shrink-0"
+            class="h-8 w-[70px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
             [(ngModel)]="sizeSel"
             (change)="go(1)"
           >
@@ -283,27 +378,25 @@
             <option [ngValue]="50">50</option>
           </select>
 
-          <div class="w-px h-4 bg-gray-200 shrink-0"></div>
+          <div class="h-4 w-px shrink-0 bg-gray-200"></div>
 
           <button
-            class="h-8 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 text-xs shrink-0"
+            class="h-8 shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
             [disabled]="!puedePrev"
             (click)="prev()"
           >
             Anterior
           </button>
           <button
-            class="h-8 px-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 text-xs shrink-0"
+            class="h-8 shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
             [disabled]="!puedeNext"
             (click)="next()"
           >
             Siguiente
           </button>
         </div>
-
       </div>
     </div>
-
   </div>
 </div>
 
@@ -311,7 +404,7 @@
 @if (mostrarModal() && idEditando !== null) {
   <div class="fixed inset-0 z-50 flex items-center justify-center">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModal()"></div>
-    <div class="relative z-10 w-full max-w-[820px] mx-4">
+    <div class="relative z-10 mx-4 w-full max-w-[820px]">
       <div class="bg-ra-white rounded-2xl shadow-2xl ring-1 ring-black/5">
         <app-membresia-modal
           [idMembresia]="idEditando"

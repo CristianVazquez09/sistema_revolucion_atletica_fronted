@@ -1,4 +1,13 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, computed, inject } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  computed,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
@@ -13,7 +22,7 @@ export type StockModalModo = 'ENTRADA' | 'AJUSTE';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './stock-modal.html',
-  styleUrl: './stock-modal.css'
+  styleUrl: './stock-modal.css',
 })
 export class StockModal implements OnInit, OnDestroy {
   @Input() producto!: ProductoData;
@@ -26,7 +35,7 @@ export class StockModal implements OnInit, OnDestroy {
   private productoSrv = inject(ProductoService);
   private noti = inject(NotificacionService);
 
-  titulo = computed(() => this.modo === 'ENTRADA' ? 'Entrada de stock' : 'Ajustar stock');
+  titulo = computed(() => (this.modo === 'ENTRADA' ? 'Entrada de stock' : 'Ajustar stock'));
   guardando = false;
   error: string | null = null;
   intento = false;
@@ -96,9 +105,8 @@ export class StockModal implements OnInit, OnDestroy {
           console.error(err);
           this.error = 'No se pudo registrar la entrada.';
           this.guardando = false;
-        }
+        },
       });
-
     } else {
       const nuevoStock = Number(this.form.controls.nuevoStock.value ?? 0);
 
@@ -112,7 +120,7 @@ export class StockModal implements OnInit, OnDestroy {
           console.error(err);
           this.error = 'No se pudo registrar el ajuste.';
           this.guardando = false;
-        }
+        },
       });
     }
   }

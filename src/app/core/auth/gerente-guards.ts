@@ -19,7 +19,7 @@ export const gerenteGuard: CanMatchFn = () => {
       ...(Array.isArray(d?.realm_access?.roles) ? d.realm_access.roles : []),
     ]
       .concat([d?.role, d?.rol, d?.perfil].filter(Boolean) as string[])
-      .map(r => String(r).toUpperCase());
+      .map((r) => String(r).toUpperCase());
 
     const ok = roles.includes('GERENTE') || roles.includes('ROLE_GERENTE');
     return ok ? true : router.parseUrl('/pages');

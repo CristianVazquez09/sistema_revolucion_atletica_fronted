@@ -2,37 +2,32 @@
 <div class="mx-auto w-full max-w-[96vw] sm:max-w-2xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
   <!-- Card: limita altura total y evita cortes -->
   <div
-    class="w-full rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 overflow-hidden
-           max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-3rem)]"
+    class="max-h-[calc(100dvh-1.5rem)] w-full overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 sm:max-h-[calc(100dvh-3rem)]"
   >
     <!-- Header sticky -->
-    <div class="sticky top-0 z-10 bg-white border-b border-gray-100">
-      <div class="flex items-start justify-between px-4 sm:px-6 lg:px-8 pt-5 pb-3">
-        <h2 class="text-[18px] sm:text-[20px] font-bold text-ra-slate leading-none">
+    <div class="sticky top-0 z-10 border-b border-gray-100 bg-white">
+      <div class="flex items-start justify-between px-4 pt-5 pb-3 sm:px-6 lg:px-8">
+        <h2 class="text-ra-slate text-[18px] leading-none font-bold sm:text-[20px]">
           {{ titulo() }}
         </h2>
-
-        
       </div>
     </div>
 
     <!-- Body: scrollea internamente -->
     <form
-      class="px-4 sm:px-6 lg:px-8 pb-6 pt-4 space-y-4 lg:space-y-5 overflow-y-auto min-h-0
-             max-h-[calc(100dvh-7rem)] sm:max-h-[calc(100dvh-9rem)]"
+      class="max-h-[calc(100dvh-7rem)] min-h-0 space-y-4 overflow-y-auto px-4 pt-4 pb-6 sm:max-h-[calc(100dvh-9rem)] sm:px-6 lg:space-y-5 lg:px-8"
       (ngSubmit)="guardar()"
       [formGroup]="formulario"
     >
       <!-- SOLO ADMIN: Gimnasio -->
       @if (isAdmin) {
         <div>
-          <label class="block text-sm font-semibold text-ra-slate mb-1.5">Gimnasio</label>
+          <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Gimnasio</label>
 
           <div class="relative">
             <select
               formControlName="gimnasioId"
-              class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-100 text-gray-900 px-4 py-3 pr-10 shadow-inner
-                     focus:outline-none focus:ring-2 focus:ring-ra-green focus:border-transparent"
+              class="focus:ring-ra-green w-full appearance-none rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 pr-10 text-gray-900 shadow-inner focus:border-transparent focus:ring-2 focus:outline-none"
             >
               <option [ngValue]="null" disabled>Selecciona un gimnasio</option>
               @for (g of gimnasios; track g.idGimnasio) {
@@ -41,161 +36,204 @@
             </select>
 
             <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd"
-                      d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.06l3.71-3.83a.75.75 0 1 1 1.08 1.04l-4.25 4.39a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06z"
-                      clip-rule="evenodd"/>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4 text-gray-500"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.06l3.71-3.83a.75.75 0 1 1 1.08 1.04l-4.25 4.39a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06z"
+                  clip-rule="evenodd"
+                />
               </svg>
             </div>
           </div>
 
-          @if (formulario.controls['gimnasioId'].touched && formulario.controls['gimnasioId'].invalid) {
-            <p class="text-sm text-red-600 mt-1">Selecciona un gimnasio.</p>
+          @if (
+            formulario.controls['gimnasioId'].touched && formulario.controls['gimnasioId'].invalid
+          ) {
+            <p class="mt-1 text-sm text-red-600">Selecciona un gimnasio.</p>
           }
         </div>
       }
 
       <!-- Layout principal -->
-      <div class="grid grid-cols-1 lg:grid-cols-[112px_1fr] xl:grid-cols-[128px_1fr] gap-4 lg:gap-6 items-start">
+      <div
+        class="grid grid-cols-1 items-start gap-4 lg:grid-cols-[112px_1fr] lg:gap-6 xl:grid-cols-[128px_1fr]"
+      >
         <!-- Avatar -->
         <div class="hidden lg:block">
-          <div class="w-[112px] xl:w-[128px] h-[112px] xl:h-[128px] rounded-2xl bg-gray-100 border border-gray-200 grid place-items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                    d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/>
+          <div
+            class="grid h-[112px] w-[112px] place-items-center rounded-2xl border border-gray-200 bg-gray-100 xl:h-[128px] xl:w-[128px]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-10 w-10 text-gray-400"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+                d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
+              />
             </svg>
           </div>
         </div>
 
         <!-- Campos -->
-        <div class="space-y-3 lg:space-y-4 min-w-0">
+        <div class="min-w-0 space-y-3 lg:space-y-4">
           <!-- Nombre / Apellido -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div class="min-w-0">
-              <label class="block text-sm font-semibold text-ra-slate mb-1.5">Nombre</label>
+              <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Nombre</label>
               <input
                 type="text"
                 formControlName="nombre"
                 (blur)="normalizarCamposTextoAntesDeValidar()"
-                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner
-                       focus:outline-none focus:ring-2 focus:ring-ra-green"
+                class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
               />
               @if (formulario.controls['nombre'].touched && formulario.controls['nombre'].invalid) {
-                <p class="text-sm text-red-600 mt-1">Requerido.</p>
+                <p class="mt-1 text-sm text-red-600">Requerido.</p>
               }
             </div>
 
             <div class="min-w-0">
-              <label class="block text-sm font-semibold text-ra-slate mb-1.5">Apellido</label>
+              <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Apellido</label>
               <input
                 type="text"
                 formControlName="apellido"
                 (blur)="normalizarCamposTextoAntesDeValidar()"
-                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner
-                       focus:outline-none focus:ring-2 focus:ring-ra-green"
+                class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
               />
-              @if (formulario.controls['apellido'].touched && formulario.controls['apellido'].invalid) {
-                <p class="text-sm text-red-600 mt-1">Requerido.</p>
+              @if (
+                formulario.controls['apellido'].touched && formulario.controls['apellido'].invalid
+              ) {
+                <p class="mt-1 text-sm text-red-600">Requerido.</p>
               }
             </div>
           </div>
 
           <!-- Teléfono / Email -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div class="min-w-0">
-              <label class="block text-sm font-semibold text-ra-slate mb-1.5">Teléfono</label>
+              <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Teléfono</label>
               <input
                 type="tel"
                 formControlName="telefono"
                 placeholder="10 dígitos"
-                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner
-                       focus:outline-none focus:ring-2 focus:ring-ra-green"
+                class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
               />
-              @if (formulario.controls['telefono'].touched && formulario.controls['telefono'].invalid) {
-                <p class="text-sm text-red-600 mt-1">Teléfono inválido.</p>
+              @if (
+                formulario.controls['telefono'].touched && formulario.controls['telefono'].invalid
+              ) {
+                <p class="mt-1 text-sm text-red-600">Teléfono inválido.</p>
               }
             </div>
 
             <div class="min-w-0">
-              <label class="block text-sm font-semibold text-ra-slate mb-1.5">Email</label>
+              <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Email</label>
               <input
                 type="email"
                 formControlName="email"
                 (blur)="normalizarCamposTextoAntesDeValidar()"
-                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner
-                       focus:outline-none focus:ring-2 focus:ring-ra-green"
+                class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
               />
               @if (formulario.controls['email'].touched && formulario.controls['email'].invalid) {
-                <p class="text-sm text-red-600 mt-1">Email inválido.</p>
+                <p class="mt-1 text-sm text-red-600">Email inválido.</p>
               }
             </div>
           </div>
 
           <!-- Dirección -->
           <div class="min-w-0">
-            <label class="block text-sm font-semibold text-ra-slate mb-1.5">Dirección</label>
+            <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Dirección</label>
             <input
               type="text"
               formControlName="direccion"
               (blur)="normalizarCamposTextoAntesDeValidar()"
-              class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner
-                     focus:outline-none focus:ring-2 focus:ring-ra-green"
+              class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
             />
           </div>
 
           <!-- Sexo + Fecha -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 items-end">
+          <div class="grid grid-cols-1 items-end gap-3 lg:grid-cols-2">
             <div>
-              <label class="block text-sm font-semibold text-ra-slate mb-1.5">Sexo</label>
+              <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Sexo</label>
               <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                 <label class="inline-flex items-center gap-2">
-                  <input type="radio" class="accent-ra-green" value="MASCULINO" formControlName="genero" />
+                  <input
+                    type="radio"
+                    class="accent-ra-green"
+                    value="MASCULINO"
+                    formControlName="genero"
+                  />
                   <span>Masculino</span>
                 </label>
                 <label class="inline-flex items-center gap-2">
-                  <input type="radio" class="accent-ra-green" value="FEMENINO" formControlName="genero" />
+                  <input
+                    type="radio"
+                    class="accent-ra-green"
+                    value="FEMENINO"
+                    formControlName="genero"
+                  />
                   <span>Femenino</span>
                 </label>
                 <label class="inline-flex items-center gap-2">
-                  <input type="radio" class="accent-ra-green" value="OTRO" formControlName="genero" />
+                  <input
+                    type="radio"
+                    class="accent-ra-green"
+                    value="OTRO"
+                    formControlName="genero"
+                  />
                   <span>Otro</span>
                 </label>
               </div>
               @if (formulario.controls['genero'].touched && formulario.controls['genero'].invalid) {
-                <p class="text-sm text-red-600 mt-1">Selecciona una opción.</p>
+                <p class="mt-1 text-sm text-red-600">Selecciona una opción.</p>
               }
             </div>
 
             <div class="min-w-0">
-              <label class="block text-sm font-semibold text-ra-slate mb-1.5">Fecha de nacimiento</label>
+              <label class="text-ra-slate mb-1.5 block text-sm font-semibold"
+                >Fecha de nacimiento</label
+              >
               <input
                 type="date"
                 formControlName="fechaNacimiento"
-                class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner
-                       focus:outline-none focus:ring-2 focus:ring-ra-green"
+                class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
               />
-              @if (formulario.controls['fechaNacimiento'].touched && formulario.controls['fechaNacimiento'].invalid) {
-                <p class="text-sm text-red-600 mt-1">Requerido.</p>
+              @if (
+                formulario.controls['fechaNacimiento'].touched &&
+                formulario.controls['fechaNacimiento'].invalid
+              ) {
+                <p class="mt-1 text-sm text-red-600">Requerido.</p>
               }
             </div>
           </div>
 
           <!-- Comentarios -->
           <div class="min-w-0">
-            <label class="block text-sm font-semibold text-ra-slate mb-1.5">Comentarios</label>
+            <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Comentarios</label>
             <textarea
               rows="3"
               formControlName="comentarios"
               (blur)="normalizarCamposTextoAntesDeValidar()"
-              class="w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner
-                     focus:outline-none focus:ring-2 focus:ring-ra-green"
-              placeholder="Notas del socio"></textarea>
+              class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
+              placeholder="Notas del socio"
+            ></textarea>
           </div>
 
           <!-- Huella -->
-          <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div
+            class="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+          >
             <div class="min-w-0">
-              <div class="text-sm font-semibold text-ra-slate">Huella digital</div>
+              <div class="text-ra-slate text-sm font-semibold">Huella digital</div>
               <div class="text-xs text-gray-600">
                 @if (socio?.idSocio) {
                   Puedes registrar o actualizar la huella de este socio.
@@ -207,13 +245,14 @@
 
             <div class="flex items-center gap-2">
               @if (huellaProceso()) {
-                <span class="text-xs text-ra-slate">Guardando…</span>
+                <span class="text-ra-slate text-xs">Guardando…</span>
               }
               <button
                 type="button"
-                class="px-4 py-2 rounded-full bg-red-600 text-white text-sm hover:bg-red-700 disabled:opacity-60"
+                class="rounded-full bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-60"
                 [disabled]="huellaProceso()"
-                (click)="abrirModalHuella()">
+                (click)="abrirModalHuella()"
+              >
                 Capturar huella
               </button>
             </div>
@@ -231,23 +270,27 @@
           }
 
           @if (error) {
-            <div class="text-red-600 text-sm">{{ error }}</div>
+            <div class="text-sm text-red-600">{{ error }}</div>
           }
 
           <!-- Footer -->
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end gap-2 pt-2">
+          <div
+            class="flex flex-col items-stretch gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end"
+          >
             <button
               type="button"
               (click)="cancelar.emit()"
-              class="px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100">
+              class="rounded-full border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-100"
+            >
               Cancelar
             </button>
 
             <button
               type="submit"
               [disabled]="guardando"
-              class="px-5 py-2.5 rounded-full bg-[#0B2C4A] text-white hover:bg-[#0A2540] shadow-md disabled:opacity-60">
-              {{ guardando ? 'Guardando...' : (socio ? 'Confirmar cambios' : 'Guardar') }}
+              class="rounded-full bg-[#0B2C4A] px-5 py-2.5 text-white shadow-md hover:bg-[#0A2540] disabled:opacity-60"
+            >
+              {{ guardando ? 'Guardando...' : socio ? 'Confirmar cambios' : 'Guardar' }}
             </button>
           </div>
         </div>
@@ -258,13 +301,14 @@
 
 <!-- Modal de huella: overlay con scroll -->
 @if (mostrarModalHuella()) {
-  <div class="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px] overflow-y-auto">
-    <div class="min-h-full p-3 sm:p-6 flex items-start sm:items-center justify-center">
+  <div class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-[2px]">
+    <div class="flex min-h-full items-start justify-center p-3 sm:items-center sm:p-6">
       <app-huella-modal
         [maxMuestras]="1"
         [timeoutMs]="30000"
         (cancelar)="onHuellaCancel()"
-        (confirmar)="onHuellaOk($event)">
+        (confirmar)="onHuellaOk($event)"
+      >
       </app-huella-modal>
     </div>
   </div>

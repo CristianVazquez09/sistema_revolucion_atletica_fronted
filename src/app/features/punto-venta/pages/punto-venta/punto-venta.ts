@@ -1,14 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  Subject,
-  debounceTime,
-  distinctUntilChanged,
-  switchMap,
-  of,
-  finalize,
-} from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, switchMap, of, finalize } from 'rxjs';
 
 import { CategoriaService } from '../../../administracion/data/categoria-service';
 import { ProductoService } from '../../../administracion/data/producto-service';
@@ -61,10 +54,7 @@ export class PuntoVenta implements OnInit {
   categoriaHoverId: number | null = null;
 
   get totalPagCats(): number {
-    return Math.max(
-      1,
-      Math.ceil(this.categorias.length / this.tamanoPaginaCategorias)
-    );
+    return Math.max(1, Math.ceil(this.categorias.length / this.tamanoPaginaCategorias));
   }
   get categoriasVisibles(): CategoriaData[] {
     const ini = this.paginaCategorias * this.tamanoPaginaCategorias;
@@ -130,7 +120,7 @@ export class PuntoVenta implements OnInit {
             }
           }
           return of(null);
-        })
+        }),
       )
       .subscribe({
         next: (lista: ProductoData[] | null) => {
@@ -154,8 +144,7 @@ export class PuntoVenta implements OnInit {
       const decoded: any = this.jwt.decodeToken(token);
       this.cajero = obtenerNombreCajero(decoded?.preferred_username ?? decoded?.sub);
 
-      const idGym =
-        decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
+      const idGym = decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
       if (idGym) {
         this.gimnasioSrv.buscarPorId(Number(idGym)).subscribe({
           next: (g) => {
@@ -183,10 +172,7 @@ export class PuntoVenta implements OnInit {
         this.cargandoCategorias = false;
         this.modo = 'categorias';
         // reset de paginación si la página actual queda fuera
-        this.paginaCategorias = Math.min(
-          this.paginaCategorias,
-          Math.max(0, this.totalPagCats - 1)
-        );
+        this.paginaCategorias = Math.min(this.paginaCategorias, Math.max(0, this.totalPagCats - 1));
       },
       error: () => {
         this.cargandoCategorias = false;
@@ -287,20 +273,13 @@ export class PuntoVenta implements OnInit {
 
     const disponible = this.stockDisponible(p);
     if (this.cantidadParaAgregar > disponible) {
-      this.notificacion.aviso(
-        `Solo hay ${disponible} en stock para "${String(p.nombre ?? '')}".`
-      );
+      this.notificacion.aviso(`Solo hay ${disponible} en stock para "${String(p.nombre ?? '')}".`);
       return;
     }
 
     const id = Number((p.idProducto as unknown) ?? 0);
     const precio = this.toNumber(p.precioVenta);
-    this.carritoSrv.agregar(
-      id,
-      String(p.nombre ?? ''),
-      precio,
-      this.cantidadParaAgregar
-    );
+    this.carritoSrv.agregar(id, String(p.nombre ?? ''), precio, this.cantidadParaAgregar);
     this.cantidadParaAgregar = 1;
   }
 
@@ -390,12 +369,7 @@ export class PuntoVenta implements OnInit {
 
         if (venta?.detalles?.length) {
           // ✅ PASA pagosDet (no un string)
-          this.ticket.imprimirVentaDesdeBackend(
-            venta,
-            ctx,
-            undefined,
-            pagosDet
-          );
+          this.ticket.imprimirVentaDesdeBackend(venta, ctx, undefined, pagosDet);
         } else {
           // OJO: el 4° arg es pagos, no tipoPago
           this.ticket.imprimirVentaDesdeCarrito(
@@ -406,7 +380,7 @@ export class PuntoVenta implements OnInit {
             venta?.folio ?? '', // folio si lo tienes
             venta?.fecha ?? new Date(),
             venta?.idVenta ?? '', // idVenta real
-            this.descuento // descuento aplicado
+            this.descuento, // descuento aplicado
           );
         }
 
@@ -432,16 +406,11 @@ export class PuntoVenta implements OnInit {
 
     if (problem && typeof problem === 'object') {
       const titulo = typeof problem.title === 'string' ? problem.title : null;
-      const detalle =
-        typeof problem.detail === 'string' ? problem.detail : null;
+      const detalle = typeof problem.detail === 'string' ? problem.detail : null;
 
       if (detalle) {
         // Si el título es útil, lo incluimos; si es genérico, solo el detalle
-        if (
-          titulo &&
-          titulo !== 'Error interno' &&
-          titulo !== 'Solicitud inválida'
-        ) {
+        if (titulo && titulo !== 'Error interno' && titulo !== 'Solicitud inválida') {
           mensaje = `${titulo}: ${detalle}`;
         } else {
           mensaje = detalle;

@@ -6,7 +6,4 @@ import { App } from './app/app';
 import { registerLocaleData } from '@angular/common';
 import esMX from '@angular/common/locales/es-MX';
 registerLocaleData(esMX);
-bootstrapApplication(App, appConfig
-    
-)
-  .catch((err) => console.error(err));
+bootstrapApplication(App, appConfig).catch((err) => console.error(err));

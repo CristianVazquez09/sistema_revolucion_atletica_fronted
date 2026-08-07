@@ -15,8 +15,8 @@ export class TenantInterceptor implements HttpInterceptor {
 
     return next.handle(
       req.clone({
-        setHeaders: { 'X-View-Tenant-Id': String(tid) }
-      })
+        setHeaders: { 'X-View-Tenant-Id': String(tid) },
+      }),
     );
   }
 }

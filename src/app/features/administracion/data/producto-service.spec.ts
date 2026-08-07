@@ -38,7 +38,7 @@ describe('ProductoService', () => {
 
   it('buscarTodos hace GET a la URL base', () => {
     let resultado: ProductoData[] | undefined;
-    service.buscarTodos().subscribe(r => (resultado = r));
+    service.buscarTodos().subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(BASE);
     expect(req.request.method).toBe('GET');
@@ -79,7 +79,7 @@ describe('ProductoService', () => {
 
   it('buscarPorCategoria hace GET a base/buscar/{idCategoria}', () => {
     let resultado: ProductoData[] | undefined;
-    service.buscarPorCategoria(3).subscribe(r => (resultado = r));
+    service.buscarPorCategoria(3).subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/buscar/3`);
     expect(req.request.method).toBe('GET');
@@ -90,7 +90,7 @@ describe('ProductoService', () => {
 
   it('buscarPorNombre hace GET a base/buscar/nombre/{nombreProducto}', () => {
     let resultado: ProductoData[] | undefined;
-    service.buscarPorNombre('agua').subscribe(r => (resultado = r));
+    service.buscarPorNombre('agua').subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/buscar/nombre/agua`);
     expect(req.request.method).toBe('GET');
@@ -102,7 +102,7 @@ describe('ProductoService', () => {
   it('registrarEntrada hace POST a base/{idProducto}/stock/entrada con StockEntradaRequest', () => {
     const stockEntrada: StockEntradaRequest = { cantidad: 5, nota: 'compra' };
     let resultado: ProductoData | undefined;
-    service.registrarEntrada(7, stockEntrada).subscribe(r => (resultado = r));
+    service.registrarEntrada(7, stockEntrada).subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/7/stock/entrada`);
     expect(req.request.method).toBe('POST');
@@ -115,7 +115,7 @@ describe('ProductoService', () => {
   it('ajustarStock hace POST a base/{idProducto}/stock/ajuste con StockAjusteRequest', () => {
     const stockAjuste: StockAjusteRequest = { nuevoStock: 20 };
     let resultado: ProductoData | undefined;
-    service.ajustarStock(7, stockAjuste).subscribe(r => (resultado = r));
+    service.ajustarStock(7, stockAjuste).subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/7/stock/ajuste`);
     expect(req.request.method).toBe('POST');

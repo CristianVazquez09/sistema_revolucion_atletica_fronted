@@ -73,7 +73,6 @@ describe('fechas-precios', () => {
     it('VISITA_15 suma 2 meses', () => {
       expect(calcularFechaFin('2026-03-10', 'VISITA_15')).toBe('2026-05-10');
     });
-
   });
 
   describe('calcularFechaFin sin fecha de inicio', () => {

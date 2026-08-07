@@ -55,11 +55,7 @@ export class Paquete implements OnInit {
 
     // ✅ debounce del buscador
     this.busqueda$
-      .pipe(
-        debounceTime(250),
-        distinctUntilChanged(),
-        takeUntilDestroyed(this.destroyRef)
-      )
+      .pipe(debounceTime(250), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe((term) => {
         const t = (term ?? '').trim();
         if (!t) {
@@ -83,7 +79,7 @@ export class Paquete implements OnInit {
         ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
       ]
         .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
-        .map(r => String(r).toUpperCase());
+        .map((r) => String(r).toUpperCase());
 
       return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     } catch {
@@ -114,12 +110,14 @@ export class Paquete implements OnInit {
       .subscribe({
         next: (data) => {
           this.listaPaquetes = (data ?? [])
-            .filter(p => p?.activo !== false)
-            .map(p => ({
+            .filter((p) => p?.activo !== false)
+            .map((p) => ({
               ...p,
               tipoPaquete: p.tipoPaquete ?? TipoPaquete.GIMNASIO,
             }))
-            .sort((a, b) => (a?.nombre ?? '').localeCompare(b?.nombre ?? '', 'es', { sensitivity: 'base' }));
+            .sort((a, b) =>
+              (a?.nombre ?? '').localeCompare(b?.nombre ?? '', 'es', { sensitivity: 'base' }),
+            );
         },
         error: () => {
           this.mensajeError = 'No se pudo cargar la lista de paquetes.';
@@ -138,8 +136,8 @@ export class Paquete implements OnInit {
       .subscribe({
         next: (data) => {
           this.listaPaquetes = (data ?? [])
-            .filter(p => p?.activo !== false)
-            .map(p => ({
+            .filter((p) => p?.activo !== false)
+            .map((p) => ({
               ...p,
               tipoPaquete: p.tipoPaquete ?? TipoPaquete.GIMNASIO,
             }));
@@ -178,7 +176,7 @@ export class Paquete implements OnInit {
 
     const actualizado: PaqueteData = {
       ...paquete,
-      activo: false
+      activo: false,
     };
 
     this.servicioPaquetes.actualizar(paquete.idPaquete, actualizado).subscribe({
@@ -215,7 +213,11 @@ export class Paquete implements OnInit {
   }
 
   @HostListener('document:click')
-  closeMenuRows(): void { this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null; }
+  closeMenuRows(): void {
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
+  }
 
   toggleMenuRow(i: number, event: MouseEvent): void {
     event.stopPropagation();
@@ -235,9 +237,10 @@ export class Paquete implements OnInit {
     this.menuRowIdx = i;
     this.menuDropUpIdx = openUp ? i : null;
     this.menuDropdownStyle = openUp
-      ? { bottom: `${viewportHeight - rect.top + gap}px`, right: `${window.innerWidth - rect.right}px` }
+      ? {
+          bottom: `${viewportHeight - rect.top + gap}px`,
+          right: `${window.innerWidth - rect.right}px`,
+        }
       : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }
-
-

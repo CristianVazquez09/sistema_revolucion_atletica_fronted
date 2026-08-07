@@ -65,15 +65,18 @@ export class TenantContextService {
 
     return arr.some((x: any) => {
       // soporta: "ROLE_ADMIN"  o  { authority: "ROLE_ADMIN" }
-      const raw = (typeof x === 'string') ? x : (x?.authority ?? x?.name ?? x?.rol ?? '');
-      const s = String(raw ?? '').trim().toUpperCase();
+      const raw = typeof x === 'string' ? x : (x?.authority ?? x?.name ?? x?.rol ?? '');
+      const s = String(raw ?? '')
+        .trim()
+        .toUpperCase();
       return s === role || s === `ROLE_${role}`;
     });
   }
 
   private readToken(): string {
-    const keys = [environment.TOKEN_NAME, 'access_token', 'token', 'id_token']
-      .filter(Boolean) as string[];
+    const keys = [environment.TOKEN_NAME, 'access_token', 'token', 'id_token'].filter(
+      Boolean,
+    ) as string[];
 
     for (const k of keys) {
       const raw = (sessionStorage.getItem(k) ?? localStorage.getItem(k) ?? '').trim();

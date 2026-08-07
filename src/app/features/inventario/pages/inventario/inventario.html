@@ -1,40 +1,47 @@
 <!-- src/app/pages/inventario/inventario.html -->
 
 <!-- Barra superior: título + estado + acciones -->
-<div class="mx-1 mb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-  <div class="flex flex-col sm:flex-row sm:items-center gap-2 min-w-0">
-    <div class="text-base sm:text-lg font-semibold text-ra-slate shrink-0">Inventario</div>
+<div class="mx-1 mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+  <div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+    <div class="text-ra-slate shrink-0 text-base font-semibold sm:text-lg">Inventario</div>
 
     <span
-      class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold ring-1 max-w-full"
+      class="inline-flex max-w-full items-center gap-2 rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1 sm:text-[11px]"
       [ngClass]="estadoClase()"
-      [title]="cerrado() ? ('Cerrado por ' + (cerradoPor() || '—')) : 'Turno abierto'"
+      [title]="cerrado() ? 'Cerrado por ' + (cerradoPor() || '—') : 'Turno abierto'"
     >
-      <span class="h-2 w-2 rounded-full shrink-0" [ngClass]="cerrado() ? 'bg-emerald-500' : 'bg-amber-500'"></span>
-      <span class="truncate max-w-[22ch] sm:max-w-none">{{ estadoLabel() }}</span>
+      <span
+        class="h-2 w-2 shrink-0 rounded-full"
+        [ngClass]="cerrado() ? 'bg-emerald-500' : 'bg-amber-500'"
+      ></span>
+      <span class="max-w-[22ch] truncate sm:max-w-none">{{ estadoLabel() }}</span>
       @if (cerrado() && fechaCierre()) {
-        <span class="hidden sm:inline text-[10px] font-medium opacity-80">({{ fechaHoraMin(fechaCierre()) }})</span>
+        <span class="hidden text-[10px] font-medium opacity-80 sm:inline"
+          >({{ fechaHoraMin(fechaCierre()) }})</span
+        >
       }
     </span>
 
     @if (cerrado() && cerradoPor()) {
-      <span class="hidden md:inline text-xs text-ra-slate/70 truncate max-w-[30ch]">por {{ cerradoPor() }}</span>
+      <span class="text-ra-slate/70 hidden max-w-[30ch] truncate text-xs md:inline"
+        >por {{ cerradoPor() }}</span
+      >
     }
   </div>
 
   <div class="flex items-center justify-end gap-2">
     <button
       (click)="refrescar()"
-      class="h-8 w-8 grid place-items-center rounded-lg hover:bg-ra-grayLight/40 shrink-0 border border-gray-200"
+      class="hover:bg-ra-grayLight/40 grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-gray-200"
       title="Refrescar"
     >
-      <img src="iconos/actualizar.svg" class="w-4 h-4" alt="Refrescar" />
+      <img src="iconos/actualizar.svg" class="h-4 w-4" alt="Refrescar" />
     </button>
 
     @if (!cerrado()) {
       <button
         (click)="cerrarTurno()"
-        class="h-8 px-3 rounded-lg bg-ra-rojo-oscuro text-white hover:bg-red-700 shadow-card text-xs whitespace-nowrap"
+        class="bg-ra-rojo-oscuro shadow-card h-8 rounded-lg px-3 text-xs whitespace-nowrap text-white hover:bg-red-700"
       >
         Cerrar turno
       </button>
@@ -43,9 +50,9 @@
 </div>
 
 <!-- Filtros -->
-<div class="mx-1 mb-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+<div class="mx-1 mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
   <div>
-    <label class="block text-xs font-semibold text-ra-slate mb-1">Fecha</label>
+    <label class="text-ra-slate mb-1 block text-xs font-semibold">Fecha</label>
     <input
       type="date"
       class="input-filled w-full"
@@ -56,21 +63,25 @@
   </div>
 
   <div>
-    <label class="block text-xs font-semibold text-ra-slate mb-1">Turno</label>
+    <label class="text-ra-slate mb-1 block text-xs font-semibold">Turno</label>
     <select class="input-filled w-full" [ngModel]="turno()" (ngModelChange)="onTurnoChange($event)">
       @for (t of turnosDisponibles(); track t) {
         <option [ngValue]="t">{{ turnoLabel(t) }}</option>
       }
     </select>
     @if (bloqueoTardeMsg()) {
-      <div class="mt-1 text-[11px] text-amber-700 break-words">{{ bloqueoTardeMsg() }}</div>
+      <div class="mt-1 text-[11px] break-words text-amber-700">{{ bloqueoTardeMsg() }}</div>
     }
   </div>
 
   @if (isAdmin) {
     <div>
-      <label class="block text-xs font-semibold text-ra-slate mb-1">Gimnasio</label>
-      <select class="input-filled w-full" [ngModel]="gimnasioId()" (ngModelChange)="onGymChange($event)">
+      <label class="text-ra-slate mb-1 block text-xs font-semibold">Gimnasio</label>
+      <select
+        class="input-filled w-full"
+        [ngModel]="gimnasioId()"
+        (ngModelChange)="onGymChange($event)"
+      >
         @if (cargandoGimnasios) {
           <option [ngValue]="null" disabled>Cargando gimnasios…</option>
         } @else {
@@ -83,7 +94,7 @@
   }
 
   <div>
-    <label class="block text-xs font-semibold text-ra-slate mb-1">Buscar</label>
+    <label class="text-ra-slate mb-1 block text-xs font-semibold">Buscar</label>
     <input
       type="text"
       class="input-filled w-full"
@@ -95,65 +106,92 @@
 </div>
 
 <!-- CARD PRINCIPAL -->
-<div class="mx-1 bg-white rounded-xl ring-1 ring-black/10 shadow-card overflow-hidden">
-
+<div class="shadow-card mx-1 overflow-hidden rounded-xl bg-white ring-1 ring-black/10">
   <!-- TOOLBAR -->
-  <div class="px-4 py-3 border-b border-gray-100 flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
-    <h1 class="text-base sm:text-lg font-semibold text-ra-slate shrink-0">Movimientos del turno</h1>
+  <div
+    class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-gray-100 px-4 py-3"
+  >
+    <h1 class="text-ra-slate shrink-0 text-base font-semibold sm:text-lg">Movimientos del turno</h1>
   </div>
 
   <!-- TABLA -->
   <div class="overflow-x-auto">
     <div>
-      <table class="w-full min-w-[800px] border-collapse table-fixed text-xs">
+      <table class="w-full min-w-[800px] table-fixed border-collapse text-xs">
         <colgroup>
-          <col class="w-[7%]">
-          <col class="w-[30%]">
-          <col class="w-[13%]">
-          <col class="w-[10%]">
-          <col class="w-[10%]">
-          <col class="w-[10%]">
-          <col class="w-[10%]">
-          <col class="w-[10%]">
+          <col class="w-[7%]" />
+          <col class="w-[30%]" />
+          <col class="w-[13%]" />
+          <col class="w-[10%]" />
+          <col class="w-[10%]" />
+          <col class="w-[10%]" />
+          <col class="w-[10%]" />
+          <col class="w-[10%]" />
         </colgroup>
 
-        <thead class="sticky top-0 bg-ra-grayLight/40 backdrop-blur z-10">
+        <thead class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
           <tr>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">ID</th>
-            <th class="py-3 px-3 text-left   text-ra-slate font-semibold uppercase text-[11px]">Producto</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Código</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Inicio</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Entradas</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Ajustes</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Vendidos</th>
-            <th class="py-3 px-3 text-center text-ra-slate font-semibold uppercase text-[11px]">Fin</th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              ID
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+              Producto
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Código
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Inicio
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Entradas
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Ajustes
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Vendidos
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Fin
+            </th>
           </tr>
         </thead>
 
         <tbody>
           @if (loading()) {
-            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Cargando…</td></tr>
+            <tr>
+              <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Cargando…</td>
+            </tr>
           } @else if (filasFiltradas().length === 0) {
-            <tr><td [attr.colspan]="99" class="py-10 text-center text-ra-slate">Sin resultados.</td></tr>
+            <tr>
+              <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Sin resultados.</td>
+            </tr>
           } @else {
             @for (x of filasFiltradas(); track x.idProducto) {
               <tr class="border-t border-gray-100 hover:bg-gray-50/60">
-                <td class="py-2.5 px-3 text-center text-[11px]">
-                  <span class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] font-mono text-gray-700">
+                <td class="px-3 py-2.5 text-center text-[11px]">
+                  <span
+                    class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 font-mono text-[10px] text-gray-700"
+                  >
                     {{ x.idProducto }}
                   </span>
                 </td>
-                <td class="py-2.5 px-3 text-[11px] min-w-0">
-                  <div class="font-medium truncate" [title]="x.nombre">{{ x.nombre }}</div>
+                <td class="min-w-0 px-3 py-2.5 text-[11px]">
+                  <div class="truncate font-medium" [title]="x.nombre">{{ x.nombre }}</div>
                 </td>
-                <td class="py-2.5 px-3 text-center text-[11px]">
+                <td class="px-3 py-2.5 text-center text-[11px]">
                   <span class="font-medium">{{ x.codigo || '—' }}</span>
                 </td>
-                <td class="py-2.5 px-3 text-center text-[11px] font-semibold">{{ x.stockInicio }}</td>
-                <td class="py-2.5 px-3 text-center text-[11px]">{{ x.entradas }}</td>
-                <td class="py-2.5 px-3 text-center text-[11px]">{{ x.ajustes }}</td>
-                <td class="py-2.5 px-3 text-center text-[11px]">{{ x.vendidos }}</td>
-                <td class="py-2.5 px-3 text-center text-[11px] font-semibold text-ra-slate">{{ x.stockFin }}</td>
+                <td class="px-3 py-2.5 text-center text-[11px] font-semibold">
+                  {{ x.stockInicio }}
+                </td>
+                <td class="px-3 py-2.5 text-center text-[11px]">{{ x.entradas }}</td>
+                <td class="px-3 py-2.5 text-center text-[11px]">{{ x.ajustes }}</td>
+                <td class="px-3 py-2.5 text-center text-[11px]">{{ x.vendidos }}</td>
+                <td class="text-ra-slate px-3 py-2.5 text-center text-[11px] font-semibold">
+                  {{ x.stockFin }}
+                </td>
               </tr>
             }
           }
@@ -161,5 +199,4 @@
       </table>
     </div>
   </div>
-
 </div>

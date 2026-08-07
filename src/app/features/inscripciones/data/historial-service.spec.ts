@@ -21,9 +21,9 @@ describe('HistorialService', () => {
 
   it('consultar manda page y size como params', () => {
     let resultado: any;
-    service.consultar(0, 5).subscribe(r => (resultado = r));
+    service.consultar(0, 5).subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(r => r.url === BASE);
+    const req = httpMock.expectOne((r) => r.url === BASE);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('page')).toBe('0');
     expect(req.request.params.get('size')).toBe('5');

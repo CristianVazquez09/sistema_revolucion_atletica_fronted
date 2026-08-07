@@ -1,4 +1,3 @@
-
 import { TiempoPlan } from '../../../shared/util/enums/tiempo-plan';
 import { EntrenadorData } from '../../../shared/models/entrenador-data';
 import { GimnasioData } from '../../../shared/models/gimnasio-data';

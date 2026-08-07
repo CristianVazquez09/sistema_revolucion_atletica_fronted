@@ -14,10 +14,12 @@ import { GimnasioData } from 'src/app/shared/models/gimnasio-data';
   template: `
     @if (isAdmin()) {
       <div class="flex items-center gap-2">
-        <span class="text-[11px] xl:text-[12px] text-ra-slate/80 whitespace-nowrap">{{ label }}</span>
+        <span class="text-ra-slate/80 text-[11px] whitespace-nowrap xl:text-[12px]">{{
+          label
+        }}</span>
 
         <select
-          class="h-8 xl:h-9 rounded-lg xl:rounded-xl border border-gray-200 bg-gray-100 px-2.5 xl:px-3 py-1.5 xl:py-2 shadow-inner text-[11px] xl:text-[12px]"
+          class="h-8 rounded-lg border border-gray-200 bg-gray-100 px-2.5 py-1.5 text-[11px] shadow-inner xl:h-9 xl:rounded-xl xl:px-3 xl:py-2 xl:text-[12px]"
           [(ngModel)]="selectedId"
           (ngModelChange)="onChange($event)"
         >
@@ -48,7 +50,7 @@ export class RaGimnasioFilterComponent implements OnInit {
 
     this.tenant.isAdminChanges$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(v => this.isAdmin.set(!!v));
+      .subscribe((v) => this.isAdmin.set(!!v));
 
     if (!this.tenant.isAdmin) return;
 
@@ -58,13 +60,16 @@ export class RaGimnasioFilterComponent implements OnInit {
       next: (lista: any[]) => {
         const vistos = new Set<number>();
         const mapped = (lista ?? [])
-          .map((g: any) => ({
-            idGimnasio: typeof g.idGimnasio === 'number' ? g.idGimnasio : Number(g.id),
-            nombre: g.nombre,
-            direccion: g.direccion,
-            telefono: g.telefono,
-          } as GimnasioData))
-          .filter(g => {
+          .map(
+            (g: any) =>
+              ({
+                idGimnasio: typeof g.idGimnasio === 'number' ? g.idGimnasio : Number(g.id),
+                nombre: g.nombre,
+                direccion: g.direccion,
+                telefono: g.telefono,
+              }) as GimnasioData,
+          )
+          .filter((g) => {
             if (!g.idGimnasio) return false;
             if (vistos.has(g.idGimnasio)) return false;
             vistos.add(g.idGimnasio);
@@ -78,7 +83,7 @@ export class RaGimnasioFilterComponent implements OnInit {
   }
 
   onChange(v: any) {
-    const id = (v === '' || v == null) ? null : Number(v);
+    const id = v === '' || v == null ? null : Number(v);
     this.selectedId = Number.isFinite(id as any) ? (id as number) : null;
 
     // ✅ lo que “ve” el admin

@@ -20,9 +20,7 @@ describe('VentaService', () => {
     fecha: '2026-07-08',
     total: 150,
     descuento: 10,
-    pagos: [
-      { tipoPago: 'EFECTIVO' as TipoPago, monto: 140 },
-    ],
+    pagos: [{ tipoPago: 'EFECTIVO' as TipoPago, monto: 140 }],
     detalles: [
       {
         idDetalle: 1,
@@ -60,7 +58,7 @@ describe('VentaService', () => {
 
   it('buscarTodos hace GET a la URL base', () => {
     let resultado: VentaData[] | undefined;
-    service.buscarTodos().subscribe(r => (resultado = r));
+    service.buscarTodos().subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(BASE);
     expect(req.request.method).toBe('GET');
@@ -71,7 +69,7 @@ describe('VentaService', () => {
 
   it('buscarPorId hace GET a base/{id}', () => {
     let resultado: VentaData | undefined;
-    service.buscarPorId(1).subscribe(r => (resultado = r));
+    service.buscarPorId(1).subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/1`);
     expect(req.request.method).toBe('GET');
@@ -116,7 +114,7 @@ describe('VentaService', () => {
       descuento: 10,
     };
 
-    service.crearVenta(payload).subscribe(r => (resultado = r));
+    service.crearVenta(payload).subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(BASE);
     expect(req.request.method).toBe('POST');
@@ -138,7 +136,7 @@ describe('VentaService', () => {
       descuento: 10,
     };
 
-    service.crearVenta(payload).subscribe(r => (resultado = r));
+    service.crearVenta(payload).subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(BASE);
     expect(req.request.method).toBe('POST');
@@ -159,13 +157,14 @@ describe('VentaService', () => {
       page: { size: 10, number: 0, totalElements: 1, totalPages: 1 },
     };
     let resultado: VentaPageResponse | undefined;
-    service.listar({}).subscribe(r => (resultado = r));
+    service.listar({}).subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(req =>
-      req.url === BASE &&
-      req.params.get('page') === '0' &&
-      req.params.get('size') === '10' &&
-      !req.params.has('sort')
+    const req = httpMock.expectOne(
+      (req) =>
+        req.url === BASE &&
+        req.params.get('page') === '0' &&
+        req.params.get('size') === '10' &&
+        !req.params.has('sort'),
     );
     expect(req.request.method).toBe('GET');
     expect(req.request.params.has('sort')).toBe(false);
@@ -181,11 +180,12 @@ describe('VentaService', () => {
     };
     service.listar({ page: 3 }).subscribe();
 
-    const req = httpMock.expectOne(req =>
-      req.url === BASE &&
-      req.params.get('page') === '2' &&
-      req.params.get('size') === '10' &&
-      !req.params.has('sort')
+    const req = httpMock.expectOne(
+      (req) =>
+        req.url === BASE &&
+        req.params.get('page') === '2' &&
+        req.params.get('size') === '10' &&
+        !req.params.has('sort'),
     );
     expect(req.request.method).toBe('GET');
     req.flush(mockResponse);
@@ -198,10 +198,11 @@ describe('VentaService', () => {
     };
     service.listar({ page: 3, sort: 'folio,desc' }).subscribe();
 
-    const req = httpMock.expectOne(req =>
-      req.url === BASE &&
-      req.params.get('page') === '2' &&
-      req.params.get('sort') === 'folio,desc'
+    const req = httpMock.expectOne(
+      (req) =>
+        req.url === BASE &&
+        req.params.get('page') === '2' &&
+        req.params.get('sort') === 'folio,desc',
     );
     expect(req.request.method).toBe('GET');
     expect(req.request.params.has('sort')).toBe(true);
@@ -226,7 +227,7 @@ describe('VentaService', () => {
 
   it('buscarPorFolio hace GET a base/folio/{folio}', () => {
     let resultado: VentaData | undefined;
-    service.buscarPorFolio(123).subscribe(r => (resultado = r));
+    service.buscarPorFolio(123).subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/folio/123`);
     expect(req.request.method).toBe('GET');
@@ -244,7 +245,7 @@ describe('VentaService', () => {
     };
     service.listarPorRango({ desde: '2026-01-01', hasta: '2026-01-31' }).subscribe();
 
-    const req = httpMock.expectOne(req => req.url === `${BASE}/rango`);
+    const req = httpMock.expectOne((req) => req.url === `${BASE}/rango`);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('desde')).toBe('2026-01-01');
     expect(req.request.params.get('hasta')).toBe('2026-01-31');
@@ -259,9 +260,11 @@ describe('VentaService', () => {
       content: [ventaMock],
       page: { size: 10, number: 0, totalElements: 1, totalPages: 1 },
     };
-    service.listarPorRango({ desde: '2026-01-01', hasta: '2026-01-31', sort: 'folio,desc' }).subscribe();
+    service
+      .listarPorRango({ desde: '2026-01-01', hasta: '2026-01-31', sort: 'folio,desc' })
+      .subscribe();
 
-    const req = httpMock.expectOne(req => req.url === `${BASE}/rango`);
+    const req = httpMock.expectOne((req) => req.url === `${BASE}/rango`);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('desde')).toBe('2026-01-01');
     expect(req.request.params.get('hasta')).toBe('2026-01-31');
@@ -278,7 +281,7 @@ describe('VentaService', () => {
     };
     service.listarPorRango({ desde: '2026-01-01', hasta: '2026-01-31', page: 2 }).subscribe();
 
-    const req = httpMock.expectOne(req => req.url === `${BASE}/rango`);
+    const req = httpMock.expectOne((req) => req.url === `${BASE}/rango`);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('page')).toBe('1');
     req.flush(mockResponse);

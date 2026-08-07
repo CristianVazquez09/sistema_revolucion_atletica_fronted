@@ -8,18 +8,15 @@ import { Observable } from 'rxjs';
 import { AsesoriaContratoData } from '../../../shared/models/asesoria-contrato-data';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class EntrenadorService extends GenericService<EntrenadorData> {
-
   constructor(protected override http: HttpClient) {
     super(http, `${environment.HOST}/entrenadores`);
   }
 
   // 🔹 Asesorías personalizadas activas para un entrenador
   listarAsesoriasActivas(idEntrenador: number): Observable<AsesoriaContratoData[]> {
-    return this.http.get<AsesoriaContratoData[]>(
-      `${this.url}/${idEntrenador}/asesorias-activas`
-    );
+    return this.http.get<AsesoriaContratoData[]>(`${this.url}/${idEntrenador}/asesorias-activas`);
   }
 }

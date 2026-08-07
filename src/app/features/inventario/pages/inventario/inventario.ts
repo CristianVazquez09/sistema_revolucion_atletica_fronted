@@ -24,10 +24,10 @@ import {
 // Horarios de cierre por turno (24h, "HH:mm") — ajusta según tu negocio
 const HORA_CIERRE_TURNO: Record<TurnoInventario, string> = {
   MANANA: '14:00',
-  TARDE:  '22:00',
-  UNICO:  '21:00', // fallback; sábado y domingo tienen su propio horario abajo
+  TARDE: '22:00',
+  UNICO: '21:00', // fallback; sábado y domingo tienen su propio horario abajo
 };
-const HORA_CIERRE_SABADO  = '16:00'; // turno ÚNICO sábado
+const HORA_CIERRE_SABADO = '16:00'; // turno ÚNICO sábado
 const HORA_CIERRE_DOMINGO = '14:00'; // turno ÚNICO domingo
 
 @Component({
@@ -156,7 +156,7 @@ export class Inventario implements OnInit {
     }
   }
 
-private cancelarAlertasCierre(): void {
+  private cancelarAlertasCierre(): void {
     for (const t of this.alertTimers) clearTimeout(t);
     this.alertTimers = [];
   }
@@ -176,7 +176,7 @@ private cancelarAlertasCierre(): void {
     }
     const [hh, mm] = horaCierre.split(':').map(Number);
 
-    const ahora  = new Date();
+    const ahora = new Date();
     const cierre = new Date();
     cierre.setHours(hh, mm, 0, 0);
 
@@ -185,10 +185,30 @@ private cancelarAlertasCierre(): void {
 
     const label = this.turnoLabel(turno);
     const alertas = [
-      { offsetMs: 20 * 60_000, msg: `Faltan 20 minutos para cerrar el inventario (turno ${label}).`,         dur: 30_000,  urgente: false },
-      { offsetMs: 10 * 60_000, msg: `Faltan 10 minutos para cerrar el inventario (turno ${label}).`,         dur: 30_000,  urgente: false },
-      { offsetMs:  5 * 60_000, msg: `¡Faltan solo 5 minutos para cerrar el inventario (turno ${label})!`,   dur: 60_000,  urgente: false },
-      { offsetMs:           0, msg: `¡Es hora de cerrar el inventario del turno ${label}!`,                 dur: 120_000, urgente: true  },
+      {
+        offsetMs: 20 * 60_000,
+        msg: `Faltan 20 minutos para cerrar el inventario (turno ${label}).`,
+        dur: 30_000,
+        urgente: false,
+      },
+      {
+        offsetMs: 10 * 60_000,
+        msg: `Faltan 10 minutos para cerrar el inventario (turno ${label}).`,
+        dur: 30_000,
+        urgente: false,
+      },
+      {
+        offsetMs: 5 * 60_000,
+        msg: `¡Faltan solo 5 minutos para cerrar el inventario (turno ${label})!`,
+        dur: 60_000,
+        urgente: false,
+      },
+      {
+        offsetMs: 0,
+        msg: `¡Es hora de cerrar el inventario del turno ${label}!`,
+        dur: 120_000,
+        urgente: true,
+      },
     ];
 
     for (const alerta of alertas) {
@@ -333,7 +353,8 @@ private cancelarAlertasCierre(): void {
 
           if (this.turno() === 'TARDE' && !ok) {
             this.turno.set('MANANA');
-            const msg = 'Para habilitar el turno TARDE, primero debes cerrar el inventario de MAÑANA.';
+            const msg =
+              'Para habilitar el turno TARDE, primero debes cerrar el inventario de MAÑANA.';
             this.error.set(msg);
             this.notificacion.aviso(msg);
           }

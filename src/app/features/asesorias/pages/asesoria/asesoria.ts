@@ -1,11 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import {
-  FormsModule,
-  ReactiveFormsModule,
-  FormBuilder,
-  Validators,
-} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { finalize, of, switchMap } from 'rxjs';
 
 import { EntrenadorService } from '../../data/entrenador-service';
@@ -78,9 +73,7 @@ export class Asesoria implements OnInit {
   cargandoSocio = false;
 
   // TiempoPlan (labels se muestran con pipe)
-  tiempos: string[] = Object.values(TiempoPlan).filter(
-    (v) => typeof v === 'string'
-  ) as string[];
+  tiempos: string[] = Object.values(TiempoPlan).filter((v) => typeof v === 'string') as string[];
 
   // Form
   form = inject(FormBuilder).nonNullable.group({
@@ -136,8 +129,7 @@ export class Asesoria implements OnInit {
       const decoded: any = this.jwt.decodeToken(token);
       this.cajero = obtenerNombreCajero(decoded?.preferred_username ?? decoded?.sub);
 
-      const idGym =
-        decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
+      const idGym = decoded?.id_gimnasio ?? decoded?.tenantId ?? decoded?.gimnasioId;
       if (idGym) {
         this.gymSrv.buscarPorId(Number(idGym)).subscribe({
           next: (g) => (this.gym = g),
@@ -163,9 +155,7 @@ export class Asesoria implements OnInit {
         .concat([d?.role, d?.rol, d?.perfil].filter(Boolean) as string[])
         .map((r) => String(r).toUpperCase());
       this.isAdmin =
-        d?.is_admin === true ||
-        roles.includes('ADMIN') ||
-        roles.includes('ROLE_ADMIN');
+        d?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     } catch {
       this.isAdmin = false;
     }
@@ -188,14 +178,11 @@ export class Asesoria implements OnInit {
             .map(
               (g: any) =>
                 ({
-                  idGimnasio:
-                    typeof g.idGimnasio === 'number'
-                      ? g.idGimnasio
-                      : Number(g.id),
+                  idGimnasio: typeof g.idGimnasio === 'number' ? g.idGimnasio : Number(g.id),
                   nombre: g.nombre,
                   direccion: g.direccion,
                   telefono: g.telefono,
-                } as GimnasioData)
+                }) as GimnasioData,
             )
             .filter((g) => {
               if (!g.idGimnasio || vistos.has(g.idGimnasio)) return false;
@@ -204,12 +191,10 @@ export class Asesoria implements OnInit {
             });
 
           if (this.gimnasios.length === 1) {
-            this.form.controls.gimnasioId.setValue(
-              this.gimnasios[0].idGimnasio
-            );
+            this.form.controls.gimnasioId.setValue(this.gimnasios[0].idGimnasio);
           }
           return of(true);
-        })
+        }),
       )
       .subscribe({ next: () => this.cargarEntrenadores() });
   }
@@ -226,7 +211,7 @@ export class Asesoria implements OnInit {
           this.cargandoEntrenadores = false;
           // 👇 re-habilitamos el control
           this.form.controls.idEntrenador.enable({ emitEvent: false });
-        })
+        }),
       )
       .subscribe({
         next: (lista: any[]) => {
@@ -238,15 +223,9 @@ export class Asesoria implements OnInit {
           this.entrenadores = activos
             .map((e: any) => {
               const gym = e.gimnasio ?? {};
-              const gymId =
-                typeof gym.idGimnasio === 'number'
-                  ? gym.idGimnasio
-                  : Number(gym.id);
+              const gymId = typeof gym.idGimnasio === 'number' ? gym.idGimnasio : Number(gym.id);
               return {
-                idEntrenador:
-                  typeof e.idEntrenador === 'number'
-                    ? e.idEntrenador
-                    : Number(e.id),
+                idEntrenador: typeof e.idEntrenador === 'number' ? e.idEntrenador : Number(e.id),
                 nombre: e.nombre,
                 apellido: e.apellido,
                 gimnasio: gymId
@@ -284,10 +263,7 @@ export class Asesoria implements OnInit {
     });
 
     const actual = Number(this.form.controls.idEntrenador.value ?? 0);
-    if (
-      actual &&
-      !this.entrenadoresFiltrados.some((x) => this.entrenadorId(x) === actual)
-    ) {
+    if (actual && !this.entrenadoresFiltrados.some((x) => this.entrenadorId(x) === actual)) {
       this.form.controls.idEntrenador.setValue(null);
     }
   }
@@ -344,16 +320,13 @@ export class Asesoria implements OnInit {
       .subscribe({
         next: (s) => {
           if (!s) {
-            this.noti.error(
-              'Huella no encontrada o no pertenece a tu gimnasio.'
-            );
+            this.noti.error('Huella no encontrada o no pertenece a tu gimnasio.');
             return;
           }
           this.socio = s;
           this.form.controls.idSocio.setValue(String(s.idSocio));
         },
-        error: () =>
-          this.noti.error('No se pudo buscar el socio por huella.'),
+        error: () => this.noti.error('No se pudo buscar el socio por huella.'),
       });
   }
 
@@ -388,18 +361,13 @@ export class Asesoria implements OnInit {
     if (this.guardando) return;
 
     const precio = Number(this.form.controls.precio.value ?? 0);
-    const suma = (pagos ?? []).reduce(
-      (a, p) => a + (Number(p.monto) || 0),
-      0
-    );
+    const suma = (pagos ?? []).reduce((a, p) => a + (Number(p.monto) || 0), 0);
     if (Math.abs(suma - precio) > 0.01) {
       this.noti.aviso('La suma de los pagos no coincide con el precio.');
       return;
     }
 
-    const socioNombre = `${this.socio?.nombre ?? ''} ${
-      this.socio?.apellido ?? ''
-    }`.trim();
+    const socioNombre = `${this.socio?.nombre ?? ''} ${this.socio?.apellido ?? ''}`.trim();
     const entrenadorNombre = `${this.entrenadorSel?.nombre ?? ''} ${
       this.entrenadorSel?.apellido ?? ''
     }`.trim();
@@ -437,10 +405,7 @@ export class Asesoria implements OnInit {
           this.noti.exito('Accesoría registrada correctamente.');
 
           // Contexto del ticket
-          const ctx: VentaContexto = crearContextoTicket(
-            this.gym,
-            this.cajero
-          );
+          const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
           ctx.socio = socioNombre;
 
           const tiempo = String(this.form.controls.tiempo.value ?? '');

@@ -22,7 +22,7 @@ describe('EstadisticasService', () => {
   it('getDashboard sin idGimnasio NO incluye el param', () => {
     service.getDashboard(null, '2026-01-01', '2026-01-31').subscribe();
 
-    const req = httpMock.expectOne(r => r.url === BASE);
+    const req = httpMock.expectOne((r) => r.url === BASE);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('desde')).toBe('2026-01-01');
     expect(req.request.params.get('hasta')).toBe('2026-01-31');
@@ -34,7 +34,7 @@ describe('EstadisticasService', () => {
   it('getDashboard con idGimnasio incluye el param', () => {
     service.getDashboard(3, '2026-01-01', '2026-01-31').subscribe();
 
-    const req = httpMock.expectOne(r => r.url === BASE);
+    const req = httpMock.expectOne((r) => r.url === BASE);
     expect(req.request.method).toBe('GET');
     expect(req.request.params.get('idGimnasio')).toBe('3');
     req.flush({});

@@ -1,88 +1,115 @@
 <!-- Buscador -->
-<div class="mx-4 lg:mx-10 my-4">
-  <form [formGroup]="formBusqueda" (ngSubmit)="buscarSocio()" class="flex gap-3 items-center">
+<div class="mx-4 my-4 lg:mx-10">
+  <form [formGroup]="formBusqueda" (ngSubmit)="buscarSocio()" class="flex items-center gap-3">
     <div class="relative max-w-sm flex-1">
       <input
         type="text"
         formControlName="idSocio"
-        class="input-filled pl-12 pr-10 text-[16px] py-3.5"
+        class="input-filled py-3.5 pr-10 pl-12 text-[16px]"
         placeholder="ID del socio (solo números)…"
         inputmode="numeric"
         autocomplete="off"
       />
-      <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-6 w-6 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <svg
+        class="pointer-events-none absolute top-1/2 left-3 h-6 w-6 -translate-y-1/2 text-gray-500"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+      >
         <circle cx="11" cy="11" r="7" stroke-width="2"></circle>
         <path d="M21 21l-4.3-4.3" stroke-width="2" stroke-linecap="round"></path>
       </svg>
 
       @if (formBusqueda.controls.idSocio.value) {
-        <button type="button" (click)="limpiarBusqueda()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full grid place-items-center
-                       text-gray-500 hover:text-gray-700 hover:bg-gray-200" aria-label="Limpiar">✕</button>
+        <button
+          type="button"
+          (click)="limpiarBusqueda()"
+          class="absolute top-1/2 right-2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+          aria-label="Limpiar"
+        >
+          ✕
+        </button>
       }
     </div>
 
-    <button type="submit" class="btn-primary-red text-[16px] px-6 py-3" [disabled]="cargandoSocio">
+    <button type="submit" class="btn-primary-red px-6 py-3 text-[16px]" [disabled]="cargandoSocio">
       {{ cargandoSocio ? 'Buscando…' : 'Buscar' }}
     </button>
 
     <!-- Botón para abrir el modal de HUELLAS -->
-    <button type="button"
-            class="px-4 py-3 rounded-xl border border-gray-300 bg-white hover:bg-gray-50"
-            (click)="abrirHuella()">
+    <button
+      type="button"
+      class="rounded-xl border border-gray-300 bg-white px-4 py-3 hover:bg-gray-50"
+      (click)="abrirHuella()"
+    >
       Por huella
     </button>
   </form>
 </div>
 
 <!-- Card principal -->
-<div class="mx-4 lg:mx-10 rounded-xl2 bg-[color:var(--color-ra-white)] ring-1 ring-black/10 shadow-card overflow-hidden">
-  <div class="px-6 lg:px-10 py-5 border-b border-gray-200 flex items-center justify-between">
-    <div class="text-base lg:text-lg text-gray-700">
+<div
+  class="rounded-xl2 shadow-card mx-4 overflow-hidden bg-[color:var(--color-ra-white)] ring-1 ring-black/10 lg:mx-10"
+>
+  <div class="flex items-center justify-between border-b border-gray-200 px-6 py-5 lg:px-10">
+    <div class="text-base text-gray-700 lg:text-lg">
       <span class="font-semibold">FECHA:</span> {{ fechaHoyTexto }}
     </div>
   </div>
 
-  <div class="p-6 lg:p-10 space-y-6">
+  <div class="space-y-6 p-6 lg:p-10">
     @if (error) {
-      <div class="text-center text-red-600 py-10 text-lg">{{ error }}</div>
+      <div class="py-10 text-center text-lg text-red-600">{{ error }}</div>
     }
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <!-- Socio -->
       <section class="rounded-xl2 border border-gray-200 bg-gray-50 p-4">
         @if (cargandoSocio) {
-          <div class="text-center text-gray-600 py-8">Cargando socio…</div>
+          <div class="py-8 text-center text-gray-600">Cargando socio…</div>
         } @else if (!socio()) {
-          <div class="text-center text-gray-600 py-8">Busca un socio por ID o por huella para continuar.</div>
+          <div class="py-8 text-center text-gray-600">
+            Busca un socio por ID o por huella para continuar.
+          </div>
         } @else {
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div class="row-span-3">
-              <div class="w-24 h-24 rounded-xl bg-gray-200 grid place-items-center text-gray-500">
-                <svg viewBox="0 0 24 24" class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="2">
+              <div class="grid h-24 w-24 place-items-center rounded-xl bg-gray-200 text-gray-500">
+                <svg
+                  viewBox="0 0 24 24"
+                  class="h-10 w-10"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
                   <circle cx="12" cy="8" r="4"></circle>
                   <path d="M4 20c2.5-3 5-4 8-4s5.5 1 8 4" stroke-linecap="round"></path>
                 </svg>
               </div>
             </div>
 
-            <input class="input-filled" [value]="socio()!.nombre"           readonly>
-            <input class="input-filled" [value]="socio()!.apellido"         readonly>
-            <input class="input-filled" [value]="socio()!.telefono"         readonly>
-            <input class="input-filled" [value]="socio()!.email || '—'"     readonly>
-            <input class="input-filled" [value]="socio()!.direccion || '—'" readonly>
+            <input class="input-filled" [value]="socio()!.nombre" readonly />
+            <input class="input-filled" [value]="socio()!.apellido" readonly />
+            <input class="input-filled" [value]="socio()!.telefono" readonly />
+            <input class="input-filled" [value]="socio()!.email || '—'" readonly />
+            <input class="input-filled" [value]="socio()!.direccion || '—'" readonly />
 
-            <div class="input-filled select-none text-gray-700">
-              {{ socio()!.fechaNacimiento | date:'dd/MM/yyyy' }}
+            <div class="input-filled text-gray-700 select-none">
+              {{ socio()!.fechaNacimiento | date: 'dd/MM/yyyy' }}
             </div>
-            <div class="input-filled select-none text-gray-700">
-              Sexo: {{ socio()!.genero }}
-            </div>
+            <div class="input-filled text-gray-700 select-none">Sexo: {{ socio()!.genero }}</div>
 
-            <textarea class="input-filled min-h-[80px] sm:col-span-2" [value]="socio()!.comentarios || '—'" readonly></textarea>
+            <textarea
+              class="input-filled min-h-[80px] sm:col-span-2"
+              [value]="socio()!.comentarios || '—'"
+              readonly
+            ></textarea>
 
             <div class="sm:col-span-2">
-              <a [routerLink]="['/pages/socio', socio()!.idSocio, 'historial']"
-                 class="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-gray-300 bg-white text-sm hover:bg-gray-50">
+              <a
+                [routerLink]="['/pages/socio', socio()!.idSocio, 'historial']"
+                class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50"
+              >
                 Ver historial →
               </a>
             </div>
@@ -92,22 +119,24 @@
 
       <!-- Agregar paquete extra -->
       <section class="rounded-xl2 border border-gray-200 bg-white p-4">
-        <div class="flex items-center gap-2 mb-3">
-          <div class="w-7 h-7 rounded-full grid place-items-center bg-gray-100">＋</div>
+        <div class="mb-3 flex items-center gap-2">
+          <div class="grid h-7 w-7 place-items-center rounded-full bg-gray-100">＋</div>
           <h2 class="font-semibold text-[color:var(--color-ra-slate)]">Agregar paquete extra</h2>
         </div>
 
         <form [formGroup]="formMembresia" class="space-y-3">
           <!-- Paquete -->
           <div>
-            <label class="block text-sm font-medium mb-1">Seleccionar paquete*</label>
+            <label class="mb-1 block text-sm font-medium">Seleccionar paquete*</label>
             <select formControlName="paqueteId" class="input-filled">
               <option [ngValue]="0" disabled>Seleccionar paquete…</option>
               @if (cargandoPaquetes) {
                 <option [ngValue]="0">Cargando…</option>
               } @else {
                 @for (p of paquetes; track p.idPaquete) {
-                  <option [ngValue]="p.idPaquete">{{ p.nombre }} — {{ p.tiempo | tiempoPlan }}</option>
+                  <option [ngValue]="p.idPaquete">
+                    {{ p.nombre }} — {{ p.tiempo | tiempoPlan }}
+                  </option>
                 }
               }
             </select>
@@ -118,9 +147,9 @@
             <div class="summary-box">
               <div class="flex items-center justify-between">
                 <div class="font-semibold">{{ paqueteSeleccionado()!.nombre }}</div>
-                <div>${{ precioPaquete() | number:'1.2-2' }}</div>
+                <div>${{ precioPaquete() | number: '1.2-2' }}</div>
               </div>
-              <div class="text-sm text-gray-600 mt-1">
+              <div class="mt-1 text-sm text-gray-600">
                 Tiempo: {{ paqueteSeleccionado()!.tiempo | tiempoPlan }}
               </div>
             </div>
@@ -128,20 +157,26 @@
 
           <!-- Descuento -->
           <div>
-            <label class="block text-sm font-medium mb-1">Descuento</label>
-            <input type="number" step="0.01" formControlName="descuento" class="input-filled" placeholder="0.00">
+            <label class="mb-1 block text-sm font-medium">Descuento</label>
+            <input
+              type="number"
+              step="0.01"
+              formControlName="descuento"
+              class="input-filled"
+              placeholder="0.00"
+            />
           </div>
 
           <!-- Fechas (UI) -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label class="block text-sm font-medium mb-1">Fecha de inicio</label>
-              <input type="date" class="input-filled" formControlName="fechaInicio">
+              <label class="mb-1 block text-sm font-medium">Fecha de inicio</label>
+              <input type="date" class="input-filled" formControlName="fechaInicio" />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-1">Fecha de pago</label>
-              <div class="input-filled bg-gray-100 pointer-events-none select-none">
-                {{ fechaFin() | date:'dd/MM/yyyy' }}
+              <label class="mb-1 block text-sm font-medium">Fecha de pago</label>
+              <div class="input-filled pointer-events-none bg-gray-100 select-none">
+                {{ fechaFin() | date: 'dd/MM/yyyy' }}
               </div>
             </div>
           </div>
@@ -150,7 +185,7 @@
           <div class="summary-box">
             <div class="flex items-center justify-between">
               <div class="font-semibold">Total</div>
-              <div class="font-bold">${{ total() | number:'1.2-2' }}</div>
+              <div class="font-bold">${{ total() | number: '1.2-2' }}</div>
             </div>
           </div>
 
@@ -169,9 +204,9 @@
 @if (mostrarResumen()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center" (click)="cerrarResumen()">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
-    <div class="relative z-10 w-full max-w-[560px] mx-4" (click)="$event.stopPropagation()">
+    <div class="relative z-10 mx-4 w-full max-w-[560px]" (click)="$event.stopPropagation()">
       <app-resumen-compra
-        [socioNombre]="socio() ? (socio()!.nombre + ' ' + socio()!.apellido) : ''"
+        [socioNombre]="socio() ? socio()!.nombre + ' ' + socio()!.apellido : ''"
         [fechaPago]="fechaFin()"
         [concepto]="paqueteSeleccionado()?.nombre ?? 'Paquete'"
         [montoPaquete]="precioPaquete()"
@@ -180,7 +215,8 @@
         [total]="total()"
         [guardando]="guardando"
         (cancelar)="cerrarResumen()"
-        (confirmar)="confirmar($event)">
+        (confirmar)="confirmar($event)"
+      >
       </app-resumen-compra>
     </div>
   </div>
@@ -188,8 +224,6 @@
 
 <!-- Modal de HUELLAS -->
 @if (mostrarHuella()) {
-  <app-huella-modal
-    (cancelar)="cerrarHuella()"
-    (confirmar)="confirmarHuella($event)">
+  <app-huella-modal (cancelar)="cerrarHuella()" (confirmar)="confirmarHuella($event)">
   </app-huella-modal>
 }

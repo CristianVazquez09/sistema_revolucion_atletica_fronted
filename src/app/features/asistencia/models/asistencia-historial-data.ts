@@ -1,4 +1,4 @@
-import { PaqueteData } from "../../../shared/models/paquete-data";
+import { PaqueteData } from '../../../shared/models/paquete-data';
 
 export interface AsistenciaHistorialData {
   idAsistencia: number;
@@ -16,7 +16,7 @@ export interface AsistenciaHistorialData {
     id?: number;
     nombre?: string;
   };
-  
+
   // NUEVO: paquete asociado a esa asistencia (histórico)
   paquete?: PaqueteData | null;
 }

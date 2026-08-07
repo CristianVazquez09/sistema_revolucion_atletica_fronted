@@ -19,7 +19,7 @@ import {
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, NgClass],
   templateUrl: './menu-principal.html',
-  styleUrl: './menu-principal.css'
+  styleUrl: './menu-principal.css',
 })
 export class MenuPrincipal {
   menus: MenuData[] = [];
@@ -36,7 +36,7 @@ export class MenuPrincipal {
     private menuService: MenuService,
     private jwt: JwtHelperService,
     private router: Router,
-    private corteState: CorteCajaService
+    private corteState: CorteCajaService,
   ) {
     this.menuAbierto = this.menuService.menuAbierto;
   }
@@ -61,7 +61,7 @@ export class MenuPrincipal {
         error: () => {
           this.cargando = false;
           this.errorMsg = 'No fue posible cargar los menús.';
-        }
+        },
       });
     } else {
       this.menus = [];
@@ -69,10 +69,18 @@ export class MenuPrincipal {
     }
   }
 
-  toggleMenu(): void { this.menuService.toggleDrawer(); }
-  closeMenu(): void { this.menuService.cerrarDrawer(); }
-  togglePerfil(): void { this.perfilAbierto.update(v => !v); }
-  cerrarPerfil(): void { this.perfilAbierto.set(false); }
+  toggleMenu(): void {
+    this.menuService.toggleDrawer();
+  }
+  closeMenu(): void {
+    this.menuService.cerrarDrawer();
+  }
+  togglePerfil(): void {
+    this.perfilAbierto.update((v) => !v);
+  }
+  cerrarPerfil(): void {
+    this.perfilAbierto.set(false);
+  }
 
   irAPerfil(): void {
     this.cerrarPerfil();
@@ -81,17 +89,17 @@ export class MenuPrincipal {
 
   /** Nombre completo o username si no hay nombre/apellido */
   get nombreDisplay(): string {
-    const n = (sessionStorage.getItem('nombre')   ?? '').trim();
+    const n = (sessionStorage.getItem('nombre') ?? '').trim();
     const a = (sessionStorage.getItem('apellido') ?? '').trim();
     return [n, a].filter(Boolean).join(' ') || this.username || 'Usuario';
   }
 
   /** Iniciales para el avatar */
   get initiales(): string {
-    const n = (sessionStorage.getItem('nombre')   ?? '').trim();
+    const n = (sessionStorage.getItem('nombre') ?? '').trim();
     const a = (sessionStorage.getItem('apellido') ?? '').trim();
     if (n && a) return (n[0] + a[0]).toUpperCase();
-    if (n)      return n.substring(0, 2).toUpperCase();
+    if (n) return n.substring(0, 2).toUpperCase();
     return (this.username || 'U').substring(0, 2).toUpperCase();
   }
 
@@ -118,7 +126,12 @@ export class MenuPrincipal {
   }
 
   get fechaHoy(): string {
-    const opts: Intl.DateTimeFormatOptions = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+    const opts: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    };
     const s = new Date().toLocaleDateString('es-MX', opts);
     return s.charAt(0).toUpperCase() + s.slice(1);
   }

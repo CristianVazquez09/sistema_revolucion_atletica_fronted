@@ -1,4 +1,13 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, computed, inject } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  computed,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
@@ -18,19 +27,18 @@ import { environment } from '../../../../../../environments/environment';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './producto-modal.html',
-  styleUrl: './producto-modal.css'
+  styleUrl: './producto-modal.css',
 })
 export class ProductoModal implements OnInit, OnDestroy {
-
   @Input() producto: ProductoData | null = null;
   @Output() cancelar = new EventEmitter<void>();
   @Output() guardado = new EventEmitter<void>();
 
-  private fb           = inject(FormBuilder);
-  private productoSrv  = inject(ProductoService);
+  private fb = inject(FormBuilder);
+  private productoSrv = inject(ProductoService);
   private categoriaSrv = inject(CategoriaService);
-  private gimnasioSrv  = inject(GimnasioService);
-  private jwt          = inject(JwtHelperService);
+  private gimnasioSrv = inject(GimnasioService);
+  private jwt = inject(JwtHelperService);
 
   isAdmin = false;
 
@@ -41,19 +49,19 @@ export class ProductoModal implements OnInit, OnDestroy {
   cargandoGimnasios = false;
   cargandoCategorias = false;
 
-  titulo = computed(() => this.producto ? 'Editar producto' : 'Agregar producto');
+  titulo = computed(() => (this.producto ? 'Editar producto' : 'Agregar producto'));
   guardando = false;
   error: string | null = null;
   intentoGuardar = false;
 
   form = this.fb.group({
-    gimnasioId:   this.fb.control<number | null>(null), // required solo si admin
-    nombre:       this.fb.control('',  [Validators.required, Validators.maxLength(120)]),
-    codigo:       this.fb.control('',  [Validators.maxLength(60)]),
-    precioCompra: this.fb.control(0,   [Validators.required, Validators.min(0)]),
-    precioVenta:  this.fb.control(0,   [Validators.required, Validators.min(0)]),
-    cantidad:     this.fb.control(0,   [Validators.required, Validators.min(0)]),
-    idCategoria:  this.fb.control<number | null>(null, [Validators.required]),
+    gimnasioId: this.fb.control<number | null>(null), // required solo si admin
+    nombre: this.fb.control('', [Validators.required, Validators.maxLength(120)]),
+    codigo: this.fb.control('', [Validators.maxLength(60)]),
+    precioCompra: this.fb.control(0, [Validators.required, Validators.min(0)]),
+    precioVenta: this.fb.control(0, [Validators.required, Validators.min(0)]),
+    cantidad: this.fb.control(0, [Validators.required, Validators.min(0)]),
+    idCategoria: this.fb.control<number | null>(null, [Validators.required]),
   });
 
   ngOnInit(): void {
@@ -75,75 +83,87 @@ export class ProductoModal implements OnInit, OnDestroy {
     window.addEventListener('keydown', this.handleEsc);
   }
 
-  ngOnDestroy(): void { window.removeEventListener('keydown', this.handleEsc); }
-  private handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') this.cancelar.emit(); };
+  ngOnDestroy(): void {
+    window.removeEventListener('keydown', this.handleEsc);
+  }
+  private handleEsc = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') this.cancelar.emit();
+  };
 
   // ===== Cargas =====
   private cargarGimnasios(done?: () => void): void {
-  this.cargandoGimnasios = true;
-  this.gimnasioSrv.buscarTodos().subscribe({
-    next: (lista) => {
-      // ⬇️ Toma solo gimnasios activos (si no existe el campo, lo consideramos activo)
-      const soloActivos = (lista ?? []).filter((g: any) => g?.activo !== false);
+    this.cargandoGimnasios = true;
+    this.gimnasioSrv.buscarTodos().subscribe({
+      next: (lista) => {
+        // ⬇️ Toma solo gimnasios activos (si no existe el campo, lo consideramos activo)
+        const soloActivos = (lista ?? []).filter((g: any) => g?.activo !== false);
 
-      // Normaliza: siempre idGimnasio
-      const vistos = new Set<number>();
-      this.gimnasios = soloActivos
-        .map((g: any) => ({
-          idGimnasio: typeof g.idGimnasio === 'number' ? g.idGimnasio : Number(g.id),
-          nombre: g.nombre,
-          direccion: g.direccion,
-          telefono: g.telefono
-        } as GimnasioData))
-        .filter(g => {
-          if (!g.idGimnasio) return false;
-          if (vistos.has(g.idGimnasio)) return false;
-          vistos.add(g.idGimnasio);
-          return true;
-        });
+        // Normaliza: siempre idGimnasio
+        const vistos = new Set<number>();
+        this.gimnasios = soloActivos
+          .map(
+            (g: any) =>
+              ({
+                idGimnasio: typeof g.idGimnasio === 'number' ? g.idGimnasio : Number(g.id),
+                nombre: g.nombre,
+                direccion: g.direccion,
+                telefono: g.telefono,
+              }) as GimnasioData,
+          )
+          .filter((g) => {
+            if (!g.idGimnasio) return false;
+            if (vistos.has(g.idGimnasio)) return false;
+            vistos.add(g.idGimnasio);
+            return true;
+          });
 
-      this.cargandoGimnasios = false;
+        this.cargandoGimnasios = false;
 
-      // Si no es edición, preselecciona el primero
-      if (!this.producto && this.gimnasios.length) {
-        this.form.controls.gimnasioId.setValue(this.gimnasios[0].idGimnasio, { emitEvent: false });
-      }
+        // Si no es edición, preselecciona el primero
+        if (!this.producto && this.gimnasios.length) {
+          this.form.controls.gimnasioId.setValue(this.gimnasios[0].idGimnasio, {
+            emitEvent: false,
+          });
+        }
 
-      done?.();
-    },
-    error: () => { this.cargandoGimnasios = false; done?.(); }
-  });
-}
-
+        done?.();
+      },
+      error: () => {
+        this.cargandoGimnasios = false;
+        done?.();
+      },
+    });
+  }
 
   private cargarCategorias(done?: () => void): void {
-  this.cargandoCategorias = true;
-  this.categoriaSrv.buscarTodos().subscribe({
-    next: (data) => {
-      // ⬇️ Solo categorías activas (si no existe el campo, lo consideramos activo)
-      this.categorias = (data ?? []).filter((c: any) => c?.activo !== false);
-      this.cargandoCategorias = false;
+    this.cargandoCategorias = true;
+    this.categoriaSrv.buscarTodos().subscribe({
+      next: (data) => {
+        // ⬇️ Solo categorías activas (si no existe el campo, lo consideramos activo)
+        this.categorias = (data ?? []).filter((c: any) => c?.activo !== false);
+        this.cargandoCategorias = false;
 
-      if (!this.isAdmin) {
-        this.categoriasFiltradas = [...this.categorias];
-      }
+        if (!this.isAdmin) {
+          this.categoriasFiltradas = [...this.categorias];
+        }
 
-      done?.();
-    },
-    error: () => {
-      this.cargandoCategorias = false;
-      this.error = 'No se pudieron cargar categorías.';
-      done?.();
-    }
-  });
-}
-
+        done?.();
+      },
+      error: () => {
+        this.cargandoCategorias = false;
+        this.error = 'No se pudieron cargar categorías.';
+        done?.();
+      },
+    });
+  }
 
   private precargarEdicion(): void {
     if (!this.producto) return;
 
     if (this.isAdmin) {
-      const gymId = this.resolveCategoriaGymId(this.producto.categoria) ?? this.resolveGymIdFromObj(this.producto.gimnasio);
+      const gymId =
+        this.resolveCategoriaGymId(this.producto.categoria) ??
+        this.resolveGymIdFromObj(this.producto.gimnasio);
       if (gymId != null) {
         this.form.controls.gimnasioId.setValue(gymId, { emitEvent: false });
       }
@@ -170,13 +190,13 @@ export class ProductoModal implements OnInit, OnDestroy {
       return;
     }
 
-    this.categoriasFiltradas = this.categorias.filter(c => {
+    this.categoriasFiltradas = this.categorias.filter((c) => {
       const cg = this.resolveCategoriaGymId(c);
       return cg != null && Number(cg) === Number(gid);
     });
 
     const actual = this.form.controls.idCategoria.value;
-    if (actual != null && !this.categoriasFiltradas.some(c => c.idCategoria === actual)) {
+    if (actual != null && !this.categoriasFiltradas.some((c) => c.idCategoria === actual)) {
       this.form.controls.idCategoria.setValue(null, { emitEvent: false });
     }
   }
@@ -192,10 +212,12 @@ export class ProductoModal implements OnInit, OnDestroy {
         ...(Array.isArray(decoded?.authorities) ? decoded.authorities : []),
         ...(Array.isArray(decoded?.realm_access?.roles) ? decoded.realm_access.roles : []),
       ]
-      .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
-      .map(r => String(r).toUpperCase());
+        .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
+        .map((r) => String(r).toUpperCase());
       return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   }
 
   // Soporta { gimnasio: { id } } o { gimnasio: { idGimnasio } }
@@ -216,7 +238,7 @@ export class ProductoModal implements OnInit, OnDestroy {
 
   gimNombrePorId(id?: number | null): string {
     if (id == null) return '';
-    const g = this.gimnasios.find(x => x.idGimnasio === Number(id));
+    const g = this.gimnasios.find((x) => x.idGimnasio === Number(id));
     return g?.nombre ?? `#${id}`;
   }
 
@@ -229,7 +251,10 @@ export class ProductoModal implements OnInit, OnDestroy {
   // ===== Guardar =====
   submit(): void {
     this.intentoGuardar = true;
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
     this.error = null;
     this.guardando = true;
@@ -245,7 +270,7 @@ export class ProductoModal implements OnInit, OnDestroy {
       precioVenta: Number(f.precioVenta),
       cantidad: Number(f.cantidad),
       activo: true,
-      categoria: { idCategoria: f.idCategoria! } // tu backend espera "idCategoria" en CategoriaDTO
+      categoria: { idCategoria: f.idCategoria! }, // tu backend espera "idCategoria" en CategoriaDTO
     };
 
     if (this.isAdmin && f.gimnasioId != null) {
@@ -257,8 +282,15 @@ export class ProductoModal implements OnInit, OnDestroy {
       : this.productoSrv.guardar(dto);
 
     obs.subscribe({
-      next: () => { this.guardando = false; this.guardado.emit(); },
-      error: (err) => { console.error(err); this.guardando = false; this.error = 'No se pudo guardar el producto.'; }
+      next: () => {
+        this.guardando = false;
+        this.guardado.emit();
+      },
+      error: (err) => {
+        console.error(err);
+        this.guardando = false;
+        this.error = 'No se pudo guardar el producto.';
+      },
     });
   }
 }

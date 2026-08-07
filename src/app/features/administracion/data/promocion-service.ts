@@ -24,7 +24,10 @@ export class PromocionService extends GenericService<PromocionData> {
     return this.http.post<PromocionData>(this.url, payload);
   }
 
-  actualizarPromocion(idPromocion: number, payload: PromocionUpsertData): Observable<PromocionData> {
+  actualizarPromocion(
+    idPromocion: number,
+    payload: PromocionUpsertData,
+  ): Observable<PromocionData> {
     return this.http.put<PromocionData>(`${this.url}/${idPromocion}`, payload);
   }
 
@@ -39,7 +42,10 @@ export class PromocionService extends GenericService<PromocionData> {
   // ✅ Backend real:
   // PUT /v1/paquetes/{idPaquete}/promociones/{idPromocion}
   vincularPaquete(idPromocion: number, idPaquete: number): Observable<void> {
-    return this.http.put<void>(`${this.host}/paquetes/${idPaquete}/promociones/${idPromocion}`, null);
+    return this.http.put<void>(
+      `${this.host}/paquetes/${idPaquete}/promociones/${idPromocion}`,
+      null,
+    );
   }
 
   // ✅ Backend real:
@@ -51,7 +57,4 @@ export class PromocionService extends GenericService<PromocionData> {
   asignarPaquete(idPromocion: number, idPaquete: number): Observable<void> {
     return this.vincularPaquete(idPromocion, idPaquete);
   }
-
-
-
 }

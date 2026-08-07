@@ -1,4 +1,4 @@
-import { GimnasioData } from "./gimnasio-data";
+import { GimnasioData } from './gimnasio-data';
 
 // src/app/shared/models/socio-data.ts
 export interface SocioData {

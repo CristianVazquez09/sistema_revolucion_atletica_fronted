@@ -58,7 +58,7 @@ export class Entrenador implements OnInit {
   menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
   tituloForm = computed(() =>
-    this.entrenadorEditando ? 'Editar entrenador' : 'Agregar entrenador'
+    this.entrenadorEditando ? 'Editar entrenador' : 'Agregar entrenador',
   );
 
   ngOnInit(): void {
@@ -80,7 +80,9 @@ export class Entrenador implements OnInit {
           }));
 
           if (!this.entrenadorEditando && this.gimnasios.length) {
-            this.form.controls.gimnasioId.setValue(this.gimnasios[0].idGimnasio, { emitEvent: false });
+            this.form.controls.gimnasioId.setValue(this.gimnasios[0].idGimnasio, {
+              emitEvent: false,
+            });
           }
 
           this.form.controls.gimnasioId.enable({ emitEvent: false });
@@ -113,11 +115,7 @@ export class Entrenador implements OnInit {
         .concat([decoded?.role, decoded?.rol, decoded?.perfil].filter(Boolean) as string[])
         .map((r) => String(r).toUpperCase());
 
-      return (
-        decoded?.is_admin === true ||
-        roles.includes('ADMIN') ||
-        roles.includes('ROLE_ADMIN')
-      );
+      return decoded?.is_admin === true || roles.includes('ADMIN') || roles.includes('ROLE_ADMIN');
     } catch {
       return false;
     }
@@ -203,7 +201,7 @@ export class Entrenador implements OnInit {
     this.form.reset({
       nombre: '',
       apellido: '',
-      gimnasioId: this.isAdmin ? this.gimnasios[0]?.idGimnasio ?? null : null,
+      gimnasioId: this.isAdmin ? (this.gimnasios[0]?.idGimnasio ?? null) : null,
     });
   }
 
@@ -272,9 +270,10 @@ export class Entrenador implements OnInit {
     this.menuRowIdx = i;
     this.menuDropUpIdx = openUp ? i : null;
     this.menuDropdownStyle = openUp
-      ? { bottom: `${viewportHeight - rect.top + gap}px`, right: `${window.innerWidth - rect.right}px` }
+      ? {
+          bottom: `${viewportHeight - rect.top + gap}px`,
+          right: `${window.innerWidth - rect.right}px`,
+        }
       : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }
-
-

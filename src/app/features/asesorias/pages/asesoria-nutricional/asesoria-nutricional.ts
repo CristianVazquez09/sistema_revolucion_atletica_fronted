@@ -71,9 +71,7 @@ export class AsesoriaNutricional {
 
     return list.filter((x) => {
       const socio: any = (x as any)?.socio ?? {};
-      const nombre = `${socio?.nombre ?? ''} ${socio?.apellido ?? ''}`
-        .trim()
-        .toLowerCase();
+      const nombre = `${socio?.nombre ?? ''} ${socio?.apellido ?? ''}`.trim().toLowerCase();
       const tel = String(socio?.telefono ?? '').toLowerCase();
       const idSocio = String(socio?.idSocio ?? '').toLowerCase();
       return nombre.includes(term) || tel.includes(term) || idSocio.includes(term);
@@ -107,15 +105,11 @@ export class AsesoriaNutricional {
   private readonly MAX_ZOOM = 1.0;
 
   esXlUp = signal(
-    typeof window !== 'undefined'
-      ? window.matchMedia('(min-width: 1280px)').matches
-      : false
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 1280px)').matches : false,
   );
 
   es2xlUp = signal(
-    typeof window !== 'undefined'
-      ? window.matchMedia('(min-width: 1536px)').matches
-      : false
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 1536px)').matches : false,
   );
 
   // ✅ Mostrar gimnasio solo si:
@@ -177,7 +171,9 @@ export class AsesoriaNutricional {
 
   // ====== Cargar (SIN paginación) ======
   cargar(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
     this.cargando = true;
     this.error = null;
 
@@ -215,8 +211,8 @@ export class AsesoriaNutricional {
       new Set(
         (list ?? [])
           .map((r) => Number(((r as any)?.socio as any)?.idSocio ?? 0))
-          .filter((id) => !!id)
-      )
+          .filter((id) => !!id),
+      ),
     );
 
     if (!ids.length) return;
@@ -265,9 +261,9 @@ export class AsesoriaNutricional {
           catchError((err) => {
             console.error('No se pudo cargar socio', id, err);
             return of(null as any);
-          })
-        )
-      )
+          }),
+        ),
+      ),
     )
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((sociosFull: (SocioData | null)[]) => {
@@ -309,9 +305,7 @@ export class AsesoriaNutricional {
   // -----------------------------
   idRow(row: AsesoriaNutricionalData): number {
     const anyRow: any = row as any;
-    return Number(
-      anyRow?.id ?? anyRow?.idAsesoria ?? anyRow?.idAsesoriaNutricional ?? 0
-    );
+    return Number(anyRow?.id ?? anyRow?.idAsesoria ?? anyRow?.idAsesoriaNutricional ?? 0);
   }
 
   private removeRow(id: number): void {
@@ -331,8 +325,7 @@ export class AsesoriaNutricional {
 
     const nombre1 = String(socio?.gimnasioNombre ?? '').trim();
     const nombre2 = String(socio?.nombreGimnasio ?? '').trim();
-    const strGym =
-      typeof socio?.gimnasio === 'string' ? String(socio.gimnasio).trim() : '';
+    const strGym = typeof socio?.gimnasio === 'string' ? String(socio.gimnasio).trim() : '';
 
     if (nombreObj) return nombreObj;
     if (nombre1) return nombre1;
@@ -359,7 +352,9 @@ export class AsesoriaNutricional {
 
   private parseISODateLocal(iso?: string | null): Date | null {
     if (!iso) return null;
-    const parts = String(iso).split('-').map((n) => Number(n));
+    const parts = String(iso)
+      .split('-')
+      .map((n) => Number(n));
     if (parts.length !== 3) return null;
     const [y, m, d] = parts;
     if (!y || !m || !d) return null;
@@ -467,12 +462,7 @@ export class AsesoriaNutricional {
     const id = this.idRow(row);
     if (!id) return;
 
-    if (
-      !confirm(
-        '¿Eliminar asesoría nutricional? Esta acción no se puede deshacer.'
-      )
-    )
-      return;
+    if (!confirm('¿Eliminar asesoría nutricional? Esta acción no se puede deshacer.')) return;
 
     this.busyEliminarId.set(id);
 
@@ -527,7 +517,9 @@ export class AsesoriaNutricional {
 
   @HostListener('document:click')
   closeMenuRows(): void {
-    this.menuRowIdx = null; this.menuDropUpIdx = null; this.menuDropdownStyle = null;
+    this.menuRowIdx = null;
+    this.menuDropUpIdx = null;
+    this.menuDropdownStyle = null;
   }
 
   toggleMenuRow(i: number, event: MouseEvent): void {
@@ -548,9 +540,10 @@ export class AsesoriaNutricional {
     this.menuRowIdx = i;
     this.menuDropUpIdx = openUp ? i : null;
     this.menuDropdownStyle = openUp
-      ? { bottom: `${viewportHeight - rect.top + gap}px`, right: `${window.innerWidth - rect.right}px` }
+      ? {
+          bottom: `${viewportHeight - rect.top + gap}px`,
+          right: `${window.innerWidth - rect.right}px`,
+        }
       : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }
-
-

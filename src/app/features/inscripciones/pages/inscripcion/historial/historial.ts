@@ -12,17 +12,16 @@ import { PagoData } from '../../../../../shared/models/membresia-data';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './historial.html',
-  styleUrl: './historial.css'
+  styleUrl: './historial.css',
 })
 export class Historial implements OnInit {
-
   // Estado tabla
   cargando = true;
   mensajeError: string | null = null;
   lista: HistorialData[] = [];
 
   // Paginación
-  paginaActual = 0;     // 0-based
+  paginaActual = 0; // 0-based
   tamanioPagina = 10;
   totalPaginas = 0;
   totalElementos = 0;
@@ -64,12 +63,15 @@ export class Historial implements OnInit {
     this.mensajeError = null;
 
     this.srv.consultar(this.paginaActual, this.tamanioPagina).subscribe({
-      next: (resp) => { this.aplicar(resp); this.cargando = false; },
+      next: (resp) => {
+        this.aplicar(resp);
+        this.cargando = false;
+      },
       error: (e) => {
         console.error(e);
         this.mensajeError = 'No se pudo cargar el historial.';
         this.cargando = false;
-      }
+      },
     });
   }
 
@@ -104,15 +106,19 @@ export class Historial implements OnInit {
 
   // ====== Helpers de pagos para la vista ======
   pagosConMonto(pagos?: PagoData[] | null): PagoData[] {
-    return (pagos ?? []).filter(p => Number(p?.monto) > 0);
+    return (pagos ?? []).filter((p) => Number(p?.monto) > 0);
   }
 
   labelPago(tipo: PagoData['tipoPago'] | string): string {
     switch (tipo) {
-      case 'EFECTIVO': return 'Efectivo';
-      case 'TARJETA': return 'Tarjeta';
-      case 'TRANSFERENCIA': return 'Transferencia';
-      default: return String(tipo);
+      case 'EFECTIVO':
+        return 'Efectivo';
+      case 'TARJETA':
+        return 'Tarjeta';
+      case 'TRANSFERENCIA':
+        return 'Transferencia';
+      default:
+        return String(tipo);
     }
   }
 }

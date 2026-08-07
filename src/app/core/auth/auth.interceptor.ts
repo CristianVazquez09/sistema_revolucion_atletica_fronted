@@ -9,7 +9,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const token = sessionStorage.getItem(environment.TOKEN_NAME); // mismo que usas al guardar
     if (token) {
       req = req.clone({
-        setHeaders: { Authorization: `Bearer ${token}` }
+        setHeaders: { Authorization: `Bearer ${token}` },
       });
     }
   }

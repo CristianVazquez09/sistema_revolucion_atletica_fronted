@@ -43,7 +43,7 @@ describe('CarritoService', () => {
 
   describe('totalSig', () => {
     it('calcula la suma de cantidad * precioUnit', () => {
-      carrito.agregar(1, 'Agua', 20, 2);      // 40
+      carrito.agregar(1, 'Agua', 20, 2); // 40
       carrito.agregar(2, 'Proteína', 500, 1); // 500
       expect(carrito.obtenerTotal()).toBe(540);
     });

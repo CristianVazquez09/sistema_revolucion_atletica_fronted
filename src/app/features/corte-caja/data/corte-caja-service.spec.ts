@@ -71,7 +71,7 @@ describe('CorteCajaService', () => {
 
   it('buscarTodos hace GET a la URL base', () => {
     let resultado: CorteCajaResponseDTO[] | undefined;
-    service.buscarTodos().subscribe(r => (resultado = r));
+    service.buscarTodos().subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(BASE);
     expect(req.request.method).toBe('GET');
@@ -82,7 +82,7 @@ describe('CorteCajaService', () => {
 
   it('buscarPorId hace GET a base/{id}', () => {
     let resultado: CorteCajaResponseDTO | undefined;
-    service.buscarPorId(1).subscribe(r => (resultado = r));
+    service.buscarPorId(1).subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/1`);
     expect(req.request.method).toBe('GET');
@@ -122,7 +122,7 @@ describe('CorteCajaService', () => {
   it('abrir hace POST a base/abrir con body {fondoCajaInicial: number}', () => {
     const req_obj: AbrirCorte = { fondoCajaInicial: 500 };
     let resultado: CorteCajaResponseDTO | undefined;
-    service.abrir(req_obj).subscribe(r => (resultado = r));
+    service.abrir(req_obj).subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/abrir`);
     expect(req.request.method).toBe('POST');
@@ -164,7 +164,7 @@ describe('CorteCajaService', () => {
 
   it('consultar hace GET a base/{id}', () => {
     let resultado: CorteCajaResponseDTO | undefined;
-    service.consultar(3).subscribe(r => (resultado = r));
+    service.consultar(3).subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/3`);
     expect(req.request.method).toBe('GET');
@@ -177,7 +177,7 @@ describe('CorteCajaService', () => {
 
   it('consultarAbierto con 200 → subscriber recibe corte', () => {
     let resultado: CorteCajaResponseDTO | null | undefined;
-    service.consultarAbierto().subscribe(r => (resultado = r));
+    service.consultarAbierto().subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/abierto`);
     expect(req.request.method).toBe('GET');
@@ -191,7 +191,7 @@ describe('CorteCajaService', () => {
     let errorCalled = false;
 
     service.consultarAbierto().subscribe({
-      next: r => (resultado = r),
+      next: (r) => (resultado = r),
       error: () => (errorCalled = true),
     });
 
@@ -208,8 +208,8 @@ describe('CorteCajaService', () => {
     let errorReceived: any;
 
     service.consultarAbierto().subscribe({
-      next: r => (resultado = r),
-      error: err => (errorReceived = err),
+      next: (r) => (resultado = r),
+      error: (err) => (errorReceived = err),
     });
 
     const req = httpMock.expectOne(`${BASE}/abierto`);
@@ -224,11 +224,10 @@ describe('CorteCajaService', () => {
 
   it('previsualizar sin hasta NO incluye param', () => {
     let resultado: CorteCajaPreviewDTO | undefined;
-    service.previsualizar(3).subscribe(r => (resultado = r));
+    service.previsualizar(3).subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(req =>
-      req.url === `${BASE}/3/preview` &&
-      !req.params.has('hasta')
+    const req = httpMock.expectOne(
+      (req) => req.url === `${BASE}/3/preview` && !req.params.has('hasta'),
     );
     expect(req.request.method).toBe('GET');
     req.flush(previewMock);
@@ -238,11 +237,10 @@ describe('CorteCajaService', () => {
 
   it('previsualizar con hasta incluye param', () => {
     let resultado: CorteCajaPreviewDTO | undefined;
-    service.previsualizar(3, '2026-07-01').subscribe(r => (resultado = r));
+    service.previsualizar(3, '2026-07-01').subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(req =>
-      req.url === `${BASE}/3/preview` &&
-      req.params.get('hasta') === '2026-07-01'
+    const req = httpMock.expectOne(
+      (req) => req.url === `${BASE}/3/preview` && req.params.get('hasta') === '2026-07-01',
     );
     expect(req.request.method).toBe('GET');
     req.flush(previewMock);
@@ -254,11 +252,10 @@ describe('CorteCajaService', () => {
 
   it('previsualizarAbierto sin hasta NO incluye param', () => {
     let resultado: CorteCajaPreviewDTO | undefined;
-    service.previsualizarAbierto().subscribe(r => (resultado = r));
+    service.previsualizarAbierto().subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(req =>
-      req.url === `${BASE}/abierto/preview` &&
-      !req.params.has('hasta')
+    const req = httpMock.expectOne(
+      (req) => req.url === `${BASE}/abierto/preview` && !req.params.has('hasta'),
     );
     expect(req.request.method).toBe('GET');
     req.flush(previewMock);
@@ -268,11 +265,10 @@ describe('CorteCajaService', () => {
 
   it('previsualizarAbierto con hasta incluye param', () => {
     let resultado: CorteCajaPreviewDTO | undefined;
-    service.previsualizarAbierto('2026-07-01').subscribe(r => (resultado = r));
+    service.previsualizarAbierto('2026-07-01').subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(req =>
-      req.url === `${BASE}/abierto/preview` &&
-      req.params.get('hasta') === '2026-07-01'
+    const req = httpMock.expectOne(
+      (req) => req.url === `${BASE}/abierto/preview` && req.params.get('hasta') === '2026-07-01',
     );
     expect(req.request.method).toBe('GET');
     req.flush(previewMock);
@@ -288,7 +284,7 @@ describe('CorteCajaService', () => {
       monto: 100,
     };
     let resultado: SalidaEfectivo | undefined;
-    service.registrarSalida(3, salidarReq).subscribe(r => (resultado = r));
+    service.registrarSalida(3, salidarReq).subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/3/salidas`);
     expect(req.request.method).toBe('POST');
@@ -300,7 +296,7 @@ describe('CorteCajaService', () => {
 
   it('listarSalidas hace GET a base/{id}/salidas', () => {
     let resultado: SalidaEfectivo[] | undefined;
-    service.listarSalidas(3).subscribe(r => (resultado = r));
+    service.listarSalidas(3).subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/3/salidas`);
     expect(req.request.method).toBe('GET');
@@ -313,7 +309,7 @@ describe('CorteCajaService', () => {
 
   it('desgloseActual hace GET a base/actual/desglose', () => {
     let resultado: CorteDesgloseDTO | undefined;
-    service.desgloseActual().subscribe(r => (resultado = r));
+    service.desgloseActual().subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/actual/desglose`);
     expect(req.request.method).toBe('GET');
@@ -329,7 +325,7 @@ describe('CorteCajaService', () => {
 
   it('desglose hace GET a base/{id}/desglose', () => {
     let resultado: CorteDesgloseDTO | undefined;
-    service.desglose(3).subscribe(r => (resultado = r));
+    service.desglose(3).subscribe((r) => (resultado = r));
 
     const req = httpMock.expectOne(`${BASE}/3/desglose`);
     expect(req.request.method).toBe('GET');
@@ -362,14 +358,15 @@ describe('CorteCajaService', () => {
       page: { size: 10, number: 0, totalElements: 1, totalPages: 1 },
     };
     let resultado: PagedResponse<CorteCajaListado> | undefined;
-    service.listar({}).subscribe(r => (resultado = r));
+    service.listar({}).subscribe((r) => (resultado = r));
 
-    const req = httpMock.expectOne(req =>
-      req.url === BASE &&
-      req.params.get('page') === '0' &&
-      req.params.get('size') === '10' &&
-      !req.params.has('estado') &&
-      !req.params.has('sort')
+    const req = httpMock.expectOne(
+      (req) =>
+        req.url === BASE &&
+        req.params.get('page') === '0' &&
+        req.params.get('size') === '10' &&
+        !req.params.has('estado') &&
+        !req.params.has('sort'),
     );
     expect(req.request.method).toBe('GET');
     req.flush(mockResponse);
@@ -384,9 +381,8 @@ describe('CorteCajaService', () => {
     };
     service.listar({ estado: 'ABIERTO' }).subscribe();
 
-    const req = httpMock.expectOne(req =>
-      req.url === BASE &&
-      req.params.get('estado') === 'ABIERTO'
+    const req = httpMock.expectOne(
+      (req) => req.url === BASE && req.params.get('estado') === 'ABIERTO',
     );
     expect(req.request.method).toBe('GET');
     expect(req.request.params.has('estado')).toBe(true);
@@ -400,26 +396,22 @@ describe('CorteCajaService', () => {
     };
     service.listar({ estado: 'CERRADO' }).subscribe();
 
-    const req = httpMock.expectOne(req =>
-      req.url === BASE &&
-      req.params.get('estado') === 'CERRADO'
+    const req = httpMock.expectOne(
+      (req) => req.url === BASE && req.params.get('estado') === 'CERRADO',
     );
     expect(req.request.method).toBe('GET');
     expect(req.request.params.has('estado')).toBe(true);
     req.flush(mockResponse);
   });
 
-  it('listar con estado=\'\' (empty string) NO incluye estado param', () => {
+  it("listar con estado='' (empty string) NO incluye estado param", () => {
     const mockResponse: PagedResponse<CorteCajaListado> = {
       content: [],
       page: { size: 10, number: 0, totalElements: 0, totalPages: 0 },
     };
     service.listar({ estado: '' }).subscribe();
 
-    const req = httpMock.expectOne(req =>
-      req.url === BASE &&
-      !req.params.has('estado')
-    );
+    const req = httpMock.expectOne((req) => req.url === BASE && !req.params.has('estado'));
     expect(req.request.method).toBe('GET');
     expect(req.request.params.has('estado')).toBe(false);
     req.flush(mockResponse);
@@ -432,10 +424,11 @@ describe('CorteCajaService', () => {
     };
     service.listar({ estado: 'ABIERTO', page: 2 }).subscribe();
 
-    const req = httpMock.expectOne(req =>
-      req.url === BASE &&
-      req.params.get('page') === '1' &&
-      req.params.get('estado') === 'ABIERTO'
+    const req = httpMock.expectOne(
+      (req) =>
+        req.url === BASE &&
+        req.params.get('page') === '1' &&
+        req.params.get('estado') === 'ABIERTO',
     );
     expect(req.request.method).toBe('GET');
     req.flush(mockResponse);

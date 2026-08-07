@@ -29,7 +29,7 @@ export class Login {
   usuario = '';
   clave = '';
   cargando = false;
-verClave = false;
+  verClave = false;
 
   onSubmit() {
     if (!this.usuario || !this.clave) {

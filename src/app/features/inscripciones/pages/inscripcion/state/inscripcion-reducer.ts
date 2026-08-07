@@ -9,7 +9,7 @@ const reducer = createReducer(
   on(InscripcionActions.setPaqueteId, (s, { paqueteId }) => ({ ...s, paqueteId })),
   on(InscripcionActions.setDescuento, (s, { descuento }) => ({ ...s, descuento })),
   on(InscripcionActions.setFechaInicio, (s, { fechaInicio }) => ({ ...s, fechaInicio })),
-  on(InscripcionActions.reset, () => ({ ...initialInscripcionState }))
+  on(InscripcionActions.reset, () => ({ ...initialInscripcionState })),
 );
 
 export const inscripcionFeature = createFeature({

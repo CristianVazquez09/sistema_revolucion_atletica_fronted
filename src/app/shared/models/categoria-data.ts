@@ -1,10 +1,10 @@
-import { GimnasioData } from "./gimnasio-data";
+import { GimnasioData } from './gimnasio-data';
 
 export interface CategoriaData {
   idCategoria?: number;
   nombre: string;
 
-  activo:boolean;
+  activo: boolean;
 
-  gimnasio?: GimnasioData
+  gimnasio?: GimnasioData;
 }

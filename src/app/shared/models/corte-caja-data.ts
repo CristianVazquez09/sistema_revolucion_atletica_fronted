@@ -38,8 +38,8 @@ export interface UsuarioResumen {
 /** Respuesta base (detalle de corte) */
 export interface CorteCajaResponseDTO {
   idCorte: number;
-  apertura: string;                 // ISO-8601
-  cierre: string | null;            // ISO-8601
+  apertura: string; // ISO-8601
+  cierre: string | null; // ISO-8601
   estado: CorteEstado;
 
   totalGeneral: number;
@@ -127,8 +127,8 @@ export interface PagedResponse<T> {
  * (CorteMovimientoViewDTO)
  */
 export interface CorteMovimientoViewDTO {
-  fecha: string;              // ISO
-  origen: OrigenCorte;        // VENTA | MEMBRESIA | ASESORIA (o ACCESORIA legacy)
+  fecha: string; // ISO
+  origen: OrigenCorte; // VENTA | MEMBRESIA | ASESORIA (o ACCESORIA legacy)
   folio: string | null;
   socio: string | null;
   concepto: string | null;
@@ -147,8 +147,8 @@ export interface CorteDesgloseDTO {
 /** Listado (paginado) - coincide con CorteCajaListItemDTO del backend */
 export interface CorteCajaListado {
   idCorte: number;
-  apertura: string;          // ISO
-  cierre: string | null;     // ISO
+  apertura: string; // ISO
+  cierre: string | null; // ISO
   estado: CorteEstado;
 
   totalGeneral: number;
@@ -164,4 +164,3 @@ export interface CorteCajaListado {
   fondoCajaInicial?: number | null;
   efectivoEsperado?: number | null;
 }
-

@@ -1,9 +1,7 @@
 <!-- src/app/pages/administracion/estadisticas/estadisticas.html -->
 <div class="wrap">
-
   <!-- ── Filtros ──────────────────────────────────────────────────────── -->
   <div class="filterbar" [formGroup]="form">
-
     @if (isAdmin && gimnasios.length > 0) {
       <div class="fld">
         <span class="flab">Gimnasio</span>
@@ -17,18 +15,26 @@
 
     <div class="fld">
       <span class="flab">Desde</span>
-      <input class="finp" type="date" formControlName="desde">
+      <input class="finp" type="date" formControlName="desde" />
     </div>
 
     <div class="fld">
       <span class="flab">Hasta</span>
-      <input class="finp" type="date" formControlName="hasta">
+      <input class="finp" type="date" formControlName="hasta" />
     </div>
 
     <button class="consult-btn" (click)="consultar()" [disabled]="cargando">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-           [class.spin]="cargando">
-        <path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>
+      <svg
+        width="15"
+        height="15"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+        [class.spin]="cargando"
+      >
+        <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
+        <path d="M21 3v5h-5" />
       </svg>
       {{ cargando ? 'Cargando...' : 'Consultar' }}
     </button>
@@ -42,30 +48,35 @@
   <!-- ── Skeleton ─────────────────────────────────────────────────────── -->
   @if (cargando && !datos) {
     <div class="kpigrid">
-      @for (i of [1,2,3,4]; track i) {
-        <div class="skel" style="height:140px"></div>
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="skel" style="height: 140px"></div>
       }
     </div>
-    <div class="skel" style="height:340px; margin-bottom:26px"></div>
+    <div class="skel" style="height: 340px; margin-bottom: 26px"></div>
     <div class="dasb-grid g-3">
-      @for (i of [1,2,3]; track i) {
-        <div class="skel" style="height:260px"></div>
+      @for (i of [1, 2, 3]; track i) {
+        <div class="skel" style="height: 260px"></div>
       }
     </div>
   }
 
   @if (datos) {
-
     <!-- ── KPI Cards ──────────────────────────────────────────────────── -->
     <div class="kpigrid">
-
       <!-- Hero: Ingresos -->
       <div class="kpi kpi-hero">
         <div class="kpitop">
           <span class="kpilab">Ingresos totales</span>
           <span class="ico">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
             </svg>
           </span>
         </div>
@@ -81,10 +92,17 @@
         <div class="kpitop">
           <span class="kpilab">Total de socios</span>
           <span class="ico tint-b">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="9" cy="8" r="3.2"/>
-              <path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/>
-              <path d="M16 6a3 3 0 0 1 0 6M21 20c0-2.6-1.5-4.3-4-4.8"/>
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <circle cx="9" cy="8" r="3.2" />
+              <path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5" />
+              <path d="M16 6a3 3 0 0 1 0 6M21 20c0-2.6-1.5-4.3-4-4.8" />
             </svg>
           </span>
         </div>
@@ -100,8 +118,15 @@
         <div class="kpitop">
           <span class="kpilab">Membresías activas</span>
           <span class="ico tint-g">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 6L9 17l-5-5"/>
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M20 6L9 17l-5-5" />
             </svg>
           </span>
         </div>
@@ -117,10 +142,17 @@
         <div class="kpitop">
           <span class="kpilab">Asistencias</span>
           <span class="ico tint-p">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           </span>
         </div>
@@ -129,13 +161,11 @@
           <span class="delta delta-up">En el periodo</span>
         </div>
       </div>
-
     </div>
 
     <!-- ── Ingresos & retención ──────────────────────────────────────── -->
     <div class="sec">Ingresos &amp; retención</div>
     <div class="dasb-grid g-rev">
-
       <div class="card">
         <div class="chd">
           <div>
@@ -143,12 +173,12 @@
             <div class="csub">Desglose por origen · {{ periodoLabel() }}</div>
           </div>
         </div>
-        <div #revCanvas style="height:220px; width:100%"></div>
+        <div #revCanvas style="height: 220px; width: 100%"></div>
         <div class="legend">
-          <span class="lg"><span class="dot" style="background:#E8502E"></span>Total</span>
-          <span class="lg"><span class="dot" style="background:#2E6BE6"></span>Membresías</span>
-          <span class="lg"><span class="dot" style="background:#14B8A6"></span>Ventas</span>
-          <span class="lg"><span class="dot" style="background:#7A4FE0"></span>Asesorías</span>
+          <span class="lg"><span class="dot" style="background: #e8502e"></span>Total</span>
+          <span class="lg"><span class="dot" style="background: #2e6be6"></span>Membresías</span>
+          <span class="lg"><span class="dot" style="background: #14b8a6"></span>Ventas</span>
+          <span class="lg"><span class="dot" style="background: #7a4fe0"></span>Asesorías</span>
         </div>
       </div>
 
@@ -161,34 +191,32 @@
         </div>
         <div class="vencrow vd">
           <span class="venclab">
-            <span class="vendot" style="background:#DC2626"></span>En 7 días
+            <span class="vendot" style="background: #dc2626"></span>En 7 días
           </span>
           <span class="vencval vred num">{{ datos.membresias.porVencer7dias }}</span>
         </div>
         <div class="vencrow vw">
           <span class="venclab">
-            <span class="vendot" style="background:#F5A623"></span>En 15 días
+            <span class="vendot" style="background: #f5a623"></span>En 15 días
           </span>
           <span class="vencval vamber num">{{ datos.membresias.porVencer15dias }}</span>
         </div>
         <div class="vencrow vw">
           <span class="venclab">
-            <span class="vendot" style="background:#F5A623"></span>En 30 días
+            <span class="vendot" style="background: #f5a623"></span>En 30 días
           </span>
           <span class="vencval vamber num">{{ datos.membresias.porVencer30dias }}</span>
         </div>
       </div>
-
     </div>
 
     <!-- ── Composición de socios ─────────────────────────────────────── -->
     <div class="sec">Composición de socios</div>
     <div class="dasb-grid g-3">
-
       <div class="card">
         <div class="chd"><div class="ctit">Distribución de edad</div></div>
         @if ((datos.socios.distribucionEdades ?? []).length > 0) {
-          <div #ageCanvas style="height:200px; width:100%"></div>
+          <div #ageCanvas style="height: 200px; width: 100%"></div>
         } @else {
           <p class="empty-txt">Sin datos</p>
         }
@@ -196,30 +224,32 @@
 
       <div class="card">
         <div class="chd"><div class="ctit">Por género</div></div>
-        <div #genderCanvas style="height:170px; width:100%"></div>
-        <div class="legend" style="justify-content:center; margin-top:8px">
+        <div #genderCanvas style="height: 170px; width: 100%"></div>
+        <div class="legend" style="justify-content: center; margin-top: 8px">
           <span class="lg">
-            <span class="dot" style="background:#2E6BE6"></span>
-            Masculino {{ datos.socios.porGenero.masculino }} ({{ pct(datos.socios.porGenero.masculino, datos.socios.totalActivos) }})
+            <span class="dot" style="background: #2e6be6"></span>
+            Masculino {{ datos.socios.porGenero.masculino }} ({{
+              pct(datos.socios.porGenero.masculino, datos.socios.totalActivos)
+            }})
           </span>
           <span class="lg">
-            <span class="dot" style="background:#EC4899"></span>
-            Femenino {{ datos.socios.porGenero.femenino }} ({{ pct(datos.socios.porGenero.femenino, datos.socios.totalActivos) }})
+            <span class="dot" style="background: #ec4899"></span>
+            Femenino {{ datos.socios.porGenero.femenino }} ({{
+              pct(datos.socios.porGenero.femenino, datos.socios.totalActivos)
+            }})
           </span>
         </div>
       </div>
 
       <div class="card">
         <div class="chd"><div class="ctit">Asistencias por día</div></div>
-        <div #attendCanvas style="height:200px; width:100%"></div>
+        <div #attendCanvas style="height: 200px; width: 100%"></div>
       </div>
-
     </div>
 
     <!-- ── Membresías & paquetes ─────────────────────────────────────── -->
     <div class="sec">Membresías &amp; paquetes</div>
     <div class="dasb-grid g-2">
-
       <div class="card">
         <div class="chd"><div class="ctit">Membresías activas por tipo</div></div>
         @if ((datos.membresias.activasPorTipoPaquete ?? []).length === 0) {
@@ -247,10 +277,14 @@
         @if ((datos.membresias.paquetesMasVendidosEnPeriodo ?? []).length === 0) {
           <p class="empty-txt">Sin datos</p>
         } @else {
-          @for (p of datos.membresias.paquetesMasVendidosEnPeriodo; track p.nombre; let i = $index) {
+          @for (
+            p of datos.membresias.paquetesMasVendidosEnPeriodo;
+            track p.nombre;
+            let i = $index
+          ) {
             <div class="pkrow">
               <span class="pk-rk">{{ i + 1 }}</span>
-              <div style="flex:1; min-width:0">
+              <div style="flex: 1; min-width: 0">
                 <div class="pk-name">{{ p.nombre }}</div>
                 @if (p.tipoPaquete) {
                   <div class="pk-sub">{{ p.tipoPaquete }}</div>
@@ -261,19 +295,21 @@
           }
         }
       </div>
-
     </div>
 
     <!-- ── Ventas de productos ───────────────────────────────────────── -->
-    @if ((datos.inventario.productosMasVendidos ?? datos.inventario.topProductos ?? []).length > 0 ||
-         (datos.inventario.productosMenosVendidos ?? []).length > 0) {
+    @if (
+      (datos.inventario.productosMasVendidos ?? datos.inventario.topProductos ?? []).length > 0 ||
+      (datos.inventario.productosMenosVendidos ?? []).length > 0
+    ) {
       <div class="sec">Ventas de productos</div>
       <div class="dasb-grid g-2">
-
-        @if ((datos.inventario.productosMasVendidos ?? datos.inventario.topProductos ?? []).length > 0) {
+        @if (
+          (datos.inventario.productosMasVendidos ?? datos.inventario.topProductos ?? []).length > 0
+        ) {
           <div class="card">
             <div class="chd">
-              <div class="ctit" style="color:#0F8A4D">↗ Productos más vendidos</div>
+              <div class="ctit" style="color: #0f8a4d">↗ Productos más vendidos</div>
             </div>
             <div class="tbl-wrap">
               <table class="tbl">
@@ -286,7 +322,13 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (p of (datos.inventario.productosMasVendidos ?? datos.inventario.topProductos ?? []); track p.nombre; let i = $index) {
+                  @for (
+                    p of datos.inventario.productosMasVendidos ??
+                      datos.inventario.topProductos ??
+                      [];
+                    track p.nombre;
+                    let i = $index
+                  ) {
                     <tr>
                       <td class="t-rk">{{ i + 1 }}</td>
                       <td class="t-name">{{ p.nombre }}</td>
@@ -303,7 +345,7 @@
         @if ((datos.inventario.productosMenosVendidos ?? []).length > 0) {
           <div class="card">
             <div class="chd">
-              <div class="ctit" style="color:#C6362B">↘ Productos menos vendidos</div>
+              <div class="ctit" style="color: #c6362b">↘ Productos menos vendidos</div>
             </div>
             <div class="tbl-wrap">
               <table class="tbl">
@@ -316,7 +358,11 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @for (p of datos.inventario.productosMenosVendidos; track p.idProducto; let i = $index) {
+                  @for (
+                    p of datos.inventario.productosMenosVendidos;
+                    track p.idProducto;
+                    let i = $index
+                  ) {
                     <tr>
                       <td class="t-rk">{{ i + 1 }}</td>
                       <td class="t-name">{{ p.nombre }}</td>
@@ -329,7 +375,6 @@
             </div>
           </div>
         }
-
       </div>
     }
 
@@ -337,18 +382,22 @@
     @if ((datos.inventario.bajoStock ?? []).length > 0) {
       <div class="sec">Alertas de inventario</div>
       <div class="dasb-grid">
-        <div class="card" style="max-width:600px">
+        <div class="card" style="max-width: 600px">
           <div class="chd">
             <div>
               <div class="ctit">Productos bajo stock</div>
               <div class="csub">Menores a 5 unidades</div>
             </div>
           </div>
-          <div style="max-height:220px; overflow-y:auto">
+          <div style="max-height: 220px; overflow-y: auto">
             @for (p of datos.inventario.bajoStock; track p.nombre) {
               <div class="stockrow">
                 <span class="stockname">{{ p.nombre }}</span>
-                <span class="stockbadge" [class.stock-out]="p.stock === 0" [class.stock-low]="p.stock > 0">
+                <span
+                  class="stockbadge"
+                  [class.stock-out]="p.stock === 0"
+                  [class.stock-low]="p.stock > 0"
+                >
                   {{ p.stock === 0 ? 'Agotado' : p.stock + ' uds.' }}
                 </span>
               </div>
@@ -370,40 +419,41 @@
             </div>
           </div>
           <div class="tbl-wrap">
-          <table class="tbl">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Entrenador</th>
-                <th>En el periodo</th>
-                <th>Total de asesorías</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (e of datos.entrenadores!.ranking; track e.idEntrenador; let i = $index) {
+            <table class="tbl">
+              <thead>
                 <tr>
-                  <td class="t-rk">{{ i + 1 }}</td>
-                  <td>
-                    <div style="display:flex; align-items:center; gap:12px">
-                      <span class="avatar">{{ initials(e.nombre, e.apellido) }}</span>
-                      <span class="t-name">{{ e.nombre }} {{ e.apellido }}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span class="num" style="font-size:15px; font-weight:700; color:#7A4FE0">{{ e.totalEnPeriodo }}</span>
-                  </td>
-                  <td>
-                    <span class="pill">{{ e.asesoriasActivas }} asesorías</span>
-                  </td>
+                  <th>#</th>
+                  <th>Entrenador</th>
+                  <th>En el periodo</th>
+                  <th>Total de asesorías</th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (e of datos.entrenadores!.ranking; track e.idEntrenador; let i = $index) {
+                  <tr>
+                    <td class="t-rk">{{ i + 1 }}</td>
+                    <td>
+                      <div style="display: flex; align-items: center; gap: 12px">
+                        <span class="avatar">{{ initials(e.nombre, e.apellido) }}</span>
+                        <span class="t-name">{{ e.nombre }} {{ e.apellido }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="num" style="font-size: 15px; font-weight: 700; color: #7a4fe0">{{
+                        e.totalEnPeriodo
+                      }}</span>
+                    </td>
+                    <td>
+                      <span class="pill">{{ e.asesoriasActivas }} asesorías</span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     }
-
-  } <!-- /if datos -->
-
+  }
+  <!-- /if datos -->
 </div>
