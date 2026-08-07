@@ -74,3 +74,24 @@ describe('RaBuscador', () => {
     expect(fixture.nativeElement.querySelector('button')).toBeNull();
   });
 });
+
+@Component({
+  standalone: true,
+  imports: [RaBuscador],
+  template: `<ra-buscador [debounceMs]="50" [mostrarLimpiar]="false"></ra-buscador>`,
+})
+class HostSinBotonLimpiar {}
+
+describe('RaBuscador con mostrarLimpiar=false', () => {
+  it('no muestra el boton limpiar aunque haya un termino escrito', fakeAsync(() => {
+    const fixture = TestBed.configureTestingModule({ imports: [HostSinBotonLimpiar] })
+      .createComponent(HostSinBotonLimpiar);
+    fixture.detectChanges();
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input');
+    input.value = 'ana';
+    input.dispatchEvent(new Event('input'));
+    tick(60);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('button')).toBeNull();
+  }));
+});
