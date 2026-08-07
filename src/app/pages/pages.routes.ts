@@ -126,7 +126,6 @@ export const pagesRoutes: Routes = [
       import('../shared/huella/huella-modal/huella-modal').then((m) => m.HuellaModal),
   },
 
-  { path: 'membresia', redirectTo: 'membresia', pathMatch: 'full' },
   {
     path: 'membresia',
     loadComponent: () =>
