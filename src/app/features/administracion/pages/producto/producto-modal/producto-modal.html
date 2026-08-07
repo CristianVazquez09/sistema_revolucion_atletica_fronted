@@ -16,7 +16,7 @@
   <form class="space-y-4 px-6 pt-4 pb-6" [formGroup]="form" (ngSubmit)="submit()">
     <!-- SOLO ADMIN: Gimnasio -->
     @if (isAdmin) {
-      <ra-campo etiqueta="Gimnasio" [requerido]="true" [error]="errorGimnasio">
+      <ra-campo class="block" etiqueta="Gimnasio" [requerido]="true" [error]="errorGimnasio">
         <select class="input-filled" formControlName="gimnasioId">
           <option [ngValue]="null" disabled>Selecciona un gimnasio</option>
           @for (g of gimnasios; track g.idGimnasio) {
@@ -27,17 +27,17 @@
     }
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <ra-campo etiqueta="Nombre" [requerido]="true">
+      <ra-campo class="block" etiqueta="Nombre" [requerido]="true">
         <input formControlName="nombre" class="input-filled" placeholder="Nombre del producto" />
       </ra-campo>
 
-      <ra-campo etiqueta="Código">
+      <ra-campo class="block" etiqueta="Código">
         <input formControlName="codigo" class="input-filled" placeholder="Código interno / SKU" />
       </ra-campo>
     </div>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-      <ra-campo etiqueta="Precio de compra" [requerido]="true">
+      <ra-campo class="block" etiqueta="Precio de compra" [requerido]="true">
         <input
           type="number"
           step="0.01"
@@ -46,7 +46,7 @@
           placeholder="0.00"
         />
       </ra-campo>
-      <ra-campo etiqueta="Precio de venta" [requerido]="true">
+      <ra-campo class="block" etiqueta="Precio de venta" [requerido]="true">
         <input
           type="number"
           step="0.01"
@@ -55,7 +55,7 @@
           placeholder="0.00"
         />
       </ra-campo>
-      <ra-campo etiqueta="Cantidad" [requerido]="true">
+      <ra-campo class="block" etiqueta="Cantidad" [requerido]="true">
         <input
           type="number"
           step="1"
@@ -66,7 +66,10 @@
       </ra-campo>
     </div>
 
-    <div>
+    <ra-campo class="block">
+      <!-- Sin `etiqueta`: el label real se proyecta a mano porque incluye la
+           anotación dinámica "(nombre del gimnasio)" que el input de texto
+           plano de ra-campo no puede representar. -->
       <label class="text-ra-slate mb-1.5 block text-sm font-semibold">
         Categoría
         <span class="text-red-600">*</span>
@@ -92,7 +95,7 @@
       ) {
         <p class="mt-1 text-sm text-gray-600">No hay categorías en este gimnasio.</p>
       }
-    </div>
+    </ra-campo>
 
     @if (error) {
       <div class="text-sm text-red-600">{{ error }}</div>

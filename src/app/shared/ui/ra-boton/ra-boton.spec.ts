@@ -64,4 +64,19 @@ describe('RaBoton', () => {
     expect(boton().className).toContain('w-8');
     expect(boton().className).toContain('h-8');
   });
+
+  // Regresion real detectada en Fase 4b: info y ghost llegaron a tener un
+  // hover casi imperceptible (brightness-110 / bg-gray-50) en vez del color
+  // visible que tenian los botones originales que reemplazan.
+  it('variante info tiene un hover visible (navy oscuro, no un brightness casi imperceptible)', () => {
+    host.variante = 'info';
+    fixture.detectChanges();
+    expect(boton().className).toContain('hover:bg-[#0A2540]');
+  });
+
+  it('variante ghost tiene un hover visible (gray-100, no gray-50 casi blanco)', () => {
+    host.variante = 'ghost';
+    fixture.detectChanges();
+    expect(boton().className).toContain('hover:bg-gray-100');
+  });
 });
