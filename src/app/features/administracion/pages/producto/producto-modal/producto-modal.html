@@ -69,6 +69,7 @@
     <div>
       <label class="text-ra-slate mb-1.5 block text-sm font-semibold">
         Categoría
+        <span class="text-red-600">*</span>
         @if (isAdmin && form.controls.gimnasioId.value != null) {
           <span class="ml-1 text-xs text-gray-500"
             >({{ gimNombrePorId(form.controls.gimnasioId.value) }})</span
