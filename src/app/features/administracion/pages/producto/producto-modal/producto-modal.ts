@@ -21,11 +21,13 @@ import { GimnasioService } from '../../../../../shared/data/gimnasio-service';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../../../environments/environment';
+import { RaBoton } from '../../../../../shared/ui/ra-boton/ra-boton';
+import { RaCampo } from '../../../../../shared/ui/ra-campo/ra-campo';
 
 @Component({
   selector: 'app-producto-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RaBoton, RaCampo],
   templateUrl: './producto-modal.html',
   styleUrl: './producto-modal.css',
 })
@@ -246,6 +248,14 @@ export class ProductoModal implements OnInit, OnDestroy {
     // Etiqueta: "Nombre — Gimnasio"
     const gymNombre = (c as any)?.gimnasio?.nombre ? ` — ${(c as any).gimnasio.nombre}` : '';
     return `${c.nombre}${gymNombre}`;
+  }
+
+  // -------------------------
+  // Errores de campo (para ra-campo)
+  // -------------------------
+  get errorGimnasio(): string | null {
+    const c = this.form.controls.gimnasioId;
+    return (this.intentoGuardar || c.touched) && c.invalid ? 'Selecciona un gimnasio.' : null;
   }
 
   // ===== Guardar =====
