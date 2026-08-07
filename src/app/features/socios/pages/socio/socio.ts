@@ -1,13 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  OnDestroy,
-  OnInit,
-  signal,
-  DestroyRef,
-  inject,
-  HostListener,
-} from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
@@ -32,6 +24,7 @@ import { PagedResponse } from '../../../../shared/models/paged-response';
 
 import { TipoPaquete } from '../../../../shared/util/enums/tipo-paquete';
 import { MenuService } from 'src/app/core/layout/menu-service';
+import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 
 // ✅ selector admin + tenant ctx
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
@@ -44,7 +37,7 @@ import { environment } from '../../../../../environments/environment';
 @Component({
   selector: 'app-socio',
   standalone: true,
-  imports: [CommonModule, SocioModal, FormsModule, RaGimnasioFilterComponent],
+  imports: [CommonModule, SocioModal, FormsModule, RaGimnasioFilterComponent, RaDropdown],
   templateUrl: './socio.html',
   styleUrl: './socio.css',
 })
@@ -73,9 +66,6 @@ export class Socio implements OnInit, OnDestroy {
   // Modal
   modalSocioVisible = signal(false);
   socioActual: SocioData | null = null;
-  menuRowIdx: number | null = null;
-  menuDropUpIdx: number | null = null;
-  menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
   // ─────────── Paginación ───────────
   paginaActual = 0; // 0-based
@@ -273,9 +263,6 @@ export class Socio implements OnInit, OnDestroy {
   }
 
   cargarSocios(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
     this.cargando = true;
     this.mensajeError = null;
 
@@ -404,13 +391,6 @@ export class Socio implements OnInit, OnDestroy {
     this.router.navigate(['/pages/socio', s.idSocio, 'asesorias']);
   }
 
-  @HostListener('document:click')
-  closeMenuRows(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
-  }
-
   // Mostrar gym con tolerancia a id ó idGimnasio
   displayGimnasio(s: SocioData): string {
     const g: any = s?.gimnasio ?? {};
@@ -419,30 +399,5 @@ export class Socio implements OnInit, OnDestroy {
     if (nombre && nombre.trim().length) return nombre;
     if (id != null) return `#${id}`;
     return '—';
-  }
-
-  toggleMenuRow(i: number, event: MouseEvent): void {
-    event.stopPropagation();
-    if (this.menuRowIdx === i) {
-      this.menuRowIdx = null;
-      this.menuDropUpIdx = null;
-      this.menuDropdownStyle = null;
-      return;
-    }
-    const trigger = event.currentTarget as HTMLElement;
-    const rect = trigger.getBoundingClientRect();
-    const menuHeight = 220;
-    const gap = 4;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const openUp = spaceBelow < menuHeight + gap;
-    this.menuRowIdx = i;
-    this.menuDropUpIdx = openUp ? i : null;
-    this.menuDropdownStyle = openUp
-      ? {
-          bottom: `${viewportHeight - rect.top + gap}px`,
-          right: `${window.innerWidth - rect.right}px`,
-        }
-      : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }

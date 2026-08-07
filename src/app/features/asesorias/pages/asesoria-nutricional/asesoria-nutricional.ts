@@ -1,13 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  ElementRef,
-  ViewChild,
-  HostListener,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, DestroyRef, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -29,11 +20,12 @@ import { AsesoriaNutriocionalModal } from './asesoria-nutriocional-modal/asesori
 // ✅ enriquecer gimnasio desde el socio real
 import { SocioService } from 'src/app/features/socios/data/socio-service';
 import { SocioData } from 'src/app/shared/models/socio-data';
+import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 
 @Component({
   selector: 'app-asesoria-nutricional',
   standalone: true,
-  imports: [CommonModule, FormsModule, AsesoriaNutriocionalModal],
+  imports: [CommonModule, FormsModule, AsesoriaNutriocionalModal, RaDropdown],
   templateUrl: './asesoria-nutricional.html',
   styleUrl: './asesoria-nutricional.css',
 })
@@ -85,9 +77,6 @@ export class AsesoriaNutricional {
   // Busy por fila
   busyDesactivarId = signal<number | null>(null);
   busyEliminarId = signal<number | null>(null);
-  menuRowIdx: number | null = null;
-  menuDropUpIdx: number | null = null;
-  menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
   // Config “por vencer”
   private readonly UMBRAL_POR_VENCER_DIAS = 3;
@@ -171,9 +160,6 @@ export class AsesoriaNutricional {
 
   // ====== Cargar (SIN paginación) ======
   cargar(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
     this.cargando = true;
     this.error = null;
 
@@ -514,36 +500,4 @@ export class AsesoriaNutricional {
 
     this.asesoriasMaxH = Math.max(420, Math.floor(available / this.uiZoom));
   };
-
-  @HostListener('document:click')
-  closeMenuRows(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
-  }
-
-  toggleMenuRow(i: number, event: MouseEvent): void {
-    event.stopPropagation();
-    if (this.menuRowIdx === i) {
-      this.menuRowIdx = null;
-      this.menuDropUpIdx = null;
-      this.menuDropdownStyle = null;
-      return;
-    }
-    const trigger = event.currentTarget as HTMLElement;
-    const rect = trigger.getBoundingClientRect();
-    const menuHeight = 130;
-    const gap = 4;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const openUp = spaceBelow < menuHeight + gap;
-    this.menuRowIdx = i;
-    this.menuDropUpIdx = openUp ? i : null;
-    this.menuDropdownStyle = openUp
-      ? {
-          bottom: `${viewportHeight - rect.top + gap}px`,
-          right: `${window.innerWidth - rect.right}px`,
-        }
-      : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
-  }
 }

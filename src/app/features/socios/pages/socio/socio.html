@@ -190,73 +190,52 @@
                 }
 
                 <td class="relative px-1 py-2.5 text-center">
-                  <button
-                    (click)="toggleMenuRow(i, $event)"
-                    class="hover:bg-ra-grayLight/50 mx-auto grid h-6 w-6 place-items-center rounded"
-                    title="Acciones"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      class="h-3.5 w-3.5 text-[color:var(--color-ra-azul-fuerte)]"
-                      fill="currentColor"
+                  <ra-dropdown>
+                    <button
+                      (click)="verHistorial(s)"
+                      class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
                     >
-                      <circle cx="12" cy="5" r="1.5" />
-                      <circle cx="12" cy="12" r="1.5" />
-                      <circle cx="12" cy="19" r="1.5" />
-                    </svg>
-                  </button>
-
-                  @if (menuRowIdx === i) {
-                    <div
-                      class="fixed z-50 w-48 rounded-xl bg-white py-1 text-left shadow-lg ring-1 ring-black/10"
-                      [ngStyle]="menuDropdownStyle"
+                      <img src="iconos/historial.svg" alt="Historial" class="h-4 w-4 shrink-0" />
+                      Historial
+                    </button>
+                    <button
+                      (click)="verAsesorias(s)"
+                      class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
                     >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        class="h-4 w-4 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        aria-hidden="true"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M4 8v8M7 10v4M17 10v4M20 8v8M7 12h10"
+                        />
+                      </svg>
+                      Asesorias
+                    </button>
+                    @if (puedeEditarEliminar) {
                       <button
-                        (click)="menuRowIdx = null; verHistorial(s)"
+                        (click)="abrirModalParaEditar(s)"
                         class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
                       >
-                        <img src="iconos/historial.svg" alt="Historial" class="h-4 w-4 shrink-0" />
-                        Historial
+                        <img src="iconos/editar.svg" alt="Editar" class="h-4 w-4 shrink-0" />
+                        Editar
                       </button>
                       <button
-                        (click)="menuRowIdx = null; verAsesorias(s)"
+                        (click)="eliminarSocio(s)"
                         class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 24 24"
-                          class="h-4 w-4 shrink-0"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          aria-hidden="true"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M4 8v8M7 10v4M17 10v4M20 8v8M7 12h10"
-                          />
-                        </svg>
-                        Asesorias
+                        <img src="iconos/eliminar.svg" alt="Eliminar" class="h-4 w-4 shrink-0" />
+                        Eliminar
                       </button>
-                      @if (puedeEditarEliminar) {
-                        <button
-                          (click)="menuRowIdx = null; abrirModalParaEditar(s)"
-                          class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
-                        >
-                          <img src="iconos/editar.svg" alt="Editar" class="h-4 w-4 shrink-0" />
-                          Editar
-                        </button>
-                        <button
-                          (click)="menuRowIdx = null; eliminarSocio(s)"
-                          class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
-                        >
-                          <img src="iconos/eliminar.svg" alt="Eliminar" class="h-4 w-4 shrink-0" />
-                          Eliminar
-                        </button>
-                      }
-                    </div>
-                  }
+                    }
+                  </ra-dropdown>
                 </td>
               </tr>
             }

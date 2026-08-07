@@ -1,6 +1,6 @@
 // src/app/pages/entrenador/entrenador.ts
-import { CommonModule, NgStyle } from '@angular/common';
-import { Component, HostListener, OnInit, inject, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, computed } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
@@ -13,11 +13,12 @@ import { GimnasioData } from '../../../../shared/models/gimnasio-data';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../../environments/environment';
+import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 
 @Component({
   selector: 'app-entrenador',
   standalone: true,
-  imports: [CommonModule, NgStyle, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, RaDropdown],
   templateUrl: './entrenador.html',
   styleUrl: './entrenador.css',
 })
@@ -53,9 +54,6 @@ export class Entrenador implements OnInit {
   });
 
   guardando = false;
-  menuRowIdx: number | null = null;
-  menuDropUpIdx: number | null = null;
-  menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
   tituloForm = computed(() =>
     this.entrenadorEditando ? 'Editar entrenador' : 'Agregar entrenador',
@@ -240,40 +238,5 @@ export class Entrenador implements OnInit {
     if (g.nombre) return g.nombre;
     const id = g.idGimnasio ?? g.id;
     return id != null ? `#${id}` : '';
-  }
-
-  @HostListener('document:click')
-  closeMenuRows(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
-  }
-
-  toggleMenuRow(i: number, event: MouseEvent): void {
-    event.stopPropagation();
-
-    if (this.menuRowIdx === i) {
-      this.menuRowIdx = null;
-      this.menuDropUpIdx = null;
-      this.menuDropdownStyle = null;
-      return;
-    }
-
-    const trigger = event.currentTarget as HTMLElement;
-    const rect = trigger.getBoundingClientRect();
-    const menuHeight = 130;
-    const gap = 4;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const openUp = spaceBelow < menuHeight + gap;
-
-    this.menuRowIdx = i;
-    this.menuDropUpIdx = openUp ? i : null;
-    this.menuDropdownStyle = openUp
-      ? {
-          bottom: `${viewportHeight - rect.top + gap}px`,
-          right: `${window.innerWidth - rect.right}px`,
-        }
-      : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }

@@ -1,4 +1,4 @@
-import { Component, inject, DestroyRef, HostListener } from '@angular/core';
+import { Component, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { finalize, distinctUntilChanged, skip } from 'rxjs';
@@ -17,6 +17,7 @@ import { CorteCajaInfo } from './corte-caja-info/corte-caja-info';
 // ✅ tenant selector
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
 import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/ra-gimnasio-filter';
+import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 
 type CampoOrden = 'apertura' | 'cierre' | 'idCorte';
 type DirOrden = 'asc' | 'desc';
@@ -24,7 +25,7 @@ type DirOrden = 'asc' | 'desc';
 @Component({
   selector: 'app-corte-caja-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, CorteCajaInfo, RaGimnasioFilterComponent],
+  imports: [CommonModule, FormsModule, CorteCajaInfo, RaGimnasioFilterComponent, RaDropdown],
   templateUrl: './corte-caja-admin.html',
   styleUrl: './corte-caja-admin.css',
 })
@@ -64,9 +65,6 @@ export class CorteCajaAdmin {
   // Modal de información
   mostrarInfo = false;
   corteSeleccionado: CorteCajaListado | null = null;
-  menuRowIdx: number | null = null;
-  menuDropUpIdx: number | null = null;
-  menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
   ngOnInit(): void {
     // ✅ igual que Membresías/Ventas
@@ -119,9 +117,6 @@ export class CorteCajaAdmin {
 
   // Carga
   cargar(pageUI: number): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
     this.error = null;
     this.cargando = true;
 
@@ -220,36 +215,4 @@ export class CorteCajaAdmin {
 
   // track
   trackById = (_: number, it: CorteCajaListado) => it.idCorte;
-
-  @HostListener('document:click')
-  closeMenuRows(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
-  }
-
-  toggleMenuRow(i: number, event: MouseEvent): void {
-    event.stopPropagation();
-    if (this.menuRowIdx === i) {
-      this.menuRowIdx = null;
-      this.menuDropUpIdx = null;
-      this.menuDropdownStyle = null;
-      return;
-    }
-    const trigger = event.currentTarget as HTMLElement;
-    const rect = trigger.getBoundingClientRect();
-    const menuHeight = 130;
-    const gap = 4;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const openUp = spaceBelow < menuHeight + gap;
-    this.menuRowIdx = i;
-    this.menuDropUpIdx = openUp ? i : null;
-    this.menuDropdownStyle = openUp
-      ? {
-          bottom: `${viewportHeight - rect.top + gap}px`,
-          right: `${window.innerWidth - rect.right}px`,
-        }
-      : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
-  }
 }

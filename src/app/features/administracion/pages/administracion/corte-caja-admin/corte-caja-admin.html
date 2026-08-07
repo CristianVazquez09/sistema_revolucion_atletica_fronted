@@ -265,56 +265,34 @@
                 </td>
 
                 <td class="relative px-1 py-2.5 text-center">
-                  <button
-                    type="button"
-                    (click)="toggleMenuRow(i, $event)"
-                    class="hover:bg-ra-grayLight/50 mx-auto grid h-6 w-6 place-items-center rounded"
-                    title="Acciones"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      class="h-3.5 w-3.5 text-[color:var(--color-ra-azul-fuerte)]"
-                      fill="currentColor"
+                  <ra-dropdown>
+                    <button
+                      type="button"
+                      (click)="verInfo(c)"
+                      class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
                     >
-                      <circle cx="12" cy="5" r="1.5" />
-                      <circle cx="12" cy="12" r="1.5" />
-                      <circle cx="12" cy="19" r="1.5" />
-                    </svg>
-                  </button>
-
-                  @if (menuRowIdx === i) {
-                    <div
-                      class="fixed z-50 w-48 rounded-xl bg-white py-1 text-left shadow-lg ring-1 ring-black/10"
-                      [ngStyle]="menuDropdownStyle"
+                      <svg
+                        viewBox="0 0 24 24"
+                        class="h-4 w-4 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                      Ver detalle
+                    </button>
+                    <button
+                      type="button"
+                      (click)="reimprimir(c)"
+                      [disabled]="reimprimiendo || c.estado !== 'CERRADO'"
+                      class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
                     >
-                      <button
-                        type="button"
-                        (click)="menuRowIdx = null; verInfo(c)"
-                        class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          class="h-4 w-4 shrink-0"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
-                          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-                          <circle cx="12" cy="12" r="3" />
-                        </svg>
-                        Ver detalle
-                      </button>
-                      <button
-                        type="button"
-                        (click)="menuRowIdx = null; reimprimir(c)"
-                        [disabled]="reimprimiendo || c.estado !== 'CERRADO'"
-                        class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
-                      >
-                        <img src="iconos/impresora.svg" alt="Reimprimir" class="h-4 w-4 shrink-0" />
-                        Reimprimir
-                      </button>
-                    </div>
-                  }
+                      <img src="iconos/impresora.svg" alt="Reimprimir" class="h-4 w-4 shrink-0" />
+                      Reimprimir
+                    </button>
+                  </ra-dropdown>
                 </td>
               </tr>
             }
