@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { HistorialData } from '../../../../../shared/models/historial-data';
+import { HistorialData } from '../../../models/historial-data';
 import { HistorialService } from '../../../data/historial-service';
 import { PagedResponse } from '../../../../../shared/models/paged-response';
 import { FormsModule } from '@angular/forms';
