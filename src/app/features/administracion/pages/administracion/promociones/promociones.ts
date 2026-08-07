@@ -7,7 +7,6 @@ import {
   signal,
   computed,
   ChangeDetectorRef,
-  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -28,11 +27,12 @@ import { PromocionData } from 'src/app/shared/models/promocion-data';
 import { PaqueteData } from 'src/app/shared/models/paquete-data';
 import { GimnasioData } from 'src/app/shared/models/gimnasio-data';
 import { environment } from 'src/environments/environment';
+import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 
 @Component({
   selector: 'app-promociones',
   standalone: true,
-  imports: [CommonModule, FormsModule, PromocionModal],
+  imports: [CommonModule, FormsModule, PromocionModal, RaDropdown],
   templateUrl: './promociones.html',
   styleUrl: './promociones.css',
 })
@@ -97,9 +97,6 @@ export class Promociones {
 
   modalAbierto = signal(false);
   editando = signal<PromocionData | null>(null);
-  menuRowIdx: number | null = null;
-  menuDropUpIdx: number | null = null;
-  menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
   busyDesactivarId = signal<number | null>(null);
   busyEliminarId = signal<number | null>(null);
@@ -263,9 +260,6 @@ export class Promociones {
   }
 
   private cargarPromociones(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
     this.cargando.set(true);
 
     this.promoSrv
@@ -631,37 +625,5 @@ export class Promociones {
         // noop
       }
     });
-  }
-
-  @HostListener('document:click')
-  closeMenuRows(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
-  }
-
-  toggleMenuRow(i: number, event: MouseEvent): void {
-    event.stopPropagation();
-    if (this.menuRowIdx === i) {
-      this.menuRowIdx = null;
-      this.menuDropUpIdx = null;
-      this.menuDropdownStyle = null;
-      return;
-    }
-    const trigger = event.currentTarget as HTMLElement;
-    const rect = trigger.getBoundingClientRect();
-    const menuHeight = 130;
-    const gap = 4;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const openUp = spaceBelow < menuHeight + gap;
-    this.menuRowIdx = i;
-    this.menuDropUpIdx = openUp ? i : null;
-    this.menuDropdownStyle = openUp
-      ? {
-          bottom: `${viewportHeight - rect.top + gap}px`,
-          right: `${window.innerWidth - rect.right}px`,
-        }
-      : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }

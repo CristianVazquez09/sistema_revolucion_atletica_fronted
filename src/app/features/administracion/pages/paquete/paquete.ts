@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, OnInit, signal, DestroyRef } from '@angular/core';
+import { Component, inject, OnInit, signal, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { finalize, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -13,11 +13,12 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../../environments/environment';
 import { TipoPaquete } from '../../../../shared/util/enums/tipo-paquete';
 import { MenuService } from 'src/app/core/layout/menu-service';
+import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 
 @Component({
   selector: 'app-paquete-componet',
   standalone: true,
-  imports: [CommonModule, PaqueteModal, TiempoPlanLabelPipe],
+  imports: [CommonModule, PaqueteModal, TiempoPlanLabelPipe, RaDropdown],
   templateUrl: './paquete.html',
   styleUrl: './paquete.css',
 })
@@ -46,9 +47,6 @@ export class Paquete implements OnInit {
   // Estado de modal
   mostrarModalPaquete = signal(false);
   paqueteEnEdicion: PaqueteData | null = null;
-  menuRowIdx: number | null = null;
-  menuDropUpIdx: number | null = null;
-  menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
   ngOnInit(): void {
     this.isAdmin = this.esAdminDesdeToken();
@@ -210,37 +208,5 @@ export class Paquete implements OnInit {
       default:
         return 'Gimnasio';
     }
-  }
-
-  @HostListener('document:click')
-  closeMenuRows(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
-  }
-
-  toggleMenuRow(i: number, event: MouseEvent): void {
-    event.stopPropagation();
-    if (this.menuRowIdx === i) {
-      this.menuRowIdx = null;
-      this.menuDropUpIdx = null;
-      this.menuDropdownStyle = null;
-      return;
-    }
-    const trigger = event.currentTarget as HTMLElement;
-    const rect = trigger.getBoundingClientRect();
-    const menuHeight = 130;
-    const gap = 4;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const openUp = spaceBelow < menuHeight + gap;
-    this.menuRowIdx = i;
-    this.menuDropUpIdx = openUp ? i : null;
-    this.menuDropdownStyle = openUp
-      ? {
-          bottom: `${viewportHeight - rect.top + gap}px`,
-          right: `${window.innerWidth - rect.right}px`,
-        }
-      : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }

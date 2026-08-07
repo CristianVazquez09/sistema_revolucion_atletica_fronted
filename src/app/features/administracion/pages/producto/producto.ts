@@ -1,13 +1,5 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  HostListener,
-  OnDestroy,
-  OnInit,
-  signal,
-  DestroyRef,
-  inject,
-} from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, DestroyRef, inject } from '@angular/core';
 import { RouterLink, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -39,6 +31,7 @@ import { StockModal, StockModalModo } from './stock-modal/stock-modal';
 // ✅ tenant / filtro gimnasio (admin)
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
 import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/ra-gimnasio-filter';
+import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 
 @Component({
   selector: 'app-producto',
@@ -51,6 +44,7 @@ import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/
     StockModal,
     RouterLink,
     RaGimnasioFilterComponent,
+    RaDropdown,
   ],
   templateUrl: './producto.html',
   styleUrl: './producto.css',
@@ -86,9 +80,6 @@ export class Producto implements OnInit, OnDestroy {
   mostrarStockModal = signal(false);
   stockProducto: (ProductoData & { gimnasio?: any }) | null = null;
   stockModo: StockModalModo = 'ENTRADA';
-  menuRowIdx: number | null = null;
-  menuDropUpIdx: number | null = null;
-  menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
   // ✅ buscador con debounce (>=3)
   terminoBusqueda = '';
@@ -206,9 +197,6 @@ export class Producto implements OnInit, OnDestroy {
   // Carga / búsqueda
   // =========================
   private cargarListadoBase(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
     this.loading = true;
     this.error = null;
 
@@ -227,9 +215,6 @@ export class Producto implements OnInit, OnDestroy {
   }
 
   private refrescarListado(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
     const txt = this.normalizarTermino(this.terminoBusqueda);
     if (txt.length >= this.minCaracteresBusqueda) {
       this.loading = true;
@@ -334,37 +319,5 @@ export class Producto implements OnInit, OnDestroy {
   onStockAplicado(): void {
     this.cerrarStockModal();
     this.refrescarListado();
-  }
-
-  @HostListener('document:click')
-  closeMenuRows(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
-  }
-
-  toggleMenuRow(i: number, event: MouseEvent): void {
-    event.stopPropagation();
-    if (this.menuRowIdx === i) {
-      this.menuRowIdx = null;
-      this.menuDropUpIdx = null;
-      this.menuDropdownStyle = null;
-      return;
-    }
-    const trigger = event.currentTarget as HTMLElement;
-    const rect = trigger.getBoundingClientRect();
-    const menuHeight = 220;
-    const gap = 4;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const openUp = spaceBelow < menuHeight + gap;
-    this.menuRowIdx = i;
-    this.menuDropUpIdx = openUp ? i : null;
-    this.menuDropdownStyle = openUp
-      ? {
-          bottom: `${viewportHeight - rect.top + gap}px`,
-          right: `${window.innerWidth - rect.right}px`,
-        }
-      : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }

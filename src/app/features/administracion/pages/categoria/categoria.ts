@@ -1,6 +1,5 @@
 import {
   Component,
-  HostListener,
   OnInit,
   AfterViewInit,
   OnDestroy,
@@ -22,11 +21,12 @@ import { GimnasioData } from '../../../../shared/models/gimnasio-data';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../../environments/environment';
+import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 
 @Component({
   selector: 'app-categoria',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, RaDropdown],
   templateUrl: './categoria.html',
   styleUrl: './categoria.css',
 })
@@ -62,9 +62,6 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
   });
 
   guardando = false;
-  menuRowIdx: number | null = null;
-  menuDropUpIdx: number | null = null;
-  menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
   // ===================== ZOOM / LAYOUT =====================
   @ViewChild('zoomOuter', { static: true }) zoomOuter!: ElementRef<HTMLElement>;
@@ -320,37 +317,5 @@ export class Categoria implements OnInit, AfterViewInit, OnDestroy {
   }
   get idEditando(): number | null {
     return this.categoriaEditando?.idCategoria ?? null;
-  }
-
-  @HostListener('document:click')
-  closeMenuRows(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
-  }
-
-  toggleMenuRow(i: number, event: MouseEvent): void {
-    event.stopPropagation();
-    if (this.menuRowIdx === i) {
-      this.menuRowIdx = null;
-      this.menuDropUpIdx = null;
-      this.menuDropdownStyle = null;
-      return;
-    }
-    const trigger = event.currentTarget as HTMLElement;
-    const rect = trigger.getBoundingClientRect();
-    const menuHeight = 130;
-    const gap = 4;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const openUp = spaceBelow < menuHeight + gap;
-    this.menuRowIdx = i;
-    this.menuDropUpIdx = openUp ? i : null;
-    this.menuDropdownStyle = openUp
-      ? {
-          bottom: `${viewportHeight - rect.top + gap}px`,
-          right: `${window.innerWidth - rect.right}px`,
-        }
-      : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
   }
 }

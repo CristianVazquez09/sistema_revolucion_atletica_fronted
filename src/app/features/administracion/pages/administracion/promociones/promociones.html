@@ -232,88 +232,67 @@
                     </td>
 
                     <td class="relative px-1 py-2.5 text-center">
-                      <button
-                        (click)="toggleMenuRow(i, $event)"
-                        class="hover:bg-ra-grayLight/50 mx-auto grid h-6 w-6 place-items-center rounded"
-                        title="Acciones"
-                      >
-                        <svg
-                          viewBox="0 0 24 24"
-                          class="h-3.5 w-3.5 text-[color:var(--color-ra-azul-fuerte)]"
-                          fill="currentColor"
+                      <ra-dropdown>
+                        <button
+                          (click)="editar(p)"
+                          class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
                         >
-                          <circle cx="12" cy="5" r="1.5" />
-                          <circle cx="12" cy="12" r="1.5" />
-                          <circle cx="12" cy="19" r="1.5" />
-                        </svg>
-                      </button>
+                          <img src="iconos/editar.svg" alt="Editar" class="h-4 w-4 shrink-0" />
+                          Editar
+                        </button>
 
-                      @if (menuRowIdx === i) {
-                        <div
-                          class="fixed z-50 w-48 rounded-xl bg-white py-1 text-left shadow-lg ring-1 ring-black/10"
-                          [ngStyle]="menuDropdownStyle"
-                        >
+                        @if (p.activo !== false) {
                           <button
-                            (click)="menuRowIdx = null; editar(p)"
-                            class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
-                          >
-                            <img src="iconos/editar.svg" alt="Editar" class="h-4 w-4 shrink-0" />
-                            Editar
-                          </button>
-
-                          @if (p.activo !== false) {
-                            <button
-                              (click)="menuRowIdx = null; desactivar(p)"
-                              [disabled]="busyDesactivarId() === idRow(p)"
-                              class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
-                            >
-                              <svg
-                                viewBox="0 0 24 24"
-                                class="h-4 w-4 shrink-0 text-amber-700"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                              >
-                                <path d="M8 6v12M16 6v12"></path>
-                              </svg>
-                              Desactivar
-                            </button>
-                          } @else {
-                            <button
-                              (click)="menuRowIdx = null; activar(p)"
-                              [disabled]="busyDesactivarId() === idRow(p)"
-                              class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
-                            >
-                              <svg
-                                viewBox="0 0 24 24"
-                                class="h-4 w-4 shrink-0 text-emerald-700"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                              >
-                                <path d="M9 12l2 2 4-4"></path>
-                                <path
-                                  d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"
-                                ></path>
-                              </svg>
-                              Activar
-                            </button>
-                          }
-
-                          <button
-                            (click)="menuRowIdx = null; eliminar(p)"
-                            [disabled]="busyEliminarId() === idRow(p)"
+                            (click)="desactivar(p)"
+                            [disabled]="busyDesactivarId() === idRow(p)"
                             class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
                           >
-                            <img
-                              src="iconos/eliminar.svg"
-                              alt="Eliminar"
-                              class="h-4 w-4 shrink-0"
-                            />
-                            Eliminar
+                            <svg
+                              viewBox="0 0 24 24"
+                              class="h-4 w-4 shrink-0 text-amber-700"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path d="M8 6v12M16 6v12"></path>
+                            </svg>
+                            Desactivar
                           </button>
-                        </div>
-                      }
+                        } @else {
+                          <button
+                            (click)="activar(p)"
+                            [disabled]="busyDesactivarId() === idRow(p)"
+                            class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
+                          >
+                            <svg
+                              viewBox="0 0 24 24"
+                              class="h-4 w-4 shrink-0 text-emerald-700"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                            >
+                              <path d="M9 12l2 2 4-4"></path>
+                              <path
+                                d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"
+                              ></path>
+                            </svg>
+                            Activar
+                          </button>
+                        }
+
+                        <button
+                          (click)="eliminar(p)"
+                          [disabled]="busyEliminarId() === idRow(p)"
+                          class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
+                        >
+                          <img
+                            src="iconos/eliminar.svg"
+                            alt="Eliminar"
+                            class="h-4 w-4 shrink-0"
+                          />
+                          Eliminar
+                        </button>
+                      </ra-dropdown>
                     </td>
                   </tr>
                 }
