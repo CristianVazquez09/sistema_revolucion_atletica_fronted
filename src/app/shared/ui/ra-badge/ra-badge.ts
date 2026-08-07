@@ -24,6 +24,6 @@ export class RaBadge {
 
   protected readonly clases = computed(
     () =>
-      `inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${CLASES_POR_VARIANTE[this.variante()]}`,
+      `inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${CLASES_POR_VARIANTE[this.variante()]}`,
   );
 }
