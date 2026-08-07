@@ -1,11 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { CheckInService } from '../../data/check-in-service';
 import { AsistenciaHistorialData } from '../../models/asistencia-historial-data';
@@ -14,11 +10,12 @@ import { TiempoPlanLabelPipe } from '../../../../shared/util/tiempo-plan-label';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { MenuService } from '../../../../core/layout/menu-service';
 import { environment } from '../../../../../environments/environment';
+import { RaBuscador } from '../../../../shared/ui/ra-buscador/ra-buscador';
 
 @Component({
   selector: 'app-asistencia-historial',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, TiempoPlanLabelPipe],
+  imports: [CommonModule, FormsModule, RouterLink, TiempoPlanLabelPipe, RaBuscador],
   templateUrl: './asistencia-historial.html',
   styleUrl: './asistencia-historial.css',
 })
@@ -27,7 +24,6 @@ export class AsistenciaHistorial implements OnInit {
 
   private readonly jwt = inject(JwtHelperService);
   private readonly menuSrv = inject(MenuService);
-  private readonly destroyRef = inject(DestroyRef);
 
   menuAbierto = this.menuSrv.menuAbierto;
 
@@ -44,8 +40,7 @@ export class AsistenciaHistorial implements OnInit {
   filtroHasta: string | null = null; // 'YYYY-MM-DD'
   filtroNombreSocio: string = '';
 
-  // Búsqueda tipo “Socios/Membresías”: debounce + mínimo 3 letras
-  private readonly nombreSearch$ = new Subject<string>();
+  // Búsqueda tipo “Socios/Membresías”: mínimo 3 letras (debounce lo maneja ra-buscador)
   private buscandoNombre = false;
 
   private nombreTrim(): string {
@@ -70,51 +65,39 @@ export class AsistenciaHistorial implements OnInit {
 
   // ─────────── Ciclo de vida ───────────
   ngOnInit(): void {
-    this.configurarBusquedaNombre();
     this.cargarAsistencias();
     this.isAdmin = this.deducirEsAdminDesdeToken();
   }
 
-  private configurarBusquedaNombre(): void {
-    this.nombreSearch$
-      .pipe(
-        map((v) => (v ?? '').trim()),
-        debounceTime(300),
-        distinctUntilChanged(),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((n) => {
-        const activar = n.length >= 3;
+  // (buscar) de ra-buscador: ya llega recortado (trim) y debounced
+  onBuscarChange(termino: string): void {
+    const n = termino ?? '';
+    this.filtroNombreSocio = n;
 
-        // Si venías buscando por nombre y ahora bajó a < 3 letras:
-        // recarga (pero ahora sin nombre; con fechas si están completas)
-        if (!activar && this.buscandoNombre) {
-          this.buscandoNombre = false;
-          this.paginaActual = 0;
-          this.cargarAsistencias();
-          return;
-        }
+    const activar = n.length >= 3;
 
-        // Si ya tiene >= 3 letras: buscar automáticamente
-        if (activar) {
-          this.buscandoNombre = true;
-          this.paginaActual = 0;
-          this.cargarAsistencias();
-          return;
-        }
+    // Si venías buscando por nombre y ahora bajó a < 3 letras:
+    // recarga (pero ahora sin nombre; con fechas si están completas)
+    if (!activar && this.buscandoNombre) {
+      this.buscandoNombre = false;
+      this.paginaActual = 0;
+      this.cargarAsistencias();
+      return;
+    }
 
-        // Si quedó vacío: recarga listado normal (o por fechas si están completas)
-        if (n.length === 0) {
-          this.paginaActual = 0;
-          this.cargarAsistencias();
-        }
-      });
-  }
+    // Si ya tiene >= 3 letras: buscar automáticamente
+    if (activar) {
+      this.buscandoNombre = true;
+      this.paginaActual = 0;
+      this.cargarAsistencias();
+      return;
+    }
 
-  // ngModelChange del input nombre
-  onNombreChange(valor: string): void {
-    this.filtroNombreSocio = valor ?? '';
-    this.nombreSearch$.next(this.filtroNombreSocio);
+    // Si quedó vacío: recarga listado normal (o por fechas si están completas)
+    if (n.length === 0) {
+      this.paginaActual = 0;
+      this.cargarAsistencias();
+    }
   }
 
   private deducirEsAdminDesdeToken(): boolean {

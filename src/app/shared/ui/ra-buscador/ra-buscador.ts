@@ -4,6 +4,7 @@ import {
   DestroyRef,
   EventEmitter,
   Output,
+  effect,
   inject,
   input,
   signal,
@@ -12,7 +13,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounce, distinctUntilChanged, map, timer } from 'rxjs';
 
 /** Input de búsqueda con debounce centralizado. Emite el término ya
- * recortado (trim) y solo cuando cambia (distinctUntilChanged). */
+ * recortado (trim) y solo cuando cambia (distinctUntilChanged).
+ *
+ * `valor` es opcional: permite que el padre sincronice/limpie el texto
+ * mostrado desde afuera (ej. un botón "Limpiar filtros" propio de la
+ * página, o restaurar un borrador). Sin `valor`, ra-buscador se comporta
+ * como no-controlado (el padre solo escucha `(buscar)`). */
 @Component({
   selector: 'ra-buscador',
   standalone: true,
@@ -42,6 +48,8 @@ export class RaBuscador {
   placeholder = input('Buscar…');
   debounceMs = input(300);
   mostrarLimpiar = input(true);
+  /** Texto externo opcional para sincronizar/limpiar el input desde el padre. */
+  valor = input<string | null>(null);
 
   @Output() buscar = new EventEmitter<string>();
 
@@ -51,6 +59,15 @@ export class RaBuscador {
   private readonly entrada$ = new Subject<string>();
 
   constructor() {
+    // Sincroniza el texto mostrado cuando el padre controla `valor`
+    // (ej. limpiar filtros, restaurar un borrador). Si `valor` no se
+    // provee (queda en null), este efecto no hace nada.
+    effect(() => {
+      const externo = this.valor();
+      if (externo === null) return;
+      this.terminoActual.set(externo);
+    });
+
     this.entrada$
       .pipe(
         map((v) => v.trim()),

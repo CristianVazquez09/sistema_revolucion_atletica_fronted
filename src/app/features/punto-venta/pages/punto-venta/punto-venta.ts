@@ -1,7 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, debounceTime, distinctUntilChanged, switchMap, of, finalize } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, switchMap, of, finalize } from 'rxjs';
 
 import { CategoriaService } from '../../../administracion/data/categoria-service';
 import { ProductoService } from '../../../administracion/data/producto-service';
@@ -20,15 +21,17 @@ import { environment } from '../../../../../environments/environment';
 import { CarritoItem, CarritoService } from '../../data/carrito-service';
 import { crearContextoTicket, obtenerNombreCajero } from '../../../../shared/util/ticket-contexto';
 import { PagoData } from '../../../../shared/models/membresia-data';
+import { RaBuscador } from '../../../../shared/ui/ra-buscador/ra-buscador';
 
 @Component({
   selector: 'app-punto-venta',
   standalone: true,
-  imports: [CommonModule, FormsModule, ResumenVenta],
+  imports: [CommonModule, FormsModule, ResumenVenta, RaBuscador],
   templateUrl: './punto-venta.html',
   styleUrl: './punto-venta.css',
 })
 export class PuntoVenta implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   // Servicios
   private categoriaSrv = inject(CategoriaService);
   private productoSrv = inject(ProductoService);
@@ -68,7 +71,10 @@ export class PuntoVenta implements OnInit {
 
   // Búsqueda
   terminoBusqueda = '';
-  private search$ = new Subject<string>();
+  // Subject dedicado a la búsqueda: switchMap cancela la petición HTTP en
+  // vuelo si llega un término nuevo antes de que responda el anterior.
+  // El debounce + trim + distinctUntilChanged ya los hace ra-buscador.
+  private readonly search$ = new Subject<string>();
 
   // Carrito (servicio)
   cantidadParaAgregar = 1;
@@ -96,8 +102,6 @@ export class PuntoVenta implements OnInit {
 
     this.search$
       .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
         switchMap((q) => {
           const t = (q ?? '').trim();
           if (t.length >= 2) {
@@ -121,6 +125,7 @@ export class PuntoVenta implements OnInit {
           }
           return of(null);
         }),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (lista: ProductoData[] | null) => {

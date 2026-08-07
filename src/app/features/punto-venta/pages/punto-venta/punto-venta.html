@@ -128,12 +128,11 @@
       }
 
       <div class="ml-auto w-full max-w-[520px]">
-        <input
-          class="input-filled text-xs"
+        <ra-buscador
           placeholder="Buscar producto por nombre o código…"
-          [ngModel]="terminoBusqueda"
-          (ngModelChange)="onBuscarChange($event)"
-        />
+          [valor]="terminoBusqueda"
+          (buscar)="onBuscarChange($event)"
+        ></ra-buscador>
       </div>
     </div>
 

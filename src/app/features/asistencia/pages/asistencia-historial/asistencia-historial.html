@@ -28,13 +28,11 @@
     </div>
 
     <!-- Nombre socio -->
-    <input
-      type="text"
-      class="h-8 w-[200px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
+    <ra-buscador
       placeholder="Nombre o apellido (mín. 3)"
-      [ngModel]="filtroNombreSocio"
-      (ngModelChange)="onNombreChange($event)"
-    />
+      [valor]="filtroNombreSocio"
+      (buscar)="onBuscarChange($event)"
+    ></ra-buscador>
 
     <!-- Botones -->
     <button

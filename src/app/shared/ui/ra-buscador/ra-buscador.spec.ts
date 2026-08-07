@@ -95,3 +95,49 @@ describe('RaBuscador con mostrarLimpiar=false', () => {
     expect(fixture.nativeElement.querySelector('button')).toBeNull();
   }));
 });
+
+@Component({
+  standalone: true,
+  imports: [RaBuscador],
+  template: `<ra-buscador [debounceMs]="50" [valor]="externo" (buscar)="terminos.push($event)"></ra-buscador>`,
+})
+class HostBuscadorControlado {
+  externo: string | null = null;
+  terminos: string[] = [];
+}
+
+describe('RaBuscador con valor (controlado desde el padre)', () => {
+  let fixture: ComponentFixture<HostBuscadorControlado>;
+  let host: HostBuscadorControlado;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [HostBuscadorControlado] });
+    fixture = TestBed.createComponent(HostBuscadorControlado);
+    host = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  function input(): HTMLInputElement {
+    return fixture.nativeElement.querySelector('input');
+  }
+
+  it('sin valor (null) el input queda vacio, sin control externo', () => {
+    expect(input().value).toBe('');
+  });
+
+  it('al cambiar valor desde el padre, el input se actualiza', () => {
+    host.externo = 'preseleccionado';
+    fixture.detectChanges();
+    expect(input().value).toBe('preseleccionado');
+  });
+
+  it('el padre puede limpiar el texto mostrado (ej. boton "Limpiar filtros" propio)', fakeAsync(() => {
+    host.externo = 'ana';
+    fixture.detectChanges();
+    expect(input().value).toBe('ana');
+
+    host.externo = '';
+    fixture.detectChanges();
+    expect(input().value).toBe('');
+  }));
+});
