@@ -46,4 +46,22 @@ describe('RaBadge', () => {
     fixture.detectChanges();
     expect(span().className).toContain('--color-ra-azul-fuerte');
   });
+
+  it('variante exito usa verde esmeralda', () => {
+    host.variante = 'exito';
+    fixture.detectChanges();
+    expect(span().className).toContain('bg-emerald-100');
+  });
+
+  it('variante advertencia usa ambar', () => {
+    host.variante = 'advertencia';
+    fixture.detectChanges();
+    expect(span().className).toContain('bg-amber-100');
+  });
+
+  it('variante info usa indigo', () => {
+    host.variante = 'info';
+    fixture.detectChanges();
+    expect(span().className).toContain('bg-indigo-100');
+  });
 });
