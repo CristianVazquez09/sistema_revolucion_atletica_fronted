@@ -241,7 +241,7 @@
           >
             <ra-boton variante="ghost" (click)="cancelar.emit()">Cancelar</ra-boton>
 
-            <ra-boton variante="primario" tipo="submit" [deshabilitado]="guardando">
+            <ra-boton variante="info" tipo="submit" [deshabilitado]="guardando">
               {{ guardando ? 'Guardando...' : socio ? 'Confirmar cambios' : 'Guardar' }}
             </ra-boton>
           </div>
