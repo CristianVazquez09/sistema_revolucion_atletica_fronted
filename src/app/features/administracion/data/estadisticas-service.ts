@@ -1,4 +1,4 @@
-// src/app/services/estadisticas-service.ts
+// src/app/features/administracion/data/estadisticas-service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
