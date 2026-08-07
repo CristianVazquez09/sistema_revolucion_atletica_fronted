@@ -47,12 +47,15 @@ import { RaDropdownRegistry } from './ra-dropdown-registry';
 })
 export class RaDropdown {
   tituloBoton = input('Acciones');
+  /** Alto estimado del panel en px, usado para decidir si abre hacia arriba
+   * o abajo cerca del borde de la pantalla. Default 130 (2-3 ítems); pasar un
+   * valor mayor si el menú tiene más ítems (ej. 220 para 4 ítems). */
+  alturaMenu = input(130);
 
   @ViewChild('trigger', { static: true }) private triggerRef!: ElementRef<HTMLButtonElement>;
 
   protected readonly registry = inject(RaDropdownRegistry);
   private readonly id = Symbol('ra-dropdown');
-  private readonly menuHeight = 130;
   private readonly gap = 4;
 
   protected readonly abierto = computed(() => this.registry.estaAbierto(this.id));
@@ -69,7 +72,7 @@ export class RaDropdown {
     const rect = this.triggerRef.nativeElement.getBoundingClientRect();
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
     const spaceBelow = viewportHeight - rect.bottom;
-    const openUp = spaceBelow < this.menuHeight + this.gap;
+    const openUp = spaceBelow < this.alturaMenu() + this.gap;
     this.posicion.set(
       openUp
         ? { bottom: `${viewportHeight - rect.top + this.gap}px`, right: `${window.innerWidth - rect.right}px` }

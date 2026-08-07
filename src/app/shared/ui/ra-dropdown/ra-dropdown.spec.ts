@@ -66,4 +66,26 @@ describe('RaDropdown', () => {
     fixture.detectChanges();
     expect(panelesAbiertos()).toBe(0);
   });
+
+  it('alturaMenu por defecto es 130', () => {
+    const dropdown = fixture.debugElement.children[0].componentInstance as RaDropdown;
+    expect(dropdown.alturaMenu()).toBe(130);
+  });
+});
+
+@Component({
+  standalone: true,
+  imports: [RaDropdown],
+  template: `<ra-dropdown [alturaMenu]="220"><button class="item-c">C</button></ra-dropdown>`,
+})
+class HostAlturaPersonalizada {}
+
+describe('RaDropdown con alturaMenu personalizada', () => {
+  it('acepta un valor distinto de 130 via input', () => {
+    const fixture = TestBed.configureTestingModule({ imports: [HostAlturaPersonalizada] })
+      .createComponent(HostAlturaPersonalizada);
+    fixture.detectChanges();
+    const dropdown = fixture.debugElement.children[0].componentInstance as RaDropdown;
+    expect(dropdown.alturaMenu()).toBe(220);
+  });
 });
