@@ -19,7 +19,7 @@ import { PromocionModal } from './promocion-modal/promocion-modal';
 
 import { PromocionService } from 'src/app/services/promocion-service';
 import { PaqueteService } from 'src/app/services/paquete-service';
-import { GimnasioService } from 'src/app/services/gimnasio-service';
+import { GimnasioService } from 'src/app/shared/data/gimnasio-service';
 import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 import { MenuService } from 'src/app/core/layout/menu-service';
 

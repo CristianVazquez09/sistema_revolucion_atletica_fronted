@@ -8,7 +8,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 
 import { SocioService } from '../../../../services/socio-service';
 import { SocioData } from '../../../../shared/models/socio-data';
-import { MembresiaService } from '../../../../services/membresia-service';
+import { MembresiaService } from '../../../../shared/data/membresia-service';
 import { NotificacionService } from '../../../../core/layout/notificacion-service';
 import { AsistenciaStore } from './asistencia-store';
 

@@ -7,9 +7,9 @@ import { catchError, finalize, of } from 'rxjs';
 
 import { SocioService } from '../../services/socio-service';
 import { PaqueteService } from '../../services/paquete-service';
-import { MembresiaService } from '../../services/membresia-service';
+import { MembresiaService } from '../../shared/data/membresia-service';
 import { NotificacionService } from '../../core/layout/notificacion-service';
-import { GimnasioService } from '../../services/gimnasio-service';
+import { GimnasioService } from '../../shared/data/gimnasio-service';
 import { TicketService, VentaContexto } from '../../shared/ticket/ticket-service';
 import { obtenerNombreCajero } from '../../shared/util/ticket-contexto';
 import { JwtHelperService } from '@auth0/angular-jwt';

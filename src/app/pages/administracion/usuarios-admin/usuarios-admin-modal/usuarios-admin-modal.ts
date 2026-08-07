@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 
 import { UsuarioService } from '../../../../services/usuario-service';
-import { GimnasioService } from '../../../../services/gimnasio-service';
+import { GimnasioService } from '../../../../shared/data/gimnasio-service';
 import { RolService } from '../../../../services/rol-service';
 
 import { UsuarioData } from '../../../../shared/models/usuario-data';

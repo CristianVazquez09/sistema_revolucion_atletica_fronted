@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { GenericService } from '../core/http/generic-service';
+import { GenericService } from '../../core/http/generic-service';
 
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../../environments/environment';
-import { MembresiaData } from '../shared/models/membresia-data';
-import { PagedResponse, toPagedResponse } from '../shared/models/paged-response';
+import { environment } from '../../../environments/environment';
+import { MembresiaData } from '../models/membresia-data';
+import { PagedResponse, toPagedResponse } from '../models/paged-response';
 import { Observable, map } from 'rxjs';
-import { MembresiaPatchRequest } from '../model/membresia-patch';
+import { MembresiaPatchRequest } from '../models/membresia-patch';
 
 type PageMetaApi = { size: number; number: number; totalElements: number; totalPages: number; };
 export type MembresiaPageResponse = { content: MembresiaData[]; page: PageMetaApi; };

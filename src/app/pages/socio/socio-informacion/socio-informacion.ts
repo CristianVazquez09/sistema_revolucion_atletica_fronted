@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { finalize } from 'rxjs';
 import { MembresiaData, PagoData } from '../../../shared/models/membresia-data'; // 👈 agrega PagoData
-import { MembresiaService } from '../../../services/membresia-service';
+import { MembresiaService } from '../../../shared/data/membresia-service';
 import { FormsModule } from '@angular/forms';
 import { PagedResponse } from '../../../shared/models/paged-response';
 

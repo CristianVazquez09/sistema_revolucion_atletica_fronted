@@ -2,11 +2,11 @@ import { Component, EventEmitter, Input, OnInit, Output, inject, signal } from '
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { MembresiaService } from '../../../../services/membresia-service';
+import { MembresiaService } from '../../../../shared/data/membresia-service';
 import { PaqueteService } from '../../../../services/paquete-service';
 
 import { MembresiaData, PagoData } from '../../../../shared/models/membresia-data';
-import { MembresiaPatchRequest } from '../../../../model/membresia-patch';
+import { MembresiaPatchRequest } from '../../../../shared/models/membresia-patch';
 import { PaqueteData } from '../../../../shared/models/paquete-data';
 
 @Component({

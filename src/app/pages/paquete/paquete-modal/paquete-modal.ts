@@ -23,7 +23,7 @@ import { ModalidadPaquete } from '../../../shared/util/enums/modalidad-paquete';
 import { TiempoPlanLabelPipe } from '../../../shared/util/tiempo-plan-label';
 
 import { PaqueteService } from '../../../services/paquete-service';
-import { GimnasioService } from '../../../services/gimnasio-service';
+import { GimnasioService } from '../../../shared/data/gimnasio-service';
 
 import { environment } from '../../../../environments/environment';
 

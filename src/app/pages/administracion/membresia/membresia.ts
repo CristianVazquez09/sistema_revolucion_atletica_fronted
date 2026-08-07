@@ -15,7 +15,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../environments/environment';
 
 import { MembresiaData } from '../../../shared/models/membresia-data';
-import { MembresiaPageResponse, MembresiaService } from '../../../services/membresia-service';
+import { MembresiaPageResponse, MembresiaService } from '../../../shared/data/membresia-service';
 import { NotificacionService } from '../../../core/layout/notificacion-service';
 
 import { MembresiaModal } from './membresia-modal/membresia-modal';

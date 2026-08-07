@@ -8,7 +8,7 @@ import { GimnasioData } from '../../../shared/models/gimnasio-data';
 
 import { ProductoService } from '../../../services/producto-service';
 import { CategoriaService } from '../../../services/categoria-service';
-import { GimnasioService } from '../../../services/gimnasio-service';
+import { GimnasioService } from '../../../shared/data/gimnasio-service';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../environments/environment';

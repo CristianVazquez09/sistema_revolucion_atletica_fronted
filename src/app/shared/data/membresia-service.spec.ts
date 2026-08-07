@@ -2,13 +2,13 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { MembresiaService, MembresiaPageResponse } from './membresia-service';
-import { MembresiaData } from '../shared/models/membresia-data';
-import { MembresiaPatchRequest } from '../model/membresia-patch';
-import { PagedResponse } from '../shared/models/paged-response';
-import { environment } from '../../environments/environment';
-import { TipoMovimiento } from '../shared/util/enums/tipo-movimiento';
-import { TipoPago } from '../shared/util/enums/tipo-pago';
-import { TiempoPlan } from '../shared/util/enums/tiempo-plan';
+import { MembresiaData } from '../models/membresia-data';
+import { MembresiaPatchRequest } from '../models/membresia-patch';
+import { PagedResponse } from '../models/paged-response';
+import { environment } from '../../../environments/environment';
+import { TipoMovimiento } from '../util/enums/tipo-movimiento';
+import { TipoPago } from '../util/enums/tipo-pago';
+import { TiempoPlan } from '../util/enums/tiempo-plan';
 
 describe('MembresiaService', () => {
   const BASE = `${environment.HOST}/membresias`;

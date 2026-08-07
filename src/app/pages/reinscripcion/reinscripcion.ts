@@ -14,7 +14,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { SocioService } from '../../services/socio-service';
-import { MembresiaService } from '../../services/membresia-service';
+import { MembresiaService } from '../../shared/data/membresia-service';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 import { PaqueteService } from '../../services/paquete-service';
 import { EntrenadorService } from '../../features/asesorias/data/entrenador-service';
@@ -31,7 +31,7 @@ import { hoyISO } from '../../shared/util/fechas-precios';
 
 // Ticket
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { GimnasioService } from '../../services/gimnasio-service';
+import { GimnasioService } from '../../shared/data/gimnasio-service';
 import { TicketService, VentaContexto } from '../../shared/ticket/ticket-service';
 import { GimnasioData } from '../../shared/models/gimnasio-data';
 import { environment } from '../../../environments/environment';

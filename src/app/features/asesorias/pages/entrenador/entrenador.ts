@@ -5,7 +5,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
 import { EntrenadorService } from '../../data/entrenador-service';
-import { GimnasioService } from '../../../../services/gimnasio-service';
+import { GimnasioService } from '../../../../shared/data/gimnasio-service';
 import { NotificacionService } from '../../../../core/layout/notificacion-service';
 
 import { EntrenadorData } from '../../../../shared/models/entrenador-data';

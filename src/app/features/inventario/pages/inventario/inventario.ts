@@ -11,7 +11,7 @@ import { hoyISO } from '../../../../shared/util/fechas-precios';
 
 import { MenuService } from 'src/app/core/layout/menu-service';
 import { InventarioService } from '../../data/inventario-service';
-import { GimnasioService } from '../../../../services/gimnasio-service';
+import { GimnasioService } from '../../../../shared/data/gimnasio-service';
 import { NotificacionService } from '../../../../core/layout/notificacion-service';
 
 import { GimnasioData } from '../../../../shared/models/gimnasio-data';

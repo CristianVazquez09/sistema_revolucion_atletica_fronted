@@ -13,7 +13,7 @@ import {
 import { CategoriaService } from '../../../../services/categoria-service';
 import { ProductoService } from '../../../../services/producto-service';
 import { VentaService } from '../../../../services/venta-service';
-import { GimnasioService } from '../../../../services/gimnasio-service';
+import { GimnasioService } from '../../../../shared/data/gimnasio-service';
 import { TicketService, VentaContexto } from '../../../../shared/ticket/ticket-service';
 import { JwtHelperService } from '@auth0/angular-jwt';
 

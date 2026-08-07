@@ -7,7 +7,7 @@ import { CategoriaService } from '../../services/categoria-service';
 import { CategoriaData } from '../../shared/models/categoria-data';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 
-import { GimnasioService } from '../../services/gimnasio-service';
+import { GimnasioService } from '../../shared/data/gimnasio-service';
 import { GimnasioData } from '../../shared/models/gimnasio-data';
 
 import { JwtHelperService } from '@auth0/angular-jwt';

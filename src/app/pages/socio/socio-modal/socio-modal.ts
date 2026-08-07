@@ -15,7 +15,7 @@ import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angula
 import { SocioData } from '../../../shared/models/socio-data';
 import { GimnasioData } from '../../../shared/models/gimnasio-data';
 import { SocioService } from '../../../services/socio-service';
-import { GimnasioService } from '../../../services/gimnasio-service';
+import { GimnasioService } from '../../../shared/data/gimnasio-service';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../environments/environment';
