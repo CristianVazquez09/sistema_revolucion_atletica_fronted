@@ -168,12 +168,7 @@
 
                     <td class="px-3 py-2.5 text-center">
                       @let tb = tipoBadge(p.tipo);
-                      <span
-                        class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1"
-                        [ngClass]="tb.clase"
-                      >
-                        {{ tb.texto }}
-                      </span>
+                      <ra-badge [variante]="tb.variante">{{ tb.texto }}</ra-badge>
                     </td>
 
                     <td class="px-3 py-2.5 text-center">
@@ -223,12 +218,7 @@
 
                     <td class="px-3 py-2.5 text-center">
                       @let st = estadoLabel(p);
-                      <span
-                        class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1"
-                        [ngClass]="st.clase"
-                      >
-                        {{ st.texto }}
-                      </span>
+                      <ra-badge [variante]="st.variante">{{ st.texto }}</ra-badge>
                     </td>
 
                     <td class="relative px-1 py-2.5 text-center">

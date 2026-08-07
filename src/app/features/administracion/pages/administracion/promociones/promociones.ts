@@ -28,11 +28,12 @@ import { PaqueteData } from 'src/app/shared/models/paquete-data';
 import { GimnasioData } from 'src/app/shared/models/gimnasio-data';
 import { environment } from 'src/environments/environment';
 import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
+import { RaBadge, RaBadgeVariante } from 'src/app/shared/ui/ra-badge/ra-badge';
 
 @Component({
   selector: 'app-promociones',
   standalone: true,
-  imports: [CommonModule, FormsModule, PromocionModal, RaDropdown],
+  imports: [CommonModule, FormsModule, PromocionModal, RaDropdown, RaBadge],
   templateUrl: './promociones.html',
   styleUrl: './promociones.css',
 })
@@ -410,48 +411,48 @@ export class Promociones {
   trackById = (_: number, it: PromocionData) => (it as any)?.idPromocion ?? _;
 
   // ✅ Badge bonito por tipo (incluye SIN_BENEFICIO)
-  tipoBadge(tipo?: TipoPromocion | string | null): { texto: string; clase: string } {
+  tipoBadge(tipo?: TipoPromocion | string | null): { texto: string; variante: RaBadgeVariante } {
     const raw = String(tipo ?? '').toUpperCase();
 
     if (raw === 'SIN_BENEFICIO') {
       return {
         texto: 'Sin beneficio',
-        clase: 'bg-slate-100 text-slate-700 ring-slate-200',
+        variante: 'neutral',
       };
     }
 
     if (raw === String(TipoPromocion.DESCUENTO_PORCENTAJE)) {
       return {
         texto: labelTipoPromocion(TipoPromocion.DESCUENTO_PORCENTAJE),
-        clase: 'bg-blue-50 text-blue-700 ring-blue-200',
+        variante: 'info',
       };
     }
 
     if (raw === String(TipoPromocion.DESCUENTO_MONTO)) {
       return {
         texto: labelTipoPromocion(TipoPromocion.DESCUENTO_MONTO),
-        clase: 'bg-sky-50 text-sky-700 ring-sky-200',
+        variante: 'info',
       };
     }
 
     if (raw === String(TipoPromocion.MESES_GRATIS)) {
       return {
         texto: labelTipoPromocion(TipoPromocion.MESES_GRATIS),
-        clase: 'bg-violet-50 text-violet-700 ring-violet-200',
+        variante: 'chip',
       };
     }
 
     if (raw === 'MIXTA') {
       return {
         texto: 'Mixta',
-        clase: 'bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-200',
+        variante: 'peligro',
       };
     }
 
     // fallback
     return {
       texto: labelTipoPromocion(tipo),
-      clase: 'bg-ra-grayLight/40 text-ra-slate ring-black/10',
+      variante: 'neutral',
     };
   }
 
@@ -488,20 +489,17 @@ export class Promociones {
     return '—';
   }
 
-  estadoLabel(row: PromocionData): { texto: string; clase: string } {
-    if ((row as any)?.activo === false)
-      return { texto: 'Desactivada', clase: 'bg-slate-100 text-slate-700 ring-slate-200' };
+  estadoLabel(row: PromocionData): { texto: string; variante: RaBadgeVariante } {
+    if ((row as any)?.activo === false) return { texto: 'Desactivada', variante: 'neutral' };
 
     const hoy = this.hoy();
     const ini = this.toLocalDate((row as any)?.fechaInicio);
     const fin = this.toLocalDate((row as any)?.fechaFin);
 
-    if (!ini || !fin) return { texto: '—', clase: 'bg-slate-100 text-slate-700 ring-slate-200' };
-    if (hoy.getTime() < ini.getTime())
-      return { texto: 'Programada', clase: 'bg-amber-100 text-amber-800 ring-amber-200' };
-    if (hoy.getTime() > fin.getTime())
-      return { texto: 'Vencida', clase: 'bg-rose-100 text-rose-800 ring-rose-200' };
-    return { texto: 'Vigente', clase: 'bg-emerald-100 text-emerald-800 ring-emerald-200' };
+    if (!ini || !fin) return { texto: '—', variante: 'neutral' };
+    if (hoy.getTime() < ini.getTime()) return { texto: 'Programada', variante: 'advertencia' };
+    if (hoy.getTime() > fin.getTime()) return { texto: 'Vencida', variante: 'peligro' };
+    return { texto: 'Vigente', variante: 'exito' };
   }
 
   esVigente(row: PromocionData): boolean {

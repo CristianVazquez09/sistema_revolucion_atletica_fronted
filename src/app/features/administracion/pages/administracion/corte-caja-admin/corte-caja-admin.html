@@ -214,15 +214,9 @@
                 </td>
 
                 <td class="px-3 py-2.5">
-                  <span
-                    class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                    [ngClass]="{
-                      'bg-emerald-100 text-emerald-700': c.estado === 'ABIERTO',
-                      'bg-gray-200 text-gray-700': c.estado === 'CERRADO',
-                    }"
-                  >
-                    {{ c.estado }}
-                  </span>
+                  <ra-badge [variante]="c.estado === 'ABIERTO' ? 'exito' : 'neutral'">{{
+                    c.estado
+                  }}</ra-badge>
                 </td>
 
                 @if (esAdmin) {

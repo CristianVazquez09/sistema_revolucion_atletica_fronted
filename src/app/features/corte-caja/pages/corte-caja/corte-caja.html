@@ -81,15 +81,7 @@
     <div class="flex items-center gap-3">
       <div class="text-ra-slate text-base font-semibold">Resumen</div>
       @if (corte?.estado) {
-        <span
-          class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
-          [ngClass]="{
-            'bg-emerald-100 text-emerald-700': estaAbierto,
-            'bg-gray-200 text-gray-700': !estaAbierto,
-          }"
-        >
-          {{ corte?.estado }}
-        </span>
+        <ra-badge [variante]="estaAbierto ? 'exito' : 'neutral'">{{ corte?.estado }}</ra-badge>
       }
     </div>
     @if (corte?.idCorte != null) {

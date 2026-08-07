@@ -18,6 +18,7 @@ import { CorteCajaInfo } from './corte-caja-info/corte-caja-info';
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
 import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/ra-gimnasio-filter';
 import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
+import { RaBadge } from 'src/app/shared/ui/ra-badge/ra-badge';
 
 type CampoOrden = 'apertura' | 'cierre' | 'idCorte';
 type DirOrden = 'asc' | 'desc';
@@ -25,7 +26,14 @@ type DirOrden = 'asc' | 'desc';
 @Component({
   selector: 'app-corte-caja-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, CorteCajaInfo, RaGimnasioFilterComponent, RaDropdown],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CorteCajaInfo,
+    RaGimnasioFilterComponent,
+    RaDropdown,
+    RaBadge,
+  ],
   templateUrl: './corte-caja-admin.html',
   styleUrl: './corte-caja-admin.css',
 })
