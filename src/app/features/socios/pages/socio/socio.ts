@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, signal, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { finalize, distinctUntilChanged, skip } from 'rxjs';
+import { finalize, distinctUntilChanged, skip, Subject, switchMap } from 'rxjs';
 
 import { SocioService } from '../../data/socio-service';
 import { SocioData } from '../../../../shared/models/socio-data';
@@ -77,6 +77,9 @@ export class Socio implements OnInit, OnDestroy {
   terminoBusqueda = '';
   private readonly minCaracteresBusqueda = 3;
   private destroyRef = inject(DestroyRef);
+  // Subject dedicado a la búsqueda: switchMap cancela la petición HTTP en
+  // vuelo si llega un término nuevo antes de que responda el anterior.
+  private readonly busquedaSocios$ = new Subject<string>();
 
   // ─────────── Filtro por tipo de paquete vigente ───────────
   filtroTipoPaquete = ''; // '' => todos
@@ -89,7 +92,26 @@ export class Socio implements OnInit, OnDestroy {
     private socioService: SocioService,
     private router: Router,
     private notificacion: NotificacionService,
-  ) {}
+  ) {
+    this.busquedaSocios$
+      .pipe(
+        switchMap((texto) => {
+          const activo = this.mapFiltroEstadoToBoolean();
+          const tipoEnum = this.filtroTipoPaquete ? (this.filtroTipoPaquete as TipoPaquete) : undefined;
+          const soloVigentes: boolean | undefined = tipoEnum ? true : undefined;
+          return this.socioService
+            .buscarSociosPorNombre(texto, this.paginaActual, this.tamanioPagina, activo, tipoEnum, soloVigentes)
+            .pipe(finalize(() => (this.cargando = false)));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (resp: PagedResponse<SocioData>) => this.aplicarRespuesta(resp),
+        error: () => {
+          this.mensajeError = 'No se pudo ejecutar la búsqueda.';
+        },
+      });
+  }
 
   // =========================
   // Helpers de normalización
@@ -260,19 +282,7 @@ export class Socio implements OnInit, OnDestroy {
     this.mensajeError = null;
     this.paginaActual = 0;
 
-    const activo = this.mapFiltroEstadoToBoolean();
-    const tipoEnum = this.filtroTipoPaquete ? (this.filtroTipoPaquete as TipoPaquete) : undefined;
-    const soloVigentes: boolean | undefined = tipoEnum ? true : undefined;
-
-    this.socioService
-      .buscarSociosPorNombre(texto, this.paginaActual, this.tamanioPagina, activo, tipoEnum, soloVigentes)
-      .pipe(finalize(() => (this.cargando = false)))
-      .subscribe({
-        next: (resp: PagedResponse<SocioData>) => this.aplicarRespuesta(resp),
-        error: () => {
-          this.mensajeError = 'No se pudo ejecutar la búsqueda.';
-        },
-      });
+    this.busquedaSocios$.next(texto);
   }
 
   // ─────────── Filtro de tipo de paquete ───────────

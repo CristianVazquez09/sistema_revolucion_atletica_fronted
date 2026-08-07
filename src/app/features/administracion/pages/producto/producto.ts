@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit, signal, DestroyRef, inject } from '@angul
 import { RouterLink, RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { distinctUntilChanged, finalize, skip } from 'rxjs';
+import { distinctUntilChanged, finalize, skip, Subject, switchMap } from 'rxjs';
 
 import { ProductoModal } from './producto-modal/producto-modal';
 import { ProductoService } from '../../data/producto-service';
@@ -73,8 +73,28 @@ export class Producto implements OnInit, OnDestroy {
   // ✅ buscador (>=3 caracteres)
   terminoBusqueda = '';
   private readonly minCaracteresBusqueda = 3;
+  // Subject dedicado a la búsqueda: switchMap cancela la petición HTTP en
+  // vuelo si llega un término nuevo antes de que responda el anterior.
+  private readonly busquedaProductos$ = new Subject<string>();
 
   ngOnInit(): void {
+    this.busquedaProductos$
+      .pipe(
+        switchMap((texto) =>
+          this.productoSrv.buscarPorNombre(texto).pipe(finalize(() => (this.loading = false))),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (data) => {
+          this.productos = (data ?? []).filter((p) => p?.activo !== false) as any[];
+        },
+        error: (err) => {
+          console.error(err);
+          this.error = 'No se pudo ejecutar la búsqueda de productos.';
+        },
+      });
+
     // ✅ init tenant context (admin / view tenant)
     this.tenantCtx.initFromToken();
 
@@ -210,18 +230,7 @@ export class Producto implements OnInit, OnDestroy {
     this.loading = true;
     this.error = null;
 
-    this.productoSrv
-      .buscarPorNombre(texto)
-      .pipe(finalize(() => (this.loading = false)))
-      .subscribe({
-        next: (data) => {
-          this.productos = (data ?? []).filter((p) => p?.activo !== false) as any[];
-        },
-        error: (err) => {
-          console.error(err);
-          this.error = 'No se pudo ejecutar la búsqueda de productos.';
-        },
-      });
+    this.busquedaProductos$.next(texto);
   }
 
   // =========================
