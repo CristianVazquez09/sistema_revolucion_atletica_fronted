@@ -445,7 +445,9 @@ export class Promociones {
     if (raw === 'MIXTA') {
       return {
         texto: 'Mixta',
-        variante: 'peligro',
+        // advertencia (ámbar), no peligro: "Mixta" no es un error — compartir
+        // rojo con "Vencida" (misma tabla) confundiría al personal.
+        variante: 'advertencia',
       };
     }
 
