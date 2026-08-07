@@ -1,0 +1,13 @@
+import { PagoData } from '../../../shared/models/membresia-data';
+
+export interface DetalleVentaCreate {
+  idProducto: number;
+  cantidad: number;
+}
+
+/** Ahora enviamos pagos[] en lugar de un solo tipoPago */
+export interface VentaCreateRequest {
+  pagos: PagoData[];                 // múltiple método de pago
+  detalles: DetalleVentaCreate[];
+  descuento?: number;                // descuento opcional (0 = sin descuento)
+}

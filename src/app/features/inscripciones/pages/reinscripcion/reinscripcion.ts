@@ -13,11 +13,11 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { SocioService } from '../../../../features/socios/data/socio-service';
+import { SocioService } from '../../../socios/data/socio-service';
 import { MembresiaService } from '../../../../shared/data/membresia-service';
 import { NotificacionService } from '../../../../core/layout/notificacion-service';
-import { PaqueteService } from '../../../../services/paquete-service';
-import { EntrenadorService } from '../../../../features/asesorias/data/entrenador-service';
+import { PaqueteService } from '../../../administracion/data/paquete-service';
+import { EntrenadorService } from '../../../asesorias/data/entrenador-service';
 
 import { SocioData } from '../../../../shared/models/socio-data';
 import { PagoData } from '../../../../shared/models/membresia-data';

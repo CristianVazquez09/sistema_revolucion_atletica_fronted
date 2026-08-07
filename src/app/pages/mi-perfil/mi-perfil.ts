@@ -5,7 +5,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
-import { UsuarioService } from '../../services/usuario-service';
+import { UsuarioService } from '../../features/administracion/data/usuario-service';
 import { environment } from '../../../environments/environment';
 import {
   AvatarStyle,

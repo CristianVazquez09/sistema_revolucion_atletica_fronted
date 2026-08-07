@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
 
-import { Paquete } from './paquete/paquete';
-import { Producto } from './producto/producto';
-import { Categoria } from './categoria/categoria';
-import { Administracion } from './administracion/administracion';
+import { Paquete } from '../features/administracion/pages/paquete/paquete';
+import { Producto } from '../features/administracion/pages/producto/producto';
+import { Categoria } from '../features/administracion/pages/categoria/categoria';
+import { Administracion } from '../features/administracion/pages/administracion/administracion';
 import { gerenteGuard } from '../core/auth/gerente-guards';
 import { adminGuard } from '../core/auth/admin-guards';
 
@@ -121,13 +121,13 @@ export const pagesRoutes: Routes = [
   {
     path: 'membresia',
     loadComponent: () =>
-      import('./administracion/membresia/membresia').then((m) => m.Membresia),
+      import('../features/administracion/pages/administracion/membresia/membresia').then((m) => m.Membresia),
     data: { title: 'Membresías', scope: 'recepcion' },
   },
   {
     path: 'ventas',
     loadComponent: () =>
-      import('./administracion/ventas-admin/ventas-admin').then(
+      import('../features/administracion/pages/administracion/ventas-admin/ventas-admin').then(
         (m) => m.VentasAdmin,
       ),
     data: { title: 'Ventas', scope: 'recepcion' },
@@ -155,7 +155,7 @@ export const pagesRoutes: Routes = [
       {
         path: 'membresias',
         loadComponent: () =>
-          import('./administracion/membresia/membresia').then(
+          import('../features/administracion/pages/administracion/membresia/membresia').then(
             (m) => m.Membresia,
           ),
         data: { title: 'Membresías' },
@@ -163,7 +163,7 @@ export const pagesRoutes: Routes = [
       {
         path: 'corte-caja',
         loadComponent: () =>
-          import('./administracion/corte-caja-admin/corte-caja-admin').then(
+          import('../features/administracion/pages/administracion/corte-caja-admin/corte-caja-admin').then(
             (m) => m.CorteCajaAdmin,
           ),
         data: { title: 'Cortes de caja' },
@@ -171,7 +171,7 @@ export const pagesRoutes: Routes = [
       {
         path: 'ventas',
         loadComponent: () =>
-          import('./administracion/ventas-admin/ventas-admin').then(
+          import('../features/administracion/pages/administracion/ventas-admin/ventas-admin').then(
             (m) => m.VentasAdmin,
           ),
         data: { title: 'Ventas' },
@@ -179,7 +179,7 @@ export const pagesRoutes: Routes = [
       {
         path: 'usuarios',
         loadComponent: () =>
-          import('./administracion/usuarios-admin/usuarios-admin').then(
+          import('../features/administracion/pages/administracion/usuarios-admin/usuarios-admin').then(
             (m) => m.UsuariosAdmin,
           ),
         data: { title: 'Usuarios' },
@@ -187,13 +187,13 @@ export const pagesRoutes: Routes = [
       {
         path: 'estadisticas',
         loadComponent: () =>
-          import('./administracion/estadisticas/estadisticas').then((m) => m.Estadisticas),
+          import('../features/administracion/pages/administracion/estadisticas/estadisticas').then((m) => m.Estadisticas),
         data: { title: 'Estadísticas' },
       },
       {
         path: 'reportes',
         loadComponent: () =>
-          import('./administracion/reportes/reportes').then((m) => m.Reportes),
+          import('../features/administracion/pages/administracion/reportes/reportes').then((m) => m.Reportes),
         data: { title: 'Reportes' },
       },
       {
@@ -207,7 +207,7 @@ export const pagesRoutes: Routes = [
       {
   path: 'promociones',
   loadComponent: () =>
-    import('./administracion/promociones/promociones').then((m) => m.Promociones),
+    import('../features/administracion/pages/administracion/promociones/promociones').then((m) => m.Promociones),
   data: { title: 'Promociones' },
 },
 
@@ -226,7 +226,7 @@ export const pagesRoutes: Routes = [
       {
         path: 'membresias',
         loadComponent: () =>
-          import('./administracion/membresia/membresia').then(
+          import('../features/administracion/pages/administracion/membresia/membresia').then(
             (m) => m.Membresia,
           ),
         data: { title: 'Membresías' },
@@ -234,7 +234,7 @@ export const pagesRoutes: Routes = [
       {
         path: 'corte-caja',
         loadComponent: () =>
-          import('./administracion/corte-caja-admin/corte-caja-admin').then(
+          import('../features/administracion/pages/administracion/corte-caja-admin/corte-caja-admin').then(
             (m) => m.CorteCajaAdmin,
           ),
         data: { title: 'Cortes de caja' },
@@ -242,14 +242,14 @@ export const pagesRoutes: Routes = [
       {
         path: 'ventas',
         loadComponent: () =>
-          import('./administracion/ventas-admin/ventas-admin').then(
+          import('../features/administracion/pages/administracion/ventas-admin/ventas-admin').then(
             (m) => m.VentasAdmin,
           ),
         data: { title: 'Ventas' },
       },
       {
     path: 'promociones',
-    loadComponent: () => import('./administracion/promociones/promociones').then((m) => m.Promociones),
+    loadComponent: () => import('../features/administracion/pages/administracion/promociones/promociones').then((m) => m.Promociones),
     data: { title: 'Promociones' },
   },
     ],

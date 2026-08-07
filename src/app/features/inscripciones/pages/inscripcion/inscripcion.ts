@@ -30,12 +30,12 @@ import {
 import { ResumenCompra } from '../../../../shared/ui/resumen-compra/resumen-compra';
 import { HuellaModal } from '../../../../shared/huella/huella-modal/huella-modal';
 
-import { PaqueteService } from '../../../../services/paquete-service';
+import { PaqueteService } from '../../../administracion/data/paquete-service';
 import { MembresiaService } from '../../../../shared/data/membresia-service';
 import { NotificacionService } from '../../../../core/layout/notificacion-service';
 import { GimnasioService } from '../../../../shared/data/gimnasio-service';
 import { TicketService, VentaContexto } from '../../../../shared/ticket/ticket-service';
-import { EntrenadorService } from '../../../../features/asesorias/data/entrenador-service';
+import { EntrenadorService } from '../../../asesorias/data/entrenador-service';
 
 import { PaqueteData } from '../../../../shared/models/paquete-data';
 import { SocioData } from '../../../../shared/models/socio-data';

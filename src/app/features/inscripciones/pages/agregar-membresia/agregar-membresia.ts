@@ -5,8 +5,8 @@ import { Router, RouterLink } from '@angular/router';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, finalize, of } from 'rxjs';
 
-import { SocioService } from '../../../../features/socios/data/socio-service';
-import { PaqueteService } from '../../../../services/paquete-service';
+import { SocioService } from '../../../socios/data/socio-service';
+import { PaqueteService } from '../../../administracion/data/paquete-service';
 import { MembresiaService } from '../../../../shared/data/membresia-service';
 import { NotificacionService } from '../../../../core/layout/notificacion-service';
 import { GimnasioService } from '../../../../shared/data/gimnasio-service';
