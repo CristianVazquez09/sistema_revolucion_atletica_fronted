@@ -1,12 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  inject,
-  signal,
-  ViewChild,
-  DestroyRef,
-  HostListener,
-} from '@angular/core';
+import { Component, ElementRef, inject, signal, ViewChild, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -23,13 +15,14 @@ import { MenuService } from 'src/app/core/layout/menu-service';
 // ✅ tenant selector + recarga reactiva
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
 import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/ra-gimnasio-filter';
+import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 import { distinctUntilChanged, skip } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-ventas-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, VentasAdminModal, RaGimnasioFilterComponent],
+  imports: [CommonModule, FormsModule, VentasAdminModal, RaGimnasioFilterComponent, RaDropdown],
   templateUrl: './ventas-admin.html',
   styleUrl: './ventas-admin.css',
 })
@@ -67,9 +60,6 @@ export class VentasAdmin {
   // --- modal ---
   mostrarModal = signal(false);
   idVer: number | null = null;
-  menuRowIdx: number | null = null;
-  menuDropUpIdx: number | null = null;
-  menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
   // --- búsqueda por folio ---
   folioBuscar: string = '';
@@ -162,9 +152,6 @@ export class VentasAdmin {
 
   // ============= Carga / paginación =============
   cargar(pageUI: number): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
     this.error = null;
 
     if (this.buscandoPorRango && this.fechaDesde && this.fechaHasta) {
@@ -497,36 +484,4 @@ export class VentasAdmin {
     const available = window.innerHeight - top - bottomReserve;
     this.ventasMaxH = Math.max(420, Math.floor(available / this.uiZoom));
   };
-
-  @HostListener('document:click')
-  closeMenuRows(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
-  }
-
-  toggleMenuRow(i: number, event: MouseEvent): void {
-    event.stopPropagation();
-    if (this.menuRowIdx === i) {
-      this.menuRowIdx = null;
-      this.menuDropUpIdx = null;
-      this.menuDropdownStyle = null;
-      return;
-    }
-    const trigger = event.currentTarget as HTMLElement;
-    const rect = trigger.getBoundingClientRect();
-    const menuHeight = 220;
-    const gap = 4;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const openUp = spaceBelow < menuHeight + gap;
-    this.menuRowIdx = i;
-    this.menuDropUpIdx = openUp ? i : null;
-    this.menuDropdownStyle = openUp
-      ? {
-          bottom: `${viewportHeight - rect.top + gap}px`,
-          right: `${window.innerWidth - rect.right}px`,
-        }
-      : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
-  }
 }

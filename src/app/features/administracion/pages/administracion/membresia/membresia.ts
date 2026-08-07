@@ -6,7 +6,6 @@ import {
   signal,
   computed,
   DestroyRef,
-  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -36,6 +35,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 // ✅ selector admin
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
 import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/ra-gimnasio-filter';
+import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 
 type PageMeta = {
   size: number;
@@ -53,6 +53,7 @@ type PageMeta = {
     MembresiaModal,
     TiempoPlanLabelPipe,
     RaGimnasioFilterComponent,
+    RaDropdown,
   ],
   templateUrl: './membresia.html',
   styleUrl: './membresia.css',
@@ -144,9 +145,6 @@ export class Membresia {
 
   mostrarModal = signal(false);
   idEditando: number | null = null;
-  menuRowIdx: number | null = null;
-  menuDropUpIdx: number | null = null;
-  menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
   uiZoom = 1;
   membresiasMaxH = 650;
@@ -232,9 +230,6 @@ export class Membresia {
   }
 
   cargar(pageUI: number): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
     this.error = null;
     this.cargando = true;
 
@@ -521,36 +516,4 @@ export class Membresia {
     const offset = 220;
     this.membresiasMaxH = Math.max(420, window.innerHeight - offset);
   };
-
-  @HostListener('document:click')
-  closeMenuRows(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
-  }
-
-  toggleMenuRow(i: number, event: MouseEvent): void {
-    event.stopPropagation();
-    if (this.menuRowIdx === i) {
-      this.menuRowIdx = null;
-      this.menuDropUpIdx = null;
-      this.menuDropdownStyle = null;
-      return;
-    }
-    const trigger = event.currentTarget as HTMLElement;
-    const rect = trigger.getBoundingClientRect();
-    const menuHeight = 130;
-    const gap = 4;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const openUp = spaceBelow < menuHeight + gap;
-    this.menuRowIdx = i;
-    this.menuDropUpIdx = openUp ? i : null;
-    this.menuDropdownStyle = openUp
-      ? {
-          bottom: `${viewportHeight - rect.top + gap}px`,
-          right: `${window.innerWidth - rect.right}px`,
-        }
-      : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
-  }
 }

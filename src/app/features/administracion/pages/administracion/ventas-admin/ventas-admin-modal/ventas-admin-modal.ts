@@ -7,7 +7,6 @@ import {
   inject,
   signal,
   computed,
-  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -19,6 +18,7 @@ import { VentaData } from '../../../../models/venta-data';
 import { PagoData } from '../../../../../../shared/models/membresia-data';
 import { ProductoService } from '../../../../data/producto-service';
 import { ProductoData } from '../../../../../../shared/models/producto-data';
+import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 
 /* ----------------------------- Tipos internos ------------------------------ */
 
@@ -42,7 +42,7 @@ type EditDetalle = {
 @Component({
   selector: 'app-ventas-admin-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RaDropdown],
   templateUrl: './ventas-admin-modal.html',
   styleUrl: './ventas-admin-modal.css',
 })
@@ -82,9 +82,6 @@ export class VentasAdminModal implements OnInit {
   detalles = this._detalles;
   detallesVisibles = computed(() => (this._detalles() ?? []).filter((d) => !d._deleted));
   private newCtr = 0;
-  menuRowIdx: number | null = null;
-  menuDropUpIdx: number | null = null;
-  menuDropdownStyle: { top?: string; bottom?: string; right: string } | null = null;
 
   // descuento (signal)
   descuento = signal(0);
@@ -490,37 +487,6 @@ export class VentasAdminModal implements OnInit {
     });
   }
 
-  @HostListener('document:click')
-  closeMenuRows(): void {
-    this.menuRowIdx = null;
-    this.menuDropUpIdx = null;
-    this.menuDropdownStyle = null;
-  }
-
-  toggleMenuRow(i: number, event: MouseEvent): void {
-    event.stopPropagation();
-    if (this.menuRowIdx === i) {
-      this.menuRowIdx = null;
-      this.menuDropUpIdx = null;
-      this.menuDropdownStyle = null;
-      return;
-    }
-    const trigger = event.currentTarget as HTMLElement;
-    const rect = trigger.getBoundingClientRect();
-    const menuHeight = 130;
-    const gap = 4;
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    const spaceBelow = viewportHeight - rect.bottom;
-    const openUp = spaceBelow < menuHeight + gap;
-    this.menuRowIdx = i;
-    this.menuDropUpIdx = openUp ? i : null;
-    this.menuDropdownStyle = openUp
-      ? {
-          bottom: `${viewportHeight - rect.top + gap}px`,
-          right: `${window.innerWidth - rect.right}px`,
-        }
-      : { top: `${rect.bottom + gap}px`, right: `${window.innerWidth - rect.right}px` };
-  }
 }
 
 /* ------------------------------ Helpers locales ------------------------------ */
