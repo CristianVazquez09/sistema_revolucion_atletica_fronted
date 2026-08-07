@@ -19,6 +19,18 @@
   /* Bordes/Shadow personalizados (clases: rounded-xl2, shadow-card) */
   --radius-xl2: 1.25rem;
   --shadow-card: 0 2px 8px rgba(0,0,0,0.08);
+
+  /* Tokens semánticos (Fase 4): desacoplan el SIGNIFICADO de un color de su
+     valor físico. Hoy primario y peligro comparten el mismo rojo (ambigüedad
+     heredada, documentada — no se resuelve en esta fase). */
+  --color-primario: var(--color-ra-rojo);
+  --color-primario-fuerte: var(--color-ra-rojo-fuerte);
+  --color-peligro: var(--color-ra-rojo);
+  --color-peligro-fuerte: var(--color-ra-rojo-fuerte);
+  --color-exito: var(--color-ra-verde);
+  --color-exito-fuerte: var(--color-ra-verde-2);
+  --color-info: var(--color-ra-azul-fuerte);
+  --color-neutral: var(--color-ra-slate);
 }
 
 @layer components {
