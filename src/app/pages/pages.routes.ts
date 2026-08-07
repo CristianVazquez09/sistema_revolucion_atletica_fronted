@@ -9,7 +9,7 @@ export const pagesRoutes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    loadComponent: () => import('./home/home').then((m) => m.Home),
+    loadComponent: () => import('../features/cuenta/pages/home/home').then((m) => m.Home),
   },
   {
     path: 'paquete',
@@ -116,7 +116,7 @@ export const pagesRoutes: Routes = [
 
   {
     path: 'mi-perfil',
-    loadComponent: () => import('./mi-perfil/mi-perfil').then((m) => m.MiPerfil),
+    loadComponent: () => import('../features/cuenta/pages/mi-perfil/mi-perfil').then((m) => m.MiPerfil),
     data: { title: 'Mi perfil' },
   },
 

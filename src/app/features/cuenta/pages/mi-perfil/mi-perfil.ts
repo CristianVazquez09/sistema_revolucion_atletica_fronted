@@ -5,8 +5,8 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
-import { UsuarioService } from '../../features/administracion/data/usuario-service';
-import { environment } from '../../../environments/environment';
+import { UsuarioService } from '../../../administracion/data/usuario-service';
+import { environment } from '../../../../../environments/environment';
 import {
   AvatarStyle,
   FraseHomeMode,
@@ -16,7 +16,7 @@ import {
   fraseHomeByMode,
   loadPreferenciasUsuario,
   savePreferenciasUsuario,
-} from '../../shared/util/preferencias-usuario';
+} from '../../../../shared/util/preferencias-usuario';
 
 @Component({
   selector: 'app-mi-perfil',
