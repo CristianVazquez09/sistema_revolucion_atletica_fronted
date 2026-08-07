@@ -35,6 +35,10 @@ describe('RaBadge', () => {
     expect(span().className).toContain('bg-gray-100');
   });
 
+  it('siempre incluye gap-1 (espaciado entre icono y texto proyectados)', () => {
+    expect(span().className).toContain('gap-1');
+  });
+
   it('cambia de clases segun la variante', () => {
     host.variante = 'peligro';
     fixture.detectChanges();
