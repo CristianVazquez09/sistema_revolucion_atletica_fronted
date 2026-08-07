@@ -4,10 +4,10 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
-import { SocioService } from '../../../services/socio-service';
-import { PagedResponse } from '../../../shared/models/paged-response';
-import { AsesoriaContratoData } from '../../../shared/models/asesoria-contrato-data';
-import { PagoData } from '../../../shared/models/membresia-data';
+import { SocioService } from '../../../data/socio-service';
+import { PagedResponse } from '../../../../../shared/models/paged-response';
+import { AsesoriaContratoData } from '../../../../../shared/models/asesoria-contrato-data';
+import { PagoData } from '../../../../../shared/models/membresia-data';
 
 @Component({
   selector: 'app-socio-info-asesoria',

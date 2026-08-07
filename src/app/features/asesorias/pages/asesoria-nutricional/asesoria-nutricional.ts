@@ -27,7 +27,7 @@ import { AsesoriaNutricionalData } from 'src/app/features/asesorias/models/aseso
 import { AsesoriaNutriocionalModal } from './asesoria-nutriocional-modal/asesoria-nutriocional-modal';
 
 // ✅ enriquecer gimnasio desde el socio real
-import { SocioService } from 'src/app/services/socio-service';
+import { SocioService } from 'src/app/features/socios/data/socio-service';
 import { SocioData } from 'src/app/shared/models/socio-data';
 
 @Component({

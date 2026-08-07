@@ -15,7 +15,7 @@ import { catchError, finalize, of, forkJoin } from 'rxjs';
 import { ResumenCompra } from '../../../shared/ui/resumen-compra/resumen-compra';
 import { TiempoPlanLabelPipe } from 'src/app/shared/util/tiempo-plan-label';
 
-import { SocioService } from 'src/app/services/socio-service';
+import { SocioService } from 'src/app/features/socios/data/socio-service';
 import { MembresiaService } from 'src/app/shared/data/membresia-service';
 import { PaqueteService } from 'src/app/services/paquete-service';
 import { NotificacionService } from 'src/app/core/layout/notificacion-service';

@@ -1,11 +1,9 @@
 import { Routes } from '@angular/router';
 
-import { Socio } from './socio/socio';
 import { Inscripcion } from './inscripcion/inscripcion';
 import { Paquete } from './paquete/paquete';
 import { Producto } from './producto/producto';
 import { Categoria } from './categoria/categoria';
-import { SocioInformacion } from './socio/socio-informacion/socio-informacion';
 import { Reinscripcion } from './reinscripcion/reinscripcion';
 import { Historial } from './inscripcion/historial/historial';
 import { AgregarMembresia } from './agregar-membresia/agregar-membresia';
@@ -13,7 +11,6 @@ import { Administracion } from './administracion/administracion';
 import { gerenteGuard } from '../core/auth/gerente-guards';
 import { adminGuard } from '../core/auth/admin-guards';
 import { ReinscripcionAdelantada } from './inscripcion/reinscripcion-adelantada/reinscripcion-adelantada';
-import { SocioInfoAsesoria } from './socio/socio-info-asesoria/socio-info-asesoria';
 
 import { operacionGuard } from '../core/auth/operacion-guards';
 
@@ -33,7 +30,10 @@ export const pagesRoutes: Routes = [
     loadComponent: () => import('../features/asistencia/pages/asistencia-historial/asistencia-historial').then((m) => m.AsistenciaHistorial),
   },
   { path: 'reinscripcion-adelantada', component: ReinscripcionAdelantada },
-  { path: 'socio', component: Socio },
+  {
+    path: 'socio',
+    loadComponent: () => import('../features/socios/pages/socio/socio').then((m) => m.Socio),
+  },
   { path: 'inscripcion', component: Inscripcion },
 
   // ✅ Inventario diario (todos los roles autenticados que tengan el menú)
@@ -50,7 +50,13 @@ export const pagesRoutes: Routes = [
         (m) => m.PuntoVenta,
       ),
   },
-  { path: 'socio/:idSocio/historial', component: SocioInformacion },
+  {
+    path: 'socio/:idSocio/historial',
+    loadComponent: () =>
+      import('../features/socios/pages/socio/socio-informacion/socio-informacion').then(
+        (m) => m.SocioInformacion,
+      ),
+  },
   { path: 'reinscripcion/:id', component: Reinscripcion },
   { path: 'historial', component: Historial },
   { path: 'corte-caja', loadChildren: () => import('../features/corte-caja/corte-caja.routes').then(m => m.CORTE_CAJA_ROUTES) },
@@ -65,7 +71,13 @@ export const pagesRoutes: Routes = [
     loadComponent: () =>
       import('../features/asesorias/pages/asesoria/asesoria').then((m) => m.Asesoria),
   },
-  { path: 'socio/:idSocio/asesorias', component: SocioInfoAsesoria },
+  {
+    path: 'socio/:idSocio/asesorias',
+    loadComponent: () =>
+      import('../features/socios/pages/socio/socio-info-asesoria/socio-info-asesoria').then(
+        (m) => m.SocioInfoAsesoria,
+      ),
+  },
   {
     path: 'entrenador/:idEntrenador/asesorias',
     loadComponent: () =>

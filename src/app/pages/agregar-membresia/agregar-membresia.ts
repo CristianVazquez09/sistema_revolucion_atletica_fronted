@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, finalize, of } from 'rxjs';
 
-import { SocioService } from '../../services/socio-service';
+import { SocioService } from '../../features/socios/data/socio-service';
 import { PaqueteService } from '../../services/paquete-service';
 import { MembresiaService } from '../../shared/data/membresia-service';
 import { NotificacionService } from '../../core/layout/notificacion-service';

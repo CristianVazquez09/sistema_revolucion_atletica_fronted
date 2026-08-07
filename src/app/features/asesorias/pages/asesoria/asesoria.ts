@@ -9,7 +9,7 @@ import {
 import { finalize, of, switchMap } from 'rxjs';
 
 import { EntrenadorService } from '../../data/entrenador-service';
-import { SocioService } from '../../../../services/socio-service';
+import { SocioService } from '../../../../features/socios/data/socio-service';
 import { GimnasioService } from '../../../../shared/data/gimnasio-service';
 
 import { EntrenadorData } from '../../../../shared/models/entrenador-data';

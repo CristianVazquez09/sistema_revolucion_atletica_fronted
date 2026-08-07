@@ -12,14 +12,14 @@ import {
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 
-import { SocioData } from '../../../shared/models/socio-data';
-import { GimnasioData } from '../../../shared/models/gimnasio-data';
-import { SocioService } from '../../../services/socio-service';
-import { GimnasioService } from '../../../shared/data/gimnasio-service';
+import { SocioData } from '../../../../../shared/models/socio-data';
+import { GimnasioData } from '../../../../../shared/models/gimnasio-data';
+import { SocioService } from '../../../data/socio-service';
+import { GimnasioService } from '../../../../../shared/data/gimnasio-service';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { environment } from '../../../../environments/environment';
-import { HuellaModal, HuellaResultado } from '../../../shared/huella/huella-modal/huella-modal';
+import { environment } from '../../../../../../environments/environment';
+import { HuellaModal, HuellaResultado } from '../../../../../shared/huella/huella-modal/huella-modal';
 
 const MULTI_WS = /\s+/g;
 

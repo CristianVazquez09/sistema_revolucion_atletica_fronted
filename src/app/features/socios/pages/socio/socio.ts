@@ -15,14 +15,14 @@ import {
   skip,
 } from 'rxjs';
 
-import { SocioService } from '../../services/socio-service';
-import { SocioData } from '../../shared/models/socio-data';
+import { SocioService } from '../../data/socio-service';
+import { SocioData } from '../../../../shared/models/socio-data';
 import { SocioModal } from './socio-modal/socio-modal';
 import { Router } from '@angular/router';
-import { NotificacionService } from '../../core/layout/notificacion-service';
-import { PagedResponse } from '../../shared/models/paged-response';
+import { NotificacionService } from '../../../../core/layout/notificacion-service';
+import { PagedResponse } from '../../../../shared/models/paged-response';
 
-import { TipoPaquete } from '../../shared/util/enums/tipo-paquete';
+import { TipoPaquete } from '../../../../shared/util/enums/tipo-paquete';
 import { MenuService } from 'src/app/core/layout/menu-service';
 
 // ✅ selector admin + tenant ctx
@@ -31,7 +31,7 @@ import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/
 
 // ✅ roles desde token
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-socio',

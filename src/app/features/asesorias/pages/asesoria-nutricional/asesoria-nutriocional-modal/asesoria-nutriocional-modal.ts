@@ -28,7 +28,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 import { AsesoriaNutricionalService } from 'src/app/features/asesorias/data/asesoria-nutricional-service';
-import { SocioService } from 'src/app/services/socio-service';
+import { SocioService } from 'src/app/features/socios/data/socio-service';
 
 import { SocioData } from 'src/app/shared/models/socio-data';
 import { PagedResponse } from 'src/app/shared/models/paged-response';

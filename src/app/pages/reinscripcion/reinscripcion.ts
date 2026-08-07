@@ -13,7 +13,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { SocioService } from '../../services/socio-service';
+import { SocioService } from '../../features/socios/data/socio-service';
 import { MembresiaService } from '../../shared/data/membresia-service';
 import { NotificacionService } from '../../core/layout/notificacion-service';
 import { PaqueteService } from '../../services/paquete-service';

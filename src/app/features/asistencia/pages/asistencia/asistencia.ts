@@ -6,7 +6,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
-import { SocioService } from '../../../../services/socio-service';
+import { SocioService } from '../../../../features/socios/data/socio-service';
 import { SocioData } from '../../../../shared/models/socio-data';
 import { MembresiaService } from '../../../../shared/data/membresia-service';
 import { NotificacionService } from '../../../../core/layout/notificacion-service';
