@@ -1,5 +1,5 @@
 import { createActionGroup, props, emptyProps } from '@ngrx/store';
-import { PaqueteData } from '../../../shared/models/paquete-data';
+import { PaqueteData } from '../../../../../shared/models/paquete-data';
 
 export const ReinscripcionActions = createActionGroup({
   source: 'Reinscripcion',

@@ -13,32 +13,32 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { SocioService } from '../../features/socios/data/socio-service';
-import { MembresiaService } from '../../shared/data/membresia-service';
-import { NotificacionService } from '../../core/layout/notificacion-service';
-import { PaqueteService } from '../../services/paquete-service';
-import { EntrenadorService } from '../../features/asesorias/data/entrenador-service';
+import { SocioService } from '../../../../features/socios/data/socio-service';
+import { MembresiaService } from '../../../../shared/data/membresia-service';
+import { NotificacionService } from '../../../../core/layout/notificacion-service';
+import { PaqueteService } from '../../../../services/paquete-service';
+import { EntrenadorService } from '../../../../features/asesorias/data/entrenador-service';
 
-import { SocioData } from '../../shared/models/socio-data';
-import { PagoData } from '../../shared/models/membresia-data';
-import { PaqueteData } from '../../shared/models/paquete-data';
-import { EntrenadorData } from '../../shared/models/entrenador-data';
+import { SocioData } from '../../../../shared/models/socio-data';
+import { PagoData } from '../../../../shared/models/membresia-data';
+import { PaqueteData } from '../../../../shared/models/paquete-data';
+import { EntrenadorData } from '../../../../shared/models/entrenador-data';
 
-import { TipoMovimiento } from '../../shared/util/enums/tipo-movimiento';
-import { ResumenCompra } from '../../shared/ui/resumen-compra/resumen-compra';
-import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
-import { hoyISO } from '../../shared/util/fechas-precios';
+import { TipoMovimiento } from '../../../../shared/util/enums/tipo-movimiento';
+import { ResumenCompra } from '../../../../shared/ui/resumen-compra/resumen-compra';
+import { TiempoPlanLabelPipe } from '../../../../shared/util/tiempo-plan-label';
+import { hoyISO } from '../../../../shared/util/fechas-precios';
 
 // Ticket
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { GimnasioService } from '../../shared/data/gimnasio-service';
-import { TicketService, VentaContexto } from '../../shared/ticket/ticket-service';
-import { GimnasioData } from '../../shared/models/gimnasio-data';
-import { environment } from '../../../environments/environment';
-import { crearContextoTicket, obtenerNombreCajero } from '../../shared/util/ticket-contexto';
+import { GimnasioService } from '../../../../shared/data/gimnasio-service';
+import { TicketService, VentaContexto } from '../../../../shared/ticket/ticket-service';
+import { GimnasioData } from '../../../../shared/models/gimnasio-data';
+import { environment } from '../../../../../environments/environment';
+import { crearContextoTicket, obtenerNombreCajero } from '../../../../shared/util/ticket-contexto';
 
 // Huella
-import { HuellaModal } from '../../shared/huella/huella-modal/huella-modal';
+import { HuellaModal } from '../../../../shared/huella/huella-modal/huella-modal';
 import { HttpErrorResponse } from '@angular/common/http';
 
 // NgRx

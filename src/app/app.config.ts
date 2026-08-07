@@ -12,9 +12,9 @@ import { provideStore } from '@ngrx/store';
 import { provideState } from '@ngrx/store';
 
 import { environment } from '../environments/environment';
-import { inscripcionFeature } from './pages/inscripcion/state/inscripcion-reducer';
+import { inscripcionFeature } from './features/inscripciones/pages/inscripcion/state/inscripcion-reducer';
 import { TenantInterceptor } from './core/tenant/tenant.interceptor';
-import { REINSCRIPCION_FEATURE_KEY, reinscripcionReducer } from './pages/reinscripcion/state/reinscripcion-reducer';
+import { REINSCRIPCION_FEATURE_KEY, reinscripcionReducer } from './features/inscripciones/pages/reinscripcion/state/reinscripcion-reducer';
 import { authInterceptor } from './core/auth/auth.interceptor';
 
 export function tokenGetter() {

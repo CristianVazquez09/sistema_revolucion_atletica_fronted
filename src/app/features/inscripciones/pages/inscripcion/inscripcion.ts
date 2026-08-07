@@ -27,30 +27,30 @@ import {
   switchMap,
 } from 'rxjs';
 
-import { ResumenCompra } from '../../shared/ui/resumen-compra/resumen-compra';
-import { HuellaModal } from '../../shared/huella/huella-modal/huella-modal';
+import { ResumenCompra } from '../../../../shared/ui/resumen-compra/resumen-compra';
+import { HuellaModal } from '../../../../shared/huella/huella-modal/huella-modal';
 
-import { PaqueteService } from '../../services/paquete-service';
-import { MembresiaService } from '../../shared/data/membresia-service';
-import { NotificacionService } from '../../core/layout/notificacion-service';
-import { GimnasioService } from '../../shared/data/gimnasio-service';
-import { TicketService, VentaContexto } from '../../shared/ticket/ticket-service';
-import { EntrenadorService } from '../../features/asesorias/data/entrenador-service';
+import { PaqueteService } from '../../../../services/paquete-service';
+import { MembresiaService } from '../../../../shared/data/membresia-service';
+import { NotificacionService } from '../../../../core/layout/notificacion-service';
+import { GimnasioService } from '../../../../shared/data/gimnasio-service';
+import { TicketService, VentaContexto } from '../../../../shared/ticket/ticket-service';
+import { EntrenadorService } from '../../../../features/asesorias/data/entrenador-service';
 
-import { PaqueteData } from '../../shared/models/paquete-data';
-import { SocioData } from '../../shared/models/socio-data';
-import { MembresiaData, PagoData } from '../../shared/models/membresia-data';
-import { GimnasioData } from '../../shared/models/gimnasio-data';
-import { EntrenadorData } from '../../shared/models/entrenador-data';
+import { PaqueteData } from '../../../../shared/models/paquete-data';
+import { SocioData } from '../../../../shared/models/socio-data';
+import { MembresiaData, PagoData } from '../../../../shared/models/membresia-data';
+import { GimnasioData } from '../../../../shared/models/gimnasio-data';
+import { EntrenadorData } from '../../../../shared/models/entrenador-data';
 
-import { TipoMovimiento } from '../../shared/util/enums/tipo-movimiento';
-import { TipoPago } from '../../shared/util/enums/tipo-pago';
-import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
-import { calcularTotal, hoyISO } from '../../shared/util/fechas-precios';
-import { crearContextoTicket, obtenerNombreCajero } from '../../shared/util/ticket-contexto';
+import { TipoMovimiento } from '../../../../shared/util/enums/tipo-movimiento';
+import { TipoPago } from '../../../../shared/util/enums/tipo-pago';
+import { TiempoPlanLabelPipe } from '../../../../shared/util/tiempo-plan-label';
+import { calcularTotal, hoyISO } from '../../../../shared/util/fechas-precios';
+import { crearContextoTicket, obtenerNombreCajero } from '../../../../shared/util/ticket-contexto';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../../environments/environment';
 
 import { Store } from '@ngrx/store';
 import { InscripcionActions } from './state/inscripcion-actions';

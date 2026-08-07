@@ -12,7 +12,7 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, finalize, of, forkJoin } from 'rxjs';
 
-import { ResumenCompra } from '../../../shared/ui/resumen-compra/resumen-compra';
+import { ResumenCompra } from '../../../../../shared/ui/resumen-compra/resumen-compra';
 import { TiempoPlanLabelPipe } from 'src/app/shared/util/tiempo-plan-label';
 
 import { SocioService } from 'src/app/features/socios/data/socio-service';
@@ -38,7 +38,7 @@ import { environment } from 'src/environments/environment';
 import { calcularFechaFin, hoyISO as hoyISOUtil } from 'src/app/shared/util/fechas-precios';
 import { TiempoPlan } from 'src/app/shared/util/enums/tiempo-plan';
 
-import { HuellaModal, HuellaResultado } from '../../../shared/huella/huella-modal/huella-modal';
+import { HuellaModal, HuellaResultado } from '../../../../../shared/huella/huella-modal/huella-modal';
 
 // ✅ Asesoría Nutricional (nuevo endpoint estado)
 import {

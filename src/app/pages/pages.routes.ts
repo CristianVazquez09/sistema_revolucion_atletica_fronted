@@ -1,16 +1,11 @@
 import { Routes } from '@angular/router';
 
-import { Inscripcion } from './inscripcion/inscripcion';
 import { Paquete } from './paquete/paquete';
 import { Producto } from './producto/producto';
 import { Categoria } from './categoria/categoria';
-import { Reinscripcion } from './reinscripcion/reinscripcion';
-import { Historial } from './inscripcion/historial/historial';
-import { AgregarMembresia } from './agregar-membresia/agregar-membresia';
 import { Administracion } from './administracion/administracion';
 import { gerenteGuard } from '../core/auth/gerente-guards';
 import { adminGuard } from '../core/auth/admin-guards';
-import { ReinscripcionAdelantada } from './inscripcion/reinscripcion-adelantada/reinscripcion-adelantada';
 
 import { operacionGuard } from '../core/auth/operacion-guards';
 
@@ -29,12 +24,22 @@ export const pagesRoutes: Routes = [
     path: 'historial-asistencias',
     loadComponent: () => import('../features/asistencia/pages/asistencia-historial/asistencia-historial').then((m) => m.AsistenciaHistorial),
   },
-  { path: 'reinscripcion-adelantada', component: ReinscripcionAdelantada },
+  {
+    path: 'reinscripcion-adelantada',
+    loadComponent: () =>
+      import('../features/inscripciones/pages/inscripcion/reinscripcion-adelantada/reinscripcion-adelantada').then(
+        (m) => m.ReinscripcionAdelantada,
+      ),
+  },
   {
     path: 'socio',
     loadComponent: () => import('../features/socios/pages/socio/socio').then((m) => m.Socio),
   },
-  { path: 'inscripcion', component: Inscripcion },
+  {
+    path: 'inscripcion',
+    loadComponent: () =>
+      import('../features/inscripciones/pages/inscripcion/inscripcion').then((m) => m.Inscripcion),
+  },
 
   // ✅ Inventario diario (todos los roles autenticados que tengan el menú)
   { path: 'inventario', loadChildren: () => import('../features/inventario/inventario.routes').then(m => m.INVENTARIO_ROUTES) },
@@ -57,10 +62,24 @@ export const pagesRoutes: Routes = [
         (m) => m.SocioInformacion,
       ),
   },
-  { path: 'reinscripcion/:id', component: Reinscripcion },
-  { path: 'historial', component: Historial },
+  {
+    path: 'reinscripcion/:id',
+    loadComponent: () =>
+      import('../features/inscripciones/pages/reinscripcion/reinscripcion').then((m) => m.Reinscripcion),
+  },
+  {
+    path: 'historial',
+    loadComponent: () =>
+      import('../features/inscripciones/pages/inscripcion/historial/historial').then((m) => m.Historial),
+  },
   { path: 'corte-caja', loadChildren: () => import('../features/corte-caja/corte-caja.routes').then(m => m.CORTE_CAJA_ROUTES) },
-  { path: 'agregar-membresia', component: AgregarMembresia },
+  {
+    path: 'agregar-membresia',
+    loadComponent: () =>
+      import('../features/inscripciones/pages/agregar-membresia/agregar-membresia').then(
+        (m) => m.AgregarMembresia,
+      ),
+  },
   {
     path: 'entrenador',
     loadComponent: () =>

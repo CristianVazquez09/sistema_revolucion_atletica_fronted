@@ -5,31 +5,31 @@ import { Router, RouterLink } from '@angular/router';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, finalize, of } from 'rxjs';
 
-import { SocioService } from '../../features/socios/data/socio-service';
-import { PaqueteService } from '../../services/paquete-service';
-import { MembresiaService } from '../../shared/data/membresia-service';
-import { NotificacionService } from '../../core/layout/notificacion-service';
-import { GimnasioService } from '../../shared/data/gimnasio-service';
-import { TicketService, VentaContexto } from '../../shared/ticket/ticket-service';
-import { obtenerNombreCajero } from '../../shared/util/ticket-contexto';
+import { SocioService } from '../../../../features/socios/data/socio-service';
+import { PaqueteService } from '../../../../services/paquete-service';
+import { MembresiaService } from '../../../../shared/data/membresia-service';
+import { NotificacionService } from '../../../../core/layout/notificacion-service';
+import { GimnasioService } from '../../../../shared/data/gimnasio-service';
+import { TicketService, VentaContexto } from '../../../../shared/ticket/ticket-service';
+import { obtenerNombreCajero } from '../../../../shared/util/ticket-contexto';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
-import { SocioData } from '../../shared/models/socio-data';
-import { PaqueteData } from '../../shared/models/paquete-data';
-import { GimnasioData } from '../../shared/models/gimnasio-data';
+import { SocioData } from '../../../../shared/models/socio-data';
+import { PaqueteData } from '../../../../shared/models/paquete-data';
+import { GimnasioData } from '../../../../shared/models/gimnasio-data';
 
-import { ResumenCompra } from '../../shared/ui/resumen-compra/resumen-compra';
-import { TiempoPlanLabelPipe } from '../../shared/util/tiempo-plan-label';
-import { TipoMovimiento } from '../../shared/util/enums/tipo-movimiento';
-import { calcularFechaFin, calcularTotal, hoyISO } from '../../shared/util/fechas-precios';
-import { TiempoPlan } from '../../shared/util/enums/tiempo-plan';
-import { environment } from '../../../environments/environment';
+import { ResumenCompra } from '../../../../shared/ui/resumen-compra/resumen-compra';
+import { TiempoPlanLabelPipe } from '../../../../shared/util/tiempo-plan-label';
+import { TipoMovimiento } from '../../../../shared/util/enums/tipo-movimiento';
+import { calcularFechaFin, calcularTotal, hoyISO } from '../../../../shared/util/fechas-precios';
+import { TiempoPlan } from '../../../../shared/util/enums/tiempo-plan';
+import { environment } from '../../../../../environments/environment';
 
 // 👇 Importa pagos[]
-import { MembresiaData, PagoData } from '../../shared/models/membresia-data';
+import { MembresiaData, PagoData } from '../../../../shared/models/membresia-data';
 
 // 👇 Modal de huella (igual que en Asistencia)
-import { HuellaModal, HuellaResultado } from '../../shared/huella/huella-modal/huella-modal';
+import { HuellaModal, HuellaResultado } from '../../../../shared/huella/huella-modal/huella-modal';
 
 @Component({
   selector: 'app-agregar-membresia',
