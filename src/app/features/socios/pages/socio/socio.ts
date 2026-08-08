@@ -2,18 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, signal, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import {
-  Subject,
-  Subscription,
-  finalize,
-  debounceTime,
-  distinctUntilChanged,
-  map,
-  filter,
-  switchMap,
-  tap,
-  skip,
-} from 'rxjs';
+import { finalize, distinctUntilChanged, skip, Subject, switchMap } from 'rxjs';
 
 import { SocioService } from '../../data/socio-service';
 import { SocioData } from '../../../../shared/models/socio-data';
@@ -21,6 +10,7 @@ import { SocioModal } from './socio-modal/socio-modal';
 import { Router } from '@angular/router';
 import { NotificacionService } from '../../../../core/layout/notificacion-service';
 import { PagedResponse } from '../../../../shared/models/paged-response';
+import { RaBuscador } from 'src/app/shared/ui/ra-buscador/ra-buscador';
 
 import { TipoPaquete } from '../../../../shared/util/enums/tipo-paquete';
 import { MenuService } from 'src/app/core/layout/menu-service';
@@ -38,7 +28,15 @@ import { environment } from '../../../../../environments/environment';
 @Component({
   selector: 'app-socio',
   standalone: true,
-  imports: [CommonModule, SocioModal, FormsModule, RaGimnasioFilterComponent, RaDropdown, RaBadge],
+  imports: [
+    CommonModule,
+    SocioModal,
+    FormsModule,
+    RaGimnasioFilterComponent,
+    RaDropdown,
+    RaBadge,
+    RaBuscador,
+  ],
   templateUrl: './socio.html',
   styleUrl: './socio.css',
 })
@@ -75,12 +73,13 @@ export class Socio implements OnInit, OnDestroy {
   totalElementos = 0;
   tamaniosDisponibles = [5, 10, 20, 50];
 
-  // ─────────── Búsqueda (con debounce) ───────────
+  // ─────────── Búsqueda ───────────
   terminoBusqueda = '';
   private readonly minCaracteresBusqueda = 3;
-  private busqueda$ = new Subject<string>();
-  private subsBusqueda?: Subscription;
   private destroyRef = inject(DestroyRef);
+  // Subject dedicado a la búsqueda: switchMap cancela la petición HTTP en
+  // vuelo si llega un término nuevo antes de que responda el anterior.
+  private readonly busquedaSocios$ = new Subject<string>();
 
   // ─────────── Filtro por tipo de paquete vigente ───────────
   filtroTipoPaquete = ''; // '' => todos
@@ -93,7 +92,26 @@ export class Socio implements OnInit, OnDestroy {
     private socioService: SocioService,
     private router: Router,
     private notificacion: NotificacionService,
-  ) {}
+  ) {
+    this.busquedaSocios$
+      .pipe(
+        switchMap((texto) => {
+          const activo = this.mapFiltroEstadoToBoolean();
+          const tipoEnum = this.filtroTipoPaquete ? (this.filtroTipoPaquete as TipoPaquete) : undefined;
+          const soloVigentes: boolean | undefined = tipoEnum ? true : undefined;
+          return this.socioService
+            .buscarSociosPorNombre(texto, this.paginaActual, this.tamanioPagina, activo, tipoEnum, soloVigentes)
+            .pipe(finalize(() => (this.cargando = false)));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (resp: PagedResponse<SocioData>) => this.aplicarRespuesta(resp),
+        error: () => {
+          this.mensajeError = 'No se pudo ejecutar la búsqueda.';
+        },
+      });
+  }
 
   // =========================
   // Helpers de normalización
@@ -170,55 +188,9 @@ export class Socio implements OnInit, OnDestroy {
         error: () => {},
       });
     }
-
-    // búsqueda con debounce
-    this.subsBusqueda = this.busqueda$
-      .pipe(
-        map((v) => this.normalizarTermino(v)),
-        debounceTime(400),
-        distinctUntilChanged(),
-        tap((texto) => {
-          if (texto.length === 0) {
-            this.paginaActual = 0;
-            this.cargarSocios();
-          }
-        }),
-        filter((texto) => texto.length >= this.minCaracteresBusqueda),
-        switchMap((texto) => {
-          this.cargando = true;
-          this.mensajeError = null;
-          this.paginaActual = 0;
-
-          const activo = this.mapFiltroEstadoToBoolean();
-          const tipoEnum = this.filtroTipoPaquete
-            ? (this.filtroTipoPaquete as TipoPaquete)
-            : undefined;
-          const soloVigentes: boolean | undefined = tipoEnum ? true : undefined;
-
-          return this.socioService
-            .buscarSociosPorNombre(
-              texto,
-              this.paginaActual,
-              this.tamanioPagina,
-              activo,
-              tipoEnum,
-              soloVigentes,
-            )
-            .pipe(finalize(() => (this.cargando = false)));
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (resp: PagedResponse<SocioData>) => this.aplicarRespuesta(resp),
-        error: () => {
-          this.mensajeError = 'No se pudo ejecutar la búsqueda.';
-        },
-      });
   }
 
   ngOnDestroy(): void {
-    this.subsBusqueda?.unsubscribe();
-
     // ✅ si admin eligió un gimnasio aquí, al salir lo regresamos a "Todos"
     if (this.isAdmin) {
       this.tenantCtx.setViewTenant(null);
@@ -295,13 +267,22 @@ export class Socio implements OnInit, OnDestroy {
 
   // ─────────── Búsqueda ───────────
   onBuscarChange(valor: string): void {
-    const limpio = this.normalizarTermino(valor);
-    this.terminoBusqueda = limpio;
-    this.busqueda$.next(limpio);
-  }
+    const texto = this.normalizarTermino(valor);
+    this.terminoBusqueda = texto;
 
-  limpiarBusqueda(): void {
-    this.onBuscarChange('');
+    if (texto.length === 0) {
+      this.paginaActual = 0;
+      this.cargarSocios();
+      return;
+    }
+
+    if (texto.length < this.minCaracteresBusqueda) return;
+
+    this.cargando = true;
+    this.mensajeError = null;
+    this.paginaActual = 0;
+
+    this.busquedaSocios$.next(texto);
   }
 
   // ─────────── Filtro de tipo de paquete ───────────

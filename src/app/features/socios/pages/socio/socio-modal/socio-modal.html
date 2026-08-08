@@ -21,9 +21,7 @@
     >
       <!-- SOLO ADMIN: Gimnasio -->
       @if (isAdmin) {
-        <div>
-          <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Gimnasio</label>
-
+        <ra-campo etiqueta="Gimnasio" [requerido]="true" [error]="errorGimnasio" class="block">
           <div class="relative">
             <select
               formControlName="gimnasioId"
@@ -50,13 +48,7 @@
               </svg>
             </div>
           </div>
-
-          @if (
-            formulario.controls['gimnasioId'].touched && formulario.controls['gimnasioId'].invalid
-          ) {
-            <p class="mt-1 text-sm text-red-600">Selecciona un gimnasio.</p>
-          }
-        </div>
+        </ra-campo>
       }
 
       <!-- Layout principal -->
@@ -89,81 +81,59 @@
         <div class="min-w-0 space-y-3 lg:space-y-4">
           <!-- Nombre / Apellido -->
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div class="min-w-0">
-              <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Nombre</label>
+            <ra-campo etiqueta="Nombre" [requerido]="true" [error]="errorNombre" class="block min-w-0">
               <input
                 type="text"
                 formControlName="nombre"
                 (blur)="normalizarCamposTextoAntesDeValidar()"
                 class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
               />
-              @if (formulario.controls['nombre'].touched && formulario.controls['nombre'].invalid) {
-                <p class="mt-1 text-sm text-red-600">Requerido.</p>
-              }
-            </div>
+            </ra-campo>
 
-            <div class="min-w-0">
-              <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Apellido</label>
+            <ra-campo etiqueta="Apellido" [requerido]="true" [error]="errorApellido" class="block min-w-0">
               <input
                 type="text"
                 formControlName="apellido"
                 (blur)="normalizarCamposTextoAntesDeValidar()"
                 class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
               />
-              @if (
-                formulario.controls['apellido'].touched && formulario.controls['apellido'].invalid
-              ) {
-                <p class="mt-1 text-sm text-red-600">Requerido.</p>
-              }
-            </div>
+            </ra-campo>
           </div>
 
           <!-- Teléfono / Email -->
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div class="min-w-0">
-              <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Teléfono</label>
+            <ra-campo etiqueta="Teléfono" [requerido]="true" [error]="errorTelefono" class="block min-w-0">
               <input
                 type="tel"
                 formControlName="telefono"
                 placeholder="10 dígitos"
                 class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
               />
-              @if (
-                formulario.controls['telefono'].touched && formulario.controls['telefono'].invalid
-              ) {
-                <p class="mt-1 text-sm text-red-600">Teléfono inválido.</p>
-              }
-            </div>
+            </ra-campo>
 
-            <div class="min-w-0">
-              <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Email</label>
+            <ra-campo etiqueta="Email" [error]="errorEmail" class="block min-w-0">
               <input
                 type="email"
                 formControlName="email"
                 (blur)="normalizarCamposTextoAntesDeValidar()"
                 class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
               />
-              @if (formulario.controls['email'].touched && formulario.controls['email'].invalid) {
-                <p class="mt-1 text-sm text-red-600">Email inválido.</p>
-              }
-            </div>
+            </ra-campo>
           </div>
 
           <!-- Dirección -->
-          <div class="min-w-0">
-            <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Dirección</label>
+          <ra-campo etiqueta="Dirección" class="block min-w-0">
             <input
               type="text"
               formControlName="direccion"
               (blur)="normalizarCamposTextoAntesDeValidar()"
               class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
             />
-          </div>
+          </ra-campo>
 
           <!-- Sexo + Fecha -->
           <div class="grid grid-cols-1 items-end gap-3 lg:grid-cols-2">
-            <div>
-              <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Sexo</label>
+            <ra-campo etiqueta="Sexo" [requerido]="true" [error]="errorGenero" class="block">
               <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                 <label class="inline-flex items-center gap-2">
                   <input
@@ -193,32 +163,24 @@
                   <span>Otro</span>
                 </label>
               </div>
-              @if (formulario.controls['genero'].touched && formulario.controls['genero'].invalid) {
-                <p class="mt-1 text-sm text-red-600">Selecciona una opción.</p>
-              }
-            </div>
+            </ra-campo>
 
-            <div class="min-w-0">
-              <label class="text-ra-slate mb-1.5 block text-sm font-semibold"
-                >Fecha de nacimiento</label
-              >
+            <ra-campo
+              etiqueta="Fecha de nacimiento"
+              [requerido]="true"
+              [error]="errorFechaNacimiento"
+              class="block min-w-0"
+            >
               <input
                 type="date"
                 formControlName="fechaNacimiento"
                 class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
               />
-              @if (
-                formulario.controls['fechaNacimiento'].touched &&
-                formulario.controls['fechaNacimiento'].invalid
-              ) {
-                <p class="mt-1 text-sm text-red-600">Requerido.</p>
-              }
-            </div>
+            </ra-campo>
           </div>
 
           <!-- Comentarios -->
-          <div class="min-w-0">
-            <label class="text-ra-slate mb-1.5 block text-sm font-semibold">Comentarios</label>
+          <ra-campo etiqueta="Comentarios" class="block min-w-0">
             <textarea
               rows="3"
               formControlName="comentarios"
@@ -226,7 +188,7 @@
               class="focus:ring-ra-green w-full rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 shadow-inner focus:ring-2 focus:outline-none"
               placeholder="Notas del socio"
             ></textarea>
-          </div>
+          </ra-campo>
 
           <!-- Huella -->
           <div
@@ -277,21 +239,11 @@
           <div
             class="flex flex-col items-stretch gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end"
           >
-            <button
-              type="button"
-              (click)="cancelar.emit()"
-              class="rounded-full border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-100"
-            >
-              Cancelar
-            </button>
+            <ra-boton variante="ghost" (click)="cancelar.emit()">Cancelar</ra-boton>
 
-            <button
-              type="submit"
-              [disabled]="guardando"
-              class="rounded-full bg-[#0B2C4A] px-5 py-2.5 text-white shadow-md hover:bg-[#0A2540] disabled:opacity-60"
-            >
+            <ra-boton variante="info" tipo="submit" [deshabilitado]="guardando">
               {{ guardando ? 'Guardando...' : socio ? 'Confirmar cambios' : 'Guardar' }}
-            </button>
+            </ra-boton>
           </div>
         </div>
       </div>

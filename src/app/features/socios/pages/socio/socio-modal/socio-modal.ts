@@ -23,6 +23,8 @@ import {
   HuellaModal,
   HuellaResultado,
 } from '../../../../../shared/huella/huella-modal/huella-modal';
+import { RaBoton } from '../../../../../shared/ui/ra-boton/ra-boton';
+import { RaCampo } from '../../../../../shared/ui/ra-campo/ra-campo';
 
 const MULTI_WS = /\s+/g;
 
@@ -43,7 +45,7 @@ function normalizeEmail(v: unknown): string {
 @Component({
   selector: 'app-socio-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, HuellaModal],
+  imports: [CommonModule, ReactiveFormsModule, HuellaModal, RaBoton, RaCampo],
   templateUrl: './socio-modal.html',
   styleUrl: './socio-modal.css',
 })
@@ -162,6 +164,45 @@ export class SocioModal implements OnInit, OnDestroy {
   private handleEsc = (e: KeyboardEvent) => {
     if (e.key === 'Escape') this.cancelar.emit();
   };
+
+  // -------------------------
+  // Errores de campo (para ra-campo)
+  // -------------------------
+
+  get errorGimnasio(): string | null {
+    const c = this.formulario.controls['gimnasioId'];
+    return c.touched && c.invalid ? 'Selecciona un gimnasio.' : null;
+  }
+
+  get errorNombre(): string | null {
+    const c = this.formulario.controls['nombre'];
+    return c.touched && c.invalid ? 'Requerido.' : null;
+  }
+
+  get errorApellido(): string | null {
+    const c = this.formulario.controls['apellido'];
+    return c.touched && c.invalid ? 'Requerido.' : null;
+  }
+
+  get errorTelefono(): string | null {
+    const c = this.formulario.controls['telefono'];
+    return c.touched && c.invalid ? 'Teléfono inválido.' : null;
+  }
+
+  get errorEmail(): string | null {
+    const c = this.formulario.controls['email'];
+    return c.touched && c.invalid ? 'Email inválido.' : null;
+  }
+
+  get errorGenero(): string | null {
+    const c = this.formulario.controls['genero'];
+    return c.touched && c.invalid ? 'Selecciona una opción.' : null;
+  }
+
+  get errorFechaNacimiento(): string | null {
+    const c = this.formulario.controls['fechaNacimiento'];
+    return c.touched && c.invalid ? 'Requerido.' : null;
+  }
 
   private normalizarTelefono(v: unknown): string {
     return String(v ?? '')
