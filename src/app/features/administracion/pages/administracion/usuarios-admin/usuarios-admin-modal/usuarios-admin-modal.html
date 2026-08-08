@@ -1,24 +1,4 @@
-<div class="rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
-  <div class="flex items-start justify-between px-6 pt-5 pb-2">
-    <h2 class="text-ra-slate text-[18px] leading-none font-bold">
-      {{ idUsuario ? 'Editar usuario #' + idUsuario : 'Crear usuario' }}
-    </h2>
-    <button
-      class="grid h-8 w-8 place-items-center rounded-full bg-red-600 text-white hover:bg-red-700"
-      (click)="cancelar.emit()"
-      aria-label="Cerrar"
-    >
-      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M6 18L18 6M6 6l12 12"
-        />
-      </svg>
-    </button>
-  </div>
-
+<ra-modal [titulo]="tituloModal" anchoMax="max-w-[720px]" (cerrar)="cancelar.emit()">
   <div class="space-y-4 px-6 pt-2 pb-6">
     @if (cargando) {
       <div class="text-ra-slate text-sm">Cargando…</div>
@@ -150,4 +130,4 @@
       </form>
     }
   </div>
-</div>
+</ra-modal>

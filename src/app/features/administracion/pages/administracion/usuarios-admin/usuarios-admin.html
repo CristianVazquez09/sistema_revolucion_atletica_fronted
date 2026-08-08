@@ -136,17 +136,10 @@
 
 <!-- Modal -->
 @if (modalAbierto()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]" (click)="cerrarModal()"></div>
-    <div class="relative z-10 mx-4 w-full max-w-[720px]">
-      <div class="bg-ra-white rounded-2xl shadow-2xl ring-1 ring-black/5">
-        <app-usuarios-admin-modal
-          [idUsuario]="idEditando"
-          (cancelar)="cerrarModal()"
-          (guardado)="onGuardado()"
-        >
-        </app-usuarios-admin-modal>
-      </div>
-    </div>
-  </div>
+  <app-usuarios-admin-modal
+    [idUsuario]="idEditando"
+    (cancelar)="cerrarModal()"
+    (guardado)="onGuardado()"
+  >
+  </app-usuarios-admin-modal>
 }
