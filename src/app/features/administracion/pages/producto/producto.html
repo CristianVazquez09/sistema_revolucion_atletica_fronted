@@ -219,33 +219,19 @@
 
 <!-- Modal Producto -->
 @if (mostrarModal()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/50" (click)="cerrarModal()"></div>
-    <div class="relative z-10 mx-4 w-full max-w-2xl">
-      <div class="bg-ra-white rounded-xl2 shadow-card">
-        <app-producto-modal
-          [producto]="productoEditando"
-          (cancelar)="cerrarModal()"
-          (guardado)="onGuardado()"
-        ></app-producto-modal>
-      </div>
-    </div>
-  </div>
+  <app-producto-modal
+    [producto]="productoEditando"
+    (cancelar)="cerrarModal()"
+    (guardado)="onGuardado()"
+  ></app-producto-modal>
 }
 
 <!-- Modal Stock -->
 @if (mostrarStockModal() && stockProducto) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="absolute inset-0 bg-black/50" (click)="cerrarStockModal()"></div>
-    <div class="relative z-10 mx-4 w-full max-w-xl">
-      <div class="bg-ra-white rounded-xl2 shadow-card">
-        <app-stock-modal
-          [producto]="stockProducto"
-          [modo]="stockModo"
-          (cancelar)="cerrarStockModal()"
-          (aplicado)="onStockAplicado()"
-        />
-      </div>
-    </div>
-  </div>
+  <app-stock-modal
+    [producto]="stockProducto"
+    [modo]="stockModo"
+    (cancelar)="cerrarStockModal()"
+    (aplicado)="onStockAplicado()"
+  />
 }
