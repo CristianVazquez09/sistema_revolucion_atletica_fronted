@@ -76,224 +76,192 @@
       </div>
 
       <!-- ══ TABLA ══ -->
-      <div class="overflow-x-auto">
-        <div>
-          <table class="w-full min-w-[860px] table-fixed border-collapse text-xs">
-            <colgroup>
-              <col class="w-[6%]" />
-              <!-- Folio -->
-              <col [class]="mostrarGimnasioCol() ? 'w-[18%]' : 'w-[22%]'" />
-              <!-- Socio -->
-              <col [class]="mostrarGimnasioCol() ? 'w-[15%]' : 'w-[17%]'" />
-              <!-- Paquete -->
-              <col class="w-[9%]" />
-              <!-- F. Inicio -->
-              <col class="w-[9%]" />
-              <!-- F. Fin -->
-              <col class="w-[11%]" />
-              <!-- Movimiento -->
-              <col class="w-[9%]" />
-              <!-- Total -->
-              <col [class]="mostrarGimnasioCol() ? 'w-[9%]' : 'w-[12%]'" />
-              <!-- Usuario -->
-              @if (mostrarGimnasioCol()) {
-                <col class="w-[12%]" />
-                <!-- Gimnasio -->
-              }
-              <col class="w-[5%]" />
-              <!-- Acciones -->
-            </colgroup>
+      <ra-tabla ancho="min-w-[860px]" [cargando]="cargando" [error]="error" [vacio]="!rows.length">
+        <colgroup ra-tabla-colgroup>
+          <col class="w-[6%]" />
+          <!-- Folio -->
+          <col [class]="mostrarGimnasioCol() ? 'w-[18%]' : 'w-[22%]'" />
+          <!-- Socio -->
+          <col [class]="mostrarGimnasioCol() ? 'w-[15%]' : 'w-[17%]'" />
+          <!-- Paquete -->
+          <col class="w-[9%]" />
+          <!-- F. Inicio -->
+          <col class="w-[9%]" />
+          <!-- F. Fin -->
+          <col class="w-[11%]" />
+          <!-- Movimiento -->
+          <col class="w-[9%]" />
+          <!-- Total -->
+          <col [class]="mostrarGimnasioCol() ? 'w-[9%]' : 'w-[12%]'" />
+          <!-- Usuario -->
+          @if (mostrarGimnasioCol()) {
+            <col class="w-[12%]" />
+            <!-- Gimnasio -->
+          }
+          <col class="w-[5%]" />
+          <!-- Acciones -->
+        </colgroup>
 
-            <thead class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
-              <tr>
-                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-                  Folio
-                </th>
-                <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
-                  Socio
-                </th>
-                <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
-                  Paquete
-                </th>
-                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-                  F. Inicio
-                </th>
-                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-                  F. Fin
-                </th>
-                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-                  Movimiento
-                </th>
-                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-                  Total
-                </th>
-                <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-                  Usuario
-                </th>
-                @if (mostrarGimnasioCol()) {
-                  <th
-                    class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase"
+        <thead ra-tabla-head class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
+          <tr>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Folio
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+              Socio
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+              Paquete
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              F. Inicio
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              F. Fin
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Movimiento
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Total
+            </th>
+            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+              Usuario
+            </th>
+            @if (mostrarGimnasioCol()) {
+              <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+                Gimnasio
+              </th>
+            }
+            <th class="px-1 py-3" aria-label="Acciones"></th>
+          </tr>
+        </thead>
+
+        @for (m of rows; track trackById($index, m); let i = $index) {
+          <tr class="border-t border-gray-100 hover:bg-gray-50/60">
+            <!-- Folio -->
+            <td class="px-3 py-2.5 text-center text-[11px] font-medium">#{{ m.folio ?? '—' }}</td>
+
+            <!-- Socio -->
+            <td class="min-w-0 px-3 py-2.5">
+              <div class="truncate text-[11px] font-medium">
+                {{ m.socio.nombre }} {{ m.socio.apellido }}
+              </div>
+              <div class="text-ra-slate/60 truncate text-[10px]">
+                ID: {{ m.socio.idSocio }} · {{ m.socio.telefono || '—' }}
+              </div>
+            </td>
+
+            <!-- Paquete -->
+            <td class="min-w-0 px-3 py-2.5">
+              <div class="truncate text-[11px] font-medium">{{ m.paquete.nombre }}</div>
+              <div class="mt-1">
+                <span
+                  class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="h-3 w-3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
                   >
-                    Gimnasio
-                  </th>
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 7v5l3 2"></path>
+                  </svg>
+                  {{ m.paquete.tiempo | tiempoPlan }}
+                </span>
+              </div>
+            </td>
+
+            <!-- F. inicio -->
+            <td class="px-3 py-2.5 text-center text-[11px] whitespace-nowrap">
+              {{ m.fechaInicio | date: 'dd/MM/yyyy' }}
+            </td>
+
+            <!-- F. fin -->
+            <td class="px-3 py-2.5 text-center text-[11px] whitespace-nowrap">
+              {{ m.fechaFin | date: 'dd/MM/yyyy' }}
+            </td>
+
+            <!-- Movimiento -->
+            <td class="px-3 py-2.5 text-center">
+              <ra-badge [variante]="movimientoVariante(m.movimiento)">
+                {{ m.movimiento }}
+              </ra-badge>
+            </td>
+
+            <!-- Total -->
+            <td class="px-3 py-2.5 text-center text-[11px] font-semibold whitespace-nowrap">
+              {{ m.total || 0 | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
+            </td>
+
+            <!-- Usuario -->
+            <td class="truncate px-3 py-2.5 text-center text-[11px]">
+              {{ m.usuario?.nombreUsuario || '—' }}
+            </td>
+
+            <!-- Gimnasio -->
+            @if (mostrarGimnasioCol()) {
+              <td class="px-3 py-2.5 text-center">
+                <ra-badge variante="chip">
+                  <svg
+                    viewBox="0 0 24 24"
+                    class="h-3.5 w-3.5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+                  </svg>
+                  <span class="max-w-[140px] truncate">{{
+                    gymNombre(m.paquete.gimnasio || m.socio.gimnasio || m.gimnasio)
+                  }}</span>
+                </ra-badge>
+              </td>
+            }
+
+            <!-- Acciones -->
+            <td class="relative px-1 py-2.5 text-center">
+              <ra-dropdown>
+                @if (!esRecep) {
+                  <button
+                    (click)="editar(m)"
+                    class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+                  >
+                    <img src="iconos/editar.svg" alt="Editar" class="h-4 w-4 shrink-0" />
+                    Editar
+                  </button>
                 }
-                <th class="px-1 py-3" aria-label="Acciones"></th>
-              </tr>
-            </thead>
-
-            <tbody>
-              @if (cargando) {
-                <tr>
-                  <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Cargando…</td>
-                </tr>
-              } @else if (error) {
-                <tr>
-                  <td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ error }}</td>
-                </tr>
-              } @else if (!rows.length) {
-                <tr>
-                  <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">
-                    Sin resultados.
-                  </td>
-                </tr>
-              } @else {
-                @for (m of rows; track trackById($index, m); let i = $index) {
-                  <tr class="border-t border-gray-100 hover:bg-gray-50/60">
-                    <!-- Folio -->
-                    <td class="px-3 py-2.5 text-center text-[11px] font-medium">
-                      #{{ m.folio ?? '—' }}
-                    </td>
-
-                    <!-- Socio -->
-                    <td class="min-w-0 px-3 py-2.5">
-                      <div class="truncate text-[11px] font-medium">
-                        {{ m.socio.nombre }} {{ m.socio.apellido }}
-                      </div>
-                      <div class="text-ra-slate/60 truncate text-[10px]">
-                        ID: {{ m.socio.idSocio }} · {{ m.socio.telefono || '—' }}
-                      </div>
-                    </td>
-
-                    <!-- Paquete -->
-                    <td class="min-w-0 px-3 py-2.5">
-                      <div class="truncate text-[11px] font-medium">{{ m.paquete.nombre }}</div>
-                      <div class="mt-1">
-                        <span
-                          class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700"
-                        >
-                          <svg
-                            viewBox="0 0 24 24"
-                            class="h-3 w-3"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                          >
-                            <circle cx="12" cy="12" r="9"></circle>
-                            <path d="M12 7v5l3 2"></path>
-                          </svg>
-                          {{ m.paquete.tiempo | tiempoPlan }}
-                        </span>
-                      </div>
-                    </td>
-
-                    <!-- F. inicio -->
-                    <td class="px-3 py-2.5 text-center text-[11px] whitespace-nowrap">
-                      {{ m.fechaInicio | date: 'dd/MM/yyyy' }}
-                    </td>
-
-                    <!-- F. fin -->
-                    <td class="px-3 py-2.5 text-center text-[11px] whitespace-nowrap">
-                      {{ m.fechaFin | date: 'dd/MM/yyyy' }}
-                    </td>
-
-                    <!-- Movimiento -->
-                    <td class="px-3 py-2.5 text-center">
-                      <ra-badge [variante]="movimientoVariante(m.movimiento)">
-                        {{ m.movimiento }}
-                      </ra-badge>
-                    </td>
-
-                    <!-- Total -->
-                    <td class="px-3 py-2.5 text-center text-[11px] font-semibold whitespace-nowrap">
-                      {{ m.total || 0 | currency: 'MXN' : 'symbol-narrow' : '1.2-2' }}
-                    </td>
-
-                    <!-- Usuario -->
-                    <td class="truncate px-3 py-2.5 text-center text-[11px]">
-                      {{ m.usuario?.nombreUsuario || '—' }}
-                    </td>
-
-                    <!-- Gimnasio -->
-                    @if (mostrarGimnasioCol()) {
-                      <td class="px-3 py-2.5 text-center">
-                        <ra-badge variante="chip">
-                          <svg
-                            viewBox="0 0 24 24"
-                            class="h-3.5 w-3.5 shrink-0"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                          >
-                            <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
-                          </svg>
-                          <span class="max-w-[140px] truncate">{{
-                            gymNombre(m.paquete.gimnasio || m.socio.gimnasio || m.gimnasio)
-                          }}</span>
-                        </ra-badge>
-                      </td>
-                    }
-
-                    <!-- Acciones -->
-                    <td class="relative px-1 py-2.5 text-center">
-                      <ra-dropdown>
-                        @if (!esRecep) {
-                          <button
-                            (click)="editar(m)"
-                            class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
-                          >
-                            <img src="iconos/editar.svg" alt="Editar" class="h-4 w-4 shrink-0" />
-                            Editar
-                          </button>
-                        }
-                        <button
-                          (click)="reimprimir(m)"
-                          [disabled]="reimprimiendo"
-                          class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
-                        >
-                          <img src="iconos/impresora.svg" alt="Reimprimir" class="h-4 w-4 shrink-0" />
-                          Reimprimir
-                        </button>
-                        @if (!esRecep) {
-                          <button
-                            (click)="eliminar(m)"
-                            class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
-                          >
-                            <img src="iconos/eliminar.svg" alt="Eliminar" class="h-4 w-4 shrink-0" />
-                            Eliminar
-                          </button>
-                        }
-                      </ra-dropdown>
-                    </td>
-                  </tr>
+                <button
+                  (click)="reimprimir(m)"
+                  [disabled]="reimprimiendo"
+                  class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm disabled:opacity-50"
+                >
+                  <img src="iconos/impresora.svg" alt="Reimprimir" class="h-4 w-4 shrink-0" />
+                  Reimprimir
+                </button>
+                @if (!esRecep) {
+                  <button
+                    (click)="eliminar(m)"
+                    class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+                  >
+                    <img src="iconos/eliminar.svg" alt="Eliminar" class="h-4 w-4 shrink-0" />
+                    Eliminar
+                  </button>
                 }
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
+              </ra-dropdown>
+            </td>
+          </tr>
+        }
+      </ra-tabla>
 
-      <!-- ══ FOOTER: info de página + ordenamiento + paginación ══ -->
+      <!-- ══ FOOTER: chip de rango + ordenamiento ══ -->
       <div
         class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-4 py-3 text-xs"
       >
-        <!-- Izquierda: contador + chip de rango -->
+        <!-- Izquierda: chip de rango de fechas -->
         <div class="text-ra-slate/70 flex shrink-0 items-center gap-2">
-          <span>
-            Página <strong class="text-ra-slate">{{ pageUI }}</strong> de
-            <strong class="text-ra-slate">{{ page.totalPages || 1 }}</strong>
-          </span>
-          <span class="text-ra-slate/50">({{ page.totalElements || 0 }} registros)</span>
-
           @if (filtroFechasActivo && fechaDesde && fechaHasta) {
             <span
               class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] text-amber-800"
@@ -303,7 +271,7 @@
           }
         </div>
 
-        <!-- Derecha: ordenar + tamaño + navegación -->
+        <!-- Derecha: ordenar por -->
         <div class="flex items-center gap-2 overflow-x-auto">
           <span class="text-ra-slate/60 shrink-0 whitespace-nowrap">Ordenar por</span>
           <select
@@ -325,38 +293,18 @@
             <option [ngValue]="'desc'">Desc</option>
             <option [ngValue]="'asc'">Asc</option>
           </select>
-
-          <div class="h-4 w-px shrink-0 bg-gray-200"></div>
-
-          <span class="text-ra-slate/60 shrink-0 whitespace-nowrap">Por página</span>
-          <select
-            class="h-8 w-[70px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
-            [(ngModel)]="sizeSel"
-            (change)="go(1)"
-          >
-            <option [ngValue]="10">10</option>
-            <option [ngValue]="25">25</option>
-            <option [ngValue]="50">50</option>
-          </select>
-
-          <div class="h-4 w-px shrink-0 bg-gray-200"></div>
-
-          <button
-            class="h-8 shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
-            [disabled]="!puedePrev"
-            (click)="prev()"
-          >
-            Anterior
-          </button>
-          <button
-            class="h-8 shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
-            [disabled]="!puedeNext"
-            (click)="next()"
-          >
-            Siguiente
-          </button>
         </div>
       </div>
+
+      <!-- ══ FOOTER: info de página + tamaño + navegación ══ -->
+      <ra-paginador
+        [paginaActual]="page.number"
+        [totalPaginas]="page.totalPages"
+        [totalElementos]="page.totalElements"
+        [tamanioPagina]="sizeSel"
+        (irAPagina)="onIrAPaginaMembresia($event)"
+        (cambiarTamanio)="onCambiarTamanioMembresia($event)"
+      ></ra-paginador>
     </div>
   </div>
 </div>
