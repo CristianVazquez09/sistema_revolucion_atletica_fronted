@@ -50,67 +50,56 @@
   </div>
 
   <!-- TABLA -->
-  <div class="overflow-x-auto">
-    <div>
-      <table class="w-full min-w-[700px] table-fixed border-collapse text-xs">
-        <colgroup>
-          <col [class]="isAdmin ? 'w-[6%]' : 'w-[6%]'" />
-          <col [class]="isAdmin ? 'w-[24%]' : 'w-[28%]'" />
-          <col [class]="isAdmin ? 'w-[12%]' : 'w-[15%]'" />
-          <col [class]="isAdmin ? 'w-[18%]' : 'w-[22%]'" />
-          <col [class]="isAdmin ? 'w-[11%]' : 'w-[13%]'" />
-          <col [class]="isAdmin ? 'w-[8%]' : 'w-[10%]'" />
-          @if (isAdmin) {
-            <col class="w-[17%]" />
-          }
-          <col class="w-[4%]" />
-        </colgroup>
+  <ra-tabla
+    ancho="min-w-[700px]"
+    [cargando]="cargando"
+    [error]="mensajeError"
+    [vacio]="listaSocios.length === 0"
+  >
+    <colgroup ra-tabla-colgroup>
+      <col [class]="isAdmin ? 'w-[6%]' : 'w-[6%]'" />
+      <col [class]="isAdmin ? 'w-[24%]' : 'w-[28%]'" />
+      <col [class]="isAdmin ? 'w-[12%]' : 'w-[15%]'" />
+      <col [class]="isAdmin ? 'w-[18%]' : 'w-[22%]'" />
+      <col [class]="isAdmin ? 'w-[11%]' : 'w-[13%]'" />
+      <col [class]="isAdmin ? 'w-[8%]' : 'w-[10%]'" />
+      @if (isAdmin) {
+        <col class="w-[17%]" />
+      }
+      <col class="w-[4%]" />
+    </colgroup>
 
-        <thead class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
-          <tr>
-            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-              ID
-            </th>
-            <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
-              Nombre
-            </th>
-            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-              Teléfono
-            </th>
-            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-              Email
-            </th>
-            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-              F. Nac.
-            </th>
-            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-              Género
-            </th>
-            @if (isAdmin) {
-              <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
-                Gimnasio
-              </th>
-            }
-            <th class="text-ra-slate px-1 py-3 text-center" aria-label="Acciones"></th>
-          </tr>
-        </thead>
+    <thead ra-tabla-head class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
+      <tr>
+        <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+          ID
+        </th>
+        <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+          Nombre
+        </th>
+        <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+          Teléfono
+        </th>
+        <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+          Email
+        </th>
+        <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+          F. Nac.
+        </th>
+        <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+          Género
+        </th>
+        @if (isAdmin) {
+          <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+            Gimnasio
+          </th>
+        }
+        <th class="text-ra-slate px-1 py-3 text-center" aria-label="Acciones"></th>
+      </tr>
+    </thead>
 
-        <tbody>
-          @if (cargando) {
-            <tr>
-              <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Cargando…</td>
-            </tr>
-          } @else if (mensajeError) {
-            <tr>
-              <td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ mensajeError }}</td>
-            </tr>
-          } @else if (listaSocios.length === 0) {
-            <tr>
-              <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Sin resultados.</td>
-            </tr>
-          } @else {
-            @for (s of listaSocios; track s.idSocio; let i = $index) {
-              <tr class="border-t border-gray-100 hover:bg-gray-50/60">
+    @for (s of listaSocios; track s.idSocio; let i = $index) {
+      <tr class="border-t border-gray-100 hover:bg-gray-50/60">
                 <td class="px-3 py-2.5 text-center text-[11px]">
                   <span
                     class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 font-mono text-[10px] text-gray-700"
@@ -219,56 +208,18 @@
                 </td>
               </tr>
             }
-          }
-        </tbody>
-      </table>
-    </div>
-  </div>
+  </ra-tabla>
 
   <!-- FOOTER con paginación -->
-  <div
-    class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-4 py-3 text-xs"
-  >
-    <!-- Izquierda: info de página -->
-    <div class="text-ra-slate/70 flex shrink-0 items-center gap-2">
-      <span>
-        Página <strong class="text-ra-slate">{{ paginaActual + 1 }}</strong> de
-        <strong class="text-ra-slate">{{ totalPaginas }}</strong>
-      </span>
-      <span class="text-ra-slate/50">({{ totalElementos }} registros)</span>
-    </div>
-
-    <!-- Derecha: tamaño de página + navegación -->
-    <div class="flex items-center gap-2 overflow-x-auto">
-      <span class="text-ra-slate/60 shrink-0 whitespace-nowrap">Por página</span>
-      <select
-        class="h-8 w-[70px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
-        [ngModel]="tamanioPagina"
-        (ngModelChange)="cambiarTamanioPagina($event)"
-      >
-        @for (t of tamaniosDisponibles; track t) {
-          <option [ngValue]="t">{{ t }}</option>
-        }
-      </select>
-
-      <div class="h-4 w-px shrink-0 bg-gray-200"></div>
-
-      <button
-        class="h-8 shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
-        [disabled]="paginaActual === 0"
-        (click)="irAnterior()"
-      >
-        Anterior
-      </button>
-      <button
-        class="h-8 shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
-        [disabled]="paginaActual + 1 >= totalPaginas"
-        (click)="irSiguiente()"
-      >
-        Siguiente
-      </button>
-    </div>
-  </div>
+  <ra-paginador
+    [paginaActual]="paginaActual"
+    [totalPaginas]="totalPaginas"
+    [totalElementos]="totalElementos"
+    [tamanioPagina]="tamanioPagina"
+    [tamaniosDisponibles]="tamaniosDisponibles"
+    (irAPagina)="irAPaginaSocio($event)"
+    (cambiarTamanio)="cambiarTamanioPagina($event)"
+  ></ra-paginador>
 </div>
 
 @if (modalSocioVisible()) {
