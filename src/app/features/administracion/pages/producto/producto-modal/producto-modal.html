@@ -4,12 +4,11 @@
     <!-- SOLO ADMIN: Gimnasio -->
     @if (isAdmin) {
       <ra-campo class="block" etiqueta="Gimnasio" [requerido]="true" [error]="errorGimnasio">
-        <select class="input-filled" formControlName="gimnasioId">
-          <option [ngValue]="null" disabled>Selecciona un gimnasio</option>
-          @for (g of gimnasios; track g.idGimnasio) {
-            <option [ngValue]="g.idGimnasio">{{ g.nombre }}</option>
-          }
-        </select>
+        <ra-select
+          formControlName="gimnasioId"
+          [opciones]="opcionesGimnasio()"
+          placeholder="Selecciona un gimnasio"
+        ></ra-select>
       </ra-campo>
     }
 
@@ -67,12 +66,11 @@
         }
       </label>
 
-      <select formControlName="idCategoria" class="input-filled">
-        <option [ngValue]="null" disabled>Selecciona una categoría</option>
-        @for (c of categoriasFiltradas; track c.idCategoria ?? $index) {
-          <option [ngValue]="c.idCategoria">{{ catOptionText(c) }}</option>
-        }
-      </select>
+      <ra-select
+        formControlName="idCategoria"
+        [opciones]="opcionesCategoria()"
+        placeholder="Selecciona una categoría"
+      ></ra-select>
 
       @if (
         isAdmin &&

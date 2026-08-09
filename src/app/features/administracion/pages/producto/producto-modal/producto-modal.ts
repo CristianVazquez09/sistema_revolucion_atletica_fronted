@@ -15,11 +15,12 @@ import { environment } from '../../../../../../environments/environment';
 import { RaBoton } from '../../../../../shared/ui/ra-boton/ra-boton';
 import { RaCampo } from '../../../../../shared/ui/ra-campo/ra-campo';
 import { RaModal } from '../../../../../shared/ui/ra-modal/ra-modal';
+import { RaSelect, RaSelectOpcion } from '../../../../../shared/ui/ra-select/ra-select';
 
 @Component({
   selector: 'app-producto-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RaBoton, RaCampo, RaModal],
+  imports: [CommonModule, ReactiveFormsModule, RaBoton, RaCampo, RaModal, RaSelect],
   templateUrl: './producto-modal.html',
   styleUrl: './producto-modal.css',
 })
@@ -231,6 +232,25 @@ export class ProductoModal implements OnInit {
     // Etiqueta: "Nombre — Gimnasio"
     const gymNombre = (c as any)?.gimnasio?.nombre ? ` — ${(c as any).gimnasio.nombre}` : '';
     return `${c.nombre}${gymNombre}`;
+  }
+
+  // -------------------------
+  // Opciones para ra-select
+  // -------------------------
+  // Nota: `gimnasios`/`categoriasFiltradas` son arrays planos mutados
+  // imperativamente (no signals), y este componente usa change detection
+  // por defecto (zone-based, sin OnPush) — igual que el `@for` original,
+  // por lo que estos métodos se re-evalúan en cada ciclo de CD y no
+  // necesitan (ni deben) ser `computed()`: un `computed()` sin lecturas de
+  // signal adentro se calcularía una sola vez y quedaría cacheado para
+  // siempre, sin reaccionar cuando `categoriasFiltradas` cambia al elegir
+  // otro gimnasio.
+  opcionesGimnasio(): RaSelectOpcion<number>[] {
+    return this.gimnasios.map((g) => ({ valor: g.idGimnasio, etiqueta: g.nombre }));
+  }
+
+  opcionesCategoria(): RaSelectOpcion<number>[] {
+    return this.categoriasFiltradas.map((c) => ({ valor: c.idCategoria!, etiqueta: this.catOptionText(c) }));
   }
 
   // -------------------------
