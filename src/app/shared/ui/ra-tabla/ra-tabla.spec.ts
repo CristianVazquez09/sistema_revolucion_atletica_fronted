@@ -193,9 +193,7 @@ describe('RaTabla con vacio=true (sin cargando ni error)', () => {
   let fixture: ComponentFixture<HostVacio>;
 
   beforeEach(() => {
-    fixture = TestBed.configureTestingModule({ imports: [HostVacio] }).createComponent(
-      HostVacio,
-    );
+    fixture = TestBed.configureTestingModule({ imports: [HostVacio] }).createComponent(HostVacio);
     fixture.detectChanges();
   });
 

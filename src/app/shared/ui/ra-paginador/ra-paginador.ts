@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, computed, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Output,
+  computed,
+  input,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RaSelect, RaSelectOpcion } from 'src/app/shared/ui/ra-select/ra-select';
 
