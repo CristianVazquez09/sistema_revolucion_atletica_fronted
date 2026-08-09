@@ -24,16 +24,15 @@
         @if (esAdmin()) {
           <div class="flex shrink-0 items-center gap-1.5">
             <span class="text-ra-slate/70 text-xs whitespace-nowrap">Gimnasio (tabla):</span>
-            <select
-              class="h-8 w-[200px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
-              [disabled]="cargandoGimnasios()"
-              [ngModel]="gimnasioTablaId()"
-              (ngModelChange)="onCambiarGimnasioTabla($event)"
-            >
-              @for (g of gimnasios(); track g.idGimnasio) {
-                <option [ngValue]="g.idGimnasio">{{ g.nombre }}</option>
-              }
-            </select>
+            <div class="w-[200px]">
+              <ra-select
+                tamano="compacto"
+                [ngModel]="gimnasioTablaId()"
+                (ngModelChange)="onCambiarGimnasioTabla($event)"
+                [deshabilitado]="cargandoGimnasios()"
+                [opciones]="opcionesGimnasio()"
+              ></ra-select>
+            </div>
           </div>
           <div class="h-5 w-px shrink-0 bg-gray-200"></div>
         }
