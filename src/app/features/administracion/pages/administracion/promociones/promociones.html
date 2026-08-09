@@ -26,6 +26,7 @@
             <span class="text-ra-slate/70 text-xs whitespace-nowrap">Gimnasio (tabla):</span>
             <div class="w-[200px]">
               <ra-select
+                tamano="compacto"
                 [ngModel]="gimnasioTablaId()"
                 (ngModelChange)="onCambiarGimnasioTabla($event)"
                 [deshabilitado]="cargandoGimnasios()"

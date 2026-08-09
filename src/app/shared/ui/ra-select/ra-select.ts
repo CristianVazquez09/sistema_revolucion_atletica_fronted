@@ -16,6 +16,21 @@ export interface RaSelectOpcion<T> {
   etiqueta: string;
 }
 
+export type RaSelectTamano = 'normal' | 'compacto';
+
+const CLASES_BASE_BOTON =
+  'flex w-full items-center justify-between gap-2 text-left disabled:cursor-not-allowed disabled:opacity-60';
+
+const CLASES_POR_TAMANO: Record<RaSelectTamano, string> = {
+  // Mismo alto/padding que .input-filled — para selects dentro de un
+  // formulario, al lado de inputs/ra-campo normales.
+  normal: 'input-filled',
+  // Mismo alto compacto (h-8) que el resto de los filtros de página
+  // (ra-buscador, botones de paginación, etc.) — para selects en una barra
+  // de herramientas, no dentro de un formulario.
+  compacto: 'h-8 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner',
+};
+
 /** Dropdown con estilo propio que reemplaza al `<select>` nativo (popup
  * controlado por el SO, no estilizable). Visualmente alineado con el panel
  * de los combobox de búsqueda ya existentes en la app (`rounded-xl2`,
@@ -47,7 +62,7 @@ export interface RaSelectOpcion<T> {
     <div class="relative">
       <button
         type="button"
-        class="input-filled flex w-full items-center justify-between gap-2 text-left disabled:cursor-not-allowed disabled:opacity-60"
+        [class]="clasesBoton()"
         [disabled]="estaDeshabilitado()"
         (click)="alternar()"
         [attr.aria-expanded]="abierto()"
@@ -99,6 +114,10 @@ export class RaSelect<T> implements ControlValueAccessor {
    * en un filtro de página sin `FormControl`). Se combina por OR con el
    * deshabilitado que llega vía `setDisabledState`. */
   deshabilitado = input(false);
+  /** 'normal' (default) para selects dentro de un formulario, altura de
+   * `.input-filled`. 'compacto' para filtros de página en una barra de
+   * herramientas (altura `h-8`, mismo lenguaje visual que `ra-buscador`). */
+  tamano = input<RaSelectTamano>('normal');
 
   private readonly elementRef = inject(ElementRef<HTMLElement>);
 
@@ -108,6 +127,9 @@ export class RaSelect<T> implements ControlValueAccessor {
   private readonly deshabilitadoPorForm = signal(false);
 
   protected readonly estaDeshabilitado = computed(() => this.deshabilitado() || this.deshabilitadoPorForm());
+  protected readonly clasesBoton = computed(
+    () => `${CLASES_BASE_BOTON} ${CLASES_POR_TAMANO[this.tamano()]}`,
+  );
   protected readonly etiquetaActual = computed(
     () => this.opciones().find((op) => op.valor === this.valorActual())?.etiqueta ?? null,
   );

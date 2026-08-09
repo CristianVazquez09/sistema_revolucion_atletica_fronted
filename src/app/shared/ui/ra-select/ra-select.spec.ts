@@ -220,6 +220,30 @@ describe('RaSelect', () => {
     keydown('ArrowDown');
     expect(panel()).toBeNull();
   });
+
+  it('tamano por defecto (normal) usa las clases de input-filled', () => {
+    expect(trigger().className).toContain('input-filled');
+  });
+});
+
+@Component({
+  standalone: true,
+  imports: [RaSelect],
+  template: `<ra-select tamano="compacto" [opciones]="opciones"></ra-select>`,
+})
+class HostSelectCompacto {
+  opciones = OPCIONES;
+}
+
+describe('RaSelect con tamano="compacto"', () => {
+  it('usa las clases compactas (h-8) en vez de input-filled', () => {
+    const fixture = TestBed.configureTestingModule({ imports: [HostSelectCompacto] })
+      .createComponent(HostSelectCompacto);
+    fixture.detectChanges();
+    const trigger: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+    expect(trigger.className).toContain('h-8');
+    expect(trigger.className).not.toContain('input-filled');
+  });
 });
 
 @Component({
