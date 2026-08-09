@@ -168,6 +168,43 @@ describe('RaSelect', () => {
     expect(valorRecibido).toBeUndefined();
   });
 
+  it('ArrowDown desde cerrado abre el panel y resalta la primera opcion', () => {
+    expect(panel()).toBeNull();
+    keydown('ArrowDown');
+    expect(panel()).not.toBeNull();
+    expect((raSelectInstance() as any).resaltado()).toBe(0);
+  });
+
+  it('ArrowUp desde cerrado abre el panel y resalta la ULTIMA opcion (no la primera)', () => {
+    expect(panel()).toBeNull();
+    keydown('ArrowUp');
+    expect(panel()).not.toBeNull();
+    // 3 opciones -> ultimo indice es 2. Si cayera en 0 se comportaria igual
+    // que ArrowDown, que es justo el bug que se corrigio.
+    expect((raSelectInstance() as any).resaltado()).toBe(2);
+  });
+
+  it('el blur del control dispara onTouched (ej. Tab sin abrir el panel)', () => {
+    let tocado = false;
+    raSelectInstance().registerOnTouched(() => (tocado = true));
+
+    trigger().dispatchEvent(new FocusEvent('blur'));
+    fixture.detectChanges();
+
+    expect(tocado).toBeTrue();
+  });
+
+  it('Escape tambien dispara onTouched al cerrar', () => {
+    let tocado = false;
+    raSelectInstance().registerOnTouched(() => (tocado = true));
+
+    trigger().click();
+    fixture.detectChanges();
+    keydown('Escape');
+
+    expect(tocado).toBeTrue();
+  });
+
   it('(i) deshabilitado=true bloquea apertura por click Y por teclado', () => {
     host.deshabilitado = true;
     fixture.detectChanges();

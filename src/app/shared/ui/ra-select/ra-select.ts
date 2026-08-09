@@ -53,6 +53,7 @@ export interface RaSelectOpcion<T> {
         [attr.aria-expanded]="abierto()"
         role="combobox"
         aria-haspopup="listbox"
+        (blur)="onTouched()"
       >
         <span class="truncate" [class.text-gray-400]="!etiquetaActual()">
           {{ etiquetaActual() || placeholder() }}
@@ -112,7 +113,7 @@ export class RaSelect<T> implements ControlValueAccessor {
   );
 
   private onChange: (v: T | null) => void = () => {};
-  private onTouched: () => void = () => {};
+  protected onTouched: () => void = () => {};
 
   writeValue(v: T | null): void {
     this.valorActual.set(v);
@@ -179,18 +180,31 @@ export class RaSelect<T> implements ControlValueAccessor {
         break;
       case 'ArrowDown':
         event.preventDefault();
-        if (!this.abierto()) this.abrir();
-        this.resaltado.update((i) => Math.min(i + 1, this.opciones().length - 1));
+        if (this.abierto()) {
+          this.resaltado.update((i) => Math.min(i + 1, this.opciones().length - 1));
+        } else {
+          this.abrir();
+          // Sin selección previa, arranca resaltando la primera opción.
+          if (this.resaltado() < 0) this.resaltado.set(0);
+        }
         break;
       case 'ArrowUp':
         event.preventDefault();
-        if (!this.abierto()) this.abrir();
-        this.resaltado.update((i) => Math.max(i - 1, 0));
+        if (this.abierto()) {
+          this.resaltado.update((i) => Math.max(i - 1, 0));
+        } else {
+          this.abrir();
+          // Sin selección previa, arranca resaltando la última opción (no la
+          // primera — de lo contrario ArrowUp se comportaría igual que
+          // ArrowDown al abrir desde cerrado).
+          if (this.resaltado() < 0) this.resaltado.set(this.opciones().length - 1);
+        }
         break;
       case 'Escape':
         if (this.abierto()) {
           event.preventDefault();
           this.cerrar();
+          this.onTouched();
         }
         break;
     }
