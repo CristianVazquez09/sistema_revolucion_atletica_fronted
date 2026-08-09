@@ -206,8 +206,10 @@ export class RaSelect<T> implements ControlValueAccessor {
           this.resaltado.update((i) => Math.min(i + 1, this.opciones().length - 1));
         } else {
           this.abrir();
-          // Sin selección previa, arranca resaltando la primera opción.
-          if (this.resaltado() < 0) this.resaltado.set(0);
+          // Sin selección previa, arranca resaltando la primera opción (o
+          // se queda en -1 si no hay opciones, mismo centinela que usa
+          // el resto del componente para "nada resaltado").
+          if (this.resaltado() < 0) this.resaltado.set(Math.min(0, this.opciones().length - 1));
         }
         break;
       case 'ArrowUp':

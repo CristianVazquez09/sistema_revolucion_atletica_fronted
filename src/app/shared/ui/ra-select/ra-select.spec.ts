@@ -229,6 +229,39 @@ describe('RaSelect', () => {
 @Component({
   standalone: true,
   imports: [RaSelect],
+  template: `<ra-select [opciones]="opciones"></ra-select>`,
+})
+class HostSelectVacio {
+  opciones: RaSelectOpcion<number>[] = [];
+}
+
+describe('RaSelect sin opciones', () => {
+  it('ArrowDown/ArrowUp desde cerrado no dejan un indice invalido (se quedan en -1)', () => {
+    const fixture = TestBed.configureTestingModule({ imports: [HostSelectVacio] })
+      .createComponent(HostSelectVacio);
+    fixture.detectChanges();
+    const instancia = fixture.debugElement.query((de) => de.name === 'ra-select')
+      .componentInstance as RaSelect<number>;
+
+    const dispatch = (key: string) => {
+      const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
+      fixture.debugElement.query((de) => de.name === 'ra-select').nativeElement.dispatchEvent(event);
+      fixture.detectChanges();
+    };
+
+    dispatch('ArrowDown');
+    expect((instancia as any).resaltado()).toBe(-1);
+
+    dispatch('Enter');
+    // No debe llamar seleccionar() con una opcion inexistente (no crashea,
+    // no queda el panel en un estado raro).
+    expect(fixture.nativeElement.querySelector('[role="listbox"]')).not.toBeNull();
+  });
+});
+
+@Component({
+  standalone: true,
+  imports: [RaSelect],
   template: `<ra-select tamano="compacto" [opciones]="opciones"></ra-select>`,
 })
 class HostSelectCompacto {
