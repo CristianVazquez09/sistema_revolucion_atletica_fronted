@@ -29,11 +29,12 @@ import { GimnasioData } from 'src/app/shared/models/gimnasio-data';
 import { environment } from 'src/environments/environment';
 import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 import { RaBadge, RaBadgeVariante } from 'src/app/shared/ui/ra-badge/ra-badge';
+import { RaSelect } from 'src/app/shared/ui/ra-select/ra-select';
 
 @Component({
   selector: 'app-promociones',
   standalone: true,
-  imports: [CommonModule, FormsModule, PromocionModal, RaDropdown, RaBadge],
+  imports: [CommonModule, FormsModule, PromocionModal, RaDropdown, RaBadge, RaSelect],
   templateUrl: './promociones.html',
   styleUrl: './promociones.css',
 })
@@ -84,6 +85,9 @@ export class Promociones {
   paquetes = signal<PaqueteData[]>([]);
   gimnasios = signal<GimnasioData[]>([]);
   cargandoGimnasios = signal(false);
+  opcionesGimnasio = computed(() =>
+    this.gimnasios().map((g) => ({ valor: g.idGimnasio, etiqueta: g.nombre })),
+  );
 
   termino = signal('');
   soloVigentes = signal(true);
