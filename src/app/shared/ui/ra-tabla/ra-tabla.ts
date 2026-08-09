@@ -8,7 +8,15 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * El `<thead>` se proyecta completo vía `[ra-tabla-head]` (las columnas son
  * 100% distintas por tabla). Las filas `<tr>` reales se proyectan como
  * contenido por defecto, SOLO se muestran cuando no aplica ningún estado
- * especial — `ra-tabla` no sabe nada de qué hay adentro de cada fila. */
+ * especial — `ra-tabla` no sabe nada de qué hay adentro de cada fila.
+ *
+ * `<colgroup>` (si la tabla define anchos de columna fijos) se proyecta con
+ * su PROPIO slot `[ra-tabla-colgroup]`, colocado como hijo directo de
+ * `<table>` ANTES del `<thead>` — igual que exige la especificación CSS de
+ * tablas. Si `<colgroup>` quedara anidado dentro del `<thead>` proyectado
+ * (en vez de ser hermano directo bajo `<table>`), el navegador lo trata como
+ * mal ubicado y genera una tabla anónima alrededor: los anchos de columna
+ * dejan de aplicar, sin ningún error visible — por eso el slot separado. */
 @Component({
   selector: 'ra-tabla',
   standalone: true,
@@ -16,6 +24,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   template: `
     <div class="overflow-x-auto">
       <table class="w-full table-fixed border-collapse text-xs {{ ancho() }}">
+        <ng-content select="[ra-tabla-colgroup]"></ng-content>
         <ng-content select="[ra-tabla-head]"></ng-content>
         <tbody>
           @if (cargando()) {

@@ -52,6 +52,49 @@ describe('RaTabla', () => {
   standalone: true,
   imports: [RaTabla],
   template: `
+    <ra-tabla ancho="min-w-[400px]">
+      <colgroup ra-tabla-colgroup>
+        <col class="w-[30%]" />
+        <col class="w-[70%]" />
+      </colgroup>
+      <thead ra-tabla-head>
+        <tr>
+          <th>Columna</th>
+        </tr>
+      </thead>
+      <tr>
+        <td class="fila-real">fila real</td>
+      </tr>
+    </ra-tabla>
+  `,
+})
+class HostConColgroup {}
+
+describe('RaTabla con colgroup', () => {
+  it('proyecta el colgroup como hijo directo de <table>, ANTES del thead (no anidado adentro)', () => {
+    const fixture: ComponentFixture<HostConColgroup> = TestBed.configureTestingModule({
+      imports: [HostConColgroup],
+    }).createComponent(HostConColgroup);
+    fixture.detectChanges();
+
+    const table: HTMLTableElement = fixture.nativeElement.querySelector('table');
+    const colgroup = table.querySelector('colgroup');
+
+    expect(colgroup).not.toBeNull();
+    // Hijo DIRECTO de <table> — si quedara anidado dentro del <thead>
+    // proyectado, el navegador lo trataría como mal ubicado y los anchos
+    // de columna dejarían de aplicar (sin ningún error visible).
+    expect(colgroup!.parentElement).toBe(table);
+    // Antes del thead, como exige la especificación CSS de tablas.
+    expect(colgroup!.nextElementSibling?.tagName.toLowerCase()).toBe('thead');
+    expect(colgroup!.querySelectorAll('col').length).toBe(2);
+  });
+});
+
+@Component({
+  standalone: true,
+  imports: [RaTabla],
+  template: `
     <ra-tabla [cargando]="true">
       <thead ra-tabla-head>
         <tr>
