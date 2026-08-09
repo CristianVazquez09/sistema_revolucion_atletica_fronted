@@ -251,7 +251,17 @@ Reemplazar el bloque `<div class="overflow-x-auto"><div><table>...</table></div>
 </ra-tabla>
 ```
 
-⚠️ El `<colgroup>` va DENTRO del `<thead ra-tabla-head>` proyectado (antes de la `<tr>`) — verificar que sigue funcionando igual dentro de un `<thead>` que ahora es contenido proyectado (debería, `<colgroup>` es válido en cualquier posición directa dentro de `<table>` según HTML, pero aquí termina como hijo directo de `<thead>` en vez de `<table>` — ⚠️ REVISAR ESTO: si `<colgroup>` deja de funcionar por estar dentro del `<thead>` proyectado en vez de directo bajo `<table>`, moverlo a un slot separado `[ra-tabla-colgroup]` o dejarlo fuera de la proyección y agregar un input `anchoColumnas`/proyectarlo con su propio selector — decidir al implementar, verificando visualmente que las columnas mantengan su ancho).
+✅ **Resuelto durante la revisión de Task 2** (commit `0951aec`): `<colgroup>` NO puede ir anidado dentro del `<thead ra-tabla-head>` proyectado — por especificación CSS, un `<colgroup>` solo aporta anchos de columna cuando es hijo DIRECTO de `<table>`; anidado bajo `<thead>` el navegador lo trata como mal ubicado y genera una tabla anónima alrededor, sin ningún error visible pero con los anchos de columna silenciosamente rotos. `ra-tabla` ya tiene un slot dedicado para esto: `<ng-content select="[ra-tabla-colgroup]">`, colocado como hijo directo de `<table>` ANTES del `<thead>`. Usar así:
+```html
+<ra-tabla ancho="min-w-[700px]" ...>
+  <colgroup ra-tabla-colgroup>
+    <col class="w-[6%]" />
+    ...
+  </colgroup>
+  <thead ra-tabla-head>...</thead>
+  @for (...) { <tr>...</tr> }
+</ra-tabla>
+```
 
 Reemplazar el footer de paginación completo por:
 
