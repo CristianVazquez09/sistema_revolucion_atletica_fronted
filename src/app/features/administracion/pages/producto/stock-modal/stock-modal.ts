@@ -1,30 +1,22 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-  computed,
-  inject,
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
 import { ProductoData } from '../../../../../shared/models/producto-data';
 import { NotificacionService } from '../../../../../core/layout/notificacion-service';
 import { ProductoService } from '../../../data/producto-service';
+import { RaModal } from '../../../../../shared/ui/ra-modal/ra-modal';
 
 export type StockModalModo = 'ENTRADA' | 'AJUSTE';
 
 @Component({
   selector: 'app-stock-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RaModal],
   templateUrl: './stock-modal.html',
   styleUrl: './stock-modal.css',
 })
-export class StockModal implements OnInit, OnDestroy {
+export class StockModal implements OnInit {
   @Input() producto!: ProductoData;
   @Input() modo: StockModalModo = 'ENTRADA';
 
@@ -55,17 +47,7 @@ export class StockModal implements OnInit, OnDestroy {
     } else {
       this.form.controls.cantidad.setValue(1, { emitEvent: false });
     }
-
-    window.addEventListener('keydown', this.handleEsc);
   }
-
-  ngOnDestroy(): void {
-    window.removeEventListener('keydown', this.handleEsc);
-  }
-
-  private handleEsc = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') this.cancelar.emit();
-  };
 
   submit(): void {
     this.intento = true;

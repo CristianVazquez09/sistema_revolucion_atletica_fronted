@@ -1,25 +1,10 @@
-<div class="mx-auto w-full rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
-  <!-- Header -->
-  <div class="flex items-start justify-between px-6 pt-5">
-    <div class="min-w-0">
-      <h2 class="text-ra-slate text-[20px] leading-none font-bold">{{ titulo() }}</h2>
-      <p class="mt-1 truncate text-sm text-gray-600" [title]="producto.nombre">
-        {{ producto.nombre }} <span class="text-gray-400">(#{{ producto.idProducto }})</span>
-      </p>
-      <p class="mt-1 text-xs text-gray-500">
-        Stock actual: <span class="text-ra-slate font-semibold">{{ producto.cantidad }}</span>
-      </p>
-    </div>
-
-    <button
-      type="button"
-      class="grid h-8 w-8 place-items-center rounded-full bg-red-600 text-white hover:bg-red-700"
-      (click)="cancelar.emit()"
-      aria-label="Cerrar"
-    >
-      ✕
-    </button>
-  </div>
+<ra-modal [titulo]="titulo()" anchoMax="max-w-xl" (cerrar)="cancelar.emit()">
+  <p ra-modal-subtitulo class="mt-1 truncate text-sm text-gray-600" [title]="producto.nombre">
+    {{ producto.nombre }} <span class="text-gray-400">(#{{ producto.idProducto }})</span>
+  </p>
+  <p ra-modal-subtitulo class="mt-1 text-xs text-gray-500">
+    Stock actual: <span class="text-ra-slate font-semibold">{{ producto.cantidad }}</span>
+  </p>
 
   <form class="space-y-4 px-6 pt-4 pb-6" [formGroup]="form" (ngSubmit)="submit()">
     @if (modo === 'ENTRADA') {
@@ -84,4 +69,4 @@
       </button>
     </div>
   </form>
-</div>
+</ra-modal>

@@ -8,13 +8,14 @@ import { RolService } from '../../../../data/rol-service';
 
 import { UsuarioData } from '../../../../../../shared/models/usuario-data';
 import { RolData } from '../../../../../../shared/models/rol-data';
+import { RaModal } from '../../../../../../shared/ui/ra-modal/ra-modal';
 
 type GymOption = { id: number; nombre: string; direccion?: string; telefono?: string };
 
 @Component({
   selector: 'app-usuarios-admin-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RaModal],
   templateUrl: './usuarios-admin-modal.html',
   styleUrl: './usuarios-admin-modal.css',
 })
@@ -22,6 +23,10 @@ export class UsuariosAdminModal implements OnInit {
   @Input() idUsuario: number | null = null;
   @Output() cancelar = new EventEmitter<void>();
   @Output() guardado = new EventEmitter<void>();
+
+  get tituloModal(): string {
+    return this.idUsuario ? 'Editar usuario #' + this.idUsuario : 'Crear usuario';
+  }
 
   private srv = inject(UsuarioService);
   private gymSrv = inject(GimnasioService);

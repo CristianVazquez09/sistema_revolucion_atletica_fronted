@@ -1,13 +1,4 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-  computed,
-  inject,
-} from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
@@ -23,15 +14,16 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../../../environments/environment';
 import { RaBoton } from '../../../../../shared/ui/ra-boton/ra-boton';
 import { RaCampo } from '../../../../../shared/ui/ra-campo/ra-campo';
+import { RaModal } from '../../../../../shared/ui/ra-modal/ra-modal';
 
 @Component({
   selector: 'app-producto-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RaBoton, RaCampo],
+  imports: [CommonModule, ReactiveFormsModule, RaBoton, RaCampo, RaModal],
   templateUrl: './producto-modal.html',
   styleUrl: './producto-modal.css',
 })
-export class ProductoModal implements OnInit, OnDestroy {
+export class ProductoModal implements OnInit {
   @Input() producto: ProductoData | null = null;
   @Output() cancelar = new EventEmitter<void>();
   @Output() guardado = new EventEmitter<void>();
@@ -81,16 +73,7 @@ export class ProductoModal implements OnInit, OnDestroy {
     } else {
       this.cargarCategorias(() => this.precargarEdicion());
     }
-
-    window.addEventListener('keydown', this.handleEsc);
   }
-
-  ngOnDestroy(): void {
-    window.removeEventListener('keydown', this.handleEsc);
-  }
-  private handleEsc = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') this.cancelar.emit();
-  };
 
   // ===== Cargas =====
   private cargarGimnasios(done?: () => void): void {

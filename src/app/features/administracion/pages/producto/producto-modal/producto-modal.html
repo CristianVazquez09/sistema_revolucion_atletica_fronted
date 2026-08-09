@@ -1,17 +1,4 @@
-<div class="mx-auto w-full rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
-  <!-- Header -->
-  <div class="flex items-start justify-between px-6 pt-5">
-    <h2 class="text-ra-slate text-[20px] leading-none font-bold">{{ titulo() }}</h2>
-    <button
-      type="button"
-      class="grid h-8 w-8 place-items-center rounded-full bg-red-600 text-white hover:bg-red-700"
-      (click)="cancelar.emit()"
-      aria-label="Cerrar"
-    >
-      ✕
-    </button>
-  </div>
-
+<ra-modal [titulo]="titulo()" (cerrar)="cancelar.emit()">
   <!-- Form -->
   <form class="space-y-4 px-6 pt-4 pb-6" [formGroup]="form" (ngSubmit)="submit()">
     <!-- SOLO ADMIN: Gimnasio -->
@@ -108,4 +95,4 @@
       </ra-boton>
     </div>
   </form>
-</div>
+</ra-modal>
