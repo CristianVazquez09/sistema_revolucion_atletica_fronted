@@ -61,7 +61,7 @@ export class Promociones {
 
   private ro?: ResizeObserver;
 
-  private readonly MIN_ZOOM = 0.78;
+  private readonly MIN_ZOOM = 0.9;
   private readonly MAX_ZOOM = 1.0;
 
   esXlUp = signal(
