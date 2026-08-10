@@ -22,22 +22,36 @@
         }
 
         <!-- Búsqueda unificada folio / nombre -->
+        <ra-buscador
+          placeholder="Buscar por folio o socio…"
+          [valor]="terminoBuscar"
+          (buscar)="onTerminoBuscar($event)"
+        ></ra-buscador>
+
+        <div class="h-5 w-px shrink-0 bg-gray-200"></div>
+
+        <!-- Ordenar por -->
         <div class="flex shrink-0 items-center gap-1.5">
-          <input
-            type="text"
-            placeholder="Buscar por folio o socio…"
-            class="h-8 w-[240px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
-            [(ngModel)]="terminoBuscar"
-            (ngModelChange)="onTerminoBuscar($event)"
-            (keyup.enter)="onTerminoBuscar(terminoBuscar)"
-          />
-          <button
-            type="button"
-            class="text-ra-slate h-8 shrink-0 rounded-lg border border-gray-200 px-3 text-xs hover:bg-gray-50"
-            (click)="limpiarTermino()"
+          <span class="text-ra-slate/60 shrink-0 whitespace-nowrap">Ordenar por</span>
+          <select
+            class="h-8 w-[110px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
+            [(ngModel)]="sortCampo"
+            (change)="go(1)"
           >
-            Limpiar
-          </button>
+            <option [ngValue]="'fechaInicio'">F. inicio</option>
+            <option [ngValue]="'fechaFin'">F. fin</option>
+            <option [ngValue]="'folio'">Folio</option>
+            <option [ngValue]="'idMembresia'">ID interno</option>
+            <option [ngValue]="'total'">Total</option>
+          </select>
+          <select
+            class="h-8 w-[80px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
+            [(ngModel)]="sortDir"
+            (change)="go(1)"
+          >
+            <option [ngValue]="'desc'">Desc</option>
+            <option [ngValue]="'asc'">Asc</option>
+          </select>
         </div>
 
         <!-- Rango de fechas -->
@@ -71,6 +85,13 @@
             >
               Quitar filtro
             </button>
+            @if (filtroFechasActivo && fechaDesde && fechaHasta) {
+              <span
+                class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] whitespace-nowrap text-amber-800"
+              >
+                {{ fechaDesde }} — {{ fechaHasta }}
+              </span>
+            }
           </div>
         }
       </div>
@@ -255,46 +276,6 @@
           </tr>
         }
       </ra-tabla>
-
-      <!-- ══ FOOTER: chip de rango + ordenamiento ══ -->
-      <div
-        class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-4 py-3 text-xs"
-      >
-        <!-- Izquierda: chip de rango de fechas -->
-        <div class="text-ra-slate/70 flex shrink-0 items-center gap-2">
-          @if (filtroFechasActivo && fechaDesde && fechaHasta) {
-            <span
-              class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] text-amber-800"
-            >
-              {{ fechaDesde }} — {{ fechaHasta }}
-            </span>
-          }
-        </div>
-
-        <!-- Derecha: ordenar por -->
-        <div class="flex items-center gap-2 overflow-x-auto">
-          <span class="text-ra-slate/60 shrink-0 whitespace-nowrap">Ordenar por</span>
-          <select
-            class="h-8 w-[110px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
-            [(ngModel)]="sortCampo"
-            (change)="go(1)"
-          >
-            <option [ngValue]="'fechaInicio'">F. inicio</option>
-            <option [ngValue]="'fechaFin'">F. fin</option>
-            <option [ngValue]="'folio'">Folio</option>
-            <option [ngValue]="'idMembresia'">ID interno</option>
-            <option [ngValue]="'total'">Total</option>
-          </select>
-          <select
-            class="h-8 w-[80px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
-            [(ngModel)]="sortDir"
-            (change)="go(1)"
-          >
-            <option [ngValue]="'desc'">Desc</option>
-            <option [ngValue]="'asc'">Asc</option>
-          </select>
-        </div>
-      </div>
 
       <!-- ══ FOOTER: info de página + tamaño + navegación ══ -->
       <ra-paginador

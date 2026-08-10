@@ -39,6 +39,7 @@ import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 import { RaBadge, RaBadgeVariante } from 'src/app/shared/ui/ra-badge/ra-badge';
 import { RaTabla } from 'src/app/shared/ui/ra-tabla/ra-tabla';
 import { RaPaginador } from 'src/app/shared/ui/ra-paginador/ra-paginador';
+import { RaBuscador } from 'src/app/shared/ui/ra-buscador/ra-buscador';
 import { TipoMovimiento } from 'src/app/shared/util/enums/tipo-movimiento';
 
 type PageMeta = {
@@ -61,6 +62,7 @@ type PageMeta = {
     RaBadge,
     RaTabla,
     RaPaginador,
+    RaBuscador,
   ],
   templateUrl: './membresia.html',
   styleUrl: './membresia.css',
@@ -134,11 +136,6 @@ export class Membresia {
       this.nombreBuscar = trimmed;
       this.onNombreInputChange(trimmed);
     }
-  }
-
-  limpiarTermino(): void {
-    this.terminoBuscar = '';
-    this.limpiarBusqueda();
   }
 
   fechaDesde = '';
