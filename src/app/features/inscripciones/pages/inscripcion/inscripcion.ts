@@ -52,13 +52,7 @@ import { crearContextoTicket, obtenerNombreCajero } from '../../../../shared/uti
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../../environments/environment';
 
-import { Store } from '@ngrx/store';
-import { InscripcionActions } from './state/inscripcion-actions';
-import {
-  selectPaqueteActual,
-  selectFechaPagoVista,
-  selectPaqueteId,
-} from './state/inscripcion-selectors';
+import { InscripcionStore } from '../../data/inscripcion-store';
 
 type MembresiaPayload = Omit<MembresiaData, 'paquete' | 'total' | 'fechaFin'> & {
   paquete: { idPaquete: number };
@@ -147,7 +141,7 @@ export class Inscripcion implements OnInit {
   private gymSrv = inject(GimnasioService);
   private ticket = inject(TicketService);
   private jwt = inject(JwtHelperService);
-  private store = inject(Store);
+  private store = inject(InscripcionStore);
   private entrenadorSrv = inject(EntrenadorService);
 
   gym: GimnasioData | null = null;
@@ -272,9 +266,9 @@ export class Inscripcion implements OnInit {
   // =========================
   // Store signals (solo lo necesario)
   // =========================
-  paqueteActualSig = this.store.selectSignal(selectPaqueteActual);
-  fechaPagoVistaSig = this.store.selectSignal(selectFechaPagoVista);
-  paqueteIdSelSig = this.store.selectSignal(selectPaqueteId);
+  paqueteActualSig = this.store.paqueteActual;
+  fechaPagoVistaSig = this.store.fechaPagoVista;
+  paqueteIdSelSig = this.store.paqueteId;
 
   descuentoManualSig = computed(() => this.descuentoUiSig());
 
@@ -578,7 +572,7 @@ export class Inscripcion implements OnInit {
         const pid = Number(id ?? 0);
 
         // ✅ store
-        this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: pid }));
+        this.store.establecerPaqueteId(pid);
 
         if (!this.formularioInscripcion.controls.fechaInicio.value) {
           this.formularioInscripcion.controls.fechaInicio.setValue(hoyISO(), {
@@ -606,7 +600,7 @@ export class Inscripcion implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((v) => {
         const iso = String(v ?? hoyISO());
-        this.store.dispatch(InscripcionActions.setFechaInicio({ fechaInicio: iso }));
+        this.store.establecerFechaInicio(iso);
         this.guardarBorradorEnStorage();
         this.bumpFormTick();
       });
@@ -668,7 +662,7 @@ export class Inscripcion implements OnInit {
       ).arr;
 
     this.listaPaquetesSig.set(nueva);
-    this.store.dispatch(InscripcionActions.setListaPaquetes({ paquetes: nueva as any }));
+    this.store.establecerListaPaquetes(nueva as any);
 
     return picked;
   }
@@ -741,7 +735,7 @@ export class Inscripcion implements OnInit {
 
     this.formularioInscripcion.controls.paqueteId.setValue(0, { emitEvent: false });
     this.formularioInscripcion.controls.paqueteId.updateValueAndValidity({ emitEvent: false });
-    this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: 0 }));
+    this.store.establecerPaqueteId(0);
 
     this.paqueteBusquedaSig.set('');
     this.paquetesResultadosSig.set([]);
@@ -776,7 +770,7 @@ export class Inscripcion implements OnInit {
           .filter((p) => p?.activo !== false && this.getPaqueteId(p) > 0) as PaqueteUI[];
 
         this.listaPaquetesSig.set(activos);
-        this.store.dispatch(InscripcionActions.setListaPaquetes({ paquetes: activos as any }));
+        this.store.establecerListaPaquetes(activos as any);
 
         // ✅ preferir form, luego store
         const idForm = Number(this.formularioInscripcion.controls.paqueteId.value ?? 0);
@@ -796,7 +790,7 @@ export class Inscripcion implements OnInit {
           this.formularioInscripcion.controls.paqueteId.updateValueAndValidity({
             emitEvent: false,
           });
-          this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: 0 }));
+          this.store.establecerPaqueteId(0);
 
           if (!draftTexto) this.paqueteBusquedaSig.set('');
 
@@ -1182,9 +1176,9 @@ export class Inscripcion implements OnInit {
         const fi = String(draft.form.fechaInicio ?? hoyISO());
         const desc = Number(draft.form.descuento ?? 0);
 
-        this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: pid }));
-        this.store.dispatch(InscripcionActions.setFechaInicio({ fechaInicio: fi }));
-        this.store.dispatch(InscripcionActions.setDescuento({ descuento: desc }));
+        this.store.establecerPaqueteId(pid);
+        this.store.establecerFechaInicio(fi);
+        this.store.establecerDescuento(desc);
 
         this.descuentoUiSig.set(this.normalizarMonto(desc));
       }
@@ -1271,9 +1265,9 @@ export class Inscripcion implements OnInit {
     this.fotoArchivo = null;
     this.fotoPreviewUrl = null;
 
-    this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId }));
-    this.store.dispatch(InscripcionActions.setFechaInicio({ fechaInicio: String(fechaInicio) }));
-    this.store.dispatch(InscripcionActions.setDescuento({ descuento: Number(descuento) }));
+    this.store.establecerPaqueteId(paqueteId);
+    this.store.establecerFechaInicio(String(fechaInicio));
+    this.store.establecerDescuento(Number(descuento));
 
     this.guardarBorradorEnStorage();
     this.bumpFormTick();
@@ -1425,7 +1419,7 @@ export class Inscripcion implements OnInit {
           });
 
           this.paqueteBusquedaSig.set('');
-          this.store.dispatch(InscripcionActions.reset());
+          this.store.reiniciar();
           this.cargarPaquetes();
 
           this.notificacion.exito('Membresía guardada con éxito.');
@@ -1522,7 +1516,7 @@ export class Inscripcion implements OnInit {
         });
 
         this.paqueteBusquedaSig.set('');
-        this.store.dispatch(InscripcionActions.reset());
+        this.store.reiniciar();
         this.cargarPaquetes();
 
         this.notificacion.exito(`Lote guardado con éxito (${requerido} membresías).`);
@@ -1810,13 +1804,13 @@ export class Inscripcion implements OnInit {
     this.formularioInscripcion.controls.paqueteId.updateValueAndValidity({ emitEvent: false });
 
     // 2) set store
-    this.store.dispatch(InscripcionActions.setPaqueteId({ paqueteId: id }));
+    this.store.establecerPaqueteId(id);
 
     // 3) fechaInicio default
     if (!this.formularioInscripcion.controls.fechaInicio.value) {
       const hoy = hoyISO();
       this.formularioInscripcion.controls.fechaInicio.setValue(hoy, { emitEvent: false });
-      this.store.dispatch(InscripcionActions.setFechaInicio({ fechaInicio: hoy }));
+      this.store.establecerFechaInicio(hoy);
     }
 
     // 4) estudiante + promos
@@ -1848,7 +1842,7 @@ export class Inscripcion implements OnInit {
 
     // Señal (UI) + store + draft + tick
     this.descuentoUiSig.set(val);
-    this.store.dispatch(InscripcionActions.setDescuento({ descuento: val }));
+    this.store.establecerDescuento(val);
     this.guardarBorradorEnStorage();
     this.bumpFormTick();
   }
