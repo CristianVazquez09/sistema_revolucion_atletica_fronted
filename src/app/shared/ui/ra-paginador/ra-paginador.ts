@@ -33,7 +33,13 @@ import { RaSelect, RaSelectOpcion } from 'src/app/shared/ui/ra-select/ra-select'
         <span class="text-ra-slate/50">({{ totalElementos() }} registros)</span>
       </div>
 
-      <div class="flex items-center gap-2 overflow-x-auto">
+      <!-- Sin overflow-x-auto a propósito: el panel desplegable de ra-select
+           es un elemento real del DOM (no un popup del SO como el <select>
+           nativo que reemplaza) y CSS obliga a que un overflow-x distinto de
+           visible fuerce también overflow-y:auto en el mismo elemento — eso
+           recortaba el panel abierto y aparecía una barra de scroll encima
+           de los controles. -->
+      <div class="flex items-center gap-2">
         <span class="text-ra-slate/60 shrink-0 whitespace-nowrap">Por página</span>
         <div class="w-[70px] shrink-0">
           <ra-select
