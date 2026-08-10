@@ -224,6 +224,19 @@ describe('RaSelect', () => {
   it('tamano por defecto (normal) usa las clases de input-filled', () => {
     expect(trigger().className).toContain('input-filled');
   });
+
+  it('el panel usa position:fixed (no absolute) con coordenadas propias, para no quedar atrapado por el overflow de un ancestro con scroll', () => {
+    trigger().click();
+    fixture.detectChanges();
+
+    const el = panel()!;
+    expect(el.className).toContain('fixed');
+    expect(el.className).not.toContain('absolute');
+    // left/width siempre se fijan; top O bottom, segun haya espacio abajo.
+    expect(el.style.left).not.toBe('');
+    expect(el.style.width).not.toBe('');
+    expect(el.style.top !== '' || el.style.bottom !== '').toBeTrue();
+  });
 });
 
 @Component({
@@ -237,15 +250,18 @@ class HostSelectVacio {
 
 describe('RaSelect sin opciones', () => {
   it('ArrowDown/ArrowUp desde cerrado no dejan un indice invalido (se quedan en -1)', () => {
-    const fixture = TestBed.configureTestingModule({ imports: [HostSelectVacio] })
-      .createComponent(HostSelectVacio);
+    const fixture = TestBed.configureTestingModule({ imports: [HostSelectVacio] }).createComponent(
+      HostSelectVacio,
+    );
     fixture.detectChanges();
     const instancia = fixture.debugElement.query((de) => de.name === 'ra-select')
       .componentInstance as RaSelect<number>;
 
     const dispatch = (key: string) => {
       const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true });
-      fixture.debugElement.query((de) => de.name === 'ra-select').nativeElement.dispatchEvent(event);
+      fixture.debugElement
+        .query((de) => de.name === 'ra-select')
+        .nativeElement.dispatchEvent(event);
       fixture.detectChanges();
     };
 
@@ -270,8 +286,9 @@ class HostSelectCompacto {
 
 describe('RaSelect con tamano="compacto"', () => {
   it('usa las clases compactas (h-8) en vez de input-filled', () => {
-    const fixture = TestBed.configureTestingModule({ imports: [HostSelectCompacto] })
-      .createComponent(HostSelectCompacto);
+    const fixture = TestBed.configureTestingModule({
+      imports: [HostSelectCompacto],
+    }).createComponent(HostSelectCompacto);
     fixture.detectChanges();
     const trigger: HTMLButtonElement = fixture.nativeElement.querySelector('button');
     expect(trigger.className).toContain('h-8');
@@ -282,7 +299,9 @@ describe('RaSelect con tamano="compacto"', () => {
 @Component({
   standalone: true,
   imports: [RaSelect, ReactiveFormsModule],
-  template: `<form [formGroup]="form"><ra-select formControlName="x" [opciones]="opciones"></ra-select></form>`,
+  template: `<form [formGroup]="form">
+    <ra-select formControlName="x" [opciones]="opciones"></ra-select>
+  </form>`,
 })
 class HostReactiveForms {
   opciones = OPCIONES;

@@ -50,225 +50,173 @@
   </div>
 
   <!-- TABLA -->
-  <div class="overflow-x-auto">
-    <div>
-      <table class="w-full min-w-[700px] table-fixed border-collapse text-xs">
-        <colgroup>
-          <col [class]="isAdmin ? 'w-[6%]' : 'w-[6%]'" />
-          <col [class]="isAdmin ? 'w-[24%]' : 'w-[28%]'" />
-          <col [class]="isAdmin ? 'w-[12%]' : 'w-[15%]'" />
-          <col [class]="isAdmin ? 'w-[18%]' : 'w-[22%]'" />
-          <col [class]="isAdmin ? 'w-[11%]' : 'w-[13%]'" />
-          <col [class]="isAdmin ? 'w-[8%]' : 'w-[10%]'" />
-          @if (isAdmin) {
-            <col class="w-[17%]" />
-          }
-          <col class="w-[4%]" />
-        </colgroup>
+  <ra-tabla
+    ancho="min-w-[700px]"
+    [cargando]="cargando"
+    [error]="mensajeError"
+    [vacio]="listaSocios.length === 0"
+  >
+    <colgroup ra-tabla-colgroup>
+      <col [class]="isAdmin ? 'w-[6%]' : 'w-[6%]'" />
+      <col [class]="isAdmin ? 'w-[24%]' : 'w-[28%]'" />
+      <col [class]="isAdmin ? 'w-[12%]' : 'w-[15%]'" />
+      <col [class]="isAdmin ? 'w-[18%]' : 'w-[22%]'" />
+      <col [class]="isAdmin ? 'w-[11%]' : 'w-[13%]'" />
+      <col [class]="isAdmin ? 'w-[8%]' : 'w-[10%]'" />
+      @if (isAdmin) {
+        <col class="w-[17%]" />
+      }
+      <col class="w-[4%]" />
+    </colgroup>
 
-        <thead class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
-          <tr>
-            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-              ID
-            </th>
-            <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
-              Nombre
-            </th>
-            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-              Teléfono
-            </th>
-            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-              Email
-            </th>
-            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-              F. Nac.
-            </th>
-            <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
-              Género
-            </th>
-            @if (isAdmin) {
-              <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
-                Gimnasio
-              </th>
+    <thead ra-tabla-head class="bg-ra-grayLight/40 sticky top-0 z-10 backdrop-blur">
+      <tr>
+        <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">ID</th>
+        <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+          Nombre
+        </th>
+        <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+          Teléfono
+        </th>
+        <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+          Email
+        </th>
+        <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+          F. Nac.
+        </th>
+        <th class="text-ra-slate px-3 py-3 text-center text-[11px] font-semibold uppercase">
+          Género
+        </th>
+        @if (isAdmin) {
+          <th class="text-ra-slate px-3 py-3 text-left text-[11px] font-semibold uppercase">
+            Gimnasio
+          </th>
+        }
+        <th class="text-ra-slate px-1 py-3 text-center" aria-label="Acciones"></th>
+      </tr>
+    </thead>
+
+    @for (s of listaSocios; track s.idSocio; let i = $index) {
+      <tr class="border-t border-gray-100 hover:bg-gray-50/60">
+        <td class="px-3 py-2.5 text-center text-[11px]">
+          <span
+            class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 font-mono text-[10px] text-gray-700"
+          >
+            {{ s.idSocio }}
+          </span>
+        </td>
+
+        <td class="min-w-0 px-3 py-2.5 text-[11px]">
+          <div class="truncate font-medium">{{ s.nombre }} {{ s.apellido }}</div>
+          <div class="text-ra-slate/60 truncate text-[10px]" [title]="s.direccion">
+            {{ s.direccion }}
+          </div>
+        </td>
+
+        <td class="truncate px-3 py-2.5 text-center text-[11px]" [title]="s.telefono">
+          {{ s.telefono || '—' }}
+        </td>
+
+        <td class="truncate px-3 py-2.5 text-center text-[11px]" [title]="s.email">
+          {{ s.email || '—' }}
+        </td>
+
+        <td class="px-3 py-2.5 text-center text-[11px] whitespace-nowrap">
+          {{ s.fechaNacimiento | date: 'dd/MM/yyyy' }}
+        </td>
+
+        <td class="px-3 py-2.5 text-center">
+          <span
+            class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
+            [ngClass]="{
+              'bg-pink-100 text-pink-700': s.genero === 'FEMENINO',
+              'bg-blue-100 text-blue-700': s.genero === 'MASCULINO',
+              'bg-gray-100 text-gray-700': s.genero !== 'FEMENINO' && s.genero !== 'MASCULINO',
+            }"
+          >
+            {{ s.genero }}
+          </span>
+        </td>
+
+        @if (isAdmin) {
+          <td class="min-w-0 px-3 py-2.5 text-[11px]">
+            <ra-badge variante="chip" [title]="displayGimnasio(s)">
+              <svg
+                viewBox="0 0 24 24"
+                class="h-3.5 w-3.5 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
+              </svg>
+              <span class="truncate">{{ displayGimnasio(s) }}</span>
+            </ra-badge>
+          </td>
+        }
+
+        <td class="relative px-1 py-2.5 text-center">
+          <ra-dropdown [alturaMenu]="220">
+            <button
+              (click)="verHistorial(s)"
+              class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+            >
+              <img src="iconos/historial.svg" alt="Historial" class="h-4 w-4 shrink-0" />
+              Historial
+            </button>
+            <button
+              (click)="verAsesorias(s)"
+              class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                class="h-4 w-4 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M4 8v8M7 10v4M17 10v4M20 8v8M7 12h10"
+                />
+              </svg>
+              Asesorias
+            </button>
+            @if (puedeEditarEliminar) {
+              <button
+                (click)="abrirModalParaEditar(s)"
+                class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+              >
+                <img src="iconos/editar.svg" alt="Editar" class="h-4 w-4 shrink-0" />
+                Editar
+              </button>
+              <button
+                (click)="eliminarSocio(s)"
+                class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
+              >
+                <img src="iconos/eliminar.svg" alt="Eliminar" class="h-4 w-4 shrink-0" />
+                Eliminar
+              </button>
             }
-            <th class="text-ra-slate px-1 py-3 text-center" aria-label="Acciones"></th>
-          </tr>
-        </thead>
-
-        <tbody>
-          @if (cargando) {
-            <tr>
-              <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Cargando…</td>
-            </tr>
-          } @else if (mensajeError) {
-            <tr>
-              <td [attr.colspan]="99" class="py-10 text-center text-red-600">{{ mensajeError }}</td>
-            </tr>
-          } @else if (listaSocios.length === 0) {
-            <tr>
-              <td [attr.colspan]="99" class="text-ra-slate py-10 text-center">Sin resultados.</td>
-            </tr>
-          } @else {
-            @for (s of listaSocios; track s.idSocio; let i = $index) {
-              <tr class="border-t border-gray-100 hover:bg-gray-50/60">
-                <td class="px-3 py-2.5 text-center text-[11px]">
-                  <span
-                    class="inline-block min-w-[3ch] rounded-md border border-gray-200 bg-gray-100 px-2 py-0.5 font-mono text-[10px] text-gray-700"
-                  >
-                    {{ s.idSocio }}
-                  </span>
-                </td>
-
-                <td class="min-w-0 px-3 py-2.5 text-[11px]">
-                  <div class="truncate font-medium">{{ s.nombre }} {{ s.apellido }}</div>
-                  <div class="text-ra-slate/60 truncate text-[10px]" [title]="s.direccion">
-                    {{ s.direccion }}
-                  </div>
-                </td>
-
-                <td class="truncate px-3 py-2.5 text-center text-[11px]" [title]="s.telefono">
-                  {{ s.telefono || '—' }}
-                </td>
-
-                <td class="truncate px-3 py-2.5 text-center text-[11px]" [title]="s.email">
-                  {{ s.email || '—' }}
-                </td>
-
-                <td class="px-3 py-2.5 text-center text-[11px] whitespace-nowrap">
-                  {{ s.fechaNacimiento | date: 'dd/MM/yyyy' }}
-                </td>
-
-                <td class="px-3 py-2.5 text-center">
-                  <span
-                    class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                    [ngClass]="{
-                      'bg-pink-100 text-pink-700': s.genero === 'FEMENINO',
-                      'bg-blue-100 text-blue-700': s.genero === 'MASCULINO',
-                      'bg-gray-100 text-gray-700':
-                        s.genero !== 'FEMENINO' && s.genero !== 'MASCULINO',
-                    }"
-                  >
-                    {{ s.genero }}
-                  </span>
-                </td>
-
-                @if (isAdmin) {
-                  <td class="min-w-0 px-3 py-2.5 text-[11px]">
-                    <ra-badge variante="chip" [title]="displayGimnasio(s)">
-                      <svg
-                        viewBox="0 0 24 24"
-                        class="h-3.5 w-3.5 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <path d="M3 21h18M6 21V5h6v16M12 9h6v12"></path>
-                      </svg>
-                      <span class="truncate">{{ displayGimnasio(s) }}</span>
-                    </ra-badge>
-                  </td>
-                }
-
-                <td class="relative px-1 py-2.5 text-center">
-                  <ra-dropdown [alturaMenu]="220">
-                    <button
-                      (click)="verHistorial(s)"
-                      class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
-                    >
-                      <img src="iconos/historial.svg" alt="Historial" class="h-4 w-4 shrink-0" />
-                      Historial
-                    </button>
-                    <button
-                      (click)="verAsesorias(s)"
-                      class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        class="h-4 w-4 shrink-0"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        aria-hidden="true"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          d="M4 8v8M7 10v4M17 10v4M20 8v8M7 12h10"
-                        />
-                      </svg>
-                      Asesorias
-                    </button>
-                    @if (puedeEditarEliminar) {
-                      <button
-                        (click)="abrirModalParaEditar(s)"
-                        class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
-                      >
-                        <img src="iconos/editar.svg" alt="Editar" class="h-4 w-4 shrink-0" />
-                        Editar
-                      </button>
-                      <button
-                        (click)="eliminarSocio(s)"
-                        class="hover:bg-ra-bg flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
-                      >
-                        <img src="iconos/eliminar.svg" alt="Eliminar" class="h-4 w-4 shrink-0" />
-                        Eliminar
-                      </button>
-                    }
-                  </ra-dropdown>
-                </td>
-              </tr>
-            }
-          }
-        </tbody>
-      </table>
-    </div>
-  </div>
+          </ra-dropdown>
+        </td>
+      </tr>
+    }
+  </ra-tabla>
 
   <!-- FOOTER con paginación -->
-  <div
-    class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-4 py-3 text-xs"
-  >
-    <!-- Izquierda: info de página -->
-    <div class="text-ra-slate/70 flex shrink-0 items-center gap-2">
-      <span>
-        Página <strong class="text-ra-slate">{{ paginaActual + 1 }}</strong> de
-        <strong class="text-ra-slate">{{ totalPaginas }}</strong>
-      </span>
-      <span class="text-ra-slate/50">({{ totalElementos }} registros)</span>
-    </div>
-
-    <!-- Derecha: tamaño de página + navegación -->
-    <div class="flex items-center gap-2 overflow-x-auto">
-      <span class="text-ra-slate/60 shrink-0 whitespace-nowrap">Por página</span>
-      <select
-        class="h-8 w-[70px] shrink-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs shadow-inner"
-        [ngModel]="tamanioPagina"
-        (ngModelChange)="cambiarTamanioPagina($event)"
-      >
-        @for (t of tamaniosDisponibles; track t) {
-          <option [ngValue]="t">{{ t }}</option>
-        }
-      </select>
-
-      <div class="h-4 w-px shrink-0 bg-gray-200"></div>
-
-      <button
-        class="h-8 shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
-        [disabled]="paginaActual === 0"
-        (click)="irAnterior()"
-      >
-        Anterior
-      </button>
-      <button
-        class="h-8 shrink-0 rounded-lg border border-gray-200 bg-white px-3 text-xs hover:bg-gray-50 disabled:opacity-40"
-        [disabled]="paginaActual + 1 >= totalPaginas"
-        (click)="irSiguiente()"
-      >
-        Siguiente
-      </button>
-    </div>
-  </div>
+  <ra-paginador
+    [paginaActual]="paginaActual"
+    [totalPaginas]="totalPaginas"
+    [totalElementos]="totalElementos"
+    [tamanioPagina]="tamanioPagina"
+    [tamaniosDisponibles]="tamaniosDisponibles"
+    (irAPagina)="irAPaginaSocio($event)"
+    (cambiarTamanio)="cambiarTamanioPagina($event)"
+  ></ra-paginador>
 </div>
 
 @if (modalSocioVisible()) {

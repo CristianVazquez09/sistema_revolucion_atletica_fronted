@@ -16,6 +16,8 @@ import { TipoPaquete } from '../../../../shared/util/enums/tipo-paquete';
 import { MenuService } from 'src/app/core/layout/menu-service';
 import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 import { RaBadge } from 'src/app/shared/ui/ra-badge/ra-badge';
+import { RaTabla } from 'src/app/shared/ui/ra-tabla/ra-tabla';
+import { RaPaginador } from 'src/app/shared/ui/ra-paginador/ra-paginador';
 
 // ✅ selector admin + tenant ctx
 import { TenantContextService } from 'src/app/core/tenant/tenant-context-service';
@@ -36,6 +38,8 @@ import { environment } from '../../../../../environments/environment';
     RaDropdown,
     RaBadge,
     RaBuscador,
+    RaTabla,
+    RaPaginador,
   ],
   templateUrl: './socio.html',
   styleUrl: './socio.css',
@@ -314,15 +318,8 @@ export class Socio implements OnInit, OnDestroy {
     this.cargarSocios();
   }
 
-  irAnterior(): void {
-    if (this.paginaActual === 0) return;
-    this.paginaActual--;
-    this.cargarSocios();
-  }
-
-  irSiguiente(): void {
-    if (this.paginaActual + 1 >= this.totalPaginas) return;
-    this.paginaActual++;
+  irAPaginaSocio(pagina: number): void {
+    this.paginaActual = pagina;
     this.cargarSocios();
   }
 

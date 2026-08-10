@@ -3,12 +3,14 @@ import {
   Component,
   ElementRef,
   HostListener,
+  ViewChild,
   computed,
   forwardRef,
   inject,
   input,
   signal,
 } from '@angular/core';
+import { NgStyle } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 export interface RaSelectOpcion<T> {
@@ -46,10 +48,18 @@ const CLASES_POR_TAMANO: Record<RaSelectTamano, string> = {
  * combinan con OR: el input explícito `deshabilitado` (binding directo,
  * fuera de cualquier `FormControl`) y `setDisabledState` (vía CVA, cuando el
  * consumidor deshabilita un `FormGroup`/`FormControl`). Cualquiera de las
- * dos alcanza para bloquear el control. */
+ * dos alcanza para bloquear el control.
+ *
+ * El panel se posiciona con `position: fixed` + coordenadas calculadas por
+ * JS (mismo patrón anti-clipping ya probado en `ra-dropdown`), NO con
+ * `position: absolute` — un panel `absolute` queda atrapado por el overflow
+ * de cualquier ancestro con scroll (tarjetas, contenedores de zoom, etc.) y
+ * termina recortado con una barra de scroll encima en vez de flotar libre
+ * sobre el resto de la página. Abre hacia arriba si no hay espacio abajo. */
 @Component({
   selector: 'ra-select',
   standalone: true,
+  imports: [NgStyle],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
@@ -61,6 +71,7 @@ const CLASES_POR_TAMANO: Record<RaSelectTamano, string> = {
   template: `
     <div class="relative">
       <button
+        #trigger
         type="button"
         [class]="clasesBoton()"
         [disabled]="estaDeshabilitado()"
@@ -73,13 +84,22 @@ const CLASES_POR_TAMANO: Record<RaSelectTamano, string> = {
         <span class="truncate" [class.text-gray-400]="!etiquetaActual()">
           {{ etiquetaActual() || placeholder() }}
         </span>
-        <svg class="h-4 w-4 shrink-0 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <svg
+          class="h-4 w-4 shrink-0 text-gray-400"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6" />
         </svg>
       </button>
 
       @if (abierto()) {
-        <div class="rounded-xl2 shadow-card absolute z-50 mt-1 w-full overflow-hidden border border-gray-200 bg-white" role="listbox">
+        <div
+          class="rounded-xl2 shadow-card fixed z-50 overflow-hidden border border-gray-200 bg-white"
+          [ngStyle]="posicion()"
+          role="listbox"
+        >
           <div class="max-h-[280px] overflow-auto">
             @for (op of opciones(); track op.valor; let i = $index) {
               <button
@@ -119,14 +139,29 @@ export class RaSelect<T> implements ControlValueAccessor {
    * herramientas (altura `h-8`, mismo lenguaje visual que `ra-buscador`). */
   tamano = input<RaSelectTamano>('normal');
 
+  @ViewChild('trigger', { static: true }) private triggerRef!: ElementRef<HTMLButtonElement>;
+
   private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private readonly gap = 4;
+  private readonly alturaMaxPanel = 280;
 
   protected readonly valorActual = signal<T | null>(null);
   protected readonly abierto = signal(false);
   protected readonly resaltado = signal(-1);
+  protected readonly posicion = signal<{
+    top?: string;
+    bottom?: string;
+    left: string;
+    width: string;
+  }>({
+    left: '0px',
+    width: '0px',
+  });
   private readonly deshabilitadoPorForm = signal(false);
 
-  protected readonly estaDeshabilitado = computed(() => this.deshabilitado() || this.deshabilitadoPorForm());
+  protected readonly estaDeshabilitado = computed(
+    () => this.deshabilitado() || this.deshabilitadoPorForm(),
+  );
   protected readonly clasesBoton = computed(
     () => `${CLASES_BASE_BOTON} ${CLASES_POR_TAMANO[this.tamano()]}`,
   );
@@ -170,6 +205,25 @@ export class RaSelect<T> implements ControlValueAccessor {
     // Al abrir, resalta la opción actualmente seleccionada (si existe);
     // si no hay valor o no matchea ninguna opción, arranca sin resaltar (-1).
     this.resaltado.set(this.opciones().findIndex((op) => op.valor === this.valorActual()));
+
+    const rect = this.triggerRef.nativeElement.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const spaceBelow = viewportHeight - rect.bottom;
+    const openUp = spaceBelow < this.alturaMaxPanel + this.gap;
+    this.posicion.set(
+      openUp
+        ? {
+            bottom: `${viewportHeight - rect.top + this.gap}px`,
+            left: `${rect.left}px`,
+            width: `${rect.width}px`,
+          }
+        : {
+            top: `${rect.bottom + this.gap}px`,
+            left: `${rect.left}px`,
+            width: `${rect.width}px`,
+          },
+    );
+
     this.abierto.set(true);
   }
 

@@ -37,6 +37,9 @@ import { TenantContextService } from 'src/app/core/tenant/tenant-context-service
 import { RaGimnasioFilterComponent } from 'src/app/shared/ui/ra-gimnasio-filter/ra-gimnasio-filter';
 import { RaDropdown } from 'src/app/shared/ui/ra-dropdown/ra-dropdown';
 import { RaBadge, RaBadgeVariante } from 'src/app/shared/ui/ra-badge/ra-badge';
+import { RaTabla } from 'src/app/shared/ui/ra-tabla/ra-tabla';
+import { RaPaginador } from 'src/app/shared/ui/ra-paginador/ra-paginador';
+import { RaBuscador } from 'src/app/shared/ui/ra-buscador/ra-buscador';
 import { TipoMovimiento } from 'src/app/shared/util/enums/tipo-movimiento';
 
 type PageMeta = {
@@ -57,6 +60,9 @@ type PageMeta = {
     RaGimnasioFilterComponent,
     RaDropdown,
     RaBadge,
+    RaTabla,
+    RaPaginador,
+    RaBuscador,
   ],
   templateUrl: './membresia.html',
   styleUrl: './membresia.css',
@@ -130,11 +136,6 @@ export class Membresia {
       this.nombreBuscar = trimmed;
       this.onNombreInputChange(trimmed);
     }
-  }
-
-  limpiarTermino(): void {
-    this.terminoBuscar = '';
-    this.limpiarBusqueda();
   }
 
   fechaDesde = '';
@@ -374,23 +375,20 @@ export class Membresia {
   get pageUI(): number {
     return (this.page?.number ?? 0) + 1;
   }
-  get puedePrev(): boolean {
-    return this.pageUI > 1;
-  }
-  get puedeNext(): boolean {
-    return this.pageUI < (this.page?.totalPages ?? 1);
-  }
-
-  prev(): void {
-    if (this.puedePrev) this.cargar(this.pageUI - 1);
-  }
-
-  next(): void {
-    if (this.puedeNext) this.cargar(this.pageUI + 1);
-  }
 
   go(n: number): void {
     this.cargar(n);
+  }
+
+  /** `ra-paginador` es 0-based y emite el índice de página OBJETIVO (0-based)
+   * al que se quiere ir; `cargar()` sigue esperando 1-based (`pageUI`). */
+  onIrAPaginaMembresia(pagina0Based: number): void {
+    this.cargar(pagina0Based + 1);
+  }
+
+  onCambiarTamanioMembresia(n: number): void {
+    this.sizeSel = n;
+    this.go(1);
   }
 
   editar(m: MembresiaData): void {
