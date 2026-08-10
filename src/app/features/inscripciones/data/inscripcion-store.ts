@@ -3,7 +3,7 @@ import { Injectable, computed, signal } from '@angular/core';
 import { PaqueteData } from '../../../shared/models/paquete-data';
 import { calcularFechaFin, calcularTotal } from '../../../shared/util/fechas-precios';
 
-// ✅ Replica byte-a-byte el helper de src/app/pages/inscripcion/state/inscripcion-selectors.ts
+// ✅ Replica byte-a-byte el helper que traía el selector de NgRx (ya eliminado).
 // Soporta string/number y llaves alternativas (idPaquete/paqueteId/id/id_paquete).
 const getId = (p: any): number => {
   const raw = p?.idPaquete ?? p?.paqueteId ?? p?.id ?? p?.id_paquete ?? 0;
