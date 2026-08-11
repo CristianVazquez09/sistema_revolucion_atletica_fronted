@@ -46,13 +46,21 @@ import { EntrenadorData } from '../../../../shared/models/entrenador-data';
 import { TipoMovimiento } from '../../../../shared/util/enums/tipo-movimiento';
 import { TipoPago } from '../../../../shared/util/enums/tipo-pago';
 import { TiempoPlanLabelPipe } from '../../../../shared/util/tiempo-plan-label';
-import { calcularTotal, hoyISO } from '../../../../shared/util/fechas-precios';
+import { hoyISO } from '../../../../shared/util/fechas-precios';
 import { crearContextoTicket, obtenerNombreCajero } from '../../../../shared/util/ticket-contexto';
 
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../../../environments/environment';
 
 import { InscripcionStore } from '../../data/inscripcion-store';
+import { PromocionData } from '../../../../shared/models/promocion-data';
+import {
+  elegirMejorPromocion,
+  calcularTotalMembresia,
+  calcularFechaFinConBeneficio,
+  validarPaqueteEstudiantil,
+  calcularEdadDesdeISO,
+} from '../../data/calculo-membresia';
 
 type MembresiaPayload = Omit<MembresiaData, 'paquete' | 'total' | 'fechaFin'> & {
   paquete: { idPaquete: number };
@@ -267,7 +275,6 @@ export class Inscripcion implements OnInit {
   // Store signals (solo lo necesario)
   // =========================
   paqueteActualSig = this.store.paqueteActual;
-  fechaPagoVistaSig = this.store.fechaPagoVista;
   paqueteIdSelSig = this.store.paqueteId;
 
   descuentoManualSig = computed(() => this.descuentoUiSig());
@@ -296,66 +303,58 @@ export class Inscripcion implements OnInit {
   promocionesVigentesSig = signal<PromocionUI[]>([]);
   promoErrorSig = signal<string | null>(null);
 
+  // ✅ Decisión de negocio #1 (Fase 5b): selección por `prioridad` (empate:
+  // mayor idPromocion), no por valor monetario — vía calculo-membresia.ts.
   promocionAplicadaSig = computed<PromocionUI | null>(() => {
     const lista = this.promocionesVigentesSig();
-    const precio = Number(this.precioPaqueteUiSig() ?? 0);
-    const insc = Number(this.costoInscripcionUiSig() ?? 0);
-    return this.seleccionarMejorPromocion(lista, precio, insc);
+    return elegirMejorPromocion(lista as unknown as PromocionData[], {
+      esRenovacion: false,
+      hoyISO: hoyISO(),
+    }) as PromocionUI | null;
   });
 
-  promoInscripcionGratisSig = computed(() =>
-    Boolean((this.promocionAplicadaSig() as any)?.sinCostoInscripcion === true),
+  // ✅ Única fuente de verdad para descuento/total — lectura 100% en vivo
+  // (decisión #8: sin snapshot congelado, el modal y el confirm leen de acá).
+  resultadoTotalMembresiaSig = computed(() =>
+    calcularTotalMembresia({
+      precioPaquete: this.precioPaqueteUiSig(),
+      costoInscripcion: this.costoInscripcionUiSig(),
+      descuentoManual: this.descuentoManualSig(),
+      promo: this.promocionAplicadaSig() as unknown as PromocionData | null,
+    }),
   );
 
-  promoMesesGratisSig = computed(() =>
-    Math.max(0, Number((this.promocionAplicadaSig() as any)?.mesesGratis ?? 0)),
+  promoInscripcionGratisSig = computed(
+    () => this.resultadoTotalMembresiaSig().beneficioPromo.exentoCostoInscripcion,
   );
 
-  promoDescuentoMontoSig = computed(() => {
-    const promo: any = this.promocionAplicadaSig();
-    if (!promo) return 0;
+  promoMesesGratisSig = computed(() => this.resultadoTotalMembresiaSig().beneficioPromo.mesesGratis);
 
-    const precio = Number(this.precioPaqueteUiSig() ?? 0);
-    const tipo = String(promo?.tipo ?? '').toUpperCase();
+  promoDescuentoMontoSig = computed(
+    () => this.resultadoTotalMembresiaSig().beneficioPromo.descuentoMonto,
+  );
 
-    let monto = 0;
-    if (tipo === 'DESCUENTO_PORCENTAJE' || tipo === 'PORCENTAJE') {
-      const pct = Number(promo?.descuentoPorcentaje ?? 0);
-      monto = (precio * pct) / 100;
-    } else if (tipo === 'DESCUENTO_MONTO' || tipo === 'MONTO') {
-      monto = Number(promo?.descuentoMonto ?? 0);
-    } else {
-      monto = Number(promo?.descuento ?? 0);
-    }
-
-    if (!Number.isFinite(monto) || monto < 0) monto = 0;
-    return this.round2(Math.min(monto, precio));
-  });
-
-  // ✅ descuento TOTAL que se envía al backend
+  // ✅ descuento TOTAL que se envía al backend (manual + promo + inscripción
+  // gratis, esta última mostrada como parte del descuento para que el
+  // desglose "Inscripción (monto lleno) - Descuento" siga cuadrando).
   descuentoTotalSig = computed(() => {
-    const descManual = Math.max(0, Number(this.descuentoManualSig() ?? 0));
-    const descPromo = Math.max(0, Number(this.promoDescuentoMontoSig() ?? 0));
-
+    const r = this.resultadoTotalMembresiaSig();
     const insc = Math.max(0, Number(this.costoInscripcionUiSig() ?? 0));
-    const inscGratis = this.promoInscripcionGratisSig() ? insc : 0;
-
-    return this.round2(descManual + descPromo + inscGratis);
+    const inscGratis = r.beneficioPromo.exentoCostoInscripcion ? insc : 0;
+    return this.round2(r.descuentoTotal + inscGratis);
   });
 
-  totalConPromoSig = computed(() => {
-    const precio = Math.max(0, Number(this.precioPaqueteUiSig() ?? 0));
-    const insc = Math.max(0, Number(this.costoInscripcionUiSig() ?? 0));
-    const desc = Math.max(0, Number(this.descuentoTotalSig() ?? 0));
-    return calcularTotal(precio, desc, insc);
-  });
+  totalConPromoSig = computed(() => this.resultadoTotalMembresiaSig().total);
 
-  totalSinPromoSig = computed(() => {
-    const precio = Math.max(0, Number(this.precioPaqueteUiSig() ?? 0));
-    const insc = Math.max(0, Number(this.costoInscripcionUiSig() ?? 0));
-    const descManual = Math.max(0, Number(this.descuentoManualSig() ?? 0));
-    return calcularTotal(precio, descManual, insc);
-  });
+  totalSinPromoSig = computed(
+    () =>
+      calcularTotalMembresia({
+        precioPaquete: this.precioPaqueteUiSig(),
+        costoInscripcion: this.costoInscripcionUiSig(),
+        descuentoManual: this.descuentoManualSig(),
+        promo: null,
+      }).total,
+  );
 
   ahorroPromoSig = computed(() => {
     const ahorro = Number(this.totalSinPromoSig() ?? 0) - Number(this.totalConPromoSig() ?? 0);
@@ -385,11 +384,19 @@ export class Inscripcion implements OnInit {
     return parts.filter(Boolean).join(' · ') || 'Promoción activa';
   });
 
-  // ✅ Congelar valores del modal de cobro
-  totalEnModalSig = signal<number>(0);
-  montoPaqueteEnModalSig = signal<number>(0);
-  montoInscripcionEnModalSig = signal<number>(0);
-  descuentoEnModalSig = signal<number>(0);
+  // ✅ Decisión de negocio #3 + corrección #5 (Fase 5b): la fecha de fin de
+  // vigencia real considera los meses gratis de la promo elegida. El store
+  // (Fase 5a, no se toca) solo calcula la fecha de fin del plan; esta capa
+  // extiende esa fecha por encima cuando aplica. Se usa en vez de
+  // `fechaPagoVistaSig` en todo lugar donde la UI muestra/usa la vigencia
+  // final real.
+  fechaFinConBeneficioSig = computed(() =>
+    calcularFechaFinConBeneficio(
+      String(this.store.fechaInicio() ?? ''),
+      (this.paqueteActualSig() as any)?.tiempo ?? null,
+      this.resultadoTotalMembresiaSig().beneficioPromo.mesesGratis,
+    ),
+  );
 
   // =========================
   // Modalidad → cantidad requerida
@@ -880,13 +887,6 @@ export class Inscripcion implements OnInit {
 
     if (!this.validarPaqueteEstudiantilUI()) return;
 
-    const snap = this.snapshotCobroActual();
-
-    this.totalEnModalSig.set(snap.total);
-    this.montoPaqueteEnModalSig.set(snap.precioPaquete);
-    this.montoInscripcionEnModalSig.set(snap.costoInscripcion);
-    this.descuentoEnModalSig.set(snap.descuentoTotal);
-
     this.resumenResetKeySig.update((v) => v + 1);
 
     this.mensajeError = null;
@@ -897,11 +897,6 @@ export class Inscripcion implements OnInit {
 
   cerrarModalResumen(): void {
     this.mostrarModalResumen.set(false);
-
-    this.totalEnModalSig.set(0);
-    this.montoPaqueteEnModalSig.set(0);
-    this.montoInscripcionEnModalSig.set(0);
-    this.descuentoEnModalSig.set(0);
   }
 
   // =========================
@@ -958,49 +953,24 @@ export class Inscripcion implements OnInit {
     this.bumpFormTick();
   }
 
-  private calcularEdadDesdeISO(fechaISO: string, hoy = new Date()): number {
-    const parts = String(fechaISO ?? '')
-      .split('-')
-      .map((x) => Number(x));
-    if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return 0;
-
-    const [y, m, d] = parts;
-    const birth = new Date(y, (m ?? 1) - 1, d ?? 1);
-
-    let edad = hoy.getFullYear() - birth.getFullYear();
-    const mDiff = hoy.getMonth() - birth.getMonth();
-    if (mDiff < 0 || (mDiff === 0 && hoy.getDate() < birth.getDate())) edad--;
-
-    return Math.max(0, edad);
-  }
-
+  // ✅ Decisión de negocio #4/#5 (Fase 5b): regla pura movida a
+  // calculo-membresia.ts (`validarPaqueteEstudiantil`/`calcularEdadDesdeISO`)
+  // — este screen ya solo usa la bandera explícita `paquete.estudiantil`
+  // (esPaqueteEstudiantilSig), sin heurísticas, así que la regla en sí no
+  // cambia acá. La función es pura (sin notificación propia); este método
+  // decide cómo mostrar el `motivo`.
   private validarPaqueteEstudiantilUI(): boolean {
-    const esEst = this.esPaqueteEstudiantilSig();
-    if (!esEst) return true;
+    const resultado = validarPaqueteEstudiantil({
+      esPaqueteEstudiantil: this.esPaqueteEstudiantilSig(),
+      fechaNacimientoISO: this.formularioInscripcion.controls.fechaNacimiento.value ?? null,
+      credencialVigenciaISO:
+        this.formularioInscripcion.controls.credencialEstudianteVigencia.value ?? null,
+      hoyISO: hoyISO(),
+      calcularEdad: calcularEdadDesdeISO,
+    });
 
-    const fn = this.formularioInscripcion.controls.fechaNacimiento.value;
-    if (!fn) {
-      this.notificacion.error('Para paquete estudiantil se requiere fecha de nacimiento.');
-      return false;
-    }
-
-    const edad = this.calcularEdadDesdeISO(fn);
-    if (edad > 22) {
-      this.notificacion.error(
-        `Paquete estudiantil solo aplica hasta 22 años. Edad actual: ${edad}.`,
-      );
-      return false;
-    }
-
-    const vig = this.formularioInscripcion.controls.credencialEstudianteVigencia.value;
-    if (!vig) {
-      this.notificacion.error('Para paquete estudiantil se requiere la vigencia de la credencial.');
-      return false;
-    }
-
-    const hoy = hoyISO();
-    if (String(vig) < String(hoy)) {
-      this.notificacion.error(`Credencial de estudiante vencida (vigencia: ${vig}).`);
+    if (!resultado.valido) {
+      this.notificacion.error(resultado.motivo ?? 'Paquete estudiantil inválido.');
       return false;
     }
 
@@ -1297,9 +1267,11 @@ export class Inscripcion implements OnInit {
 
     if (!this.validarPaqueteEstudiantilUI()) return;
 
-    const snap = this.snapshotCobroActual();
-    const totalUI =
-      Number(this.totalEnModalSig() ?? 0) > 0 ? Number(this.totalEnModalSig()) : snap.total;
+    // ✅ Decisión de negocio #8 (Fase 5b): lectura 100% en vivo, sin
+    // snapshot congelado — lo que se mostró en el modal de resumen y lo que
+    // se envía al backend vienen de la MISMA fuente (resultadoTotalMembresiaSig).
+    const totalUI = this.totalConPromoSig();
+    const descuentoTotalActual = this.descuentoTotalSig();
 
     let pagos: PagoData[] = Array.isArray(evento) ? evento : [{ tipoPago: evento, monto: totalUI }];
 
@@ -1348,7 +1320,7 @@ export class Inscripcion implements OnInit {
       fechaInicio,
       movimiento: this.formularioInscripcion.controls.movimiento.value!,
       pagos,
-      descuento: snap.descuentoTotal, // ✅ descuento TOTAL (manual+promo+insc gratis)
+      descuento: descuentoTotalActual, // ✅ descuento TOTAL (manual+promo+insc gratis)
       ...(entrenadorRAId ? { idEntrenadorRA: entrenadorRAId } : {}),
     };
 
@@ -1385,7 +1357,7 @@ export class Inscripcion implements OnInit {
             socioNombre,
             paqueteNombre: paquete?.nombre ?? null,
             precioPaquete: Number(paquete?.precio ?? 0),
-            descuento: Number(snap.descuentoTotal ?? 0),
+            descuento: Number(descuentoTotalActual ?? 0),
             costoInscripcion: Number((paquete as any)?.costoInscripcion ?? 0),
             pagos: pagosDet,
             referencia: resp?.referencia,
@@ -1535,121 +1507,12 @@ export class Inscripcion implements OnInit {
   }
 
   // =========================
-  // ✅ Snapshot de cobro
-  // =========================
-  private descuentoManualForm(): number {
-    const v = Number(this.formularioInscripcion.controls.descuento.value ?? 0);
-    return Number.isFinite(v) ? Math.max(0, v) : 0;
-  }
-
-  private descuentoPromoSnapshot(precioPaquete: number): number {
-    const promo: any = this.promocionAplicadaSig();
-    if (!promo) return 0;
-
-    const tipo = String(promo?.tipo ?? '').toUpperCase();
-    let monto = 0;
-
-    if (tipo === 'DESCUENTO_PORCENTAJE' || tipo === 'PORCENTAJE') {
-      const pct = Number(promo?.descuentoPorcentaje ?? 0);
-      monto = (precioPaquete * (Number.isFinite(pct) ? pct : 0)) / 100;
-    } else if (tipo === 'DESCUENTO_MONTO' || tipo === 'MONTO') {
-      monto = Number(promo?.descuentoMonto ?? 0);
-    } else {
-      monto = Number(promo?.descuento ?? 0);
-    }
-
-    if (!Number.isFinite(monto) || monto < 0) monto = 0;
-    return this.round2(Math.min(monto, precioPaquete));
-  }
-
-  private snapshotCobroActual(): {
-    precioPaquete: number;
-    costoInscripcion: number;
-    descuentoTotal: number;
-    total: number;
-  } {
-    const paquete: any = this.paqueteActualSig();
-
-    const precioPaquete = Math.max(0, Number(paquete?.precio ?? this.precioPaqueteUiSig() ?? 0));
-
-    const costoInscripcion = Math.max(
-      0,
-      Number(paquete?.costoInscripcion ?? this.costoInscripcionUiSig() ?? 0),
-    );
-
-    const descManual = this.descuentoManualForm();
-    const descPromo = this.descuentoPromoSnapshot(precioPaquete);
-
-    const inscGratis = this.promoInscripcionGratisSig() ? costoInscripcion : 0;
-
-    const descuentoTotal = this.round2(descManual + descPromo + inscGratis);
-    const total = calcularTotal(precioPaquete, descuentoTotal, costoInscripcion);
-
-    return { precioPaquete, costoInscripcion, descuentoTotal, total };
-  }
-
-  // =========================
   // ✅ Promociones
   // =========================
   private round2(n: number): number {
     const x = Number(n);
     if (!Number.isFinite(x)) return 0;
     return Math.round(x * 100) / 100;
-  }
-
-  private toISODate(value: any): string | null {
-    const s = String(value ?? '').trim();
-    if (!s) return null;
-    return s.includes('T') ? s.split('T')[0] : s;
-  }
-
-  private promoVigenteHoy(promo: any, hoy: string): boolean {
-    const ini = this.toISODate(promo?.fechaInicio);
-    const fin = this.toISODate(promo?.fechaFin);
-
-    if (ini && String(hoy) < String(ini)) return false;
-    if (fin && String(hoy) > String(fin)) return false;
-    return true;
-  }
-
-  private scorePromo(promo: any, precioPaquete: number, costoInscripcion: number): number {
-    const tipo = String(promo?.tipo ?? '').toUpperCase();
-
-    let score = 0;
-    if (promo?.sinCostoInscripcion === true) score += Math.max(0, Number(costoInscripcion) || 0);
-
-    if (tipo === 'DESCUENTO_PORCENTAJE' || tipo === 'PORCENTAJE') {
-      const pct = Number(promo?.descuentoPorcentaje ?? 0);
-      if (pct > 0) score += (Math.max(0, Number(precioPaquete) || 0) * pct) / 100;
-    } else if (tipo === 'DESCUENTO_MONTO' || tipo === 'MONTO') {
-      score += Math.max(0, Number(promo?.descuentoMonto ?? 0) || 0);
-    }
-
-    const mg = Number(promo?.mesesGratis ?? 0) || 0;
-    if (mg > 0) score += mg * 0.0001;
-
-    return Number.isFinite(score) ? score : 0;
-  }
-
-  private seleccionarMejorPromocion(
-    lista: PromocionUI[],
-    precioPaquete: number,
-    costoInscripcion: number,
-  ): PromocionUI | null {
-    const hoy = hoyISO();
-    const vigentes = (lista ?? [])
-      .filter((p) => p && (p as any)?.activo !== false)
-      .filter((p) => this.promoVigenteHoy(p as any, hoy));
-
-    if (!vigentes.length) return null;
-
-    const ordenadas = [...vigentes].sort(
-      (a, b) =>
-        this.scorePromo(b as any, precioPaquete, costoInscripcion) -
-        this.scorePromo(a as any, precioPaquete, costoInscripcion),
-    );
-
-    return ordenadas[0] ?? null;
   }
 
   private cargarPromocionesPorPaquete(idPaquete: number): void {

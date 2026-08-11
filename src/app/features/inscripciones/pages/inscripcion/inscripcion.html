@@ -488,7 +488,7 @@
               Fecha de pago
             </label>
             <div class="input-filled pointer-events-none bg-gray-100 select-none">
-              {{ fechaPagoVistaSig() | date: 'dd/MM/yyyy' }}
+              {{ fechaFinConBeneficioSig() | date: 'dd/MM/yyyy' }}
             </div>
 
             <input type="hidden" formControlName="fechaInicio" />
@@ -582,12 +582,12 @@
         <app-resumen-compra
           [resetKey]="resumenResetKeySig()"
           [socioNombre]="socioNombreActual()"
-          [fechaPago]="fechaPagoVistaSig()"
+          [fechaPago]="fechaFinConBeneficioSig()"
           [concepto]="conceptoResumenSig()"
-          [montoPaquete]="montoPaqueteEnModalSig()"
-          [montoInscripcion]="montoInscripcionEnModalSig()"
-          [descuento]="descuentoEnModalSig()"
-          [total]="totalEnModalSig()"
+          [montoPaquete]="precioPaqueteUiSig()"
+          [montoInscripcion]="costoInscripcionUiSig()"
+          [descuento]="descuentoTotalSig()"
+          [total]="totalConPromoSig()"
           [guardando]="guardandoMembresia"
           (cancelar)="cerrarModalResumen()"
           (confirmar)="confirmarPagoYGuardar($event)"
