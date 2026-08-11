@@ -227,6 +227,32 @@ describe('calculo-membresia', () => {
         expect(calcularBeneficioPromo(p, precioPaquete).mesesGratis).toBe(0);
       }
     });
+
+    it('MESES_GRATIS + sinCostoInscripcion coexisten: ambos beneficios se otorgan a la vez', () => {
+      const p = mkPromo({
+        tipo: TipoPromocion.MESES_GRATIS,
+        mesesGratis: 1,
+        sinCostoInscripcion: true,
+      });
+      const b = calcularBeneficioPromo(p, precioPaquete);
+      expect(b.mesesGratis).toBe(1);
+      expect(b.exentoCostoInscripcion).toBeTrue();
+      expect(b.descuentoMonto).toBe(0);
+    });
+
+    it('descuentoPorcentaje/descuentoMonto negativos nunca producen un descuentoMonto negativo', () => {
+      const conPorcentajeNegativo = mkPromo({
+        tipo: TipoPromocion.DESCUENTO_PORCENTAJE,
+        descuentoPorcentaje: -10,
+      });
+      expect(calcularBeneficioPromo(conPorcentajeNegativo, precioPaquete).descuentoMonto).toBe(0);
+
+      const conMontoNegativo = mkPromo({
+        tipo: TipoPromocion.DESCUENTO_MONTO,
+        descuentoMonto: -75,
+      });
+      expect(calcularBeneficioPromo(conMontoNegativo, precioPaquete).descuentoMonto).toBe(0);
+    });
   });
 
   // ---------------------------------------------------------------------

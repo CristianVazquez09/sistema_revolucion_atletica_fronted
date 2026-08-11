@@ -16,6 +16,7 @@
 import { PromocionData } from '../../../shared/models/promocion-data';
 import { TipoPromocion } from '../../../shared/util/enums/tipo-promocion';
 import { calcularFechaFin, calcularTotal } from '../../../shared/util/fechas-precios';
+import { TiempoPlan } from '../../../shared/util/enums/tiempo-plan';
 
 /** ¿La promoción está vigente hoy según su rango de fechas? (`activo` se
  * revisa aparte, en `elegirMejorPromocion` — esta función solo mira
@@ -149,10 +150,10 @@ export function calcularTotalMembresia(params: ParametrosTotalMembresia): Result
  * reimplementa calcularFechaFin(), solo la compone. */
 export function calcularFechaFinConBeneficio(
   fechaInicioISO: string,
-  tiempo: unknown,
+  tiempo: TiempoPlan | string | null | undefined,
   mesesGratis: number,
 ): string {
-  const finBase = calcularFechaFin(fechaInicioISO, tiempo as any);
+  const finBase = calcularFechaFin(fechaInicioISO, tiempo);
   if (!mesesGratis || mesesGratis <= 0) return finBase;
 
   const d = new Date(finBase + 'T00:00:00');
