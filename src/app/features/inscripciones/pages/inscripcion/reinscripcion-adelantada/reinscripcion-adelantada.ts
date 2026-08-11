@@ -801,8 +801,13 @@ export class ReinscripcionAdelantada implements OnInit {
         this.limpiarPagos();
         this.refrescarEstadosAsesoria();
 
-        // ✅ Fase 5b: cargar promociones vigentes del paquete seleccionado
-        this.cargarPromocionesDePaquete(Number(v ?? 0));
+        // ✅ Fase 5b: cargar promociones vigentes del paquete seleccionado.
+        // Se relee el control (no la `v` capturada del emit original) porque
+        // enforceModalidadSeleccionada() puede haber corregido la selección
+        // por su cuenta (modalidad no coincidente) — usar `v` aquí cargaría
+        // promociones del paquete que se acaba de rechazar, no del que
+        // realmente quedó seleccionado.
+        this.cargarPromocionesDePaquete(Number(this.form.controls.paqueteId.value ?? 0));
 
         // ✅ mantener input sincronizado
         this.syncPaqueteBusquedaConSeleccion();
