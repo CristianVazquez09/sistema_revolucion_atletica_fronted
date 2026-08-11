@@ -28,8 +28,23 @@ import { TipoMovimiento } from 'src/app/shared/util/enums/tipo-movimiento';
 import { crearContextoTicket, obtenerNombreCajero } from 'src/app/shared/util/ticket-contexto';
 import { environment } from 'src/environments/environment';
 
-import { calcularFechaFin, hoyISO as hoyISOUtil } from 'src/app/shared/util/fechas-precios';
+import { hoyISO as hoyISOUtil } from 'src/app/shared/util/fechas-precios';
 import { TiempoPlan } from 'src/app/shared/util/enums/tiempo-plan';
+
+// ✅ Fase 5b: cálculo de membresía consolidado (promociones, descuentos,
+// vigencia real y validación estudiantil) — ver
+// docs/superpowers/plans/2026-08-10-fase-5b-calculo-membresia-service.md
+// Esta pantalla no tenía NINGUNA lógica de promociones/estudiantil antes de
+// esta oleada (decisiones de negocio #2 y #4).
+import { PromocionData } from 'src/app/shared/models/promocion-data';
+import {
+  elegirMejorPromocion,
+  calcularTotalMembresia,
+  calcularFechaFinConBeneficio,
+  validarPaqueteEstudiantil,
+  calcularEdadDesdeISO,
+  ResultadoValidacionEstudiantil,
+} from 'src/app/features/inscripciones/data/calculo-membresia';
 
 import {
   HuellaModal,
@@ -127,6 +142,52 @@ export class ReinscripcionAdelantada implements OnInit {
 
   esPaqueteRASig = computed(() => Boolean((this.paqueteActualSig() as any)?.esRA === true));
 
+  // =========================
+  // ✅ Validación paquete estudiantil (Fase 5b — decisión #4: esta pantalla
+  // no tenía NINGUNA validación estudiantil antes de esta oleada). Es
+  // renovación de un socio YA EXISTENTE (igual que reinscripción normal),
+  // así que se reutiliza fechaNacimiento/credencialEstudianteVigencia que
+  // ya vienen en el SocioData del socio — no se agregan campos nuevos al
+  // formulario.
+  // =========================
+  esPaqueteEstudiantilSig = computed(() =>
+    Boolean((this.paqueteActualSig() as any)?.estudiantil === true),
+  );
+
+  private validarPaqueteEstudiantilDeSocio(
+    socio: SocioData | null | undefined,
+  ): ResultadoValidacionEstudiantil {
+    return validarPaqueteEstudiantil({
+      esPaqueteEstudiantil: this.esPaqueteEstudiantilSig(),
+      fechaNacimientoISO: socio?.fechaNacimiento
+        ? String(socio.fechaNacimiento).slice(0, 10)
+        : null,
+      credencialVigenciaISO: (socio as any)?.credencialEstudianteVigencia
+        ? String((socio as any).credencialEstudianteVigencia).slice(0, 10)
+        : null,
+      hoyISO: this.hoyISO(),
+      calcularEdad: calcularEdadDesdeISO,
+    });
+  }
+
+  // ✅ Primer integrante (si hay varios) que no pasa la validación
+  // estudiantil, o null si todos pasan / el paquete no es estudiantil. Se
+  // usa tanto para el badge informativo del template como para el gate real
+  // dentro de bloqueoAntesDeCobrarSig (un único punto de verdad).
+  bloqueoEstudiantilSig = computed(() => {
+    if (!this.esPaqueteEstudiantilSig()) return null;
+
+    for (const s of this.miembrosSig()) {
+      const r = this.validarPaqueteEstudiantilDeSocio(s.socio);
+      if (!r.valido) {
+        const nombre = this.nombreCompleto(s.socio) || `ID ${s.socio?.idSocio ?? ''}`;
+        return `${nombre}: ${r.motivo ?? 'Paquete estudiantil inválido.'}`;
+      }
+    }
+
+    return null;
+  });
+
   // UI general
   cargandoSocio = false;
   cargandoPaquetes = true;
@@ -187,6 +248,53 @@ export class ReinscripcionAdelantada implements OnInit {
 
     // ✅ si cambia total, invalida pagos capturados
     this.limpiarPagos();
+  }
+
+  // =========================
+  // ✅ PROMOCIONES (Fase 5b — decisión #2: esta pantalla no tenía ningún
+  // pipeline de promociones antes de esta oleada, se agrega igual que
+  // inscripcion.ts/reinscripcion.ts)
+  // =========================
+  promoCargandoSig = signal(false);
+  promocionesVigentesSig = signal<PromocionData[]>([]);
+  promoErrorSig = signal<string | null>(null);
+
+  // ✅ Decisión de negocio #1: selección por `prioridad` (empate: mayor
+  // idPromocion), en contexto de renovación (esRenovacion: true — excluye
+  // promos `soloNuevos`, no excluye por `sinCostoInscripcion`).
+  promocionAplicadaSig = computed<PromocionData | null>(() =>
+    elegirMejorPromocion(this.promocionesVigentesSig(), {
+      esRenovacion: true,
+      hoyISO: this.hoyISO(),
+    }),
+  );
+
+  private cargarPromocionesDePaquete(idPaquete: number): void {
+    const id = Number(idPaquete ?? 0);
+
+    if (!id || id <= 0) {
+      this.promocionesVigentesSig.set([]);
+      this.promoErrorSig.set(null);
+      return;
+    }
+
+    this.promoCargandoSig.set(true);
+    this.promoErrorSig.set(null);
+
+    this.paqueteSrv
+      .buscarPromocionesVigentes(id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.promoCargandoSig.set(false)),
+        catchError((err) => {
+          console.error('Error cargando promociones vigentes', err);
+          this.promoErrorSig.set('No se pudieron cargar promociones vigentes.');
+          return of([] as PromocionData[]);
+        }),
+      )
+      .subscribe((lista) => {
+        this.promocionesVigentesSig.set(Array.isArray(lista) ? lista : []);
+      });
   }
 
   // ===================== Controls =====================
@@ -305,7 +413,15 @@ export class ReinscripcionAdelantada implements OnInit {
   fechaFinNuevaIsoSig = computed(() => {
     const inicio = this.fechaInicioNuevaIsoSig();
     const tiempo = (this.paqueteActualSig()?.tiempo ?? null) as TiempoPlan | null;
-    return calcularFechaFin(inicio, tiempo);
+    // ✅ Decisión de negocio #3 (Fase 5b): extiende por los meses gratis de
+    // la promo elegida. NO se toca fechaInicioNuevaIsoSig — su lógica de
+    // encadenar desde vigentePrincipal.fechaFin + 1 día es correcta y única
+    // entre los 3 flujos, se preserva exactamente.
+    return calcularFechaFinConBeneficio(
+      inicio,
+      tiempo,
+      this.resultadoTotalMembresiaSig().beneficioPromo.mesesGratis,
+    );
   });
 
   fechaFinNuevaDateSig = computed(() => parseLocalDate(this.fechaFinNuevaIsoSig()));
@@ -315,10 +431,30 @@ export class ReinscripcionAdelantada implements OnInit {
   // ✅ descuento SIEMPRE desde signal (no depende del blur del input number)
   descuentoSig = computed(() => this.descuentoUiSig());
 
-  totalPorSocioSig = computed(() => {
-    const total = this.precioPaqueteSig() - this.descuentoSig();
-    return Math.max(0, Number(total.toFixed(2)));
-  });
+  // ✅ Fase 5b: única fuente de verdad para descuento/total (manual + promo),
+  // lectura 100% en vivo — reemplaza el cálculo hecho a mano con
+  // `.toFixed(2)`. `costoInscripcion: 0`: la reinscripción adelantada nunca
+  // cobra costo de inscripción (igual que reinscripción normal, decisión #2).
+  resultadoTotalMembresiaSig = computed(() =>
+    calcularTotalMembresia({
+      precioPaquete: this.precioPaqueteSig(),
+      costoInscripcion: 0,
+      descuentoManual: this.descuentoSig(),
+      promo: this.promocionAplicadaSig(),
+    }),
+  );
+
+  descuentoPromoSig = computed(
+    () => this.resultadoTotalMembresiaSig().beneficioPromo.descuentoMonto,
+  );
+
+  promoMesesGratisSig = computed(
+    () => this.resultadoTotalMembresiaSig().beneficioPromo.mesesGratis,
+  );
+
+  descuentoTotalSig = computed(() => this.resultadoTotalMembresiaSig().descuentoTotal);
+
+  totalPorSocioSig = computed(() => this.resultadoTotalMembresiaSig().total);
 
   faltanIntegrantesSig = computed(() => {
     const req = this.requeridoSig();
@@ -347,6 +483,10 @@ export class ReinscripcionAdelantada implements OnInit {
     if (this.esPaqueteRASig() && !this.entrenadorRAIdSig()) {
       return 'Selecciona un entrenador RA para continuar.';
     }
+
+    // ✅ Decisión de negocio #4 (Fase 5b): gate real de paquete estudiantil.
+    const bloqueoEstudiantil = this.bloqueoEstudiantilSig();
+    if (bloqueoEstudiantil) return bloqueoEstudiantil;
 
     const principalFin = this.vigentePrincipalSig()?.fechaFin ?? null;
     const mod = this.modalidadVigenteSig();
@@ -661,6 +801,9 @@ export class ReinscripcionAdelantada implements OnInit {
         this.limpiarPagos();
         this.refrescarEstadosAsesoria();
 
+        // ✅ Fase 5b: cargar promociones vigentes del paquete seleccionado
+        this.cargarPromocionesDePaquete(Number(v ?? 0));
+
         // ✅ mantener input sincronizado
         this.syncPaqueteBusquedaConSeleccion();
       });
@@ -802,6 +945,11 @@ export class ReinscripcionAdelantada implements OnInit {
     // ✅ reset entrenador RA
     this.entrenadorRAIdSig.set(null);
 
+    // ✅ reset promo (setPaqueteId(0, false) de abajo no emite valueChanges,
+    // así que el pipeline de promociones no se dispara solo)
+    this.promocionesVigentesSig.set([]);
+    this.promoErrorSig.set(null);
+
     this.form.controls.fechaInicio.setValue(this.hoyISO(), { emitEvent: false });
     this.setPaqueteId(0, false);
 
@@ -837,6 +985,10 @@ export class ReinscripcionAdelantada implements OnInit {
 
     // ✅ limpia entrenador RA
     this.entrenadorRAIdSig.set(null);
+
+    // ✅ limpia promo
+    this.promocionesVigentesSig.set([]);
+    this.promoErrorSig.set(null);
 
     // ✅ limpia buscador
     this.paqueteBusquedaSig.set('');
@@ -1173,7 +1325,13 @@ export class ReinscripcionAdelantada implements OnInit {
     const inicio = this.inicioNuevoIso(slot);
     const tiempo = (this.paqueteActualSig()?.tiempo ?? null) as TiempoPlan | null;
     if (!inicio || !tiempo) return null;
-    return calcularFechaFin(inicio, tiempo);
+    // ✅ Fase 5b: misma extensión por meses gratis que fechaFinNuevaIsoSig
+    // (todos los integrantes vencen el mismo día, la promo aplica igual).
+    return calcularFechaFinConBeneficio(
+      inicio,
+      tiempo,
+      this.resultadoTotalMembresiaSig().beneficioPromo.mesesGratis,
+    );
   }
 
   finNuevoDate(slot: MiembroSlot): Date | null {
@@ -1271,7 +1429,10 @@ export class ReinscripcionAdelantada implements OnInit {
     }
 
     const miembros = this.miembrosSig();
-    const descuento = Number(this.descuentoUiSig() ?? 0);
+    // ✅ Fase 5b: descuento TOTAL (manual + promo) — misma fuente en vivo que
+    // el total mostrado en pantalla/resumen (decisión #7/#8), no solo el
+    // descuento manual crudo.
+    const descuentoTotal = this.descuentoTotalSig();
 
     const entrenadorRAId = this.esPaqueteRASig() ? this.entrenadorRAIdSig() : null;
     const entrenadorRAObj = entrenadorRAId
@@ -1285,7 +1446,7 @@ export class ReinscripcionAdelantada implements OnInit {
       socio: { idSocio: m.socio.idSocio },
       paquete: { idPaquete: (paquete as any).idPaquete },
       movimiento: 'REINSCRIPCION',
-      descuento,
+      descuento: descuentoTotal,
       pagos: m.pagos ?? [],
       ...(entrenadorRAId ? { idEntrenadorRA: entrenadorRAId } : {}),
     }));
@@ -1310,7 +1471,7 @@ export class ReinscripcionAdelantada implements OnInit {
                 miembros[i].socio,
                 miembros[i].pagos ?? [],
                 paquete,
-                descuento,
+                descuentoTotal,
                 entrenadorRANombre,
               );
             }
@@ -1339,7 +1500,7 @@ export class ReinscripcionAdelantada implements OnInit {
           const ctx: VentaContexto = crearContextoTicket(this.gym, this.cajero);
           const socio = miembros[0].socio;
           const pagos = miembros[0].pagos ?? [];
-          this.imprimirTicket(ctx, resp, socio, pagos, paquete, descuento, entrenadorRANombre);
+          this.imprimirTicket(ctx, resp, socio, pagos, paquete, descuentoTotal, entrenadorRANombre);
 
           this.notify.exito('Reinscripción adelantada guardada.');
           const principalId = Number(this.socioPrincipalSig()?.idSocio ?? 0);
