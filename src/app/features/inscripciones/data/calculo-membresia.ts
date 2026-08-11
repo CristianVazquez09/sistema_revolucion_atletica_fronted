@@ -93,8 +93,12 @@ export function calcularBeneficioPromo(
   const precio = Math.max(0, precioPaquete);
 
   if (tipo === TipoPromocion.DESCUENTO_PORCENTAJE) {
-    const pct = Number(promo.descuentoPorcentaje ?? 0);
-    if (pct > 0) descuentoMonto = (precio * pct) / 100;
+    // Clampado a 0-100% — el formulario de promociones no valida un tope
+    // hoy, y un % > 100 (dato mal capturado) descontaría más de lo que el
+    // paquete cuesta. Mismo criterio de "nunca descontar más que el precio"
+    // que ya aplica el clamp de DESCUENTO_MONTO de abajo.
+    const pct = Math.min(100, Math.max(0, Number(promo.descuentoPorcentaje ?? 0)));
+    descuentoMonto = (precio * pct) / 100;
   } else if (tipo === TipoPromocion.DESCUENTO_MONTO) {
     // Clampado contra el precio del paquete — una promo de monto fijo
     // (ej. "-$500") nunca debe descontar más que lo que el paquete cuesta,

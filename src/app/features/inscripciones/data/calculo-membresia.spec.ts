@@ -184,6 +184,16 @@ describe('calculo-membresia', () => {
       expect(b.mesesGratis).toBe(0);
     });
 
+    it('DESCUENTO_PORCENTAJE se clampa a 100% (un dato mal capturado no debe descontar mas que el precio)', () => {
+      // El formulario de promociones no valida hoy un tope de 100% en
+      // descuentoPorcentaje — sin este clamp, un valor mal capturado (ej.
+      // 150) descontaria mas de lo que el paquete cuesta, mismo riesgo que
+      // ya se corrigio para DESCUENTO_MONTO.
+      const p = mkPromo({ tipo: TipoPromocion.DESCUENTO_PORCENTAJE, descuentoPorcentaje: 150 });
+      const b = calcularBeneficioPromo(p, precioPaquete);
+      expect(b.descuentoMonto).toBe(precioPaquete);
+    });
+
     it('DESCUENTO_MONTO usa el monto fijo directamente', () => {
       const p = mkPromo({ tipo: TipoPromocion.DESCUENTO_MONTO, descuentoMonto: 75 });
       const b = calcularBeneficioPromo(p, precioPaquete);
