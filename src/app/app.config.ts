@@ -13,16 +13,8 @@ import { HashLocationStrategy, LocationStrategy } from '@angular/common';
 import { JwtModule } from '@auth0/angular-jwt';
 import { ServerErrorsInterceptor } from './core/http/server-errors.interceptor';
 
-import { provideStore } from '@ngrx/store';
-import { provideState } from '@ngrx/store';
-
 import { environment } from '../environments/environment';
-import { inscripcionFeature } from './features/inscripciones/pages/inscripcion/state/inscripcion-reducer';
 import { TenantInterceptor } from './core/tenant/tenant.interceptor';
-import {
-  REINSCRIPCION_FEATURE_KEY,
-  reinscripcionReducer,
-} from './features/inscripciones/pages/reinscripcion/state/reinscripcion-reducer';
 import { authInterceptor } from './core/auth/auth.interceptor';
 
 export function tokenGetter() {
@@ -53,9 +45,6 @@ export const appConfig: ApplicationConfig = {
 
     { provide: LocationStrategy, useClass: HashLocationStrategy },
 
-    provideStore(),
-    provideState(inscripcionFeature),
     { provide: LOCALE_ID, useValue: 'es-MX' },
-    provideState(REINSCRIPCION_FEATURE_KEY, reinscripcionReducer),
   ],
 };

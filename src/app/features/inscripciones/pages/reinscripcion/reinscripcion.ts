@@ -34,20 +34,7 @@ import { crearContextoTicket, obtenerNombreCajero } from '../../../../shared/uti
 import { HuellaModal } from '../../../../shared/huella/huella-modal/huella-modal';
 import { HttpErrorResponse } from '@angular/common/http';
 
-// NgRx
-import { Store } from '@ngrx/store';
-import { ReinscripcionActions } from './state/reinscripcion-actions';
-import {
-  selectListaPaquetes,
-  selectPaqueteActual,
-  selectPrecioPaquete,
-  selectTotalVista,
-  selectTotalSinDescuento,
-  selectFechaPagoVista,
-  selectDescuento,
-  selectFechaInicio,
-  selectPaqueteId,
-} from './state/reinscripcion-selectors';
+import { ReinscripcionStore } from '../../data/reinscripcion-store';
 
 // ✅ Asesoría nutricional
 import {
@@ -112,7 +99,7 @@ export class Reinscripcion implements OnInit {
   private jwt = inject(JwtHelperService);
   private entrenadorSrv = inject(EntrenadorService);
 
-  private store = inject(Store);
+  private store = inject(ReinscripcionStore);
 
   // ✅ Asesoría Nutricional
   private asesoriaSrv = inject(AsesoriaNutricionalService);
@@ -203,7 +190,7 @@ export class Reinscripcion implements OnInit {
   }
 
   // ✅ Lista COMPLETA de paquetes (sin filtrar activos en init)
-  listaPaquetesSig = this.store.selectSignal(selectListaPaquetes);
+  listaPaquetesSig = this.store.listaPaquetes;
 
   // ✅ paquetes ACTIVOS filtrados por búsqueda
   paquetesSugeridosSig = computed(() => {
@@ -329,14 +316,14 @@ export class Reinscripcion implements OnInit {
   });
 
   // Store signals
-  paqueteActualSig = this.store.selectSignal(selectPaqueteActual);
-  precioPaqueteSig = this.store.selectSignal(selectPrecioPaquete);
-  totalVistaSig = this.store.selectSignal(selectTotalVista);
-  totalSinDescSig = this.store.selectSignal(selectTotalSinDescuento);
-  fechaPagoVistaSig = this.store.selectSignal(selectFechaPagoVista);
-  descuentoSelSig = this.store.selectSignal(selectDescuento);
-  fechaInicioSelSig = this.store.selectSignal(selectFechaInicio);
-  paqueteIdSelSig = this.store.selectSignal(selectPaqueteId);
+  paqueteActualSig = this.store.paqueteActual;
+  precioPaqueteSig = this.store.precioPaquete;
+  totalVistaSig = this.store.totalVista;
+  totalSinDescSig = this.store.totalSinDescuento;
+  fechaPagoVistaSig = this.store.fechaPagoVista;
+  descuentoSelSig = this.store.descuento;
+  fechaInicioSelSig = this.store.fechaInicio;
+  paqueteIdSelSig = this.store.paqueteId;
 
   // Helpers para template
   key(id: number | null | undefined): string {
@@ -356,7 +343,7 @@ export class Reinscripcion implements OnInit {
       .subscribe((id) => {
         const pid = Number(id ?? 0);
         this.paqueteIdSig.set(pid);
-        this.store.dispatch(ReinscripcionActions.setPaqueteId({ paqueteId: pid }));
+        this.store.establecerPaqueteId(pid);
 
         // ✅ cargar promo para reinscripción
         this.cargarPromoDePaquete(pid);
@@ -367,19 +354,11 @@ export class Reinscripcion implements OnInit {
 
     this.form.controls.descuento.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((d) =>
-        this.store.dispatch(ReinscripcionActions.setDescuento({ descuento: Number(d ?? 0) })),
-      );
+      .subscribe((d) => this.store.establecerDescuento(Number(d ?? 0)));
 
     this.form.controls.fechaInicio.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((f) =>
-        this.store.dispatch(
-          ReinscripcionActions.setFechaInicio({
-            fechaInicio: String(f ?? hoyISO()),
-          }),
-        ),
-      );
+      .subscribe((f) => this.store.establecerFechaInicio(String(f ?? hoyISO())));
   }
 
   // ========= modalidad requerida =========
@@ -842,9 +821,7 @@ export class Reinscripcion implements OnInit {
           activo: p?.activo !== false,
         }));
 
-        this.store.dispatch(
-          ReinscripcionActions.setListaPaquetes({ paquetes: normalizados as any }),
-        );
+        this.store.establecerListaPaquetes(normalizados as any);
 
         this.cargandoPaquetes = false;
 
@@ -1467,7 +1444,7 @@ export class Reinscripcion implements OnInit {
     this.paqueteDropdownAbiertoSig.set(false);
 
     sessionStorage.removeItem(STORAGE_KEY_REINSCRIPCION_GRUPAL);
-    this.store.dispatch(ReinscripcionActions.reset());
+    this.store.reiniciar();
 
     if (principal?.idSocio) {
       this.cargarPaqueteAnteriorDelSocio(principal.idSocio);

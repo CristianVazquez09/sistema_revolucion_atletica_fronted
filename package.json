@@ -51,13 +51,17 @@
     "format": "prettier --write \"src/**/*.{ts,html}\""
   },
   "prettier": {
-    "plugins": ["prettier-plugin-tailwindcss"],
+    "plugins": [
+      "prettier-plugin-tailwindcss"
+    ],
     "singleQuote": true,
     "printWidth": 100,
     "overrides": [
       {
         "files": "*.html",
-        "options": { "parser": "angular" }
+        "options": {
+          "parser": "angular"
+        }
       }
     ]
   },
@@ -72,9 +76,6 @@
     "@auth0/angular-jwt": "^5.2.0",
     "@digitalpersona/core": "^0.2.6",
     "@digitalpersona/devices": "^0.2.6",
-    "@ngrx/effects": "^20.0.1",
-    "@ngrx/store": "^20.0.1",
-    "@ngrx/store-devtools": "^20.0.1",
     "@tailwindcss/postcss": "^4.1.11",
     "echarts": "^6.1.0",
     "electron-log": "^5.4.3",
