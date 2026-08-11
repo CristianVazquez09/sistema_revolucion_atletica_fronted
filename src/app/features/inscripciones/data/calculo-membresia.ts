@@ -90,11 +90,18 @@ export function calcularBeneficioPromo(
   const tipo = String(promo.tipo ?? '').toUpperCase();
   let descuentoMonto = 0;
 
+  const precio = Math.max(0, precioPaquete);
+
   if (tipo === TipoPromocion.DESCUENTO_PORCENTAJE) {
     const pct = Number(promo.descuentoPorcentaje ?? 0);
-    if (pct > 0) descuentoMonto = (Math.max(0, precioPaquete) * pct) / 100;
+    if (pct > 0) descuentoMonto = (precio * pct) / 100;
   } else if (tipo === TipoPromocion.DESCUENTO_MONTO) {
-    descuentoMonto = Math.max(0, Number(promo.descuentoMonto ?? 0));
+    // Clampado contra el precio del paquete — una promo de monto fijo
+    // (ej. "-$500") nunca debe descontar más que lo que el paquete cuesta,
+    // sin importar el paquete al que termine aplicándose (las promos no
+    // están necesariamente acotadas a un paquete específico). Mismo tope
+    // que ya tenía la implementación original de inscripcion.ts.
+    descuentoMonto = Math.min(Math.max(0, Number(promo.descuentoMonto ?? 0)), precio);
   }
 
   const mesesGratis =

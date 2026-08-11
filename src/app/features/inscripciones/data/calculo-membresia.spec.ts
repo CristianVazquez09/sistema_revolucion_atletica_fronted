@@ -191,6 +191,18 @@ describe('calculo-membresia', () => {
       expect(b.mesesGratis).toBe(0);
     });
 
+    it('DESCUENTO_MONTO se clampa al precio del paquete (una promo no puede descontar mas de lo que cuesta el paquete)', () => {
+      // Las promos no estan necesariamente acotadas a un paquete especifico
+      // — un monto fijo grande podria terminar aplicandose a un paquete
+      // barato. Sin este clamp, descuentoMonto > precioPaquete puede volver
+      // negativo el `descuento` que se manda al backend, y como el backend
+      // recalcula el total (precio + costoInscripcion - descuento) por su
+      // cuenta, eso corrompe el total guardado aunque el frontend se vea bien.
+      const p = mkPromo({ tipo: TipoPromocion.DESCUENTO_MONTO, descuentoMonto: 9999 });
+      const b = calcularBeneficioPromo(p, precioPaquete);
+      expect(b.descuentoMonto).toBe(precioPaquete);
+    });
+
     it('MESES_GRATIS otorga mesesGratis y descuentoMonto se queda en 0 (dinero y tiempo son dimensiones distintas)', () => {
       const p = mkPromo({ tipo: TipoPromocion.MESES_GRATIS, mesesGratis: 2 });
       const b = calcularBeneficioPromo(p, precioPaquete);
