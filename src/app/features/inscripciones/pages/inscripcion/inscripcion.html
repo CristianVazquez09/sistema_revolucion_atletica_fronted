@@ -405,14 +405,13 @@
               </div>
             }
 
-            <div class="mt-3">
-              <app-entrenador-ra-selector
-                [esPaqueteRA]="esPaqueteRASig()"
-                [entrenadorId]="entrenadorRAIdSig()"
-                (entrenadorIdChange)="entrenadorRAIdSig.set($event)"
-                (entrenadoresCargados)="entrenadoresRASig.set($event)"
-              />
-            </div>
+            <app-entrenador-ra-selector
+              class="mt-3 block"
+              [esPaqueteRA]="esPaqueteRASig()"
+              [entrenadorId]="entrenadorRAIdSig()"
+              (entrenadorIdChange)="entrenadorRAIdSig.set($event)"
+              (entrenadoresCargados)="entrenadoresRASig.set($event)"
+            />
 
             <label class="text-ra-slate mt-3 mb-1 block text-sm font-semibold">
               Fecha de pago
