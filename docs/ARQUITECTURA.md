@@ -1,7 +1,9 @@
 # Arquitectura — Revolución Atlética Frontend
 
-Este documento es el mapa vivo de `src/app/` tras la Fase 3 de la reorganización (spec:
-[`docs/superpowers/specs/2026-07-07-reorganizacion-arquitectura-design.md`](superpowers/specs/2026-07-07-reorganizacion-arquitectura-design.md)).
+Este documento es el mapa vivo de `src/app/` tras completar las 5 fases de la
+reorganización (spec:
+[`docs/superpowers/specs/2026-07-07-reorganizacion-arquitectura-design.md`](superpowers/specs/2026-07-07-reorganizacion-arquitectura-design.md);
+planes de ejecución de cada fase en `docs/superpowers/plans/`).
 La estructura real difiere ligeramente del diseño original: durante la migración se
 descubrió que varios servicios y componentes eran consumidos por 3+ features (o por
 componentes ya compartidos), así que se aplicó con más consistencia la regla "2+ =
@@ -22,18 +24,27 @@ src/app/
 │  │                           # (gimnasio-service, membresia-service)
 │  ├─ models/                  # Tipos usados por 2+ features (SocioData, PaqueteData,
 │  │                           # UsuarioData, CorteCajaData, PagedResponse, HistorialData…)
-│  ├─ ui/                      # Componentes compartidos: ra-gimnasio-filter, resumen-compra, resumen-venta
+│  ├─ ui/                      # Sistema de diseño (Fase 4), prefijo ra-: ra-badge, ra-boton,
+│  │                           # ra-buscador, ra-campo, ra-dropdown, ra-gimnasio-filter, ra-modal,
+│  │                           # ra-paginador, ra-select, ra-tabla — + resumen-compra, resumen-venta
 │  ├─ util/                    # fechas-precios, preferencias-usuario, tiempo-plan-label, enums
-│  ├─ ticket/                  # ticket-service — 10+ páginas de 6+ features lo consumen
+│  ├─ ticket/                  # ticket-html.ts (tipos + HTML por tipo de ticket, funciones puras)
+│  │                           # + ticket-print.ts (servicio delgado, Electron/window.open) +
+│  │                           # ticket-service.ts (orquestador; API pública sin cambios, Fase 5c)
+│  │                           # — 10+ páginas de 6+ features lo consumen
 │  └─ huella/                  # Integración DigitalPersona — ver huella/README.md
 │
 └─ features/
    ├─ socios/                  # pages/socio (+ socio-informacion, socio-modal, socio-info-asesoria)
    │                           # data/socio-service
    │
-   ├─ inscripciones/           # pages/{inscripcion,reinscripcion,agregar-membresia}
-   │                           # data/historial-service, models/historial-data
-   │                           # inscripcion/state/ y reinscripcion/state/ (NgRx — sale en Fase 5)
+   ├─ inscripciones/           # pages/{inscripcion,reinscripcion,reinscripcion-adelantada,
+   │                           # agregar-membresia}
+   │                           # data/historial-service, calculo-membresia.ts (precios/promos/
+   │                           # vigencias/estudiantil, funciones puras — Fase 5b), inscripcion-store.ts
+   │                           # y reinscripcion-store.ts (estado con signals, reemplazan NgRx — Fase 5a)
+   │                           # ui/entrenador-ra-selector, selector-paquete,
+   │                           # validacion-estudiantil-modal (sub-componentes de UI — Fase 5d)
    │
    ├─ administracion/          # pages/administracion (shell admin/gerencia + corte-caja-admin,
    │                           # estadisticas, membresia, promociones, reportes, usuarios-admin,
@@ -114,7 +125,7 @@ nombrado".)
   - `esX()` / `tieneX()` / `puedeX()` — predicados booleanos
   - `aXxx()` / `xxxDesdeYyy()` — transformaciones
   - Booleanos con prefijo: `estaCargando`, `hayError`, `mostrarModal`.
-- **Componentes UI compartidos** (Fase 4, pendiente): prefijo `ra-`.
+- **Componentes UI compartidos** (Fase 4): prefijo `ra-`.
 - **Rutas:** cada feature expone sus páginas vía `loadComponent`/`loadChildren` — no hay
   imports eager de componentes de página en `pages.routes.ts` ni `app.routes.ts`.
 
@@ -124,20 +135,24 @@ Ver [`shared/huella/README.md`](../src/app/shared/huella/README.md) — document
 cadena completa: `websdk.js` (script global) → shim `WebSdk` → `@digitalpersona/devices`
 (parchado) → `huella-reader-singleton` → `huella-modal`.
 
-## Estado NgRx (transitorio)
+## Fase 5 (completa) — resumen
 
-`features/inscripciones/pages/inscripcion/state/` y
-`features/inscripciones/pages/reinscripcion/state/` siguen usando NgRx (reducers +
-selectors). Es la única parte de la app en ese patrón — el resto usa servicios +
-signals. La Fase 5 los reemplaza por un store de signals; los tests actuales de los
-reducers/selectors (`*-state.spec.ts`) son la base de esos tests futuros.
-
-## Fuera de alcance de la Fase 3
-
-- **Componentes gigantes** (`inscripcion.ts`, `reinscripcion.ts`,
-  `reinscripcion-adelantada.ts`, `ticket-service.ts`) y la **salida de NgRx** →
-  Fase 5.
-- **Sistema de diseño** (componentes `ra-*`, orden de clases Tailwind) → Fase 4.
+- **Salida de NgRx** (Fase 5a): `@ngrx/store`, `@ngrx/effects`, `@ngrx/store-devtools`
+  desinstalados. `inscripcion.ts`/`reinscripcion.ts` migraron a `InscripcionStore`/
+  `ReinscripcionStore` (signals). Los reducers/selectors viejos y sus tests se borraron;
+  los tests de los stores nuevos replican exactamente las mismas fórmulas.
+- **`calculo-membresia.ts`** (Fase 5b): promociones, descuentos, vigencias y la regla de
+  paquete estudiantil, consolidados en funciones puras compartidas por los 3 flujos de
+  inscripción (antes cada uno tenía su propia lógica, con divergencias no siempre
+  intencionales).
+- **Split de `ticket-service.ts`** (Fase 5c): ver arriba, sección `shared/ticket/`.
+- **Sub-componentes de UI** (Fase 5d): `entrenador-ra-selector` y `selector-paquete`
+  (compartidos por los 3 flujos), `validacion-estudiantil-modal` (solo reinscripción).
+  Presentacionales — cada página sigue siendo dueña de su estado y sus cálculos.
+- **No se llegó** a la meta de "ningún componente >400 líneas" del spec original:
+  `inscripcion.ts`, `reinscripcion.ts` y `reinscripcion-adelantada.ts` siguen siendo
+  componentes grandes (lógica de batch, borrador en sessionStorage/localStorage y envío
+  de pago no se movieron a un store). Requeriría una fase adicional no ejecutada aún.
 
 ## Hallazgos abiertos (no resueltos en Fase 3, requieren decisión del usuario)
 
