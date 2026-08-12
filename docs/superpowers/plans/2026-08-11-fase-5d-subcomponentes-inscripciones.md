@@ -84,3 +84,22 @@ Se hizo un inventario estructural completo de los 3 archivos (clases + templates
 6. `datos-socio-form` + adopción en `inscripcion.ts`.
 7. `validacion-estudiantil-modal` + adopción en `reinscripcion.ts`.
 8. Revisión final de toda la rama + gates + merge.
+
+## Ajuste de alcance durante la ejecución
+
+Al leer el markup real de `inscripcion.html` (no solo el inventario
+estructural previo) se encontró que los campos candidatos a
+`datos-socio-form` (nombre...género) SÍ son extraíbles con seguridad, pero el
+textarea de "Comentarios" que originalmente se agrupaba junto a ellos en el
+inventario en realidad vive como celda hermana de foto/huella/paquete dentro
+de un `grid-cols-[...]` de 4 columnas — sacarlo del grid a un componente
+aparte arriesga romper el layout responsivo sin un beneficio real (foto y
+huella, que sí quedan fuera del componente, seguirían siendo celdas
+hermanas). Dado que el usuario pidió explícitamente la opción de **menor
+riesgo**, se decidió NO extraer `datos-socio-form` — el ahorro de líneas era
+además el más chico de los 4 candidatos (~65 líneas, en un solo archivo).
+
+Se completaron 3 de los 4 componentes planeados:
+`entrenador-ra-selector`, `selector-paquete` (ambos usados en los 3 flujos),
+y `validacion-estudiantil-modal` (reinscripcion.ts). `datos-socio-form`
+queda fuera de alcance por la razón anterior.

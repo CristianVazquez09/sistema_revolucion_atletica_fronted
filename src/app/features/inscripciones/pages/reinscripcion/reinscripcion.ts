@@ -33,6 +33,7 @@ import { crearContextoTicket, obtenerNombreCajero } from '../../../../shared/uti
 import { HuellaModal } from '../../../../shared/huella/huella-modal/huella-modal';
 import { EntrenadorRaSelector } from '../../ui/entrenador-ra-selector/entrenador-ra-selector';
 import { SelectorPaquete } from '../../ui/selector-paquete/selector-paquete';
+import { ValidacionEstudiantilModal } from '../../ui/validacion-estudiantil-modal/validacion-estudiantil-modal';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { ReinscripcionStore } from '../../data/reinscripcion-store';
@@ -69,7 +70,7 @@ type Draft = {
   miembrosIds: number[];
 };
 
-type EstudiantilCheck = {
+export type EstudiantilCheck = {
   socioId: number;
   nombre: string;
 
@@ -94,6 +95,7 @@ type EstudiantilCheck = {
     HuellaModal,
     EntrenadorRaSelector,
     SelectorPaquete,
+    ValidacionEstudiantilModal,
   ],
   templateUrl: './reinscripcion.html',
   styleUrl: './reinscripcion.css',
