@@ -328,8 +328,20 @@ export class Reinscripcion implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       // ✅ Decisión de negocio #6 (Fase 5b): clamp a >= 0 también a nivel de
       // UI-input (no solo dentro de calcularTotalMembresia) — un cajero
-      // escribiendo "-50" no debe ni siquiera entrar al estado crudo del store.
-      .subscribe((d) => this.store.establecerDescuento(Math.max(0, Number(d ?? 0))));
+      // escribiendo "-50" no debe ni siquiera entrar al estado crudo del
+      // store. El `min="0"` del <input> no alcanza por sí solo: un input
+      // numérico deja escribir un valor negativo igual, `min` solo marca el
+      // control como inválido sin bloquear la escritura — por eso además de
+      // clampar el store, se reescribe el propio control con el valor ya
+      // clampado (emitEvent:false para no re-disparar este mismo listener),
+      // así el campo no se queda mostrando "-50" mientras por dentro ya vale 0.
+      .subscribe((d) => {
+        const clamped = Math.max(0, Number(d ?? 0));
+        this.store.establecerDescuento(clamped);
+        if (Number(d) !== clamped) {
+          this.form.controls.descuento.setValue(clamped, { emitEvent: false });
+        }
+      });
 
     this.form.controls.fechaInicio.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
