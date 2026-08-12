@@ -113,6 +113,24 @@ describe('TicketService (orquestador)', () => {
       expect(html).not.toContain('TARJETA');
     });
 
+    it('verMembresiaDesdeContexto should delegate to verMembresiaComoHtml (a diferencia de imprimirMembresiaDesdeContexto)', () => {
+      service.verMembresiaDesdeContexto({
+        ctx,
+        folio: '55',
+        socioNombre: 'Ana',
+        paqueteNombre: 'MENSUAL',
+        precioPaquete: 500,
+        descuento: 50,
+        costoInscripcion: 100,
+      });
+
+      expect(print.verComoHtml).toHaveBeenCalledTimes(1);
+      expect(print.abrirYImprimir).not.toHaveBeenCalled();
+      const [html, nombre] = print.verComoHtml.calls.first().args;
+      expect(html).toContain('$550.00');
+      expect(nombre).toBe('ticket-membresia-55.html');
+    });
+
     it('imprimirMembresiaDesdeContexto should compute total = precio + inscripcion - descuento and print two copies', () => {
       service.imprimirMembresiaDesdeContexto({
         ctx,
