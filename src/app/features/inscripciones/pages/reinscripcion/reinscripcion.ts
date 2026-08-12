@@ -48,6 +48,18 @@ import { catchError, finalize } from 'rxjs/operators';
 // ✅ Promos
 import { PromocionData } from 'src/app/shared/models/promocion-data';
 
+// ✅ Fase 5b: cálculo de membresía consolidado (promociones, descuentos,
+// vigencia real y validación estudiantil) — ver
+// docs/superpowers/plans/2026-08-10-fase-5b-calculo-membresia-service.md
+import {
+  elegirMejorPromocion,
+  calcularTotalMembresia,
+  calcularFechaFinConBeneficio,
+  validarPaqueteEstudiantil,
+  calcularEdadDesdeISO,
+  ResultadoValidacionEstudiantil,
+} from '../../data/calculo-membresia';
+
 const STORAGE_KEY_REINSCRIPCION_GRUPAL = 'ra_reinscripcion_grupal_v1';
 
 type Draft = {
@@ -207,52 +219,6 @@ export class Reinscripcion implements OnInit {
       .slice(0, 25);
   });
 
-  private promoEsValidaParaReinscripcion(p: PromocionData): boolean {
-    if (!p) return false;
-    if (p.activo === false) return false;
-
-    // ✅ Reinscripción: NO promos solo nuevos / no inscripción
-    if (p.soloNuevos === true) return false;
-    if (p.sinCostoInscripcion === true) return false;
-
-    return true;
-  }
-
-  private elegirMejorPromo(promos: PromocionData[]): PromocionData | null {
-    const list = (promos ?? []).filter((p) => this.promoEsValidaParaReinscripcion(p));
-    if (!list.length) return null;
-
-    list.sort((a, b) => {
-      const pa = this.num(a.prioridad);
-      const pb = this.num(b.prioridad);
-      if (pa !== pb) return pb - pa;
-      return this.num(b.idPromocion) - this.num(a.idPromocion);
-    });
-
-    return list[0] ?? null;
-  }
-
-  private descuentoDePromo(precioBase: number, promo: PromocionData | null): number {
-    if (!promo) return 0;
-
-    const tipo = String(promo.tipo ?? '').toUpperCase();
-
-    const pct = this.num(promo.descuentoPorcentaje);
-    if (tipo.includes('PORC') && pct > 0) {
-      return this.round2((precioBase * pct) / 100);
-    }
-
-    const monto = this.num(promo.descuentoMonto);
-    if ((tipo.includes('MONTO') || tipo.includes('FIJO') || tipo.includes('CANT')) && monto > 0) {
-      return this.round2(monto);
-    }
-
-    if (pct > 0) return this.round2((precioBase * pct) / 100);
-    if (monto > 0) return this.round2(monto);
-
-    return 0;
-  }
-
   private cargarPromoDePaquete(idPaquete: number): void {
     const id = Number(idPaquete ?? 0);
     if (!id) {
@@ -276,7 +242,14 @@ export class Reinscripcion implements OnInit {
         }),
       )
       .subscribe((promos) => {
-        const best = this.elegirMejorPromo(promos ?? []);
+        // ✅ Decisión de negocio #1 (Fase 5b): selección por `prioridad`
+        // (empate: mayor idPromocion) — esta pantalla ya lo hacía así, no
+        // cambia la selección. Decisión #9: `sinCostoInscripcion: true` ya
+        // NO descalifica la promo por completo (antes se excluía entera).
+        const best = elegirMejorPromocion(promos ?? [], {
+          esRenovacion: true,
+          hoyISO: hoyISO(),
+        });
         this.promocionAplicadaSig.set(best);
       });
   }
@@ -320,7 +293,6 @@ export class Reinscripcion implements OnInit {
   precioPaqueteSig = this.store.precioPaquete;
   totalVistaSig = this.store.totalVista;
   totalSinDescSig = this.store.totalSinDescuento;
-  fechaPagoVistaSig = this.store.fechaPagoVista;
   descuentoSelSig = this.store.descuento;
   fechaInicioSelSig = this.store.fechaInicio;
   paqueteIdSelSig = this.store.paqueteId;
@@ -352,13 +324,32 @@ export class Reinscripcion implements OnInit {
         this.syncPaqueteBusquedaConSeleccion();
       });
 
+    // ✅ Decisión de negocio #6 (Fase 5b): clamp a >= 0. La corrección "en
+    // caliente" mientras el cajero escribe vive en onDescuentoInput() (ligado
+    // a (input)/(blur) en el template, mismo patrón ya usado en
+    // inscripcion.ts/reinscripcion-adelantada.ts — corrige en el mismo evento
+    // de teclado, sin el destello que sí se veía al depender solo de
+    // valueChanges). Este listener queda como respaldo para cambios
+    // programáticos al control (emitEvent:true) que no pasen por
+    // onDescuentoInput.
     this.form.controls.descuento.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((d) => this.store.establecerDescuento(Number(d ?? 0)));
+      .subscribe((d) => this.store.establecerDescuento(Math.max(0, Number(d ?? 0))));
 
     this.form.controls.fechaInicio.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((f) => this.store.establecerFechaInicio(String(f ?? hoyISO())));
+  }
+
+  /** Se llama desde (input) y (blur) del <input> de descuento — mismo patrón
+   * que inscripcion.ts/reinscripcion-adelantada.ts. Corrige el valor negativo
+   * en el mismo evento de teclado (no espera al próximo ciclo de detección de
+   * cambios vía valueChanges), para que el campo nunca llegue a mostrar un
+   * número negativo ni por un instante. */
+  onDescuentoInput(raw: any): void {
+    const clamped = Math.max(0, Number(raw) || 0);
+    this.form.controls.descuento.setValue(clamped, { emitEvent: false });
+    this.store.establecerDescuento(clamped);
   }
 
   // ========= modalidad requerida =========
@@ -406,37 +397,49 @@ export class Reinscripcion implements OnInit {
   });
 
   // =========================
-  // ✅ Cálculos con PROMO (reinscripción)
+  // ✅ Cálculos con PROMO (reinscripción) — vía calculo-membresia.ts
+  // (Fase 5b, decisiones #6/#7/#9). Lectura 100% en vivo, sin snapshot
+  // congelado (mismo criterio que ya usaba esta pantalla — decisión #8).
+  // `costoInscripcion: 0` es intencional: reinscripción nunca cobra costo
+  // de inscripción.
   // =========================
-  promoMesesGratisSig = computed(() => {
-    const p = this.promocionAplicadaSig();
-    return this.num(p?.mesesGratis);
-  });
+  resultadoTotalMembresiaSig = computed(() =>
+    calcularTotalMembresia({
+      precioPaquete: this.num((this.paqueteActualSig() as any)?.precio),
+      costoInscripcion: 0,
+      descuentoManual: this.num(this.descuentoSelSig() ?? 0),
+      promo: this.promocionAplicadaSig() as unknown as PromocionData | null,
+    }),
+  );
 
-  descuentoPromoSig = computed(() => {
-    const paquete: any = this.paqueteActualSig() as any;
-    const base = this.num(paquete?.precio);
-    const promo = this.promocionAplicadaSig();
-    if (!promo || !base) return 0;
-    return this.round2(Math.max(0, this.descuentoDePromo(base, promo)));
-  });
+  promoMesesGratisSig = computed(
+    () => this.resultadoTotalMembresiaSig().beneficioPromo.mesesGratis,
+  );
+
+  descuentoPromoSig = computed(
+    () => this.resultadoTotalMembresiaSig().beneficioPromo.descuentoMonto,
+  );
 
   precioConPromoSig = computed(() => {
-    const paquete: any = this.paqueteActualSig() as any;
-    const base = this.num(paquete?.precio);
-    const dp = this.descuentoPromoSig();
-    return this.round2(Math.max(0, base - dp));
+    const base = this.num((this.paqueteActualSig() as any)?.precio);
+    return this.round2(Math.max(0, base - this.descuentoPromoSig()));
   });
 
-  totalConPromoSig = computed(() => {
-    const descManual = this.num(this.descuentoSelSig() ?? 0);
-    const total = this.precioConPromoSig() - descManual;
-    return this.round2(Math.max(0, total));
-  });
+  totalConPromoSig = computed(() => this.resultadoTotalMembresiaSig().total);
 
-  descuentoTotalSig = computed(() => {
-    return this.round2(this.num(this.descuentoSelSig() ?? 0) + this.descuentoPromoSig());
-  });
+  descuentoTotalSig = computed(() => this.resultadoTotalMembresiaSig().descuentoTotal);
+
+  // ✅ Decisión de negocio #3 + corrección #5 (Fase 5b): fecha de fin de
+  // vigencia REAL (antes `ReinscripcionStore.fechaPagoVista` solo hacía eco
+  // de `fechaInicio` — bug conocido y dejado a propósito en la Fase 5a, no
+  // se toca el store). Extiende por los meses gratis de la promo elegida.
+  fechaFinConBeneficioSig = computed(() =>
+    calcularFechaFinConBeneficio(
+      String(this.store.fechaInicio() ?? ''),
+      (this.paqueteActualSig() as any)?.tiempo ?? null,
+      this.resultadoTotalMembresiaSig().beneficioPromo.mesesGratis,
+    ),
+  );
 
   // =========================
   // ✅ Buscador Paquetes (helpers)
@@ -532,32 +535,37 @@ export class Reinscripcion implements OnInit {
   }
 
   // ✅ ¿Cuándo validar paquete estudiantil?
+  // Decisión de negocio #4 (Fase 5b): SOLO la bandera explícita
+  // `paquete.estudiantil === true` — se elimina la heurística de
+  // nombre/tipoPaquete que tenía esta pantalla (inscripcion.ts nunca la tuvo).
   private requiereValidarEstudiantil(): boolean {
     const p: any = this.paqueteActualSig() as any;
-    if (!p) return false;
-
-    if (p?.estudiantil === true) return true;
-
-    const nombre = String(p?.nombre ?? '').toLowerCase();
-    if (nombre.includes('estudiant')) return true;
-
-    const tipo = String(p?.tipoPaquete ?? p?.tipo ?? '').toUpperCase();
-    if (tipo.includes('ESTUD')) return true;
-
-    return false;
+    return Boolean(p?.estudiantil === true);
   }
 
-  private calcularEdad(fechaNacimientoIso: string | null | undefined): number | null {
-    if (!fechaNacimientoIso) return null;
-
-    const d = new Date(String(fechaNacimientoIso).slice(0, 10) + 'T00:00:00');
-    if (isNaN(d.getTime())) return null;
-
-    const hoy = new Date(this.todayIso() + 'T00:00:00');
-    let edad = hoy.getFullYear() - d.getFullYear();
-    const m = hoy.getMonth() - d.getMonth();
-    if (m < 0 || (m === 0 && hoy.getDate() < d.getDate())) edad--;
-    return edad;
+  // ✅ Fase 5b: valida un socio puntual contra la regla de paquete
+  // estudiantil (calculo-membresia.ts) — usada como el GATE real en los
+  // puntos de confirmación (validarEstudiantilAntesDeContinuar /
+  // continuarDesdeModalEstudiantil). El modal de esta pantalla, a
+  // diferencia de inscripcion.ts (un solo socio, un solo error), es por
+  // integrante y muestra edad/vigencia como campos independientes
+  // editables (generarChecksEstudiantil) — esa granularidad de UI se
+  // conserva porque no mapea 1:1 al resultado combinado valido+motivo de
+  // validarPaqueteEstudiantil, pero ambas rutas usan exactamente el mismo
+  // algoritmo (calcularEdadDesdeISO + comparación de vigencia ISO), así que
+  // no pueden divergir en el resultado.
+  private validarPaqueteEstudiantilDeSocio(socio: any): ResultadoValidacionEstudiantil {
+    return validarPaqueteEstudiantil({
+      esPaqueteEstudiantil: this.requiereValidarEstudiantil(),
+      fechaNacimientoISO: socio?.fechaNacimiento
+        ? String(socio.fechaNacimiento).slice(0, 10)
+        : null,
+      credencialVigenciaISO: socio?.credencialEstudianteVigencia
+        ? String(socio.credencialEstudianteVigencia).slice(0, 10)
+        : null,
+      hoyISO: this.todayIso(),
+      calcularEdad: calcularEdadDesdeISO,
+    });
   }
 
   private esVigenciaEstudianteValida(vigenciaIso: string | null | undefined): boolean {
@@ -577,7 +585,10 @@ export class Reinscripcion implements OnInit {
       const nombre =
         `${(m as any)?.nombre ?? ''} ${(m as any)?.apellido ?? ''}`.trim() || `ID ${id}`;
 
-      const edad = this.calcularEdad((m as any)?.fechaNacimiento);
+      const fechaNacimiento = (m as any)?.fechaNacimiento
+        ? String((m as any).fechaNacimiento).slice(0, 10)
+        : null;
+      const edad = fechaNacimiento ? calcularEdadDesdeISO(fechaNacimiento, this.todayIso()) : null;
       const edadOk = typeof edad === 'number' ? edad <= 22 : false;
       const motivoEdad =
         edad == null
@@ -743,7 +754,11 @@ export class Reinscripcion implements OnInit {
     this.checksEstudiantilModalSig.set(checks);
     this.prepararVigenciasNuevas(checks);
 
-    const hayProblemas = checks.some((c) => !c.edadOk || !c.vigenciaOk);
+    // ✅ Decisión de negocio #4 (Fase 5b): el GATE real usa
+    // validarPaqueteEstudiantil (calculo-membresia.ts) contra cada
+    // integrante — `checks` (edadOk/vigenciaOk por campo) sigue existiendo
+    // solo para el desglose visual del modal, ambos usan el mismo algoritmo.
+    const hayProblemas = miembros.some((m) => !this.validarPaqueteEstudiantilDeSocio(m).valido);
     if (!hayProblemas) {
       next();
       return;
@@ -757,7 +772,8 @@ export class Reinscripcion implements OnInit {
     const checks = this.generarChecksEstudiantil();
     this.checksEstudiantilModalSig.set(checks);
 
-    const hayProblemas = checks.some((c) => !c.edadOk || !c.vigenciaOk);
+    const miembros = this.miembrosSig() ?? [];
+    const hayProblemas = miembros.some((m) => !this.validarPaqueteEstudiantilDeSocio(m).valido);
     if (hayProblemas) {
       this.notify.aviso('Aún hay pendientes en la validación estudiantil.');
       return;

@@ -290,9 +290,12 @@
             <input
               type="number"
               step="0.01"
+              min="0"
               formControlName="descuento"
               class="input-filled"
               placeholder="0.00"
+              (input)="onDescuentoInput($any($event.target).value)"
+              (blur)="onDescuentoInput($any($event.target).value)"
             />
             <div class="text-ra-slate/70 mt-1 text-xs">
               En reinscripción, el descuento manual se suma al descuento de promoción (si aplica).
@@ -455,7 +458,7 @@
           <div>
             <label class="mb-1 block text-sm font-medium">Fecha de pago</label>
             <div class="input-filled pointer-events-none bg-gray-100 select-none">
-              {{ fechaPagoVistaSig() | date: 'dd/MM/yyyy' }}
+              {{ fechaFinConBeneficioSig() | date: 'dd/MM/yyyy' }}
             </div>
           </div>
 
@@ -645,7 +648,7 @@
       <div class="relative z-10 mx-4 w-full max-w-[560px]" (click)="$event.stopPropagation()">
         <app-resumen-compra
           [socioNombre]="socioCobrandoNombreSig()"
-          [fechaPago]="fechaPagoVistaSig()"
+          [fechaPago]="fechaFinConBeneficioSig()"
           [concepto]="conceptoResumenSig()"
           [montoPaquete]="precioConPromoSig()"
           [montoInscripcion]="0"
