@@ -130,7 +130,6 @@ interface InscripcionDraft {
     ReactiveFormsModule,
     RouterLink,
     ResumenCompra,
-    TiempoPlanLabelPipe,
     HuellaModal,
     EntrenadorRaSelector,
     SelectorPaquete,
