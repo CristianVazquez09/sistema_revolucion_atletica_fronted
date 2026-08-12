@@ -16,7 +16,6 @@ import { NotificacionService } from 'src/app/core/layout/notificacion-service';
 import { GimnasioService } from 'src/app/shared/data/gimnasio-service';
 import { TicketService, VentaContexto } from 'src/app/shared/ticket/ticket-service';
 import { JwtHelperService } from '@auth0/angular-jwt';
-import { EntrenadorService } from 'src/app/features/asesorias/data/entrenador-service';
 
 import { SocioData } from 'src/app/shared/models/socio-data';
 import { MembresiaData, PagoData } from 'src/app/shared/models/membresia-data';
@@ -50,6 +49,8 @@ import {
   HuellaModal,
   HuellaResultado,
 } from '../../../../../shared/huella/huella-modal/huella-modal';
+import { EntrenadorRaSelector } from '../../../ui/entrenador-ra-selector/entrenador-ra-selector';
+import { SelectorPaquete } from '../../../ui/selector-paquete/selector-paquete';
 
 // ✅ Asesoría Nutricional (nuevo endpoint estado)
 import {
@@ -102,6 +103,8 @@ type MiembroSlot = {
     ResumenCompra,
     TiempoPlanLabelPipe,
     HuellaModal,
+    EntrenadorRaSelector,
+    SelectorPaquete,
   ],
   templateUrl: './reinscripcion-adelantada.html',
   styleUrl: './reinscripcion-adelantada.css',
@@ -127,17 +130,15 @@ export class ReinscripcionAdelantada implements OnInit {
   private gymSrv = inject(GimnasioService);
   private ticket = inject(TicketService);
   private jwt = inject(JwtHelperService);
-  private entrenadorSrv = inject(EntrenadorService);
 
   // Contexto ticket
   gym: GimnasioData | null = null;
   cajero = 'Cajero';
 
   // =========================
-  // ✅ Entrenador RA
+  // ✅ Entrenador RA (carga/lista vive en app-entrenador-ra-selector)
   // =========================
   entrenadoresRASig = signal<EntrenadorData[]>([]);
-  cargandoEntrenadoresSig = signal(false);
   entrenadorRAIdSig = signal<number | null>(null);
 
   esPaqueteRASig = computed(() => Boolean((this.paqueteActualSig() as any)?.esRA === true));
@@ -746,46 +747,9 @@ export class ReinscripcionAdelantada implements OnInit {
     this.paqueteDropdownAbiertoSig.set(false);
   }
 
-  // ===================== Entrenador RA =====================
-  private cargarEntrenadoresRA(): void {
-    this.cargandoEntrenadoresSig.set(true);
-    this.entrenadorSrv.buscarTodos().subscribe({
-      next: (lista) => {
-        const seen = new Set<number>();
-        const activos = (lista ?? [])
-          .filter((e: any) => e?.activo !== false)
-          .map(
-            (e: any) =>
-              ({
-                idEntrenador: Number(e?.idEntrenador ?? e?.id ?? 0),
-                nombre: String(e?.nombre ?? ''),
-                apellido: String(e?.apellido ?? ''),
-                activo: e?.activo !== false,
-                gimnasio: e?.gimnasio,
-              }) as EntrenadorData,
-          )
-          .filter((e) => {
-            if (!e.idEntrenador) return false;
-            if (seen.has(e.idEntrenador)) return false;
-            seen.add(e.idEntrenador);
-            return true;
-          });
-        this.entrenadoresRASig.set(activos);
-        this.cargandoEntrenadoresSig.set(false);
-      },
-      error: () => this.cargandoEntrenadoresSig.set(false),
-    });
-  }
-
-  onEntrenadorRAChange(value: string): void {
-    const id = Number(value);
-    this.entrenadorRAIdSig.set(id > 0 ? id : null);
-  }
-
   // ===================== Lifecycle =====================
   ngOnInit(): void {
     this.cargarContextoDesdeToken();
-    this.cargarEntrenadoresRA();
 
     // ✅ init signals
     this.paqueteIdSig.set(Number(this.form.controls.paqueteId.value ?? 0));

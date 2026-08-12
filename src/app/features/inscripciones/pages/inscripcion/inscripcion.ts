@@ -29,13 +29,14 @@ import {
 
 import { ResumenCompra } from '../../../../shared/ui/resumen-compra/resumen-compra';
 import { HuellaModal } from '../../../../shared/huella/huella-modal/huella-modal';
+import { EntrenadorRaSelector } from '../../ui/entrenador-ra-selector/entrenador-ra-selector';
+import { SelectorPaquete } from '../../ui/selector-paquete/selector-paquete';
 
 import { PaqueteService } from '../../../administracion/data/paquete-service';
 import { MembresiaService } from '../../../../shared/data/membresia-service';
 import { NotificacionService } from '../../../../core/layout/notificacion-service';
 import { GimnasioService } from '../../../../shared/data/gimnasio-service';
 import { TicketService, VentaContexto } from '../../../../shared/ticket/ticket-service';
-import { EntrenadorService } from '../../../asesorias/data/entrenador-service';
 
 import { PaqueteData } from '../../../../shared/models/paquete-data';
 import { SocioData } from '../../../../shared/models/socio-data';
@@ -129,8 +130,9 @@ interface InscripcionDraft {
     ReactiveFormsModule,
     RouterLink,
     ResumenCompra,
-    TiempoPlanLabelPipe,
     HuellaModal,
+    EntrenadorRaSelector,
+    SelectorPaquete,
   ],
   templateUrl: './inscripcion.html',
   styleUrl: './inscripcion.css',
@@ -150,16 +152,14 @@ export class Inscripcion implements OnInit {
   private ticket = inject(TicketService);
   private jwt = inject(JwtHelperService);
   private store = inject(InscripcionStore);
-  private entrenadorSrv = inject(EntrenadorService);
 
   gym: GimnasioData | null = null;
   cajero = 'Cajero';
 
   // =========================
-  // ✅ Entrenador RA
+  // ✅ Entrenador RA (carga/lista vive en app-entrenador-ra-selector)
   // =========================
   entrenadoresRASig = signal<EntrenadorData[]>([]);
-  cargandoEntrenadoresSig = signal(false);
   entrenadorRAIdSig = signal<number | null>(null);
 
   esPaqueteRASig = computed(() => Boolean((this.paqueteActualSig() as any)?.esRA === true));
@@ -467,7 +467,6 @@ export class Inscripcion implements OnInit {
     this.cargarContextoDesdeToken();
     this.cargarBorradorDesdeStorage(); // ✅ rehidrata FORM + STORE
     this.cargarPaquetes();
-    this.cargarEntrenadoresRA();
 
     // ✅ si el store tiene paqueteId, sincronízalo al FORM
     effect(
@@ -819,41 +818,6 @@ export class Inscripcion implements OnInit {
         this.bumpFormTick();
       },
     });
-  }
-
-  private cargarEntrenadoresRA(): void {
-    this.cargandoEntrenadoresSig.set(true);
-    this.entrenadorSrv.buscarTodos().subscribe({
-      next: (lista) => {
-        const seen = new Set<number>();
-        const activos = (lista ?? [])
-          .filter((e: any) => e?.activo !== false)
-          .map(
-            (e: any) =>
-              ({
-                idEntrenador: Number(e?.idEntrenador ?? e?.id ?? 0),
-                nombre: String(e?.nombre ?? ''),
-                apellido: String(e?.apellido ?? ''),
-                activo: e?.activo !== false,
-                gimnasio: e?.gimnasio,
-              }) as EntrenadorData,
-          )
-          .filter((e) => {
-            if (!e.idEntrenador) return false;
-            if (seen.has(e.idEntrenador)) return false;
-            seen.add(e.idEntrenador);
-            return true;
-          });
-        this.entrenadoresRASig.set(activos);
-        this.cargandoEntrenadoresSig.set(false);
-      },
-      error: () => this.cargandoEntrenadoresSig.set(false),
-    });
-  }
-
-  onEntrenadorRAChange(value: string): void {
-    const id = Number(value);
-    this.entrenadorRAIdSig.set(id > 0 ? id : null);
   }
 
   socioNombreActual(): string {

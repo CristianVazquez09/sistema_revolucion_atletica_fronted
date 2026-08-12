@@ -1,0 +1,129 @@
+@if (visible()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center" (click)="cerrar.emit()">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-[2px]"></div>
+
+    <div class="relative z-10 mx-4 w-full max-w-[760px]" (click)="$event.stopPropagation()">
+      <div class="rounded-xl2 shadow-card bg-white p-4 ring-1 ring-black/10">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="text-ra-slate text-lg font-semibold">Validación paquete estudiantil</div>
+            <div class="text-ra-slate/70 text-sm">
+              Antes de cobrar, revisa <span class="font-semibold">vigencia de credencial</span> y
+              <span class="font-semibold">edad (≤ 22)</span>.
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-50"
+            (click)="cerrar.emit()"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div class="mt-4 space-y-3">
+          @for (c of checks(); track c.socioId) {
+            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+              <div class="flex items-center justify-between gap-3">
+                <div class="text-ra-slate font-semibold">{{ c.nombre }}</div>
+
+                @if (c.edadOk && c.vigenciaOk) {
+                  <span class="rounded-full bg-green-100 px-2 py-1 text-xs text-green-800">OK</span>
+                } @else {
+                  <span class="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-800"
+                    >Pendiente</span
+                  >
+                }
+              </div>
+
+              <div class="text-ra-slate/70 mt-1 space-y-1 text-xs">
+                <div>
+                  Edad:
+                  @if (c.edad != null) {
+                    <span class="font-semibold">{{ c.edad }}</span>
+                  } @else {
+                    <span class="font-semibold">—</span>
+                  }
+
+                  @if (!c.edadOk && c.motivoEdad) {
+                    <span class="ml-2 text-amber-800">{{ c.motivoEdad }}</span>
+                  }
+                </div>
+
+                <div>
+                  Credencial:
+                  @if (c.vigencia) {
+                    <span class="font-semibold">{{ c.vigencia }}</span>
+                  } @else {
+                    <span class="font-semibold">—</span>
+                  }
+
+                  @if (!c.vigenciaOk && c.motivoVigencia) {
+                    <span class="ml-2 text-amber-800">{{ c.motivoVigencia }}</span>
+                  }
+                </div>
+              </div>
+
+              @if (!c.vigenciaOk) {
+                <div class="mt-3 grid grid-cols-1 items-end gap-2 sm:grid-cols-[1fr_auto]">
+                  <div>
+                    <label class="mb-1 block text-xs font-medium">Nueva vigencia</label>
+                    <input
+                      type="date"
+                      class="input-filled"
+                      [min]="today()"
+                      [value]="vigenciaDe(c.socioId)"
+                      (input)="onVigenciaInput(c.socioId, $any($event.target).value)"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    class="btn-primary-red"
+                    (click)="guardarVigencia.emit(c.socioId)"
+                    [disabled]="guardandoDe(c.socioId)"
+                  >
+                    {{ guardandoDe(c.socioId) ? 'Guardando…' : 'Guardar vigencia' }}
+                  </button>
+                </div>
+              }
+
+              @if (!c.edadOk) {
+                <div class="text-ra-slate/70 mt-2 text-xs">
+                  Para continuar, cambia a un paquete no estudiantil o corrige la fecha de
+                  nacimiento si está mal registrada.
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mt-4 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm hover:bg-gray-50"
+            (click)="cerrar.emit()"
+          >
+            Cerrar
+          </button>
+
+          <button
+            type="button"
+            class="btn-primary-red"
+            (click)="continuar.emit()"
+            [disabled]="!puedeContinuar()"
+          >
+            Continuar con el pago
+          </button>
+        </div>
+
+        @if (!puedeContinuar()) {
+          <div class="mt-2 text-xs text-amber-800">
+            Aún hay pendientes. Corrige la vigencia y/o la edad antes de continuar.
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
