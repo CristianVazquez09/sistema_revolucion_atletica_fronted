@@ -294,6 +294,8 @@
               formControlName="descuento"
               class="input-filled"
               placeholder="0.00"
+              (input)="onDescuentoInput($any($event.target).value)"
+              (blur)="onDescuentoInput($any($event.target).value)"
             />
             <div class="text-ra-slate/70 mt-1 text-xs">
               En reinscripción, el descuento manual se suma al descuento de promoción (si aplica).
