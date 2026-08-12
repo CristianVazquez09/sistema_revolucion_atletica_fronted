@@ -50,6 +50,7 @@ import {
   HuellaResultado,
 } from '../../../../../shared/huella/huella-modal/huella-modal';
 import { EntrenadorRaSelector } from '../../../ui/entrenador-ra-selector/entrenador-ra-selector';
+import { SelectorPaquete } from '../../../ui/selector-paquete/selector-paquete';
 
 // ✅ Asesoría Nutricional (nuevo endpoint estado)
 import {
@@ -103,6 +104,7 @@ type MiembroSlot = {
     TiempoPlanLabelPipe,
     HuellaModal,
     EntrenadorRaSelector,
+    SelectorPaquete,
   ],
   templateUrl: './reinscripcion-adelantada.html',
   styleUrl: './reinscripcion-adelantada.css',

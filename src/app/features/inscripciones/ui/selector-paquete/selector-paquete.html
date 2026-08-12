@@ -1,0 +1,69 @@
+<div class="relative">
+  <input
+    type="text"
+    class="input-filled w-full pr-10"
+    [placeholder]="placeholder()"
+    [value]="busqueda()"
+    (focus)="abrirDropdown.emit()"
+    (input)="onInput($any($event.target).value)"
+    [disabled]="bloqueado() || cargando()"
+  />
+
+  @if (!bloqueado() && !cargando() && busqueda()) {
+    <button
+      type="button"
+      class="absolute top-1/2 right-2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md hover:bg-gray-100"
+      title="Limpiar"
+      (click)="onLimpiar($event)"
+    >
+      ✕
+    </button>
+  }
+
+  @if (abierto() && !bloqueado() && !cargando()) {
+    <div
+      class="rounded-xl2 shadow-card absolute z-50 mt-1 w-full overflow-hidden border border-gray-200 bg-white"
+    >
+      <div class="max-h-[280px] overflow-auto">
+        @if (buscando()) {
+          <div class="text-ra-slate/70 px-3 py-2 text-sm">Buscando…</div>
+        } @else if (errorBusqueda()) {
+          <div class="px-3 py-2 text-sm text-red-700">
+            {{ errorBusqueda() }}
+          </div>
+        } @else if (paquetes().length === 0) {
+          <div class="text-ra-slate/70 px-3 py-2 text-sm">Sin resultados.</div>
+        } @else {
+          @for (p of paquetes(); track p.idPaquete) {
+            <button
+              type="button"
+              class="w-full border-b border-gray-100 px-3 py-2 text-left last:border-b-0 hover:bg-gray-50"
+              (click)="onSeleccionar(p, $event)"
+            >
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="text-ra-slate truncate font-semibold">
+                    {{ p.nombre }}
+                  </div>
+                  <div class="text-ra-slate/70 mt-0.5 text-[11px]">
+                    {{ p.tiempo | tiempoPlan }}
+                    @if (mostrarDetalle()) {
+                      · {{ modalidadTexto(p.modalidad) }}
+                      @if (p.estudiantil) {
+                        · Estudiantil
+                      }
+                    }
+                  </div>
+                </div>
+
+                <div class="text-ra-slate text-sm font-semibold whitespace-nowrap">
+                  ${{ p.precio || 0 | number: '1.2-2' }}
+                </div>
+              </div>
+            </button>
+          }
+        }
+      </div>
+    </div>
+  }
+</div>

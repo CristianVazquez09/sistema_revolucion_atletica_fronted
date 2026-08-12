@@ -30,6 +30,7 @@ import {
 import { ResumenCompra } from '../../../../shared/ui/resumen-compra/resumen-compra';
 import { HuellaModal } from '../../../../shared/huella/huella-modal/huella-modal';
 import { EntrenadorRaSelector } from '../../ui/entrenador-ra-selector/entrenador-ra-selector';
+import { SelectorPaquete } from '../../ui/selector-paquete/selector-paquete';
 
 import { PaqueteService } from '../../../administracion/data/paquete-service';
 import { MembresiaService } from '../../../../shared/data/membresia-service';
@@ -132,6 +133,7 @@ interface InscripcionDraft {
     TiempoPlanLabelPipe,
     HuellaModal,
     EntrenadorRaSelector,
+    SelectorPaquete,
   ],
   templateUrl: './inscripcion.html',
   styleUrl: './inscripcion.css',

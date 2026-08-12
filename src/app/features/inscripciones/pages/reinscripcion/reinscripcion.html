@@ -155,63 +155,17 @@
 
             <label class="mb-1 block text-sm font-medium">Paquete</label>
 
-            <div class="relative">
-              <input
-                type="text"
-                class="input-filled w-full pr-10"
-                placeholder="Escribe para buscar paquete…"
-                [value]="paqueteBusquedaSig()"
-                (focus)="abrirDropdownPaquetes()"
-                (input)="onPaqueteBusquedaChange($any($event.target).value)"
-                [disabled]="paqueteBloqueadoSig() || cargandoPaquetes"
-              />
-
-              @if (!paqueteBloqueadoSig() && !cargandoPaquetes && paqueteBusquedaSig()) {
-                <button
-                  type="button"
-                  class="absolute top-1/2 right-2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-md hover:bg-gray-100"
-                  title="Limpiar"
-                  (click)="limpiarPaqueteSeleccionado($event)"
-                >
-                  ✕
-                </button>
-              }
-
-              @if (paqueteDropdownAbiertoSig() && !paqueteBloqueadoSig() && !cargandoPaquetes) {
-                <div
-                  class="rounded-xl2 shadow-card absolute z-50 mt-1 w-full overflow-hidden border border-gray-200 bg-white"
-                >
-                  <div class="max-h-[280px] overflow-auto">
-                    @if (paquetesSugeridosSig().length === 0) {
-                      <div class="text-ra-slate/70 px-3 py-2 text-sm">Sin resultados.</div>
-                    } @else {
-                      @for (p of paquetesSugeridosSig(); track p.idPaquete) {
-                        <button
-                          type="button"
-                          class="w-full border-b border-gray-100 px-3 py-2 text-left last:border-b-0 hover:bg-gray-50"
-                          (click)="seleccionarPaqueteDesdeBusqueda(p, $event)"
-                        >
-                          <div class="flex items-start justify-between gap-2">
-                            <div class="min-w-0">
-                              <div class="text-ra-slate truncate font-semibold">
-                                {{ p.nombre }}
-                              </div>
-                              <div class="text-ra-slate/70 mt-0.5 text-[11px]">
-                                {{ p.tiempo | tiempoPlan }}
-                              </div>
-                            </div>
-
-                            <div class="text-ra-slate text-sm font-semibold whitespace-nowrap">
-                              ${{ p.precio || 0 | number: '1.2-2' }}
-                            </div>
-                          </div>
-                        </button>
-                      }
-                    }
-                  </div>
-                </div>
-              }
-            </div>
+            <app-selector-paquete
+              [paquetes]="paquetesSugeridosSig()"
+              [busqueda]="paqueteBusquedaSig()"
+              [abierto]="paqueteDropdownAbiertoSig()"
+              [bloqueado]="paqueteBloqueadoSig()"
+              [cargando]="cargandoPaquetes"
+              (busquedaChange)="onPaqueteBusquedaChange($event)"
+              (abrirDropdown)="abrirDropdownPaquetes()"
+              (seleccionar)="seleccionarPaqueteDesdeBusqueda($event)"
+              (limpiar)="limpiarPaqueteSeleccionado($event)"
+            />
 
             @if (paqueteBloqueadoSig()) {
               <div class="mt-1 flex items-center justify-between">

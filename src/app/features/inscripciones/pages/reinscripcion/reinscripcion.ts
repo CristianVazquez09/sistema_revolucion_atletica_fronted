@@ -32,6 +32,7 @@ import { crearContextoTicket, obtenerNombreCajero } from '../../../../shared/uti
 // Huella
 import { HuellaModal } from '../../../../shared/huella/huella-modal/huella-modal';
 import { EntrenadorRaSelector } from '../../ui/entrenador-ra-selector/entrenador-ra-selector';
+import { SelectorPaquete } from '../../ui/selector-paquete/selector-paquete';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { ReinscripcionStore } from '../../data/reinscripcion-store';
@@ -92,6 +93,7 @@ type EstudiantilCheck = {
     TiempoPlanLabelPipe,
     HuellaModal,
     EntrenadorRaSelector,
+    SelectorPaquete,
   ],
   templateUrl: './reinscripcion.html',
   styleUrl: './reinscripcion.css',
