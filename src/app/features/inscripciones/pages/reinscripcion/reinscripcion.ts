@@ -10,7 +10,6 @@ import { SocioService } from '../../../socios/data/socio-service';
 import { MembresiaService } from '../../../../shared/data/membresia-service';
 import { NotificacionService } from '../../../../core/layout/notificacion-service';
 import { PaqueteService } from '../../../administracion/data/paquete-service';
-import { EntrenadorService } from '../../../asesorias/data/entrenador-service';
 
 import { SocioData } from '../../../../shared/models/socio-data';
 import { PagoData } from '../../../../shared/models/membresia-data';
@@ -32,6 +31,7 @@ import { crearContextoTicket, obtenerNombreCajero } from '../../../../shared/uti
 
 // Huella
 import { HuellaModal } from '../../../../shared/huella/huella-modal/huella-modal';
+import { EntrenadorRaSelector } from '../../ui/entrenador-ra-selector/entrenador-ra-selector';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { ReinscripcionStore } from '../../data/reinscripcion-store';
@@ -91,6 +91,7 @@ type EstudiantilCheck = {
     ResumenCompra,
     TiempoPlanLabelPipe,
     HuellaModal,
+    EntrenadorRaSelector,
   ],
   templateUrl: './reinscripcion.html',
   styleUrl: './reinscripcion.css',
@@ -109,7 +110,6 @@ export class Reinscripcion implements OnInit {
   private gymSrv = inject(GimnasioService);
   private ticket = inject(TicketService);
   private jwt = inject(JwtHelperService);
-  private entrenadorSrv = inject(EntrenadorService);
 
   private store = inject(ReinscripcionStore);
 
@@ -117,10 +117,9 @@ export class Reinscripcion implements OnInit {
   private asesoriaSrv = inject(AsesoriaNutricionalService);
 
   // =========================
-  // ✅ Entrenador RA
+  // ✅ Entrenador RA (carga/lista vive en app-entrenador-ra-selector)
   // =========================
   entrenadoresRASig = signal<EntrenadorData[]>([]);
-  cargandoEntrenadoresSig = signal(false);
   entrenadorRAIdSig = signal<number | null>(null);
 
   esPaqueteRASig = computed(() => Boolean((this.paqueteActualSig() as any)?.esRA === true));
@@ -797,7 +796,6 @@ export class Reinscripcion implements OnInit {
   ngOnInit(): void {
     this.cargarContextoDesdeToken();
     this.cargarDraft();
-    this.cargarEntrenadoresRA();
 
     this.idSocio = Number(this.route.snapshot.paramMap.get('id'));
     if (!this.idSocio) {
@@ -1396,41 +1394,6 @@ export class Reinscripcion implements OnInit {
       referencia: resp?.referencia,
       entrenadorNombre,
     });
-  }
-
-  private cargarEntrenadoresRA(): void {
-    this.cargandoEntrenadoresSig.set(true);
-    this.entrenadorSrv.buscarTodos().subscribe({
-      next: (lista) => {
-        const seen = new Set<number>();
-        const activos = (lista ?? [])
-          .filter((e: any) => e?.activo !== false)
-          .map(
-            (e: any) =>
-              ({
-                idEntrenador: Number(e?.idEntrenador ?? e?.id ?? 0),
-                nombre: String(e?.nombre ?? ''),
-                apellido: String(e?.apellido ?? ''),
-                activo: e?.activo !== false,
-                gimnasio: e?.gimnasio,
-              }) as EntrenadorData,
-          )
-          .filter((e) => {
-            if (!e.idEntrenador) return false;
-            if (seen.has(e.idEntrenador)) return false;
-            seen.add(e.idEntrenador);
-            return true;
-          });
-        this.entrenadoresRASig.set(activos);
-        this.cargandoEntrenadoresSig.set(false);
-      },
-      error: () => this.cargandoEntrenadoresSig.set(false),
-    });
-  }
-
-  onEntrenadorRAChange(value: string): void {
-    const id = Number(value);
-    this.entrenadorRAIdSig.set(id > 0 ? id : null);
   }
 
   private limpiarTodo(): void {
